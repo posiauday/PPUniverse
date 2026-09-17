@@ -1,0 +1,26 @@
+ID,Epic,Story,Priority,Requirement,Acceptance Summary,Dependencies
+MVP-001,Foundation,Repository and CI baseline,P0,NFR-007,"Build, lint, type, test and scan run in CI",None
+MVP-002,Identity,Account registration and session,P0,FR-004,"Verified account can sign in/out and manage sessions",MVP-001
+MVP-003,Catalog,Taxonomy and catalog pages,P0,FR-001,"Indexable category and product listing pages render",MVP-001
+MVP-004,Catalog,Search filter sort and zero results,P0,FR-002,"Filters are shareable, accessible and analytically tracked",MVP-003
+MVP-005,Catalog,Product detail evidence model,P0,FR-003,"All required license/version/support/compatibility fields display",MVP-003
+MVP-006,Files,Quarantine scan and private storage,P0,FR-007,"Unscanned or rejected file cannot be delivered",MVP-001
+MVP-007,Commerce,Checkout session,P0,FR-006,"Price is server-derived and checkout is idempotent",MVP-002;MVP-005
+MVP-008,Commerce,Verified webhook fulfillment,P0,FR-006,"Signature and duplicate event tests pass",MVP-007
+MVP-009,Entitlements,Authorized signed downloads,P0,FR-007,"Only entitled users receive expiring URL",MVP-006;MVP-008
+MVP-010,Free assets,Free entitlement flow,P0,FR-005,"Policy creates entitlement and download record",MVP-002;MVP-006
+MVP-011,Creator,Creator application,P0,FR-008,"Applicant accepts agreement and enters review",MVP-002
+MVP-012,Creator,Product and release editor,P0,FR-009,"Draft validates all mandatory submission fields",MVP-006;MVP-011
+MVP-013,Moderation,Submission review queue,P0,FR-010,"Reviewer can approve/request changes/reject with reason",MVP-012
+MVP-014,Publishing,Immutable published releases,P0,FR-011,"Published files cannot be replaced",MVP-013
+MVP-015,Account,Library orders and saved items,P1,FR-013,"User can access entitled products and preferences",MVP-009
+MVP-016,Reviews,Verified reviews and replies,P1,FR-012,"Only qualifying users can review; moderation exists",MVP-009
+MVP-017,Content,Tutorials collections learning paths,P1,FR-014,"Editor can publish indexable structured content",MVP-003
+MVP-018,Notifications,Transactional email and preferences,P1,FR-013,"Required messages send and optional messages respect preference",MVP-002
+MVP-019,Admin,Operations console and audit,P0,FR-015,"Sensitive actions are authorized and auditable",MVP-013
+MVP-020,Privacy,Consent legal deletion workflow,P0,FR-004,"Consent and deletion request are recorded",MVP-002
+MVP-021,SEO,Metadata sitemap canonical structured data,P0,FR-017,"Indexable pages emit valid metadata and sitemap",MVP-005
+MVP-022,Observability,Logs traces metrics and alerts,P0,NFR-007,"Critical journeys have correlation and runbooks",MVP-001
+MVP-023,Accessibility,Manual and automated accessibility gate,P0,NFR-001,"Core journeys meet defined WCAG gate",MVP-003
+MVP-024,Support,Support case workflow,P1,FR-018,"Case links to user/product/order/version",MVP-019
+MVP-025,Launch,End-to-end launch gate,P0,MVP Release,"Free and paid golden paths, restore and incident tests pass",All P0

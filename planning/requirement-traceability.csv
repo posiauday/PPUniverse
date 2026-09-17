@@ -1,0 +1,10 @@
+Requirement,Business Objective,Design Artifact,Backlog,Test Evidence,Status
+FR-001,Acquisition,IA,MVP-003,E2E catalog,TBD
+FR-002,Discovery,IA,MVP-004,E2E search,TBD
+FR-003,Trust,PRD/UX,MVP-005,E2E product detail,TBD
+FR-006,Revenue,TRD/API,MVP-007;MVP-008,Webhook integration,TBD
+FR-007,Trust/Security,Security/API,MVP-006;MVP-009,Authorization/security,TBD
+FR-008,Supply,Marketplace Ops,MVP-011,E2E creator application,TBD
+FR-010,Quality,Marketplace Ops,MVP-013,E2E moderation,TBD
+NFR-001,Accessibility,UX/Test,MVP-023,Automated + manual,TBD
+NFR-007,Reliability,TRD/DevOps,MVP-022;MVP-025,Restore/incident,TBD
