@@ -1,0 +1,33 @@
+// Versioning and files domain (docs/06-data-model.md). Only FileScan is
+// modeled for MVP-006 — ReleaseFile/Release/ChangelogEntry/Download/
+// SignedDownloadGrant belong to the stories that need them (MVP-009,
+// MVP-012, MVP-014), which attach an already-CLEAN FileScan to a release.
+
+enum FileScanStatus {
+  UPLOADED
+  QUARANTINED
+  SCANNING
+  CLEAN
+  REJECTED
+  OVERRIDDEN
+}
+
+model FileScan {
+  id               String         @id @default(cuid())
+  storageKey       String         @unique
+  originalFilename String
+  declaredMimeType String
+  detectedMimeType String?
+  sizeBytes        Int
+  status           FileScanStatus @default(UPLOADED)
+  rejectionReason  String?
+  uploadedByUserId String
+  uploadedBy       User           @relation(fields: [uploadedByUserId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  scanStartedAt    DateTime?
+  scanCompletedAt  DateTime?
+
+  @@index([uploadedByUserId])
+  @@map("file_scans")
+}

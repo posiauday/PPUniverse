@@ -1,0 +1,19 @@
+node_modules
+.next
+dist
+build
+.turbo
+coverage
+pnpm-lock.yaml
+packages/db/src/generated
+
+# Governance-gated documents and planning artifacts are formatted/approved
+# through their own change-control process (docs/00-document-index.md), not
+# this code formatter. Scope formatting to source code only.
+docs/
+planning/
+prompts/
+schemas/
+.claude/
+CLAUDE.md
+README.md

@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/domain/*"
+  - "packages/adapters/*"
+allowBuilds:
+  "@prisma/engines": true
+  prisma: true
+overrides:
+  # Vulnerable transitive deps of the `prisma` CLI itself (devDependency,
+  # build-time only) — see planning/tech-debt/TD-002.md.
+  mysql2: ">=3.22.0"
+  deepmerge-ts: ">=8.0.0"
