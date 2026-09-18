@@ -2,10 +2,10 @@ Requirement,Business Objective,Design Artifact,Backlog,Test Evidence,Status
 FR-001,Acquisition,IA,MVP-003,E2E catalog,TBD
 FR-002,Discovery,IA,MVP-004,E2E search,TBD
 FR-003,Trust,PRD/UX,MVP-005,E2E product detail,TBD
-FR-004,Activation,PRD/Security,MVP-002;MVP-020,"Unit tests (session authorization, repository) pass; schema/constraints verified against real Postgres; integration test suite not yet run (no DB in this environment) — MVP-020 (consent/deletion) not started",Partially Implemented - MVP-002 in QA pending integration-test verification; MVP-020 TBD
+FR-004,Activation,PRD/Security,MVP-002;MVP-020,"MVP-002: unit + integration tests pass in CI (real Postgres via service container) — session sign-in/out, self-service session list/revoke, deny-by-default authorization. MVP-020 (consent/deletion) not started",Partially Implemented - MVP-002 Done; MVP-020 TBD
 FR-005,Activation,PRD,MVP-010,E2E free entitlement,TBD
 FR-006,Revenue,TRD/API,MVP-007;MVP-008,Webhook integration,TBD
-FR-007,Trust/Security,Security/API,MVP-006;MVP-009,"Unit tests pass (state machine, deliverability, upload policy, magic-byte detection); file_scans schema/constraints verified against real Postgres; storage/scan/DB integration test suites not yet run (no Docker in this environment) — MVP-009 (signed downloads) not started",Partially Implemented - MVP-006 in QA pending integration-test verification; MVP-009 TBD
+FR-007,Trust/Security,Security/API,MVP-006;MVP-009,"MVP-006: unit + integration tests pass in CI (real Postgres/MinIO/ClamAV service containers) — quarantine state machine, deliverability gate, upload policy, magic-byte detection, Prisma/S3/ClamAV adapters. MVP-009 (signed downloads) not started",Partially Implemented - MVP-006 Done; MVP-009 TBD
 FR-008,Supply,Marketplace Ops,MVP-011,E2E creator application,TBD
 FR-009,Supply,Marketplace Ops/Data model,MVP-012,Editor field-validation tests,TBD
 FR-010,Quality,Marketplace Ops,MVP-013,E2E moderation,TBD
@@ -18,7 +18,7 @@ FR-016,Product analytics,Security/Privacy,GAP - no backlog story references FR-0
 FR-017,Acquisition,IA,MVP-021,SEO metadata/sitemap tests,TBD
 FR-018,Retention/Trust,Marketplace Ops,MVP-024,E2E support case,TBD
 NFR-001,Accessibility,UX/Test,MVP-023,Automated + manual,TBD
-NFR-002,Security,Security,Cross-cutting (all stories),"MVP-002: session-ownership deny-by-default unit tests pass (5 tests: not-found/not-owner/is-current-session denial paths); other stories TBD",Partially Implemented - MVP-002 contributes first evidence; remaining stories TBD
+NFR-002,Security,Security,Cross-cutting (all stories),"MVP-002: session-ownership deny-by-default tests pass (5 tests: not-found/not-owner/is-current-session denial paths). MVP-006: file-ownership checks, fail-closed scan verdicts. Both verified in CI against real infrastructure. Other stories TBD",Partially Implemented - MVP-002/MVP-006 contribute verified evidence; remaining stories TBD
 NFR-003,Reliability/Security,TRD/Security,MVP-007;MVP-008,Webhook idempotency/signature tests,TBD
 NFR-004,SEO/Performance,TRD,MVP-003;MVP-021,Rendering/performance tests,TBD
 NFR-005,UX quality,UX,Cross-cutting (all stories),UX state review,TBD
