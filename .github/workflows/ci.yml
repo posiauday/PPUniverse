@@ -32,6 +32,13 @@ jobs:
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
+          # Disable the embedded web console: a known bitnami/minio bug
+          # ("Specified port is already in use" on the console port, see
+          # bitnami/containers#30684) prevents the container starting in
+          # some versions of the GitHub Actions service-container context.
+          # The app only ever uses the S3 API port (9000), never the
+          # console, so disabling it removes that failure path entirely.
+          MINIO_BROWSER: "off"
         ports:
           - 9000:9000
         options: >-
@@ -44,7 +51,7 @@ jobs:
         ports:
           - 3310:3310
         options: >-
-          --health-cmd "echo PING | nc -w 3 localhost 3310 | grep -q PONG"
+          --health-cmd "clamdcheck.sh"
           --health-interval 30s
           --health-timeout 10s
           --health-retries 10
