@@ -6,7 +6,7 @@
 4. Identity provider and enterprise SSO requirements?
 5. **PARTIALLY RESOLVED (2026-09-17, see `docs/final-decisions.md`)**: object storage vendor is Cloudflare R2 (production) / MinIO (development). Hosting region and data residency commitments themselves remain open.
 6. Supported Power Platform versions and compatibility evidence method?
-7. Exact license families and team/enterprise entitlement model?
+7. **PARTIALLY RESOLVED (2026-09-18, see `docs/final-decisions.md`)**: license families are locked as Personal/Team/Enterprise. Exact pricing, seat limits, and contract terms per tier remain open.
 8. Creator commercial terms and manual versus automated payout model?
 9. **PARTIALLY RESOLVED (2026-09-17, see `docs/final-decisions.md`)**: malware-scanning approach is ClamAV for development (already implemented, MVP-006) with an asynchronous production scanning service to follow (production vendor and cost model still open — see item 15). File types and maximum sizes still open as a business decision; `packages/domain/files/src/upload-policy.ts`'s current 50MB/allow-listed-MIME-type policy remains an explicit, reversible technical default pending that decision.
 10. Which MVP inventory is genuinely ready and owned for publication?
