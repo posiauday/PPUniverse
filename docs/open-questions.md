@@ -24,7 +24,7 @@
 20. CI time/cost budget for the full test suite (unit + integration + E2E + accessibility) and its effect on PR feedback latency.
 
 ## Requirement coverage gaps found during traceability completion (2026-09-16)
-21. FR-016 (funnel-event analytics without unnecessary personal/source-code data) has no backlog story in `planning/mvp-backlog.csv`. Either fold it into an existing story's acceptance criteria (e.g., MVP-022 Observability) or add a new backlog story — needs a product-owner decision since it changes backlog scope.
+21. **PARTIALLY RESOLVED (2026-09-18)**: product-owner confirmed FR-016 (funnel-event analytics, PostHog) stays out of MVP-022's scope — MVP-022 is operational observability only (logs, traces, correlation IDs, Sentry error monitoring). FR-016 still has no owning backlog story; a new story needs to be added to `planning/mvp-backlog.csv` when prioritized.
 22. NFR-008 (documented, tested supported-browser/responsive-breakpoint matrix) has no dedicated story; MVP-023 covers accessibility but not a browser/breakpoint test matrix. Needs a product-owner decision on whether to fold into MVP-023's acceptance criteria or add a new story.
 23. NFR-010 (data retention/deletion jobs configurable by data class) is only partially covered by MVP-020, which is scoped to consent and deletion *requests*, not scheduled retention-by-data-class jobs. Needs a decision on whether MVP-020's acceptance criteria should expand or a new story is required.
 

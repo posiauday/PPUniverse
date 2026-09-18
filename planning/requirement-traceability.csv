@@ -22,8 +22,8 @@ NFR-002,Security,Security,Cross-cutting (all stories),"MVP-002: session-ownershi
 NFR-003,Reliability/Security,TRD/Security,MVP-007;MVP-008,Webhook idempotency/signature tests,TBD
 NFR-004,SEO/Performance,TRD,MVP-003;MVP-021,Rendering/performance tests,TBD
 NFR-005,UX quality,UX,Cross-cutting (all stories),UX state review,TBD
-NFR-006,Security,Security,MVP-022,Log content audit,TBD
-NFR-007,Reliability,TRD/DevOps,MVP-001;MVP-022;MVP-025,CI pipeline green (build/lint/typecheck/test) for MVP-001; restore/incident evidence pending for MVP-022;MVP-025,Partially Implemented - MVP-001 Implemented; MVP-022 and MVP-025 TBD
+NFR-006,Security,Security,MVP-022,"Redaction of known-sensitive fields (password/token/secret/authorization/cookie/session/access/refresh tokens/API keys/DSNs/connection strings) verified by unit tests across the logger, both error-monitoring adapters, and the redact() helper itself; Sentry sendDefaultPii explicitly disabled",Implemented
+NFR-007,Reliability,TRD/DevOps,MVP-001;MVP-022;MVP-025,"CI pipeline green (build/lint/typecheck/test) for MVP-001. MVP-022: correlation IDs across every API route, structured JSON request logs, /api/health liveness/readiness check, Sentry error-monitoring adapter (scope: operational only, product analytics deferred). Restore/incident evidence pending for MVP-025",Partially Implemented - MVP-001 and MVP-022 Implemented; MVP-025 TBD
 NFR-008,Quality,UX/Test,MVP-023,PARTIAL - no dedicated browser/breakpoint matrix story,GAP
 NFR-009,Security,Security,MVP-019,Admin action audit tests,TBD
 NFR-010,Privacy,Security/Privacy,MVP-020,PARTIAL - MVP-020 covers deletion; retention-by-data-class scheduling has no dedicated story,GAP

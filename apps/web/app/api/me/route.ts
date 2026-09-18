@@ -1,11 +1,12 @@
-import { randomUUID } from "node:crypto";
 import { createErrorEnvelope } from "@ppu/shared";
+import { getCorrelationId } from "@ppu/telemetry";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../lib/auth";
+import { withObservability } from "../../../lib/observability";
 
-export async function GET() {
-  const correlationId = randomUUID();
+export const GET = withObservability("GET /api/me", async (_request: Request) => {
+  const correlationId = getCorrelationId() ?? "unknown";
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json(
@@ -20,4 +21,4 @@ export async function GET() {
       name: session.user.name ?? null,
     },
   });
-}
+});
