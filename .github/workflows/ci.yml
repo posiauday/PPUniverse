@@ -28,7 +28,11 @@ jobs:
           --health-timeout 5s
           --health-retries 10
       minio:
-        image: bitnami/minio:latest
+        # bitnami/minio:latest no longer exists on Docker Hub (Bitnami moved
+        # free/frozen images to the bitnamilegacy org — confirmed via the
+        # Docker Hub API after the first real CI run failed with "manifest
+        # unknown"). bitnamilegacy/minio:latest is the working equivalent.
+        image: bitnamilegacy/minio:latest
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin

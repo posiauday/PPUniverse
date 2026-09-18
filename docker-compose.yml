@@ -16,11 +16,13 @@ services:
       retries: 10
 
   minio:
-    # bitnami/minio runs in server mode via env vars alone (no command
-    # override needed) so the same image works as a GitHub Actions service
-    # container too (.github/workflows/ci.yml), which doesn't support
-    # overriding a service's command.
-    image: bitnami/minio:latest
+    # bitnami/minio:latest no longer exists on Docker Hub (Bitnami moved
+    # free/frozen images to the bitnamilegacy org, confirmed via the Docker
+    # Hub API on 2026-09-18). Runs in server mode via env vars alone (no
+    # command override needed) so the same image works as a GitHub Actions
+    # service container too (.github/workflows/ci.yml), which doesn't
+    # support overriding a service's command.
+    image: bitnamilegacy/minio:latest
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
