@@ -1,5 +1,5 @@
 Requirement,Business Objective,Design Artifact,Backlog,Test Evidence,Status
-FR-001,Acquisition,IA,MVP-003,E2E catalog,TBD
+FR-001,Acquisition,IA,MVP-003,"Unit tests pass (visibility rule, UI components); integration test suite (DB-gated) and real-Postgres constraint verification pass; unauthenticated public routes confirmed (no session check); dev server loaded and visually verified in a browser (compiled CSS + component rendering)",Implemented
 FR-002,Discovery,IA,MVP-004,E2E search,TBD
 FR-003,Trust,PRD/UX,MVP-005,E2E product detail,TBD
 FR-004,Activation,PRD/Security,MVP-002;MVP-020,"MVP-002: unit + integration tests pass in CI (real Postgres via service container) — session sign-in/out, self-service session list/revoke, deny-by-default authorization. MVP-020 (consent/deletion) not started",Partially Implemented - MVP-002 Done; MVP-020 TBD
