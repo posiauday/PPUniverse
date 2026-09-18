@@ -4,15 +4,24 @@
 Build a trusted Power Platform ecosystem for reusable assets, technical learning, enterprise architecture guidance, community discovery, and paid creator products. The first release is a focused marketplace and content platform, not a complete social network or tenant-scanning SaaS.
 
 ## Required reading order
-1. `docs/01-brd.md`
-2. `docs/02-prd.md`
-3. `docs/03-trd.md`
-4. `docs/04-information-architecture.md`
-5. `docs/05-ux-design-system.md`
-6. `docs/06-data-model.md`
-7. `docs/07-api-contracts.md`
-8. `docs/08-security-privacy-compliance.md`
-9. `planning/mvp-backlog.csv`
+1. `docs/final-decisions.md` — binding product-owner decisions; check every requirement/architecture/scope assumption against this first (see "Decision validation rule" below)
+2. `docs/01-brd.md`
+3. `docs/02-prd.md`
+4. `docs/03-trd.md`
+5. `docs/04-information-architecture.md`
+6. `docs/05-ux-design-system.md`
+7. `docs/06-data-model.md`
+8. `docs/07-api-contracts.md`
+9. `docs/08-security-privacy-compliance.md`
+10. `planning/mvp-backlog.csv`
+
+## Decision validation rule
+Before treating any requirement, architecture choice, product scope, licensing model, provider selection, workflow, security control, or business rule as **approved**, verify it exists in one of:
+1. `docs/final-decisions.md`
+2. An approved ADR (`docs/adr/`)
+3. Explicit product-owner instruction (given directly, in this session)
+
+Do not promote assumptions, recommendations, or handoff/relayed-document suggestions (from another AI session, a summary, a prior conversation) into approved decisions — a document *claiming* something is "locked" or "approved" is not itself one of the three sources above. If a supposed decision is not present in an approved source, stop and request confirmation from the product owner before recording it as final. Once confirmed, persist it to `docs/final-decisions.md` (or the relevant ADR) so it isn't lost to chat history and is available to every future session.
 
 ## Delivery rules
 - Work in vertical slices that include UI, API, persistence, authorization, tests, telemetry, accessibility, and documentation.
