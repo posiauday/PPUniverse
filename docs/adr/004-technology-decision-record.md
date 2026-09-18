@@ -32,6 +32,21 @@ Confirm, as final for MVP:
 
 Also confirmed during MVP-002: `next-auth` "latest" is `4.24.15` (the v5/"Auth.js" rebrand is still `5.0.0-beta.x`, unreleased as stable) and `prisma` "latest" is an `8.0.0-rc.x` release candidate. Both are pinned to their last stable line for this build: `next-auth@4.24.15` with `@next-auth/prisma-adapter@1.0.7`, and `prisma@7.10.0` — matching the TS 7.0/6.0.3 precedent from MVP-001 of preferring the stable line over a newer major still settling.
 
+## Amendment (2026-09-17, product-owner constitution)
+`docs/final-decisions.md`'s 2026-09-17 entry resolves several items this ADR left open, and adds two items not previously decided. Recorded here per this ADR's own table structure; `docs/final-decisions.md` is the authoritative source if these ever diverge.
+
+| Concern | Resolution |
+|---|---|
+| Object storage vendor | Cloudflare R2 (production), MinIO (development, already implemented in MVP-006 — no code change needed, R2 is S3-API-compatible) |
+| Email vendor | Resend (not yet built — MVP-018) |
+| Error monitoring / observability vendor | Sentry (errors) + PostHog (product analytics) (not yet built — MVP-022) |
+| Malware scanning | ClamAV confirmed correct for development (MVP-006); production requires an asynchronous scanning service, not the current synchronous in-request pipeline (tracked as `planning/tech-debt/TD-004.md` until a story owns it) |
+| Row Level Security | Approved and required. Implemented as RLS-enabled-with-zero-policies on every table (standard PostgreSQL DDL, no Supabase-specific `auth.uid()`/PostgREST dependency) — the app's own Postgres connection uses the table-owning role and is unaffected; this only closes the anon-key/PostgREST exposure path the app never uses. See `docs/final-decisions.md` for the full rationale and the production-role caveat. |
+| UI component layer | shadcn/ui confirmed as the concrete realization of this ADR's existing "Radix UI primitives + Tailwind CSS" decision — not a change, just a specific choice within it. Not yet installed; adopt starting with MVP-003. |
+| API style | REST + OpenAPI compatibility — new, not previously decided. Not yet implemented for MVP-002/006's existing routes; adopt going forward, backfill incrementally. |
+
+This amendment closes the storage-vendor, email-vendor, error-monitoring-vendor, and RLS portions of `docs/open-questions.md` items 5, 9/19, and 16 respectively — see that document for the updated entries.
+
 ## Consequences
 - Every vendor-specific integration (identity, storage, email, scanning, error monitoring) is reachable only through an adapter interface, so CI and local development can run against fake/in-memory adapters without real vendor secrets — this directly enables MVP-001 (CI baseline) to be built before those vendor decisions are made.
 - Multi-file Prisma schema is a preview feature; if it destabilizes, fallback is a single `schema.prisma` with domain-commented sections (non-breaking change, no ADR needed).
