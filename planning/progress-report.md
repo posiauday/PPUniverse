@@ -303,3 +303,72 @@ The first-ever real GitHub Actions runs (triggered by the previous entries' push
 
 ### Next story recommendation
 Unchanged from the constitution entry: **MVP-022 (Observability)** or **MVP-003 (Catalog)**, both now genuinely Ready (not just implemented-pending-QA) — see `planning/status.md` for the full rationale, now updated to reflect all six currently-Ready stories (MVP-003, MVP-010, MVP-011, MVP-018, MVP-020, MVP-022).
+
+## MVP-022 — Observability (operational scope)
+
+### Story status: Done
+**MVP-022 — Logs, traces, metrics and alerts** (Epic: Observability, Requirement: NFR-007, Priority: P0, Sprint 2, 8 pts)
+
+Acceptance summary: "Critical journeys have correlation and runbooks."
+
+**Scope confirmation**: before coding, the product owner explicitly confirmed (per the newly-adopted Decision Validation Rule, `CLAUDE.md`) that MVP-022 stays scoped to *operational* observability — structured logging, correlation IDs, request tracing, error monitoring/Sentry, health metrics, alerting foundations, runbook references — and excludes PostHog product-analytics event tracking (FR-016: funnels, conversion, user-behavior analytics), which is deferred to its own future backlog story. `docs/open-questions.md` item 21 updated accordingly.
+
+Unlike MVP-002/MVP-006, this story reaches **Done directly**, not QA: every real external dependency (the Sentry SDK) is legitimately unit-testable via mocking the SDK's own call shape (verified against the actual installed `@sentry/core` type declarations, not guessed — see "Issues found" below), and the one genuinely stateful dependency (`/api/health`'s database check) is also fully covered via a mocked Prisma client. There is no un-exercised real-infrastructure integration gate this time, unlike Postgres/S3/ClamAV in the prior two stories.
+
+### Files changed
+
+**`packages/telemetry`** (promoted from placeholder)
+- `src/correlation.ts` — `AsyncLocalStorage`-based correlation-ID context (`runWithCorrelationId`, `getCorrelationId`); reuses an inbound ID rather than always minting a new one, so a request traced by an upstream caller stays traceable end to end
+- `src/logger.ts` (+ test) — structured JSON logger (`debug`/`info`/`warn`/`error`), one line per call, auto-attaches the current correlation ID, redacts before serializing
+- `src/redact.ts` (+ test) — case-insensitive sensitive-field redaction, extensible per call site without editing the default list
+
+**`packages/adapters/error-monitoring`** (promoted from placeholder)
+- `src/error-monitoring-adapter.ts` — port (`captureException`, `captureMessage`)
+- `src/console-error-monitoring-adapter.ts` (+ test) — dev/test default, logs via `@ppu/telemetry`
+- `src/sentry-error-monitoring-adapter.ts` (+ test, SDK mocked) — real Sentry implementation; `sendDefaultPii: false`, narrow explicit context only (never a raw request/headers object), redacted before being handed to the SDK as a second layer
+
+**`apps/web`**
+- `lib/error-monitoring.ts`, `lib/observability.ts` (+ test) — env-configured adapter selection and the `withObservability` route wrapper (correlation-ID propagation, request-start/request-end/request-error structured logs, unhandled-exception capture + 500 envelope)
+- `app/api/health/route.ts` (+ test, new) — unauthenticated liveness/readiness check (app + database), deliberately *not* wrapped in `withObservability` (would flood logs at typical poll intervals)
+- All 6 existing MVP-002/006 API routes (`/api/me`, `/api/me/sessions`, `/api/me/sessions/[id]`, `/api/files/uploads`, `/api/files/uploads/complete`, `/api/files/[id]`) refactored to use `withObservability` and `getCorrelationId()` instead of each generating its own `randomUUID()` — their actual authorization/business logic is unchanged, verified by their existing test suites still passing unmodified
+- `.env.example` — `SENTRY_DSN` (optional; unset falls back to console logging)
+
+**Documentation**
+- `docs/12-devops-runbook.md` — new "Observability" section: correlation-ID log-search as the standard incident-triage step, `/api/health`'s shape, alerting-foundations guidance (rules to configure once a real Sentry project exists)
+- Fixed 6 stale placeholder READMEs left over from MVP-002/MVP-006 that still said "Structural placeholder only" despite having real code (`packages/adapters/identity`, `storage`, `scanning`, `email`, `packages/domain/identity`), and created 2 that never existed (`packages/adapters/files`, `packages/domain/files`) — an accuracy gap this session should have caught at the time, fixed now
+
+### Commands executed
+
+| Command | Result |
+|---|---|
+| `pnpm typecheck` | Pass (14 packages, up from 12) |
+| `pnpm lint` | Pass |
+| `pnpm test` | Pass — 7 new tests in `apps/web` (observability wrapper + health endpoint), 14 in `@ppu/telemetry`, 7 in `@ppu/adapter-error-monitoring` |
+| `pnpm build` | Pass, verified from a genuinely clean state; confirms `@sentry/node` bundles cleanly under Turbopack with no `serverExternalPackages` entry needed |
+| `pnpm format:check` | Pass |
+| `pnpm audit --audit-level=high` | Pass — 0 vulnerabilities |
+
+### Issues found and fixed during implementation
+
+1. **Verified, not guessed**: the Sentry SDK API surface (`captureException(error, {tags, extra})`, `captureMessage(message, {level, tags, extra})`, `init({dsn, environment, sendDefaultPii})`) was checked directly against the installed `@sentry/core`/`@sentry/node` `.d.ts` files before being treated as correct — `CaptureContext = Scope | Partial<ScopeContext> | (...)`, and `ScopeContext` genuinely has `level`/`tags`/`extra` fields. This matters given the session's repeated experience this session of vendor SDK shapes not matching assumptions (Prisma 7, Auth.js, Turborepo).
+2. **`apps/web/lib/observability.test.ts`**: `logSpy.mock.calls.map((call) => ...)` needed an explicit `unknown[]` parameter type under strict mode — a one-line fix, not a design issue.
+
+### Security review (Definition-of-Done gate item)
+
+Checked against NFR-006 (log content) and the general "never commit/expose credentials" principle:
+- **Redaction verified by test, not assumed**: `redact()`'s default list (password, token, secret, authorization, cookie, session/access/refresh tokens, API keys, DSNs, connection strings) is exercised in `redact.test.ts`, `logger.test.ts`, and both error-monitoring adapters' tests — each asserts a planted sensitive field actually comes out as `[REDACTED]`, not just that the function exists.
+- **Sentry PII posture**: `sendDefaultPii: false` set explicitly (not left at the SDK default); the adapter's own interface only ever accepts a small, explicit `ErrorContext` object from callers — nothing in this codebase passes a raw `Request`/headers object into it, so there's no path for a session cookie to reach Sentry through this adapter. Redaction is a second, defense-in-depth layer on top of that narrow interface, not the only thing preventing a leak.
+- **`/api/health` doesn't leak internals on failure**: the HTTP response is always the same two-field shape regardless of what actually broke (`{"status":"error","checks":{"database":"error"}}`) — no stack trace, no connection string, no raw error message ever reaches the caller. The full error still reaches `errorMonitoring` server-side, for operators.
+- **Correlation IDs are client-suppliable, by design, and that's fine**: `withObservability` reuses an inbound `x-correlation-id` header if present. This is standard distributed-tracing practice (same trust model as `traceparent`/`X-Request-ID` industry-wide) — correlation IDs are never used for authorization or any trust decision anywhere in this codebase, only for log correlation, so a spoofed value can at most make triage slightly more confusing, not cause a security failure. Values are always serialized via `JSON.stringify` on the whole log entry, never string-concatenated, so an adversarial correlation ID can't break a log line's JSON structure or inject fake fields.
+- **No change to existing authorization logic**: `withObservability` wraps *around* the 6 existing routes; their 401/400/403/404 decision logic is untouched, confirmed by their pre-existing test suites passing unmodified after the refactor.
+
+### Risks identified
+- **No real Sentry DSN provisioned** (`docs/open-questions.md` item 18) — errors currently only reach structured logs, not an external error-monitoring dashboard, until one is set up. The code path is real and tested; only the vendor account is missing.
+- **Log volume/retention/shipping is undesigned** — this story produces structured JSON lines on stdout/stderr; *where those lines actually go* in production (a log-aggregation platform, retention period, cost) is an infrastructure decision tied to the still-open hosting choice (`docs/open-questions.md` item 5), not something this story could resolve.
+- **Alerting is designed, not provisioned** — `docs/12-devops-runbook.md`'s new alerting-foundations section states what *should* page someone; actually configuring those alert rules requires the Sentry project (and hosting platform) to exist first.
+
+### Remaining work to reach Done
+None — this story is Done as of this entry (pending the routine final CI confirmation on push, same as every other story this session).
+
+### Next story recommendation
+**MVP-003 (Catalog)** — the strongest remaining candidate: it's Ready, and it unblocks the largest number of downstream P1/P0 stories (MVP-004 search, MVP-005 product detail, MVP-017 content, MVP-021 SEO, MVP-023 accessibility all depend on it). MVP-010/011/018/020 (all Ready, all small-to-medium) remain reasonable to parallelize alongside it.

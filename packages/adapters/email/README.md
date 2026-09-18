@@ -1,3 +1,3 @@
-# adapters/email (placeholder)
+# @ppu/adapter-email
 
-Transactional email adapter (ADR 003). Vendor is an open decision (`docs/open-questions.md` item 19). Structural placeholder only. Owning story: MVP-018.
+`EmailAdapter` — the transactional-email port (MVP-002). `ConsoleEmailAdapter` is the current dev/test implementation (logs instead of sending); the real vendor is decided (Resend, `docs/final-decisions.md`) but not yet built — that's MVP-018's scope, which implements a `ResendEmailAdapter` against this same interface.

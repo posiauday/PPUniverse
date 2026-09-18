@@ -12,6 +12,7 @@
   "dependencies": {
     "@next-auth/prisma-adapter": "1.0.7",
     "@ppu/adapter-email": "workspace:*",
+    "@ppu/adapter-error-monitoring": "workspace:*",
     "@ppu/adapter-files": "workspace:*",
     "@ppu/adapter-identity": "workspace:*",
     "@ppu/adapter-scanning": "workspace:*",
@@ -20,6 +21,7 @@
     "@ppu/domain-files": "workspace:*",
     "@ppu/domain-identity": "workspace:*",
     "@ppu/shared": "workspace:*",
+    "@ppu/telemetry": "workspace:*",
     "next": "^16.3.5",
     "next-auth": "4.24.15",
     "nodemailer": "^10.0.10",
