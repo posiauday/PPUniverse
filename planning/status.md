@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-17 — MVP-002 and MVP-006 implemented, both held in QA pending integration-test verification.
+Last updated: 2026-09-17 — MVP-002 and MVP-006 implemented (both held in QA pending integration-test verification); product-owner constitution recorded in `docs/final-decisions.md`; RLS implemented (closes TD-003); `develop` + feature-branch workflow established (`main` frozen at the MVP-002/006 commits, all new work now branches from `develop`). Full detail: `planning/progress-report.md`'s 2026-09-17 constitution entry.
 
 ## Board
 
