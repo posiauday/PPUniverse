@@ -372,3 +372,70 @@ None — this story is Done as of this entry (pending the routine final CI confi
 
 ### Next story recommendation
 **MVP-003 (Catalog)** — the strongest remaining candidate: it's Ready, and it unblocks the largest number of downstream P1/P0 stories (MVP-004 search, MVP-005 product detail, MVP-017 content, MVP-021 SEO, MVP-023 accessibility all depend on it). MVP-010/011/018/020 (all Ready, all small-to-medium) remain reasonable to parallelize alongside it.
+
+## MVP-003 — Taxonomy and catalog pages
+
+### Story status: Done
+**MVP-003 — Taxonomy and catalog pages** (Epic: Catalog, Requirement: FR-001, Priority: P0, Sprint 2, 8 pts)
+
+Acceptance summary: "Indexable category and product listing pages render."
+
+**Scope discipline applied before coding** (stop-conditions protocol, `CLAUDE.md`'s Decision Validation Rule): a task framing pasted in chat included "Filtering framework" as an MVP-003 acceptance criterion — checked against `planning/mvp-backlog.csv`/`docs/02-prd.md` and found that's explicitly FR-002/MVP-004's requirement, a separate dependent story. Confirmed with the product owner before writing any code: MVP-003 stays at its documented scope (browsing/display only, no filtering). Also found during implementation: `docs/04-information-architecture.md` names `/collections/[slug]` and `/creators/[handle]` routes with no owning backlog story — recorded as `docs/open-questions.md` item 24 rather than built or silently skipped without a trace.
+
+### Files changed
+
+**Schema** (`packages/db/prisma/schema/catalog.prisma`, two new migrations)
+- `Category` (locked 6-taxonomy `AssetType` enum, unique slug) and `Product` (`DRAFT`/`PUBLISHED` status, single FK to category — not the full many-to-many `ProductCategory` join table the data model sketches; a reversible, minimal-for-now choice) — RLS enabled with zero policies, matching every other table
+- A second migration seeds the 6 locked taxonomy categories as rows (real, defined reference data confirmed against `docs/final-decisions.md` — **not** fabricated product inventory; zero `Product` rows are seeded anywhere)
+
+**`packages/domain/catalog`** (new)
+- `types.ts`, `visibility.ts` (+ test) — `isPubliclyVisible`: the one rule this story owns, a `DRAFT` product is never rendered publicly
+- `catalog-repository.ts` — port
+
+**`packages/adapters/catalog`** (new)
+- `catalog-repository.ts` (+ integration test, DB-gated) — `PrismaCatalogRepository`; published-only filtering happens in the query itself, not as an application-layer afterthought
+
+**`packages/ui`** (promoted from placeholder — its own README already named MVP-003 as owner)
+- Tailwind v4 + shadcn/ui conventions written by hand (`cn()`, `class-variance-authority`) since the `shadcn` CLI needs an interactive terminal this environment doesn't have
+- `Card`/`Badge` primitives, `CategoryCard`/`ProductCard` composites (+ tests, `@testing-library/react` + jsdom) — plain `<a href>`, not `next/link`, so the package stays framework-portable
+
+**`apps/web`**
+- `postcss.config.mjs`, `app/globals.css` (Tailwind v4 `@theme` tokens — light theme only, per `docs/05-ux-design-system.md`)
+- `app/categories/[slug]/page.tsx`, `app/products/[slug]/page.tsx` (new, both `generateMetadata` for SEO + `notFound()` handling), `app/page.tsx` rewritten to list categories
+- `lib/catalog.ts` — repository wiring
+
+### Commands executed
+
+| Command | Result |
+|---|---|
+| `pnpm typecheck` | Pass (17 packages, up from 14) |
+| `pnpm lint` | Pass |
+| `pnpm test` | Pass — new unit tests in `@ppu/domain-catalog`, `@ppu/ui`; `@ppu/adapter-catalog`'s integration suite correctly self-skips (no `DATABASE_URL` locally) |
+| `pnpm build` | Pass, verified from a genuinely clean state |
+| `pnpm format:check` | Pass |
+| `pnpm audit --audit-level=high` | Pass — 0 vulnerabilities |
+
+### Real verification achieved (schema + browser, not just tests passing)
+
+- Both migrations applied to the shared `ppuniverse-dev` Supabase project (same one used for every prior story): confirmed unique-slug rejects a duplicate, `ON DELETE RESTRICT` correctly blocks deleting a category that still has products (both via a real transaction that would have hard-failed if the constraint didn't work), and the 6 seeded categories read back correctly. `get_advisors` confirms RLS enabled (INFO-level, no ERROR) on both new tables.
+- **Actually started the dev server and loaded pages in a browser** (`CLAUDE.md`: "For UI or frontend changes, start the dev server and use the feature in a browser before reporting the task as complete") — this caught a real bug `pnpm build` alone did not: Tailwind v4's automatic content scanner doesn't reach outside `apps/web` by default, so none of `@ppu/ui`'s component classes (`bg-card`, `bg-primary`, `border-border`, ...) were ever compiled into the served CSS, despite the build succeeding and every unit test passing. Fixed with an explicit `@source "../../../packages/ui/src"` directive; re-verified by fetching the compiled CSS directly and confirming the previously-missing classes are now present, then visually confirmed a `ProductCard`-shaped element renders with correct spacing/borders/colors by injecting it into the live page and screenshotting it (homepage/category pages themselves can't be visually loaded end-to-end without a reachable database, the same constraint every DB-touching story this session has had — this is the closest practical substitute).
+- Also caught and fixed: the homepage/category/product pages are `async` Server Components that, by Next.js's default, get statically prerendered *at build time* — meaning `next build` itself tried to run a live Prisma query and failed with `ECONNREFUSED` against the placeholder local `DATABASE_URL`. Fixed with `export const dynamic = "force-dynamic"` on all three pages — the semantically correct choice anyway (catalog content changes as products are published; a build-time snapshot would go stale), not just a build workaround.
+
+### Security review (Definition-of-Done gate item)
+
+- **No fake inventory**: zero `Product` rows exist in any migration or seed data — `CLAUDE.md` explicitly bars fabricated marketplace inventory. Only real, locked taxonomy (`Category` rows matching `docs/final-decisions.md`'s constitution) is seeded. Pages correctly render an empty "no products published yet" state.
+- **Published-only enforced at the query layer**: `PrismaCatalogRepository.listPublishedProductsByCategory`/`findPublishedProductBySlug` filter `status: "PUBLISHED"` in the Prisma `where` clause itself — a `DRAFT` product is never fetched into memory in the first place, not merely filtered out afterward. Verified by both the integration test (asserting a `DRAFT` sibling is excluded) and the domain-level `isPubliclyVisible` unit tests.
+- **No new authenticated surface**: every route in this story is intentionally public/unauthenticated (`GET`, no session check) — matches FR-001 exactly ("Public users can browse ... without authentication"). No write endpoints exist yet (creator/moderation stories own those).
+- **RLS**: both new tables enabled with zero policies, verified against real Postgres (advisor INFO-level, not ERROR), consistent with every table so far.
+- **No secrets/PII on these pages**: `Category`/`Product` fields are all public-by-design content (name, summary, slug) — nothing here needs `@ppu/telemetry`'s redaction.
+
+### Risks identified
+- **Collections/creators pages have no owning story** (`docs/open-questions.md` item 24) — a real gap in the backlog, not something this story could resolve on its own.
+- **Product schema is intentionally minimal** (single category FK, no `ProductCategory` many-to-many join table) — reversible, but if a real requirement for multi-category products emerges, that's a schema migration, not a config change.
+- **`/api/products`-style JSON endpoints don't exist yet** — these pages query the repository directly from Server Components; if MVP-004 (filtering) or a future client-side interaction needs a JSON API instead, that's new surface, not a reuse of what exists here.
+
+### Remaining work to reach Done
+None — Done as of this entry, pending the routine final CI confirmation on push.
+
+### Next story recommendation
+**MVP-004 (Search filter sort and zero results)** is the natural next step (directly extends what this story just built, same Catalog epic) — but **MVP-005 (Product detail evidence model)** is an equally strong candidate and arguably higher-value, since it turns this story's deliberately-minimal product stub page into the real thing users need to trust a listing (license, version, compatibility, support evidence). MVP-010/011/018/020 remain Ready and available to parallelize regardless of which is picked.

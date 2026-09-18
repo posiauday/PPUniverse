@@ -1,0 +1,54 @@
+// Catalog domain (docs/06-data-model.md). Only Category and Product are
+// modeled for MVP-003, scoped to exactly what "indexable category and
+// product listing pages render" (FR-001) needs — a single primary
+// category per product, not the full ProductCategory many-to-many join
+// table the data model sketches (reversible to add later if a product
+// ever needs multiple categories). CompatibilityRecord, Prerequisite,
+// LicenseDefinition, ProductLicense, ProductMedia, ProductDocument
+// belong to MVP-005 (product detail evidence model); Collection/
+// CollectionItem have no owning story yet (docs/open-questions.md).
+
+enum AssetType {
+  POWER_APPS_COMPONENT
+  POWER_APPS_TEMPLATE
+  POWER_AUTOMATE_TEMPLATE
+  POWER_BI_TEMPLATE
+  ARCHITECTURE_BLUEPRINT
+  GOVERNANCE_ASSET
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  assetType   AssetType @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String
+  summary     String
+  status      ProductStatus @default(DRAFT)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  publishedAt DateTime?
+
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
