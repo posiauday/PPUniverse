@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Browser, type Locator, type Page } from "@playwright/test";
 import { compositeOver, contrastRatio, flattenLayers, type Rgb, type Rgba } from "./contrast.js";
 import { evaluateFocus, type FocusFacts, type FocusIndicator } from "./focus.js";
 import { headingOrderProblems, type HeadingInfo } from "./headings.js";
@@ -56,15 +56,75 @@ export async function measureFocusIndicator(page: Page): Promise<FocusIndicator 
   return facts ? evaluateFocus(facts) : null;
 }
 
+/**
+ * Presses Tab (a real key press) from the top of the page until `target` has
+ * focus; fails if it is never reached. Used instead of `locator.focus()` so the
+ * :focus-visible heuristics apply exactly as they do for a keyboard user.
+ */
+export async function tabUntilFocused(page: Page, target: Locator, max = 40): Promise<void> {
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    window.scrollTo(0, 0);
+  });
+  for (let press = 0; press < max; press++) {
+    await page.keyboard.press("Tab");
+    const focused = await target
+      .evaluate((element) => element === document.activeElement)
+      .catch(() => false);
+    if (focused) return;
+  }
+  throw new Error(`Tab did not reach the target within ${max} key presses`);
+}
+
 export interface TabStop {
   index: number;
   indicator: FocusIndicator;
 }
 
 export interface TabTraversal {
+  /** Stops reached with real Tab key presses, in order. */
   stops: TabStop[];
-  /** Visible, natively focusable elements that Tab never reached: unreachable by keyboard. */
+  /**
+   * Links whose focus indicator was measured by moving focus to them directly, because
+   * this engine's Tab key does not visit links (see `engineTabsToLinks`). Empty when it does.
+   */
+  linkStops: TabStop[];
+  /** Whether Tab moves focus to links in this engine. */
+  tabsToLinks: boolean;
+  /** Visible, natively focusable elements that no keyboard route reached: unreachable by keyboard. */
   unreached: string[];
+}
+
+/** Every focus stop whose indicator was measured, whichever way focus got there. */
+export function allStops(traversal: TabTraversal): TabStop[] {
+  return [...traversal.stops, ...traversal.linkStops];
+}
+
+const tabsToLinksByBrowser = new WeakMap<Browser, boolean>();
+
+/**
+ * Whether pressing Tab moves focus to links in this engine. Chromium and Firefox
+ * do; WebKit's default, like Safari's, is that Tab visits form controls only and
+ * links need a browser setting or Option+Tab. Probed on a throwaway page rather
+ * than assumed from the engine name, so the answer is a fact about this build and
+ * a real regression on the page under test (links made unreachable) is still caught
+ * in the engines that do Tab to links.
+ */
+export async function engineTabsToLinks(page: Page): Promise<boolean> {
+  const browser = page.context().browser();
+  const cached = browser ? tabsToLinksByBrowser.get(browser) : undefined;
+  if (cached !== undefined) return cached;
+
+  const probe = await page.context().newPage();
+  try {
+    await probe.setContent('<!doctype html><title>probe</title><a href="#probe">probe link</a>');
+    await probe.keyboard.press("Tab");
+    const reached = await probe.evaluate(() => document.activeElement?.tagName === "A");
+    if (browser) tabsToLinksByBrowser.set(browser, reached);
+    return reached;
+  } finally {
+    await probe.close();
+  }
 }
 
 /**
@@ -73,11 +133,17 @@ export interface TabTraversal {
  *
  * Two failure signals: focus that neither leaves the document nor wraps within
  * `max` presses (an unbounded tab order), and `unreached`, the visible focusable
- * elements Tab never landed on, which is what a keyboard trap or an unreachable
- * control looks like. A control that is deliberately not tabbable (tabindex -1)
- * is not expected to be reached and is not counted.
+ * elements no keyboard route landed on, which is what a keyboard trap or an
+ * unreachable control looks like. A control that is deliberately not tabbable
+ * (tabindex -1) is not expected to be reached and is not counted.
+ *
+ * Where the engine's Tab key skips links (WebKit), links cannot be reached by
+ * Tab in this automation, so each unreached link gets focus moved to it directly
+ * and its indicator is measured (`linkStops`); their keyboard REACHABILITY is then
+ * not verified in that engine and is documented as a limitation.
  */
 export async function traverseTabOrder(page: Page, max = 80): Promise<TabTraversal> {
+  const tabsToLinks = await engineTabsToLinks(page);
   await ensureHelpers(page);
   await page.evaluate(() => {
     (document.activeElement as HTMLElement | null)?.blur?.();
@@ -112,8 +178,37 @@ export async function traverseTabOrder(page: Page, max = 80): Promise<TabTravers
     const indicator = await measureFocusIndicator(page);
     if (indicator) stops.push({ index: stops.length + 1, indicator });
   }
+  if (!ended) {
+    await clearTraversalMarkers(page);
+    throw new Error(
+      `Focus neither left the document nor wrapped after ${max} Tab presses: possible unbounded tab order or keyboard trap.`,
+    );
+  }
 
-  const unreached = await page.evaluate(() => {
+  const linkStops: TabStop[] = [];
+  if (!tabsToLinks) {
+    // Move focus to each unvisited link in turn and measure its indicator.
+    for (let guard = 0; guard < max; guard++) {
+      const focused = await page.evaluate(() => {
+        const link = document.querySelector("a[data-e2e-expected]:not([data-e2e-tab-seen])");
+        if (!link) return false;
+        link.setAttribute("data-e2e-tab-seen", "1");
+        (link as HTMLElement).focus();
+        return true;
+      });
+      if (!focused) break;
+      const indicator = await measureFocusIndicator(page);
+      if (indicator) linkStops.push({ index: linkStops.length + 1, indicator });
+    }
+  }
+
+  const unreached = await clearTraversalMarkers(page);
+  return { stops, linkStops, tabsToLinks, unreached };
+}
+
+/** Lists expected-but-unvisited elements, then removes the harness's marker attributes. */
+async function clearTraversalMarkers(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
     const missed: string[] = [];
     for (const element of document.querySelectorAll("[data-e2e-expected]")) {
       if (!element.hasAttribute("data-e2e-tab-seen")) {
@@ -130,13 +225,6 @@ export async function traverseTabOrder(page: Page, max = 80): Promise<TabTravers
     }
     return missed;
   });
-
-  if (!ended) {
-    throw new Error(
-      `Focus neither left the document nor wrapped after ${max} Tab presses: possible unbounded tab order or keyboard trap.`,
-    );
-  }
-  return { stops, unreached };
 }
 
 // ---------------------------------------------------------------------------

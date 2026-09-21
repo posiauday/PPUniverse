@@ -1,5 +1,6 @@
 import { expectNoBlockingViolations, runAxe } from "../../src/axe.js";
 import {
+  allStops,
   collectHeadings,
   expectNoHorizontalOverflow,
   measureBorderContrast,
@@ -109,6 +110,28 @@ test.describe("negative controls: the accessibility gate can fail", () => {
     );
     const { unreached } = await traverseTabOrder(page);
     expect(unreached).toEqual(['button "Skipped"']);
+  });
+
+  test("links are either reached by Tab or measured directly, never silently dropped", async ({
+    page,
+  }) => {
+    await page.setContent(
+      doc(
+        `<main><a href="#one">One</a><button>Two</button></main>`,
+        "<style>a:focus-visible { outline: 2px solid #1b1d24; outline-offset: 2px; }</style>",
+      ),
+    );
+    const traversal = await traverseTabOrder(page);
+    expect(traversal.unreached).toEqual([]);
+    expect(allStops(traversal).map((stop) => stop.indicator.element)).toEqual(
+      expect.arrayContaining(['a "One"', 'button "Two"']),
+    );
+    // WebKit's Tab key skips links, so there the link is measured by moving focus to it.
+    if (traversal.tabsToLinks) {
+      expect(traversal.linkStops).toEqual([]);
+    } else {
+      expect(traversal.linkStops).toHaveLength(1);
+    }
   });
 
   test("a tabindex of -1 is deliberate and is not reported as unreachable", async ({ page }) => {
