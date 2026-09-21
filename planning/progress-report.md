@@ -439,3 +439,82 @@ None — Done as of this entry, pending the routine final CI confirmation on pus
 
 ### Next story recommendation
 **MVP-004 (Search filter sort and zero results)** is the natural next step (directly extends what this story just built, same Catalog epic) — but **MVP-005 (Product detail evidence model)** is an equally strong candidate and arguably higher-value, since it turns this story's deliberately-minimal product stub page into the real thing users need to trust a listing (license, version, compatibility, support evidence). MVP-010/011/018/020 remain Ready and available to parallelize regardless of which is picked.
+
+## MVP-004 — Catalog filtering and search
+
+### Story status: Done
+**MVP-004 — Search filter sort and zero results** (Epic: Catalog, Requirement: FR-002, Priority: P0, Sprint 3, 8 pts)
+
+Acceptance summary: "Filters are shareable, accessible and analytically tracked."
+
+**Pre-work verification, per the stop-conditions protocol given this turn**: confirmed MVP-003 Done, CI green on `develop` (3 consecutive successful runs), local `develop` matched `origin/develop` exactly, no open PRs, and — explicitly checked, not assumed — grepped MVP-003's actual code for any filter/sort/search logic and found none (only a README note deferring it here). No overlap to document.
+
+**Two real scope boundaries flagged before coding, not silently resolved**:
+1. FR-002's full text lists filter axes for license/compatibility/accessibility-status/free-paid — none of those fields exist yet (MVP-005's evidence model, MVP-007's commerce/pricing). Scoped this story to what the current schema actually supports: keyword search, category filter, sort, pagination. The other axes become available automatically once MVP-005/007 add their fields.
+2. The acceptance criteria's "analytically tracked" conflicts with MVP-022's deliberate PostHog/FR-016 deferral (confirmed by the product owner). Resolved via the existing `@ppu/telemetry` structured logger instead (`catalog.search` / `catalog.category_browse` log events) — satisfies "tracked" without contradicting that decision or building new analytics infrastructure ahead of its own story.
+
+### Files changed
+
+**`packages/domain/catalog`**
+- `search-params.ts` (+ test) — pure, framework-agnostic query-param parsing/validation (`resolveSortOption`, `normalizeQuery`, `parsePage`, `parsePageSize`, `totalPages`); never throws on malformed input, always falls back to a safe default
+- `types.ts` — `SortOption`, `SearchOptions`, `SearchResult`
+- `catalog-repository.ts` — port extended with `searchProducts`
+
+**`packages/adapters/catalog`**
+- `catalog-repository.ts` — `searchProducts` implemented via real PostgreSQL full-text search (`to_tsvector`/`plainto_tsquery`/`ts_rank`, computed on the fly rather than a persisted column — no migration needed, fine at MVP scale), composed safely with `Prisma.sql`/`Prisma.join` (never string interpolation); `COUNT(*) OVER()` returns the total in the same query as the page of results
+- Integration tests (+ 5 new, DB-gated) covering keyword match excludes drafts, zero-results, alphabetical sort, pagination math, and category+query combined
+
+**`packages/ui`**
+- `search-form.tsx`, `sort-links.tsx`, `pagination.tsx` (+ tests) — all plain HTML forms/links, no client JavaScript required for the core interactions (progressive enhancement, fully keyboard/screen-reader accessible by default, every state is its own real crawlable URL)
+
+**`apps/web`**
+- `app/search/page.tsx` (new — cross-category search, matching the IA's "search results" page inventory entry; `robots: noindex` since it's a utility view over content that's already indexable at its own canonical URL)
+- `app/categories/[slug]/page.tsx` — extended with search/sort/pagination/clear-all; canonical always points to the base category URL regardless of active query params (SEO signal consolidation)
+- `lib/catalog-url.ts` (+ test) — shared query-string-building helper for sort/pagination links
+
+### Real bug found and fixed: `packages/db`'s eager client construction
+
+Local `pnpm test` failed with `Error: DATABASE_URL is not set` — but thrown from *module import*, before `describe.skipIf(!hasDatabase)` could even run. Root cause: `packages/db/src/index.ts` constructed the real `PrismaClient` eagerly at module-evaluation time (`export const prisma = ... ?? createPrismaClient()`); this was invisible in every prior story because they only ever `import type { PrismaClient }` (erased at compile time, no runtime effect), but `packages/adapters/catalog` needed the `Prisma` *value* (for `Prisma.sql`/`Prisma.join`), and importing any value from `@ppu/db`'s barrel evaluates the whole module, including that eager side effect.
+
+Fixed at the root, not worked around: `packages/db/src/index.ts`'s `prisma` export is now a lazy `Proxy` — the real client is only constructed on first actual property access, not at import time. Verified two ways: `pnpm --filter @ppu/db run test` still passes (confirms the Proxy correctly forwards real property access — `prisma.user`, `prisma.session`, etc. — using the local `.env`'s DATABASE_URL), and `pnpm --filter @ppu/adapter-catalog run test` now correctly skips instead of crashing. This benefits every future package that needs a `@ppu/db` value export, not just this one.
+
+### Commands executed
+
+| Command | Result |
+|---|---|
+| `pnpm typecheck` | Pass (17 packages) |
+| `pnpm lint` | Pass |
+| `pnpm test` | Pass — new unit tests in `@ppu/domain-catalog`, `@ppu/ui`, `apps/web`; `@ppu/adapter-catalog`'s integration suite (14 tests, 5 new) correctly self-skips locally |
+| `pnpm build` | Pass, verified from a genuinely clean state — `/search` correctly listed dynamic (ƒ), not static |
+| `pnpm format:check` | Pass |
+| `pnpm audit --audit-level=high` | Pass — 0 vulnerabilities |
+
+### Real verification: dev server loaded in a browser
+`/search` reached the real database call correctly (failed only on the expected "no reachable Postgres locally" constraint every DB-touching story has had — confirmed via the actual Next.js error overlay showing the exact `$queryRaw` call site, not a crash earlier in the request). Injected the `SearchForm`/`SortLinks`/`Pagination` components' actual compiled markup+classes into the live page and screenshotted them: search input, primary button, sort links (current one correctly bolded via `aria-current`), clear-all, and pagination all render with correct spacing/colors/borders — no new Tailwind scanning gap (MVP-003's `@source` fix already covers this directory).
+
+### Security review (Definition-of-Done gate item)
+- **No new authenticated surface**: `/search` and the extended category page remain fully public/unauthenticated, read-only — matches FR-002 exactly.
+- **No injection risk**: search terms and category slugs are always passed as `Prisma.sql`/`Prisma.join` parameters, never string-concatenated into the raw query — verified by reading the actual composed query construction, not just trusting Prisma's reputation.
+- **No new PII/secrets on these pages** — same as MVP-003, nothing here needs `@ppu/telemetry`'s redaction beyond what already applies to the log events themselves.
+- **Malformed/adversarial query params fail safe**: `search-params.ts`'s parsing never throws — an invalid `page`, `sort`, or absurdly large `pageSize` all fall back to safe defaults (clamped to `MAX_PAGE_SIZE`) rather than erroring the page or allowing an unbounded query.
+
+### Accessibility review (Definition-of-Done gate item, explicitly requested this turn)
+- **No client JavaScript required for the core interactions**: search is a real `<form method="GET">`, sort/pagination/clear-all are real `<a href>` links — every interaction works with a keyboard alone and with JS disabled, and is exposed to assistive tech via native semantics rather than custom ARIA widgets standing in for real controls.
+- **Search input**: has an associated `<label>` (visually hidden via `.sr-only`, still exposed to screen readers) rather than a bare placeholder-only input.
+- **Current sort option**: marked with `aria-current="true"`, not conveyed by color/boldness alone.
+- **Result count and zero-results messaging**: `aria-live="polite"` so a screen-reader user is told the result count changed after a search, without needing to re-navigate to discover it.
+- **Pagination**: uses `nav aria-label="Pagination"`; the page-count text itself is `aria-live="polite"`; a control that doesn't apply (Previous on page 1, Next on the last page) is omitted entirely rather than rendered disabled-but-focusable or disabled-but-still-announced as a link.
+- **Focus/contrast**: inherits the already-established `:focus-visible` outline and color tokens from MVP-003 — no new ad-hoc styling that could regress contrast.
+- Not yet covered: this is a manual/spot review, not the automated WCAG gate — that's MVP-023's dedicated scope (axe-core + manual keyboard/screen-reader pass across all core journeys), which this story's controls will be exercised by once built.
+
+### Bugs found
+None filed — the `packages/db` eager-construction issue was caught and fixed within this same story before reaching Done, so per `CLAUDE.md`'s bug-vs-shortcut distinction it's documented above, not a `BUG-XXX.md` record.
+
+### Tech debt created
+None — the full-text-search-without-a-persisted-tsvector-column approach is a deliberate, reversible MVP-scale choice (fine without a GIN index at current data volumes), not a shortcut that compromises correctness or needs tracking as debt. If catalog size ever demands it, adding an indexed `tsvector` column is a contained, additive migration.
+
+### Remaining work to reach Done
+None — Done as of this entry, pending the routine final CI confirmation on push.
+
+### Next story recommendation
+**MVP-005 (Product detail evidence model)** — the strongest remaining candidate: it turns MVP-003's deliberately-minimal product stub page into the real thing (license, version, compatibility, support evidence), and unblocks both MVP-007 (Checkout) and MVP-021 (SEO/sitemap). MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 remain Ready and available to parallelize.

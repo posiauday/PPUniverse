@@ -555,6 +555,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@ppu/domain-catalog':
+        specifier: workspace:*
+        version: link:../domain/catalog
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1

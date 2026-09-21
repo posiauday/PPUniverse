@@ -21,7 +21,7 @@ export default async function HomePage() {
         A trusted Power Platform ecosystem for reusable assets and technical learning.
       </p>
       <p className="mt-4">
-        <Link href="/signin">Sign in</Link>
+        <Link href="/signin">Sign in</Link> &middot; <Link href="/search">Search products</Link>
       </p>
 
       <h2 className="mt-8 text-lg font-semibold">Browse by category</h2>
