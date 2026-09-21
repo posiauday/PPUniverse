@@ -32,7 +32,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCi,
   retries: 0,
-  workers: isCi ? 2 : undefined,
+  workers: isCi ? 3 : undefined,
   timeout: 45_000,
   expect: { timeout: 7_500 },
   reporter: isCi
@@ -41,8 +41,9 @@ export default defineConfig({
         ["html", { outputFolder: "playwright-report", open: "never" }],
         ["junit", { outputFile: "results/junit.xml" }],
         ["json", { outputFile: "results/results.json" }],
+        ["./src/summary-reporter.ts"],
       ]
-    : [["list"]],
+    : [["list"], ["./src/summary-reporter.ts"]],
   use: {
     baseURL: BASE_URL,
     colorScheme: "light",

@@ -38,6 +38,16 @@ test.describe("harness smoke: server, database fixtures and sign-in", () => {
     await expect(page).toHaveURL(/\/signin$/);
   });
 
+  test("records the engine build under test", async ({ browser, browserName }, testInfo) => {
+    // Pinned, bundled builds: the version is a fact of the Playwright release, recorded so the
+    // run summary and the documentation state exactly what was exercised.
+    testInfo.annotations.push({
+      type: "engine-version",
+      description: `${browserName} ${browser.version()}`,
+    });
+    expect(browser.version()).not.toBe("");
+  });
+
   test("an unknown URL is a real 404", async ({ page }) => {
     const response = await page.goto("/no-such-page-e2e");
     expect(response?.status()).toBe(404);

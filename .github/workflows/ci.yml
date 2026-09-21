@@ -105,6 +105,126 @@ jobs:
       - name: Dependency audit
         run: pnpm audit --audit-level=high
 
+  accessibility:
+    name: Accessibility (axe + Playwright)
+    # A separate job, in parallel with build-and-test (MVP-023, decision Q39). It runs the
+    # accessibility suite on Playwright's pinned chromium, firefox and webkit builds at
+    # 320/375/768/1280 px. Ceiling: 10 minutes wall-clock; if it is ever exceeded the answer
+    # is a new decision (sharding, trimming, a scheduled full run), never dropping engines,
+    # widths or rules.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ppuniverse
+          POSTGRES_PASSWORD: ppuniverse
+          POSTGRES_DB: ppuniverse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ppuniverse"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schema=public
+      # The harness writes temporary rows (reserved prefix, deleted afterwards) to this
+      # throwaway service container only, and its guard refuses any other database.
+      E2E_ALLOW_DATABASE_WRITES: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Start the job clock
+        run: echo "PPU_JOB_START=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: |
+          start=$(date +%s)
+          pnpm install --frozen-lockfile
+          echo "PPU_SECONDS_DEPS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Read the pinned Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+      # The browsers are Playwright's bundled builds, fixed by the exact pinned version, so
+      # keying the cache on that version cannot let a browser drift.
+      - name: Cache Playwright browsers
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install browsers and system dependencies
+        run: |
+          start=$(date +%s)
+          pnpm --filter @ppu/e2e exec playwright install --with-deps chromium firefox webkit
+          echo "PPU_SECONDS_BROWSERS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+          echo "PPU_BROWSER_CACHE=${{ steps.browser-cache.outputs.cache-hit == 'true' && 'hit' || 'miss' }}" >> "$GITHUB_ENV"
+
+      - name: Apply migrations
+        run: pnpm --filter @ppu/db exec prisma migrate deploy
+
+      - name: Build the application
+        run: |
+          start=$(date +%s)
+          pnpm build
+          echo "PPU_SECONDS_BUILD=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Run the accessibility suite
+        run: |
+          start=$(date +%s)
+          status=0
+          pnpm test:a11y || status=$?
+          echo "PPU_SECONDS_TESTS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+          exit "$status"
+
+      - name: Job summary (timing and results)
+        if: always()
+        run: |
+          now=$(date +%s)
+          {
+            echo "## Accessibility gate"
+            echo
+            echo "### Timing, measured in this job"
+            echo
+            echo "| Phase | Seconds |"
+            echo "|---|---|"
+            echo "| Dependencies install (pnpm) | ${PPU_SECONDS_DEPS:-n/a} |"
+            echo "| Browsers and system dependencies (browser cache: ${PPU_BROWSER_CACHE:-n/a}) | ${PPU_SECONDS_BROWSERS:-n/a} |"
+            echo "| Application build | ${PPU_SECONDS_BUILD:-n/a} |"
+            echo "| Test execution (includes starting the application server) | ${PPU_SECONDS_TESTS:-n/a} |"
+            echo "| From the first step to this one (excludes runner start-up) | $(( now - ${PPU_JOB_START:-now} )) |"
+            echo
+            if [ -f packages/e2e/results/summary.md ]; then cat packages/e2e/results/summary.md; else echo "No test summary was produced."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the report and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-report
+          path: |
+            packages/e2e/playwright-report
+            packages/e2e/results
+            packages/e2e/test-results
+          retention-days: 14
+          if-no-files-found: warn
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
