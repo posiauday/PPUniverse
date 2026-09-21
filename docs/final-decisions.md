@@ -76,15 +76,17 @@ This entry originated from a document the product owner received from a separate
 
 **Source: direct product-owner instruction, given in chat on 2026-09-21.** Recorded here so this document, not the chat message or any handoff, is the approval source from this point on.
 
+> **Partly superseded on 2026-09-21 by the entry "Product-owner responses to MVP-005 open items; MVP-021 authorization" below.** The evidence-status vocabulary in this entry (Tested / Creator Declared / Not Verified) is replaced for current marketplace publication by **Creator Declared** and **Marketplace Reviewed**, and **Tested is reserved**. Read that entry before applying anything from the "Evidence Status" or "Product-page presentation" parts of this one. Everything else here (platform areas, structured release wave, notes, prohibited labels, empty-state wording, exclusions) stands.
+
 ### Approved compatibility model
 A product may have one or more compatibility entries. Every entry carries:
 - **Platform Area** — one of: Power Apps, Power Automate, Power BI, Dataverse, Power Pages, Copilot Studio, Microsoft Fabric. Architecture and Governance are marketplace *categories*, not Power Platform runtime areas, and are **not** compatibility platform areas unless a later product-owner decision explicitly approves that. The compatibility areas are independent of the six locked asset categories; approving them does not add product categories.
 - **Minimum Supported Release Wave** — structured as **Release Year** plus **Release Wave Number**, never one uncontrolled display string. Shown to users as e.g. "2025 release wave 2". There is no hardcoded per-year list, so a new year never needs a migration. Validation: the year is within a reasonable supported range, the wave is 1 or 2, and a release wave cannot exist without a platform area. Meaning: the *earliest* release wave for which the product **claims** compatibility — never presented as proof that it works with every later release.
 - **Compatibility Notes** (when applicable) — concise, factual, sanitized text for additional requirements and limitations not modeled as structured flags (e.g. requires Dataverse; premium connectors; Power BI Pro; Fabric capacity; on-premises data gateway; environment-maker permissions; commercial-cloud-only testing; sovereign-cloud not verified; model-driven app; custom connector). These examples must **not** become boolean columns in MVP-005; a future story may introduce structured requirement flags once real marketplace inventory shows which requirements need filtering.
 - **Evidence Status** — exactly three approved states:
-  - **Tested** — compatibility was tested using a documented environment or repeatable verification process.
-  - **Creator Declared** — the creator supplied the claim, but the marketplace has not independently verified it.
-  - **Not Verified** — no sufficient verification evidence is available.
+  - **Tested** — compatibility was tested using a documented environment or repeatable verification process. *(2026-09-21: reserved and unavailable for assignment; the future Tested program is deferred — see section B of the later entry.)*
+  - **Creator Declared** — ~~the creator supplied the claim, but the marketplace has not independently verified it.~~ *(2026-09-21: definition superseded by section B of the later entry.)*
+  - **Not Verified** — no sufficient verification evidence is available. *(2026-09-21: not addressed by the statuses decision in section B of the later entry — open question 27.)*
 - **Evidence Summary** and **Last Verified Date** — both required when the status is Tested; the date is recorded when compatibility has been tested or reviewed. Evidence text must never expose private test-environment details, credentials, tenant identifiers, customer information, or internal operational data.
 
 ### Claims that must not be made
@@ -121,3 +123,86 @@ The model above was implemented as approved. The following are choices made *wit
 - **License.** The three locked tiers (Personal, Team, Enterprise) are seeded as reference data, sanctioned by `docs/13-implementation-readiness-plan.md`; a product lists one or more. No pricing, seat limits or contract terms are modeled (open question 7).
 - **Support channel links.** A channel is rendered as a link only if it is a plain `http(s)` URL with no embedded credentials; anything else (including `javascript:`, `mailto:` and free text) is shown as plain text.
 - **Private-data protection is display-time only for now.** Invisible and spoofing characters are stripped and markup is escaped, but write-time rejection of tenant identifiers, credentials and similar content is not built because no write path exists yet — see `planning/tech-debt/TD-006.md`.
+
+
+## 2026-09-21 — Product-owner responses to MVP-005 open items; MVP-021 authorization
+
+**Source: direct product-owner instruction, given in chat on 2026-09-21.** Recorded here so this document is the approval source. These decisions are not to be reopened unless the product owner explicitly changes them.
+
+### A. Product-page wording — APPROVED AS WRITTEN
+The wording proposed in the MVP-005 implementation record is approved: the license, version and support empty-state sentences; the release-wave explanation; the compatibility legend heading; and the compatibility evidence explanations. **This closes the wording review** raised in "Implementation record (MVP-005)" above.
+
+Requirements that continue to bind all product-page wording:
+- Factual and neutral. Never imply certification, guarantee, Microsoft approval, independent testing or official endorsement.
+- Never invent missing product information. Empty states say clearly that the information has not been provided.
+- Essential information is never communicated by colour alone.
+- Any future *material* wording change is recorded as a content or product decision.
+
+Where this approval and section B conflict on the evidence-status vocabulary or definitions, **B controls** (later and more specific on that topic). The conflicts are listed under "Conflicts and gaps flagged" below.
+
+### B. Evidence status — who may assign "Tested" (closes open question 6, part 2 for the current MVP)
+**"Tested" is NOT approved for general creator or moderator assignment at this stage.** For the current MVP:
+- Creators assign or submit compatibility as **Creator Declared**.
+- Moderators may change the publication state to **Marketplace Reviewed** after reviewing the claim.
+- Creators cannot assign Marketplace Reviewed. Moderators cannot assign Tested.
+- The platform must not automatically infer Tested. Existing data must not be migrated to Tested.
+- No user-facing "Tested" badge or filter is introduced.
+
+**Approved statuses for current marketplace publication (only these two):**
+1. **Creator Declared** — the compatibility information was supplied by the creator and has not been independently certified by the marketplace.
+2. **Marketplace Reviewed** — a moderator reviewed the submitted compatibility statement for completeness, plausibility, prohibited claims and publication readiness.
+
+**Marketplace Reviewed does not mean:** independently tested; certified; guaranteed; Microsoft approved; Microsoft certified; officially supported; verified compatible.
+
+**Existing `TESTED` enum value:** do not remove it destructively (not during MVP-021). Treat it as **reserved and unavailable for normal assignment**. Do not display it unless valid historical data already exists and its provenance is documented. Technical debt is created to reconcile it (TD-008).
+
+**The future "Tested" program is DEFERRED, NOT APPROVED.** Before Tested can be used, a product-owner decision must define: who performs testing; the required test procedure; required environment information; evidence retention; retesting frequency; expiration rules; the version and release-wave relationship; moderator responsibilities; public wording; and liability and disclaimer language.
+
+### Conflicts and gaps flagged while recording B (not resolved here — open questions 27 and 28)
+1. **The merged MVP-005 implements the earlier vocabulary.** The database enum is `TESTED`, `CREATOR_DECLARED`, `NOT_VERIFIED` with no `MARKETPLACE_REVIEWED`; `validateCompatibilityEntry` accepts `TESTED`; the on-page legend defines Tested, Creator Declared and Not Verified. No product or compatibility data exists yet, so nothing user-visible is wrong today, but the legend would show "Tested" as soon as any compatibility row exists. Reconciliation is **TD-008**, outside MVP-021's scope, and does not change MVP-005's Done status.
+2. **"Not Verified" is not addressed by B.** The earlier approval defined it as "no sufficient verification evidence is available"; B lists only Creator Declared and Marketplace Reviewed as approved for current publication. Whether Not Verified remains valid is undecided. It is treated as neither removed nor newly approved.
+3. **"Creator Declared" now has two wordings.** Earlier: "The creator supplied the claim, but the marketplace has not independently verified it." B: "...has not been independently certified by the marketplace." B is later and controls when the legend is reconciled.
+4. **"Publication state" vs "evidence status".** B says moderators "change the publication state to Marketplace Reviewed". It is recorded here as a per-compatibility-entry *evidence status* (B lists it among the "approved statuses"), not as `Product.status` (DRAFT/PUBLISHED). To be confirmed.
+5. **No reviewed date or reviewer display is defined.** Marketplace Reviewed is not verification, so the "Last Verified" column cannot show a date for it. Until decided, no reviewed date is displayed.
+
+### C. Remaining FR-003 product-detail items — dispositions
+**Do not expand MVP-005 or MVP-021 to implement the remaining FR-003 items.** They need explicit ownership in future backlog stories.
+
+| Item | Disposition |
+|---|---|
+| Creator | Assigned to **MVP-011** (Creator applications) for creator identity and creator-profile *ownership*. Public creator-page routing remains unresolved under open question 24 and must not be built unless approved. |
+| Screenshots | Future **Product Media and Screenshots** story (proposed). |
+| Demo | Same proposed story. A demo may be a supported external link or an approved media type; the allowed format needs a later decision. |
+| Price | Assigned to **MVP-007** (Checkout), together with the pricing, currency, tax and refund decisions required first. No offers in structured data before price is modeled and approved. |
+| Prerequisites | Future **Product Documentation and Prerequisites** story (proposed). |
+| Setup instructions | Same proposed story. |
+| Accessibility statement | Future **Product Accessibility Disclosure** story (proposed). MVP-023 owns *platform* accessibility validation, not creator-product accessibility declarations, unless its approved scope explicitly says otherwise. |
+| Changelog | Future **Product Releases and Changelog** story (proposed). |
+| Version history | Same proposed story. |
+| Related assets | **Deferred** until enough real inventory exists and a recommendation or relationship rule is approved. No fabricated relationships and no behavioral recommendations. |
+
+Proposals are recorded in `planning/proposed-stories.md` with status **Proposed** — not approved, not Ready, and not counted on the board — until the product owner directly approves each one. Open question 26 carries this disposition.
+
+### MVP-021 authorization and scope
+MVP-021 is authorized to proceed to its pre-work analysis and remains limited to **FR-017**: canonical URLs, page metadata, Open Graph metadata, Twitter social-preview metadata, sitemap, robots directives, and structured data only where valid. No application code is written until the pre-work analysis has been delivered.
+
+### Site base URL: `NEXT_PUBLIC_SITE_URL` (approved variable name)
+The canonical public site origin is a web/SEO concern and **must not reuse `NEXTAUTH_URL`**, which is authentication-specific.
+- Require an absolute **HTTPS** URL in production. Permit localhost HTTP only in development and test.
+- Normalize the value to avoid duplicate trailing-slash behavior.
+- Never infer the production domain. Never hardcode a production domain while the product name and domain remain unresolved (open question 1).
+- Add it to `turbo.json` `globalPassThroughEnv`, and add a documented placeholder to `apps/web/.env.example`.
+- If it is missing in production, **fail safely** rather than emit incorrect canonical URLs.
+- It is a public origin, not a credential; no secret is exposed through it.
+
+### Structured data (schema.org) for MVP-021
+- **Product** structured data only on published product-detail pages, only where the available data validly supports it, and only with fields backed by real published data (for example name, description, url, category, and version or release information when accurately modeled).
+- **Never include:** offers, price, priceCurrency, aggregateRating, review, a brand implying Microsoft ownership, certification, endorsement, availability, seller, creator identity (unless approved public creator data exists for that purpose), or compatibility claims that cannot be represented accurately.
+- Home and category-listing pages: do not force Product. Use WebSite, WebPage, CollectionPage or BreadcrumbList only when the page content and available data validly support the type. The selected types and rationale are recorded in the pre-work analysis before implementation.
+- **JSON-LD security:** generate from typed, server-controlled objects; serialize with `JSON.stringify` (or the repository-approved equivalent); escape `<` as `<` before inserting into a script element; never concatenate untrusted strings into JSON-LD; never use raw creator-supplied HTML; add tests proving malicious product text cannot terminate the script element.
+
+### Indexing boundary for MVP-021
+- **Indexable:** the home page, published category-listing pages, published product-detail pages.
+- **Noindex or excluded:** search pages; sign-in and authentication pages; account pages; creator-administration and admin pages; API routes; draft, suspended and unpublished products; internal preview routes; error pages where applicable.
+- **The sitemap contains only:** indexable static public pages, real seeded categories intended for public indexing, and real `PUBLISHED` products. Never DRAFT, suspended, archived, rejected or fabricated products.
+- No fake inventory is seeded for sitemap testing. Tests may create isolated product records and clean up only what they created. Seeded categories are never deleted or mutated as test cleanup.

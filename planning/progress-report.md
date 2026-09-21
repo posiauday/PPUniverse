@@ -642,3 +642,40 @@ None — Done. MVP-007 and MVP-021 were promoted to Ready. (Follow-ups are track
 
 ### Next story recommendation
 **MVP-021 (metadata, sitemap, canonical, structured data)** — depends only on MVP-005, smallest P0 (3 pts), not gated by an open product decision. **MVP-023** (accessibility gate + the Playwright/axe harness that would close TD-007's E2E half) is the strongest follow-up. MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) are dependency-ready but gated by unanswered product decisions.
+
+## 2026-09-21 — Product-owner responses to MVP-005 open items; MVP-021 pre-work
+
+Branch `feature/mvp-021-seo-metadata` (from `develop` at `f8c8c31`; no open PRs; no overlapping work). **No application code was written.** Committed locally; not yet pushed. MVP-005 remains **Done** — none of this changes its status.
+
+### Decisions recorded (source: direct product-owner instruction, 2026-09-21)
+- **A. Wording — approved as written.** The license/version/support empty-state sentences, the release-wave explanation and the legend heading are approved; the wording review is closed.
+- **B. Evidence status — Tested is not assignable.** For the current MVP the only assignable statuses are **Creator Declared** (creators) and **Marketplace Reviewed** (moderators; it does not mean tested, certified, guaranteed, Microsoft approved/certified, officially supported or verified compatible). **Tested is reserved**: never assigned by creators or moderators, never inferred, never migrated to, no user-facing badge or filter, not removed destructively. The future Tested program is **deferred, not approved**. Closes open question 6, part 2 for the current MVP.
+- **C. Remaining FR-003 items.** Neither MVP-005 nor MVP-021 is expanded. Creator → MVP-011 (ownership only; the public route stays under open question 24). Price → MVP-007 (after the pricing/currency/tax/refund decisions; no offers in structured data before then). Screenshots, demo, prerequisites, setup, accessibility statement, changelog and version history → five **proposed** stories (`planning/proposed-stories.md`), status Proposed — not approved, not Ready, not on the board. Related assets → deferred.
+- **MVP-021 authorization:** scope limited to FR-017; `NEXT_PUBLIC_SITE_URL` rules; the structured-data decision; the indexing boundary; pre-work analysis before code.
+
+Recorded in `docs/final-decisions.md` (new dated entry; in the earlier compatibility entry the three status bullets are annotated or struck through, not deleted, per the document's own convention), `docs/open-questions.md` (items 6, 24, 26 updated; 27–31 added), `planning/requirement-traceability.csv` (FR-003), the tech-debt and bug records, and `planning/status.md`.
+
+### Conflicts and gaps flagged, not resolved
+1. The merged MVP-005 implements the earlier three-state vocabulary (the DB enum has no `MARKETPLACE_REVIEWED`, the validator accepts `TESTED`, the legend defines Tested). Nothing is user-visible yet because no product data exists. → **TD-008**.
+2. "Not Verified" is not addressed by decision B. → open question 28.
+3. "Creator Declared" now has two wordings; B's is later and controls when reconciled.
+4. B says moderators "change the publication state to Marketplace Reviewed"; recorded as a per-entry evidence status, not `Product.status`. → open question 28.
+5. No reviewed date or reviewer display is defined for Marketplace Reviewed. → open question 28.
+
+### Records created or changed
+- **New:** `TD-008` (vocabulary reconciliation); `BUG-001` (below); `planning/proposed-stories.md`; `planning/prework/MVP-021-prework-analysis.md`.
+- **Updated:** `TD-006` (role rules decided, not yet enforced), `TD-007` (dispositions), `TD-005` unchanged; backlog CSVs (MVP-021 → In Progress); `status.md` (board, 1 open bug, 5 open tech-debt items, proposed-stories section).
+
+### Findings from the investigation (evidence, not assumption)
+- **BUG-001 (P3):** a production-build probe with the product/category pages' metadata shape emitted a **relative** canonical and `og:url`, and a `http://localhost:<port>` social-image fallback, because no `metadataBase` is set. `/signin` is a client component (cannot export metadata) and, with `/account`, has no robots directive. Fixed by MVP-021. Caveat recorded: reproduced on a probe route because the real pages need a database.
+- **Turborepo** infers `NEXT_PUBLIC_*` into the Next.js build hash (verified with `turbo --dry=json`), so adding `NEXT_PUBLIC_SITE_URL` to `globalPassThroughEnv` carries no stale-cached-build risk.
+- **External facts checked against Google's documentation:** Product rich results need `name` plus one of `review`, `aggregateRating` or `offers`; and "Don't mark up content that is not visible to readers of the page". These shaped open question 31 and the decision not to propose `BreadcrumbList`.
+
+### Tracking-data errors found and fixed
+While validating the planning CSVs I found three malformed rows that I introduced: the `TD-006` row in `tech-debt.csv` had a stray trailing comma (9 fields), and the `FR-002` and `FR-003` rows in `requirement-traceability.csv` had unquoted commas in the Status cell (8 and 10 fields). All five planning CSVs now parse to consistent field counts. These are tracking-data typos, not product defects, so no bug records; but nothing in CI validates these files, which is why they merged. A small automated CSV check would have caught them (suggested, not created).
+
+### Security-review note to carry forward
+The MVP-005 entry states that no `dangerouslySetInnerHTML` exists in the codebase. MVP-021 will add exactly one, in the JSON-LD component, guarded by serialization escaping and an HTML-parser injection test; the MVP-021 security review must say so.
+
+### MVP-021 status
+**In Progress.** Pre-work analysis: `planning/prework/MVP-021-prework-analysis.md`. Implementation is waiting on the product owner's answers to open questions 29–31 (or acceptance of the stated defaults) and on how to sequence TD-008 (open question 28).
