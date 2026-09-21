@@ -11,3 +11,5 @@ Pure catalog logic and the repository port — no framework, no database.
   - `present-evidence.ts` — `presentProductEvidence` turns a `ProductDetail` into the display model `@ppu/ui`'s `ProductEvidence` renders, including the exact empty-state sentences. It never produces "Microsoft Certified", "Microsoft Approved", "Officially Supported" or "Marketplace Verified" (tests assert this).
 
 The minimum release wave means "the earliest release wave for which the product claims compatibility" — never proof of compatibility with later releases. Structured fields the product owner excluded from this story (Dataverse/premium-connector booleans, gateway, environment type, cloud, etc.) are deliberately not modeled.
+
+- **Sitemap eligibility (MVP-021, FR-017):** the `CatalogRepository` port gains `listSitemapEntries(maxEntries)`, returning `SitemapEntries` — PUBLISHED products, and only those categories that currently have at least one PUBLISHED product (derived from inventory on every call, never a stored flag).

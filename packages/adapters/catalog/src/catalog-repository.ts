@@ -13,6 +13,7 @@ import type {
   ProductWithCategory,
   SearchOptions,
   SearchResult,
+  SitemapEntries,
 } from "@ppu/domain-catalog";
 
 export class PrismaCatalogRepository implements CatalogRepository {
@@ -88,6 +89,42 @@ export class PrismaCatalogRepository implements CatalogRepository {
         ? { status: row.supportPolicy.status, channel: row.supportPolicy.channel }
         : null,
       compatibility: row.compatibility.map(toCompatibilityEntry),
+    };
+  }
+
+  /**
+   * Sitemap eligibility (MVP-021, FR-017). PUBLISHED is an allow-list, so any
+   * future status (suspended, archived, rejected) is excluded by default. A
+   * category is listed only when it currently has at least one PUBLISHED
+   * product — derived from inventory on every call, never a stored flag.
+   * Both queries are ordered by slug for deterministic output and use the
+   * existing indexes (products.status, categories.slug). `maxEntries` bounds
+   * categories plus products combined; one extra product is fetched purely to
+   * learn whether the list was truncated.
+   */
+  async listSitemapEntries(maxEntries: number): Promise<SitemapEntries> {
+    if (!Number.isInteger(maxEntries) || maxEntries < 0) {
+      throw new RangeError("maxEntries must be a non-negative integer");
+    }
+
+    const categories = await this.db.category.findMany({
+      where: { products: { some: { status: "PUBLISHED" } } },
+      select: { slug: true },
+      orderBy: { slug: "asc" },
+      take: maxEntries,
+    });
+    const productBudget = maxEntries - categories.length;
+    const products = await this.db.product.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true },
+      orderBy: { slug: "asc" },
+      take: productBudget + 1,
+    });
+
+    return {
+      categorySlugs: categories.map((category) => category.slug),
+      productSlugs: products.slice(0, productBudget).map((product) => product.slug),
+      truncated: products.length > productBudget,
     };
   }
 
