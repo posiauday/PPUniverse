@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "../../../lib/auth";
 import { getCurrentSessionId } from "../../../lib/current-session";
 import { SessionRevokeButton } from "./SessionRevokeButton";
+import { SessionsHeading } from "./SessionsHeading";
 import { SignOutButton } from "./SignOutButton";
 
 export default async function AccountSessionsPage() {
@@ -21,7 +22,7 @@ export default async function AccountSessionsPage() {
 
   return (
     <main>
-      <h1>Active sessions</h1>
+      <SessionsHeading sessionCount={view.length} />
       <p>Signed in as {session.user.email}.</p>
       <SignOutButton />
       {view.length === 0 ? (
