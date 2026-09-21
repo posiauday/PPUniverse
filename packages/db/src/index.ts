@@ -19,10 +19,31 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
-export const prisma: PrismaClient = globalThis.__ppuPrisma ?? createPrismaClient();
-
-if (process.env["NODE_ENV"] !== "production") {
-  globalThis.__ppuPrisma = prisma;
+function getPrisma(): PrismaClient {
+  if (globalThis.__ppuPrisma) {
+    return globalThis.__ppuPrisma;
+  }
+  const client = createPrismaClient();
+  if (process.env["NODE_ENV"] !== "production") {
+    globalThis.__ppuPrisma = client;
+  }
+  return client;
 }
+
+/**
+ * A lazy proxy: constructing the real client (which requires
+ * DATABASE_URL) only happens on first actual property access, not at
+ * module-import time. Without this, any module importing a *value* from
+ * @ppu/db — even something unrelated to the `prisma` singleton, like the
+ * `Prisma.sql` tagged-template helper — would eagerly throw if
+ * DATABASE_URL isn't set, before a caller's own
+ * describe.skipIf(!hasDatabase) integration-test guard ever gets to run
+ * (a real bug this fixes, not a hypothetical one — see git history).
+ */
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getPrisma(), prop, receiver);
+  },
+});
 
 export * from "./generated/client/client.js";

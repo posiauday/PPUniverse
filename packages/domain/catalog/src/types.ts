@@ -28,3 +28,20 @@ export interface ProductRecord {
 export interface ProductWithCategory extends ProductRecord {
   category: CategoryRecord;
 }
+
+export type SortOption = "relevance" | "recent" | "alphabetical";
+
+export interface SearchOptions {
+  query?: string;
+  categorySlug?: string;
+  sort: SortOption;
+  page: number;
+  pageSize: number;
+}
+
+export interface SearchResult {
+  items: ProductWithCategory[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
