@@ -3,7 +3,7 @@ MVP-001,Foundation,Repository and CI baseline,P0,Done,NFR-007,"Build, lint, type
 MVP-002,Identity,Account registration and session,P0,Done,FR-004,"Verified account can sign in/out and manage sessions",MVP-001
 MVP-003,Catalog,Taxonomy and catalog pages,P0,Done,FR-001,"Indexable category and product listing pages render",MVP-001
 MVP-004,Catalog,Search filter sort and zero results,P0,Done,FR-002,"Filters are shareable, accessible and analytically tracked",MVP-003
-MVP-005,Catalog,Product detail evidence model,P0,In Progress,FR-003,"All required license/version/support/compatibility fields display",MVP-003
+MVP-005,Catalog,Product detail evidence model,P0,QA,FR-003,"All required license/version/support/compatibility fields display",MVP-003
 MVP-006,Files,Quarantine scan and private storage,P0,Done,FR-007,"Unscanned or rejected file cannot be delivered",MVP-001
 MVP-007,Commerce,Checkout session,P0,Backlog,FR-006,"Price is server-derived and checkout is idempotent",MVP-002;MVP-005
 MVP-008,Commerce,Verified webhook fulfillment,P0,Backlog,FR-006,"Signature and duplicate event tests pass",MVP-007

@@ -518,3 +518,125 @@ None — Done as of this entry, pending the routine final CI confirmation on pus
 
 ### Next story recommendation
 **MVP-005 (Product detail evidence model)** — the strongest remaining candidate: it turns MVP-003's deliberately-minimal product stub page into the real thing (license, version, compatibility, support evidence), and unblocks both MVP-007 (Checkout) and MVP-021 (SEO/sitemap). MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 remain Ready and available to parallelize.
+
+## MVP-005 — Product detail evidence model
+
+### Story status: QA (not Done)
+**MVP-005 — Product detail evidence model** (Epic: Catalog, Requirement: FR-003, Priority: P0, Sprint 3, 5 pts)
+
+Acceptance summary: "All required license/version/support/compatibility fields display."
+
+Implemented and verified locally. **Not Done**: per the product owner's rule for this story, it stays in QA until CI is green with the database-gated tests confirmed *passed* (not skipped). This entry is updated with the CI result before the story is marked Done.
+
+**Sequence, per the stop-conditions protocol**: pre-work verification and analysis were delivered before any code (branch `feature/mvp-005-product-evidence` from up-to-date `develop`; MVP-004 Done and merged; no overlapping MVP-005 work). Two questions the story could not answer itself (compatibility shape, evidence method) were put to the product owner and work stopped until the answer arrived. The decision was recorded in `docs/final-decisions.md` / `docs/open-questions.md` first, in its own commit, so the repo — not the chat message — is the approval source. Implementation followed.
+
+**Scope boundaries flagged rather than silently decided**
+1. FR-003's PRD text lists far more than this story's acceptance criteria (creator, screenshots, demo, price, prerequisites, setup, accessibility statement, changelog, version history, related assets). Delivered exactly the acceptance criteria; FR-003 is recorded **Partially Implemented** and the gap is tracked in TD-007 and open question 26.
+2. I had earlier said open question 3 (refunds) would block this story. That was wrong — it is not in the acceptance criteria — and was corrected to the product owner.
+3. While starting the story I found FR-002's traceability had been overstated as "Implemented" after MVP-004. Corrected to "Partially Implemented" in a separate, flagged commit, with TD-005 and open question 25.
+
+### Files changed
+
+**Docs / planning**
+- `docs/final-decisions.md` — product-owner compatibility model (2026-09-21) recorded first; implementation record appended (engineering choices for review, including the empty-state wording the product owner did not specify)
+- `docs/open-questions.md` — item 6 part 1 CLOSED, part 2 partially resolved with an implementation note; items 25 and 26 added
+- `docs/06-data-model.md` — pointer to the approved model
+- `planning/` — backlog CSVs, status, traceability (FR-003, and the FR-002 correction), `tech-debt/TD-005`–`TD-007` and index, this entry
+
+**`packages/db`**
+- `prisma/schema/evidence.prisma` (new) — `LicenseDefinition`, `ProductLicense`, `Release`, `SupportPolicy`, `CompatibilityRecord` and three enums; `catalog.prisma` gains back-relations only
+- `prisma/migrations/20260921000000_add_product_evidence` — hand-written; five tables, three enums, indexes/FKs, CHECK constraints, RLS on every table
+- `prisma/migrations/20260921000001_seed_license_definitions` — the three locked license tiers as reference data. **No `Product` rows are seeded anywhere.**
+- `README.md` — was stale ("no schema yet" since MVP-002); rewritten with the schema-file table and conventions
+
+**`packages/domain/catalog`**
+- `compatibility.ts` — the seven platform areas, three evidence states with the approved definitions, release-wave/date formatting, and `validateCompatibilityEntry` (all write-time rules, returns every error at once)
+- `support.ts` — support labels; `safeSupportChannelHref` (http/https only, no embedded credentials)
+- `text.ts` — `normalizeDisplayText` (whitespace, control, zero-width and bidi-override stripping; deliberately does not HTML-escape — React does)
+- `present-evidence.ts` — `presentProductEvidence`: the display model, exact empty-state wording, legend
+- `types.ts`, `catalog-repository.ts` (port gains `findPublishedProductDetailBySlug`), `index.ts`, `README.md`; unit tests for all four new modules
+
+**`packages/adapters/catalog`**
+- `catalog-repository.ts` — `findPublishedProductDetailBySlug`: PUBLISHED-only in the query; licenses in tier order; newest *published* release as current version; support; compatibility in platform-area order; `lastVerifiedAt` mapped to `YYYY-MM-DD`
+- Integration tests: 18 new DB-gated tests (27 in the file) — detail read model, ordering, legacy product with no evidence, unpublished release ignored, DRAFT excluded, unknown slug, and every database constraint (unique per product+area, wave, year floor/ceiling, blank/oversized notes, Tested-requires-evidence, release version rules, support-channel rule, RESTRICT on an in-use license tier). Cleanup never deletes seeded categories or license tiers.
+
+**`packages/ui`**
+- `product-evidence.tsx` (+ 18 tests) — License / Version / Support / Compatibility sections; real `<table>` with caption, scoped headers and row headers; keyboard-focusable labelled scroll region; visible status legend; `README.md`, `index.ts`
+
+**`apps/web`**
+- `app/products/[slug]/page.tsx` — uses the detail query (shared between metadata and page via `cache()`) and `ProductEvidence`; still `force-dynamic`
+
+### Migration impact
+Two additive migrations; no existing table is altered, so existing `Product` rows are untouched and simply show "not provided" states. RLS is enabled (zero policies, the repo standard) on all five new tables. Verified on real Postgres (Supabase project `ppuniverse-dev`): both migrations applied; every constraint exercised with real inserts (all behaved as designed); cascade delete of a product leaves no orphaned evidence rows; Supabase advisors show RLS enabled on all 12 tables (INFO-level only). **Rollback** (rehearsed on the dev database inside a block that raised on purpose so everything rolled back — every drop succeeded, schema verified intact afterwards):
+
+```sql
+DROP TABLE "compatibility_records"; DROP TABLE "support_policies"; DROP TABLE "releases";
+DROP TABLE "product_licenses"; DROP TABLE "license_definitions";
+DROP TYPE "SupportStatus"; DROP TYPE "CompatibilityEvidenceStatus"; DROP TYPE "PlatformArea";
+```
+
+No existing table has to change on rollback, so it is safe while no evidence data exists; once real evidence exists it would need a data-export step first.
+
+### Commands executed
+
+| Command | Result |
+|---|---|
+| `pnpm typecheck` | Pass (31 tasks) |
+| `pnpm lint` | Pass (16 tasks) |
+| `pnpm test` | Pass (31 tasks) — `@ppu/domain-catalog` 61 tests, `@ppu/ui` 36, `apps/web` 11. All DB-gated suites (including the 27 in `@ppu/adapter-catalog`) self-skip locally: **there is no Postgres locally, so these are unproven until CI runs them** |
+| `pnpm build` | Pass (17 tasks) — `/products/[slug]` still listed dynamic (ƒ) |
+| `pnpm format:check` | Pass |
+| `pnpm audit --audit-level=moderate` | Pass — no known vulnerabilities |
+| Real Postgres (Supabase MCP) | Both migrations applied; constraint probes; advisors; rollback rehearsal — all as above |
+
+### Real verification (browser, not only tests)
+Rendered `ProductEvidence` with obviously-placeholder data on a temporary route (never committed, deleted afterwards; no data was stored anywhere) in the built-in browser:
+- **1024px**: no page overflow; full matrix visible without scrolling.
+- **375px**: no page overflow; the table scrolls inside its own region (scrolled to its full extent — all columns reachable); the region is focusable and shows a visible focus ring.
+- **States**: full, empty (exact wording "Compatibility information has not yet been provided.", no table), and a hostile `javascript:` support channel (zero anchors rendered; shown as text). A `<script>` payload in notes rendered as inert text.
+- `apps/web/next-env.d.ts` was flipped by the dev server and restored so it is not committed.
+
+### Security review (Definition-of-Done gate item)
+- **No new write surface or authenticated route.** Public, read-only, PUBLISHED-only — enforced in the query itself and covered by a DRAFT-with-evidence test.
+- **No injection sinks.** No raw SQL added (Prisma query builder). Repo-wide search found no `dangerouslySetInnerHTML`/`innerHTML`/`eval`; React escapes every creator-supplied string. Verified with a `<script>`/`<img onerror>` payload in unit tests and in the browser.
+- **Link safety.** The support channel is a link only if it parses as plain `http(s)` with no embedded credentials; `javascript:`, `data:`, `mailto:`, protocol-relative, control-character-obfuscated and free-text values are shown as text. Links carry `rel="nofollow ugc noopener noreferrer"`.
+- **Spoofing.** Control, zero-width and bidirectional-override characters are stripped from creator text before display.
+- **Database as second line of defence.** CHECK constraints, unique index and FKs (including RESTRICT on in-use license tiers) reject bad data even if a future code path skips the domain validator; RLS enabled on all new tables.
+- **No secrets, no PII, no new env vars** (so no `turbo.json` change was needed).
+- **Claims.** No "Microsoft Certified", "Microsoft Approved", "Officially Supported" or "Marketplace Verified" wording exists anywhere; unit and component tests assert this.
+- **Known gap (recorded, not hidden): TD-006.** Nothing yet screens notes/evidence summaries for private data (tenant IDs, credentials, test-environment details), nothing calls `validateCompatibilityEntry`, and who may assign "Tested" is undecided. Today nothing can write these rows except direct database access; MVP-012/013 must close it before any product write path exists.
+
+### Accessibility review (Definition-of-Done gate item)
+- **Structure**: one `<h2>` per section under the page's `<h1>`; the matrix is a real `<table>` with `<caption>`, `<th scope="col">` headers and the platform area as `<th scope="row">`; the verified date is a `<time datetime>`; the legend is a `<dl>`. Sections are deliberately not named landmarks (headings suffice; avoids landmark noise). Component tests assert all of this through role queries.
+- **Never colour alone**: every evidence status is written out as text, all three share one visual style, and unverified reads "Not independently verified". Definitions are visible text; nothing is in a hover-only `title`/tooltip (asserted).
+- **Mobile**: horizontal scroll happens inside `role="region"` with an accessible name and `tabindex="0"`, so keyboard users can scroll it; axe's `scrollable-region-focusable` rule passes at 375px.
+- **Automated scan**: axe-core 4.10.2 (WCAG 2.0/2.1/2.2 A and AA + best-practice) against the rendered component — **0 violations** in the full state at 1024px, the empty state, and the full state at 375px. At 375px axe listed one "incomplete" colour-contrast item (it cannot sample backgrounds for cells clipped inside the scroll region); the same cells passed at 1024px, and the computed contrast ratios are 18.1:1 (text), 7.5:1 (muted text) and 6.7:1 (muted text on the table header) — all above the 4.5:1 AA minimum.
+- **Found and fixed during the browser check**: the support link was visually indistinguishable from body text (Tailwind's reset removes link styling) — now underlined; "Power Automate" and "2025 release wave 2" wrapped needlessly — those columns no longer wrap, and the status/notes columns have minimum widths.
+- **Not covered — stated plainly**: no real screen reader (NVDA/VoiceOver/JAWS) pass was run; the synthetic key events available here did not move the scroll region with the arrow keys (arrow-key scrolling of a focused scroll container is native browser behaviour, but it was not exercised); and this was run on a temporary component preview, not on a real product page, because no product rows exist. The systematic manual gate is MVP-023's scope.
+
+### Issues found and fixed during implementation (same story, so not bugs)
+- My first test files contained raw invisible characters, including a literal NUL byte (which made ripgrep skip the file as binary). Rebuilt from code points so the tests are readable and greppable.
+- A component-test fixture used two identical release-wave values, so a `getByText` correctly failed on the duplicate; assertion corrected to the real count.
+- `aria-labelledby` had been put on a `<dl>` (not a valid target for it); removed.
+- `pnpm format` re-wrapped my files and also touched line endings on earlier stories' files; those show as modified but have no content diff (`core.autocrlf=true`, index is LF). Only explicit paths are staged.
+
+### Bugs found
+None in already-delivered work. (The FR-002 traceability overstatement found at the start was a tracking error, logged as TD-005 with a corrected record, not a defect.)
+
+### Tech debt created
+- **TD-006** — write-time evidence rules and private-data screening are not enforced by any write path yet (MVP-012/013).
+- **TD-007** — FR-003 items beyond license/version/support/compatibility have no delivering story; no Playwright E2E for the product page.
+- TD-005 (created earlier in this story) updated: the license and compatibility filters are now unblocked, pending a backlog decision. No filtering UI was built here, by instruction.
+
+### Risks identified
+- **DB-gated tests are unproven until CI.** No local Postgres, so the adapter query, the ordering assertions and the constraint tests have only been type-checked; the migrations and constraints themselves *were* proven on real Postgres.
+- **Platform-area ordering relies on Postgres enum declaration order.** A future `ALTER TYPE ... ADD VALUE` appends to the end unless `BEFORE`/`AFTER` is used, which would change the displayed order.
+- **`lastVerifiedAt`** relies on Prisma returning a `DATE` as UTC midnight; covered by an integration test, which runs in CI's UTC environment.
+- **Wording review.** The empty-state text for license/version/support, the release-wave explanation and the legend heading are this story's own wording (only the compatibility empty state and "Not independently verified" were specified). Flagged in `docs/final-decisions.md` for the product owner.
+
+### Remaining work to reach Done
+1. Push, open the PR, and confirm CI is green **with the DB-gated tests reported as passed, not skipped** (log inspected, not just the check mark).
+2. Merge, confirm `develop` CI, then flip MVP-005 to Done in the backlog CSVs, status, traceability and this entry; promote MVP-007 and MVP-021 to Ready.
+
+### Next story recommendation
+Once Done: **MVP-021 (metadata, sitemap, canonical, structured data)** — depends only on MVP-005, smallest P0 (3 pts), not gated by an open product decision. **MVP-023** (accessibility gate + the Playwright/axe harness that would close TD-007's E2E half) is the strongest follow-up. MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) are dependency-ready but gated by unanswered product decisions.

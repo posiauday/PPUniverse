@@ -3,6 +3,11 @@ import type {
   AssetType,
   CategoryRecord,
   CatalogRepository,
+  CompatibilityEntry,
+  CompatibilityEvidenceStatus,
+  LicenseDefinitionRecord,
+  PlatformArea,
+  ProductDetail,
   ProductRecord,
   ProductStatus,
   ProductWithCategory,
@@ -38,6 +43,52 @@ export class PrismaCatalogRepository implements CatalogRepository {
     });
     if (!row) return null;
     return { ...toProductRecord(row), category: toCategoryRecord(row.category) };
+  }
+
+  /**
+   * Product detail evidence (MVP-005, FR-003). Same PUBLISHED-only rule as
+   * findPublishedProductBySlug, enforced in the query itself. Every evidence
+   * relation is optional: a product created before MVP-005 has none of them
+   * and comes back with empty arrays / nulls, which the page renders as
+   * "not provided yet" — nothing is ever invented on read.
+   *
+   * - licenses: ordered by the tier's sortOrder (Personal, Team, Enterprise).
+   * - currentVersion: the newest release that has actually been published.
+   *   Unpublished (draft) releases are never surfaced.
+   * - compatibility: ordered by platformArea; a Postgres enum sorts in
+   *   declaration order, which matches the approved platform-area list.
+   *   (product, platformArea) is unique, so this order is total.
+   */
+  async findPublishedProductDetailBySlug(slug: string): Promise<ProductDetail | null> {
+    const row = await this.db.product.findFirst({
+      where: { slug, status: "PUBLISHED" },
+      include: {
+        category: true,
+        licenses: {
+          include: { licenseDefinition: true },
+          orderBy: { licenseDefinition: { sortOrder: "asc" } },
+        },
+        releases: {
+          where: { publishedAt: { not: null } },
+          orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+          take: 1,
+        },
+        supportPolicy: true,
+        compatibility: { orderBy: { platformArea: "asc" } },
+      },
+    });
+    if (!row) return null;
+
+    return {
+      ...toProductRecord(row),
+      category: toCategoryRecord(row.category),
+      licenses: row.licenses.map((link) => toLicenseDefinitionRecord(link.licenseDefinition)),
+      currentVersion: row.releases[0]?.version ?? null,
+      support: row.supportPolicy
+        ? { status: row.supportPolicy.status, channel: row.supportPolicy.channel }
+        : null,
+      compatibility: row.compatibility.map(toCompatibilityEntry),
+    };
   }
 
   /**
@@ -140,6 +191,45 @@ function toCategoryRecord(row: {
     name: row.name,
     description: row.description,
     assetType: row.assetType as AssetType,
+  };
+}
+
+function toLicenseDefinitionRecord(row: {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+}): LicenseDefinitionRecord {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    sortOrder: row.sortOrder,
+  };
+}
+
+/** `lastVerifiedAt` is a DATE column; Prisma hands back UTC midnight, so the ISO date prefix is the stored calendar date. */
+function toCompatibilityEntry(row: {
+  id: string;
+  platformArea: PlatformArea;
+  minReleaseYear: number;
+  minReleaseWave: number;
+  notes: string | null;
+  evidenceStatus: CompatibilityEvidenceStatus;
+  evidenceSummary: string | null;
+  lastVerifiedAt: Date | null;
+}): CompatibilityEntry {
+  return {
+    id: row.id,
+    platformArea: row.platformArea,
+    minReleaseYear: row.minReleaseYear,
+    minReleaseWave: row.minReleaseWave,
+    notes: row.notes,
+    evidenceStatus: row.evidenceStatus,
+    evidenceSummary: row.evidenceSummary,
+    lastVerifiedAt: row.lastVerifiedAt ? row.lastVerifiedAt.toISOString().slice(0, 10) : null,
   };
 }
 

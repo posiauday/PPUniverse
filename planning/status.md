@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-21 — MVP-005 (Product detail evidence model) In Progress; product-owner compatibility model recorded (`docs/final-decisions.md`, closes open question 6 part 1).
+Last updated: 2026-09-21 — MVP-005 (Product detail evidence model) implemented and locally verified, now in QA awaiting CI (the DB-gated integration tests only run there). It is not Done until CI is green. Product-owner compatibility model recorded (`docs/final-decisions.md`, closes open question 6 part 1).
 
 ## Board
 
@@ -10,13 +10,13 @@ Last updated: 2026-09-21 — MVP-005 (Product detail evidence model) In Progress
 |---|---|---|
 | Backlog | 12 | MVP-007, MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-021, MVP-024, MVP-025 |
 | Ready | 6 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 |
-| In Progress | 1 | MVP-005 |
-| QA | 0 | — |
+| In Progress | 0 | — |
+| QA | 1 | MVP-005 (implemented; awaiting CI confirmation) |
 | Blocked | 0 | — |
 | Done | 6 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-006, MVP-022 |
 | **Total** | **25** | |
 
-MVP-004 has no downstream stories depending on it directly, so it doesn't unblock anything new.
+MVP-005 is the last story to enter QA. Once it is Done it unblocks MVP-007 (Checkout, also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); neither is promoted to Ready until then.
 
 ## Completed stories
 
@@ -44,7 +44,7 @@ Full detail on every story is in `planning/progress-report.md`.
 - P0 points done: 50 / 140 (36%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 0 (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 2 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Open tech debt: 4 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning.
@@ -58,7 +58,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 1 | MVP-001 | **Done** | 5 (done) |
 | 2 | MVP-002, MVP-003, MVP-006, MVP-022 | **Done** | 37 (done) |
 | 3 | MVP-004 | **Done** | 8 (done) |
-| 3 | MVP-005, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 | Ready | 36 |
+| 3 | MVP-005 | **QA** (awaiting CI) | 5 |
+| 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 | Ready | 31 |
 | 4 | MVP-007, MVP-012, MVP-021 | Backlog | 19 |
 | 5 | MVP-008, MVP-013 | Backlog | 16 |
 | 6 | MVP-009, MVP-014, MVP-019 | Backlog | 21 |
@@ -69,7 +70,11 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-005 (Product detail evidence model)** — the strongest candidate: it turns MVP-003's deliberately-minimal product stub page into the real thing (license, version, compatibility, support evidence users need to trust a listing), and unblocks both MVP-007 (Checkout) and MVP-021 (SEO/sitemap). MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 remain Ready and available to parallelize.
+First, finish **MVP-005** (QA — awaiting CI confirmation that the DB-gated tests pass, then it can be marked Done).
+
+Once it is Done, the recommended next story is **MVP-021 (Metadata, sitemap, canonical, structured data)**: it depends only on MVP-005, is the smallest P0 (3 points), is not gated by any open product decision, and builds directly on the product pages MVP-005 just made real. **MVP-023 (accessibility gate)** is the strongest follow-up — it also brings the Playwright/axe harness that would close the E2E half of TD-007.
+
+Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-010, MVP-017, MVP-018, MVP-020 also remain Ready.
 
 ## Open bugs
 
@@ -77,10 +82,12 @@ None found. See `planning/bugs.csv` (index) and `planning/bugs/` — both empty.
 
 ## Open tech debt
 
-2 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+4 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
-- [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented".
+- [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
+- [TD-006](tech-debt/TD-006.md) — **Open** (new, 2026-09-21): compatibility write-time rules (`validateCompatibilityEntry`) exist but no write path calls them yet, and nothing screens notes/summaries for private data — for MVP-012/013 to enforce.
+- [TD-007](tech-debt/TD-007.md) — **Open** (new, 2026-09-21): FR-003 items beyond license/version/support/compatibility (creator, screenshots, demo, price, prerequisites, setup, accessibility statement, changelog, version history, related assets) have no delivering story, and there is no Playwright E2E for the product page; FR-003 traceability is "Partially Implemented".
 
 ## Notes
 - `planning/mvp-backlog.csv` is the canonical status record; `planning/backlog.csv` mirrors Sprint/Points/Status.
