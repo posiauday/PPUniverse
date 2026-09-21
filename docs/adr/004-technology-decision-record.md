@@ -1,7 +1,9 @@
 # ADR 004-technology-decision-record: Final technology decisions for MVP build
 
 ## Status
-Proposed
+Accepted (2026-09-21), for the testing-stack rows only.
+
+Approval source: the product owner's direct instruction of 2026-09-21 on MVP-023 (`docs/final-decisions.md`, "Product-owner decisions for MVP-023" Q41, and "Product-owner response to the MVP-023 stop-gate confirmation" item 4). This status change records the approval of the testing stack — Playwright, axe-core and @axe-core/playwright, at the pinned versions in the 2026-09-21 amendment below — and does not approve or change any other row of this ADR. The status of the other rows is as recorded in `docs/final-decisions.md`; any row that is not approved there needs its own decision.
 
 ## Context
 `CLAUDE.md` lists a suggested implementation baseline and states architecture defaults require an ADR to change. No application code exists yet. This ADR confirms the baseline as final for MVP-001 onward, adds the specific choices the baseline left open, and marks which specifics remain vendor/business decisions rather than technical ones (tracked in `docs/open-questions.md`).
@@ -46,6 +48,20 @@ Also confirmed during MVP-002: `next-auth` "latest" is `4.24.15` (the v5/"Auth.j
 | API style | REST + OpenAPI compatibility — new, not previously decided. Not yet implemented for MVP-002/006's existing routes; adopt going forward, backfill incrementally. |
 
 This amendment closes the storage-vendor, email-vendor, error-monitoring-vendor, and RLS portions of `docs/open-questions.md` items 5, 9/19, and 16 respectively — see that document for the updated entries.
+
+## Amendment (2026-09-21, MVP-023: accessibility testing stack)
+The Testing row is confirmed as Vitest (unit/integration), Playwright (E2E) and axe-core (automated accessibility) with a manual review checklist. Exact versions (no ranges); licences were read from the installed packages on 2026-09-21:
+
+| Package | Pinned version | Licence |
+|---|---|---|
+| `@playwright/test` (pulls `playwright` and `playwright-core`, same version) | 1.63.0 | Apache-2.0 |
+| `@axe-core/playwright` | 4.13.0 | MPL-2.0 |
+| `axe-core` | 4.13.0 | MPL-2.0 |
+
+- All three are devDependencies of the private workspace package `packages/e2e` only. The MPL-2.0 packages are used unmodified as test tooling and are not distributed with the application.
+- The blocking gate uses Playwright's pinned, bundled browsers (for Playwright 1.63.0: chromium 153.0.8010.12, firefox 155.0, webkit 26.6); no moving or branded channel may gate a merge.
+- **Not shipped, verified 2026-09-21:** a production build contains no reference to axe-core or Playwright, and the web app's production dependency tree contains neither. Next.js declares `@playwright/test` as an optional peer, which pnpm resolved from the workspace and would have linked into that tree; the root `.pnpmfile.cjs` removes that peer declaration (`planning/tech-debt/TD-012.md`).
+- The manual keyboard and screen-reader pass named in the row now has a checklist and process document (`docs/14-accessibility-testing.md`). It has **not** been performed: screen-reader compatibility is unverified, and who performs it, how often and on which pairs is open question 38.
 
 ## Consequences
 - Every vendor-specific integration (identity, storage, email, scanning, error monitoring) is reachable only through an adapter interface, so CI and local development can run against fake/in-memory adapters without real vendor secrets — this directly enables MVP-001 (CI baseline) to be built before those vendor decisions are made.

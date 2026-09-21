@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is In Progress: the product owner answered the stop-gate confirmation (`docs/final-decisions.md`) — branch protection on `develop` (Option B, applied only after the accessibility job runs green in the PR), three engines, `/account` as a 404 check, ADR-004 scoped to the testing stack — and authorized implementation in the order H1, F1–F10, G1–G3. **No code written yet.** MVP-021 is Done (PR #5, 458 tests, 0 skipped).
+Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is **Blocked**: implemented in PR #6 (harness, ten Q37 fixes with failing-first regression tests, 16-state page matrix on three engines at four widths, keyboard traversal, route-coverage guard, a separate CI job, documentation), but the first CI run of its accessibility job failed three Chromium tests with HTTP 500s that expose **BUG-012**, a production defect in MVP-002's `@ppu/db` (a new Postgres connection pool per query in production builds). Fixing it changes MVP-002 behavior, so it awaits the product owner's decision (open question 43). MVP-021 is Done (PR #5).
 
 ## Board
 
@@ -10,9 +10,9 @@ Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) i
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 6 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 |
-| In Progress | 1 | MVP-023 (stop-gate answered; implementation authorized; H1 next) |
+| In Progress | 0 | — |
 | QA | 0 | — |
-| Blocked | 0 | — |
+| Blocked | 1 | MVP-023 (implemented in PR #6; awaiting a decision on BUG-012, open question 43) |
 | Done | 8 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022 |
 | **Total** | **25** | |
 
@@ -59,9 +59,9 @@ Full detail on every story is in `planning/progress-report.md`.
 - Points done: 58 / 170 (34%)
 - P0 points done: 58 / 145 (40%)
 - P1 points done: 0 / 25 (0%)
-- Open bugs: 7 (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 8 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
-- Stories blocked: 0
+- Open bugs: 5 (BUG-002 and BUG-009 to BUG-012; BUG-003 to BUG-008 are fixed in PR #6 and await merge; see `planning/bugs.csv` and `planning/bugs/`)
+- Open tech debt: 9 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Stories blocked: 1 (MVP-023, awaiting a decision on BUG-012)
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
 
@@ -74,7 +74,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 1 | MVP-001 | **Done** | 5 (done) |
 | 2 | MVP-002, MVP-003, MVP-006, MVP-022 | **Done** | 37 (done) |
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
-| 3 | MVP-023 | **In Progress** (decisions recorded; 13 points, was 8) | 13 |
+| 3 | MVP-023 | **Blocked** (implemented; awaiting a decision on BUG-012) | 13 |
 | 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 | Ready | 23 |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
@@ -88,7 +88,7 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-023 (Manual and automated accessibility gate)** is In Progress: P0, 13 points (revised from 8 by the 2026-09-21 product-owner decision), depends only on MVP-003, and its decisions are recorded in `docs/final-decisions.md`; implementation is authorized behind a stop-gate confirmation. It brings the axe and Playwright harness that would close the E2E half of TD-007, and there are now real catalog, category and product journeys to test.
+**MVP-023 (Manual and automated accessibility gate)** is **Blocked**: P0, 13 points (revised from 8 by the 2026-09-21 product-owner decision). It is implemented in PR #6, but its CI accessibility job cannot be reliably green because of BUG-012, a production defect in MVP-002's `@ppu/db` that the MVP-023 authorization does not let it fix. It needs the product owner's decision (open question 43); recommendation: approve the one-line fix inside MVP-023. It brings the axe and Playwright harness that would close the E2E half of TD-007, and there are now real catalog, category and product journeys to test.
 
 Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
@@ -96,17 +96,19 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 ## Open bugs
 
-7 open, 1 resolved:
+5 open, 6 fixed and awaiting merge (PR #6), 1 resolved:
 - [BUG-001](bugs/BUG-001.md) — **Resolved** by MVP-021 (PR #5, 2026-09-21): delivered pages emitted relative canonical/`og:url` tags and sign-in/account pages were indexable. No production deployment existed, so nothing was exposed.
 - [BUG-002](bugs/BUG-002.md) (P3, found 2026-09-21 while verifying MVP-021) — a repeated `q` parameter (`?q=a&q=b`) makes `/search` and category pages return HTTP 500 (`normalizeQuery` calls `.trim()` on an array). MVP-004 code; MVP-021 may not change MVP-004 search behavior, so it is recorded, not fixed — see open question 32.
 
-- **BUG-003 to BUG-008** (found 2026-09-21 while measuring the MVP-023 accessibility baseline on the real pages; all NFR-001): [BUG-003](bugs/BUG-003.md) invisible keyboard focus ring on the Search button (P2, measured 1.06:1); [BUG-004](bugs/BUG-004.md) search input border 1.35:1 and placeholder 3.46:1 (P3); [BUG-005](bugs/BUG-005.md) sign-in generic error, focus dropped, unstyled page and title (P2); [BUG-006](bugs/BUG-006.md) session revoke drops focus and announces nothing (P3); [BUG-007](bugs/BUG-007.md) skipped heading levels in card lists (P3); [BUG-008](bugs/BUG-008.md) default 404 has no main landmark (P3). Whether MVP-023 fixes them or they are scheduled separately is open question 37.
+- **BUG-003 to BUG-008** (found 2026-09-21 while measuring the MVP-023 accessibility baseline on the real pages; all NFR-001): [BUG-003](bugs/BUG-003.md) invisible keyboard focus ring on the Search button (P2, measured 1.06:1); [BUG-004](bugs/BUG-004.md) search input border 1.35:1 and placeholder 3.46:1 (P3); [BUG-005](bugs/BUG-005.md) sign-in generic error, focus dropped, unstyled page and title (P2); [BUG-006](bugs/BUG-006.md) session revoke drops focus and announces nothing (P3); [BUG-007](bugs/BUG-007.md) skipped heading levels in card lists (P3); [BUG-008](bugs/BUG-008.md) default 404 has no main landmark (P3). All six are fixed in PR #6 (MVP-023 F1 to F10) and await merge; what remains of them is BUG-009 to BUG-011.
+
+- **BUG-009 to BUG-012** (found 2026-09-21 while implementing MVP-023): [BUG-009](bugs/BUG-009.md) sign-in and account pages are unstyled (advisory); [BUG-010](bugs/BUG-010.md) session-revoke failure path still loses focus (P3); [BUG-011](bugs/BUG-011.md) sign-in stays in its sending state if the request throws (P3); **[BUG-012](bugs/BUG-012.md) (P1)** a production build opens a new Postgres connection pool for every query — reproduced (40 queries, 41 connections), it caused the three HTTP 500 failures in MVP-023's first CI run, and it needs a product-owner decision (open question 43).
 
 Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-003's Tailwind/rendering bugs before it) were all caught and fixed within their own story before reaching Done — per `CLAUDE.md`'s bug-vs-shortcut distinction, documented in `planning/progress-report.md`, not filed as bugs.
 
 ## Open tech debt
 
-7 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+9 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
@@ -116,6 +118,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-009](tech-debt/TD-009.md) — **Open** (new, 2026-09-21): no environment-level noindex switch for staging/preview deployments; needs the hosting decision (open question 5).
 - [TD-010](tech-debt/TD-010.md) — **Open** (new, 2026-09-21, Low): the sitemap is one file capped at 50,000 URLs (no sitemap index, no `lastmod`).
 - [TD-011](tech-debt/TD-011.md) — **Open** (new, 2026-09-21): `main` is unprotected and no reviewer or approval rules exist; `develop` protection is decided for MVP-023 but the rest of open question 17 is not (Medium).
+- [TD-012](tech-debt/TD-012.md) — **Open** (new, 2026-09-21, Low): a root `.pnpmfile.cjs` removes Next.js's optional `@playwright/test` peer declaration so dev-only Playwright cannot be linked into the web app's production tree.
 
 ## Proposed stories (not approved — not on the board, not counted above)
 [`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.

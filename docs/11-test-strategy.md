@@ -1,7 +1,7 @@
 # Test Strategy
 
 ## Layers
-Unit tests for domain rules; integration tests for database, storage and adapters; contract tests for providers; E2E tests for critical journeys; accessibility automation plus manual keyboard/screen-reader checks; security tests; performance tests; migration and restore tests.
+Unit tests for domain rules; integration tests for database, storage and adapters; contract tests for providers; E2E tests for critical journeys; accessibility automation plus manual keyboard/screen-reader checks (the gate, its matrices and its limits are in `docs/14-accessibility-testing.md`); security tests; performance tests; migration and restore tests.
 
 ## Critical E2E scenarios
 Browse and filter; free entitlement and download; paid checkout webhook and download; duplicate webhook; refund; expired/suspended entitlement; creator submission; malicious upload rejection; moderator approval and change request; product version release; verified review; account deletion request; admin audit lookup.

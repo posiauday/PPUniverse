@@ -890,3 +890,43 @@ Additional requirements recorded: install time reported separately from test tim
 
 ### Remaining work
 H1 (harness), F1–F10 (each with a regression test proven failing first), G1–G3; push with the docs commits and open one PR; read both CI logs; create the protection rule; complete the security and accessibility reviews; then Done and merge via `gh pr merge`.
+
+## MVP-023 — Manual and automated accessibility gate: implemented in PR #6; Blocked on BUG-012
+
+### Story status: Blocked (implementation complete; awaiting a product-owner decision on BUG-012)
+**MVP-023** (Epic: Accessibility; NFR-001 and NFR-008), P0, 13 points. Implemented in pull request #6. It is **not Done** and **not merged**: the first CI run of the accessibility job failed three Chromium tests, and the cause is a production defect in a completed story (BUG-012) that the MVP-023 authorization does not allow it to fix. The branch-protection rule has not been created (by decision, it waits for a green accessibility job).
+
+### Story completed (what exists on the branch)
+- **H1 and follow-up:** `packages/e2e`: exact-pinned Playwright 1.63.0, `@axe-core/playwright` 4.13.0, `axe-core` 4.13.0; chromium, firefox and webkit projects; a database guard (loopback Postgres plus `E2E_ALLOW_DATABASE_WRITES=1`); reserved-prefix rows deleted by ids-and-prefix; database-created sessions; contrast, focus, heading, overflow and Tab helpers; negative controls. `.pnpmfile.cjs` keeps Playwright out of the web app's production dependency tree.
+- **F1 to F10:** the Q37 fixes, each a separate commit with a regression test that failed against the unfixed production build first: BUG-003 (focus ring 1.06:1 to 18.13:1), BUG-004 (border 1.35:1 to 7.48:1; placeholder 3.45:1 to 7.48:1), BUG-007 (hidden h2), BUG-008 (not-found page and title), BUG-005 (sign-in errors, focus, title), BUG-006 (session revoke, title). New files in delivered areas: `not-found.tsx`, `signin/layout.tsx`, `SessionsHeading.tsx`.
+- **G1:** 16-state page matrix (x 4 widths x 3 engines), keyboard traversal, route-coverage guard with negative controls.
+- **G2:** the separate parallel `accessibility` CI job ("Accessibility (axe + Playwright)"), per-phase timing, a run summary, uploaded report.
+- **G3:** `docs/14-accessibility-testing.md`, ADR-004 (Accepted for the testing rows only, with pins and licences), the TRD check list, CLAUDE.md Commands, README, the test strategy pointer, bug and tech-debt records, this report.
+
+### Files changed
+`packages/e2e/**` (new); `.pnpmfile.cjs`, `pnpm-lock.yaml`, `package.json`, `.gitignore`, `.github/workflows/ci.yml`; `apps/web/app/globals.css`, `not-found.tsx`, `signin/layout.tsx`, `signin/page.tsx`, `search/page.tsx`, `categories/[slug]/page.tsx`, `account/sessions/{SessionsHeading.tsx,page.tsx}`; `packages/ui/src/search-form.tsx`; `docs/14-accessibility-testing.md`, ADR-004, TRD, `docs/final-decisions.md`, `docs/open-questions.md`, `docs/11-test-strategy.md`, `README.md`, `CLAUDE.md` (Commands section only); planning records.
+
+### Commands executed
+`pnpm install`, `pnpm add`-equivalent pins, `pnpm exec playwright install chromium firefox webkit` (about 400 MB), `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm audit --audit-level=high` (clean), `playwright test` on all three engines locally, `git`, `gh pr create`, `gh run view` and `gh api` for logs; a throwaway local Postgres outside the repository.
+
+### Verification
+- **Local (Windows, throwaway Postgres):** lint, typecheck, test, build and audit clean; harness 69 unit tests; the full `tests/a11y` run (first run 405 passed, 12 failed from a Tab-walk start artifact, fixed; then keyboard, negative-control and regression specs all pass on three engines).
+- **CI run 35665652208:** existing job passed, read from the log: 527 tests passed, 0 skipped, 0 failed, integration suites executed (catalog 37, session 3, file-scan 3, S3 4, ClamAV 2). Secret scan passed. **Accessibility job failed:** 417 of 420 passed (chromium 137/3, firefox 140/0, webkit 140/0), 0 skipped, 0 retries, all 192 axe scans clean, no advisory findings on real pages, one manual-review item (axe `color-contrast` could not decide the product compatibility table at 320 and 375 px).
+- **Timing (first run, cold browser cache, 3 workers on a 4-vCPU runner):** dependencies 6 s; browsers plus system dependencies 46 s (cache miss); migrations 2 s; build 27 s; test execution 4m28s; whole job 6m18s. Inside the 10-minute ceiling; the target is 5 to 8 minutes.
+- **Manual (agent-performed, not human review):** real Tab presses; the Tab order of all 16 states reads in visual order with no positive `tabindex`; contrast re-measured on the fixed elements from painted pixels and from computed style (identical in all engines). **No screen reader was run.**
+
+### The finding that stops the story
+The three failures were HTTP 500s from Postgres "too many clients" (Prisma P2037): an unknown product slug returned 500 instead of 404, a category page had no products, and a session DELETE failed. Cause: in a production build `packages/db/src/index.ts` (MVP-002) creates a new Prisma client and pool for every query, because it only caches the client when `NODE_ENV !== "production"`. Reproduced locally: 40 sequential queries leave **41** open connections in production mode and **1** in development. Recorded as **BUG-012 (P1)**; question to the product owner is open question 43 (recommendation: approve the one-line fix inside MVP-023 as a separate commit with a failing-first regression test). Retries or fewer workers would only hide it, so neither was added.
+
+### Risks identified
+- BUG-012 is a real production outage risk for every database-backed route, present since MVP-002 and invisible to dev/test.
+- The accessibility job is flaky until BUG-012 is fixed; it must not be made a required check while it can fail for that reason.
+- WebKit link reachability by keyboard is not verifiable (documented); screen readers, voice control, switch access and magnification are not verified; open question 38 is unanswered.
+- `.pnpmfile.cjs` is a workaround (TD-012).
+
+### Remaining work
+1. Product-owner decision on open question 43 (A, B or C).
+2. If A: a separate minimal commit fixing `@ppu/db` with a regression test proven failing first; re-run CI; read both job logs (DB-gated tests PASSED, skip count) and the accessibility job's timing.
+3. Only after both jobs are green: create the branch-protection rule on `develop` exactly as decided and report the check names in the PR.
+4. Security and accessibility reviews; mark Done; merge with `gh pr merge`; update open questions 20, 22, 33 to 37 and 39 to 42 from decided to closed, with evidence.
+5. Recommend the next unblocked story.
