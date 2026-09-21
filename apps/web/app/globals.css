@@ -43,7 +43,10 @@ body {
   border: 0;
 }
 
+/* The ring must not follow the element's text colour: currentColor made it
+   near-white on the white-text Search button over a white page (BUG-003,
+   measured 1.06:1). The foreground token is far above 3:1 against the page. */
 :focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--color-foreground);
   outline-offset: 2px;
 }
