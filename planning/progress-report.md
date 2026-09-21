@@ -701,3 +701,109 @@ Any query parameter other than a single valid `page` (including `pageSize`, unkn
 
 ### Records changed
 `TD-008` rewritten with all nine required sections (schema inconsistency, approved statuses, state transitions, reviewed-timestamp behavior, legacy Not Verified handling, authorization, migration approach, tests, dependency on MVP-012/013) and left **Open**; `tech-debt.csv`, `status.md` updated. MVP-005 remains Done.
+
+## MVP-021 — Metadata, sitemap, canonical, structured data
+
+### Story status: QA (not Done)
+**MVP-021 — Metadata sitemap canonical structured data** (Epic: SEO, Requirement: FR-017, Priority: P0, Sprint 4, 3 pts)
+
+Acceptance summary: "Indexable pages emit valid metadata and sitemap."
+
+Implemented and verified locally, including against real pages and a real Postgres. **Not Done:** it stays in QA until CI is green with the database-gated tests confirmed *passed* (not skipped), per the product owner's rule. This entry is updated with the CI result before the story is marked Done.
+
+**Sequence:** pre-work confirmations before any change (branch `feature/mvp-021-seo-metadata`; based on the latest `develop` `f8c8c31`, 0 commits behind; `git status` clean; `git log` reviewed; `gh pr list` 0 open; branch not yet pushed; no overlapping code). Decisions recorded first, in their own commits, on this same branch (`docs/final-decisions.md`, `docs/open-questions.md`, TD-008), then the implementation. The decision record travels in this story's pull request; no decision-only branch was created and nothing was merged locally.
+
+### What was implemented
+- **`NEXT_PUBLIC_SITE_URL`** (`apps/web/lib/site-url.ts`, the single validation point — no central env-validation module exists in the app): production requires an absolute `https` origin on a public hostname; `http://localhost` only in development/test; normalized to a bare origin; never inferred or hardcoded; an unknown `NODE_ENV` is treated as production; missing or invalid fails safe. Added to `turbo.json` `globalPassThroughEnv` and `apps/web/.env.example`.
+- **Deny-by-default robots:** the root layout is `noindex, nofollow`; the home page, indexable category pages and published product pages opt in. `X-Robots-Tag` on `/api`, `/account`, `/signin`. `robots.txt` blocks only `/api/` and carries an absolute `Sitemap:` line when the origin is valid.
+- **Category canonical/indexing policy** (`lib/seo/category-indexing.ts`), exactly as approved (Q29/Q30): base and valid `?page=N` indexable and self-canonical (`page=1` → base); empty, invalid, out-of-range, search, sort, filter and mixed variants `noindex, follow` with the base canonical. An intentional corrective SEO change owned by MVP-021 — MVP-004 search/filter behavior is unchanged (a wiring test asserts the search call is unchanged).
+- **Sitemap:** `sitemap.xml` from a new `listSitemapEntries` repository method — PUBLISHED products and categories that currently have at least one PUBLISHED product; no `lastmod`; capped at 50,000. `robots.txt`/`sitemap.xml` are dynamic routes.
+- **Structured data:** `WebSite` (home), `CollectionPage` (indexable category base URL), `Product` (published products) from typed builders; unavailable properties omitted; **no Offer data, no rich-result eligibility claim**; the version appears as an `additionalProperty` only when a published release exists.
+- **One audited raw-HTML sink:** `packages/ui/src/json-ld.tsx` escapes every `<`, `>`, `&`, U+2028 and U+2029 in the serialized JSON (the approved rule for `<` is the JSON unicode escape, `\u003c`).
+- Open Graph and Twitter Card tags on indexable pages; no image (none approved).
+
+### Files changed
+**New:** `apps/web/lib/site-url.ts`; `apps/web/lib/category-listing.ts`; `apps/web/lib/seo/{site,canonical,category-indexing,metadata,json-ld,robots,sitemap}.ts`; `apps/web/app/robots.ts`, `apps/web/app/sitemap.ts`; `apps/web/vitest.config.ts`; `packages/ui/src/json-ld.tsx`; tests `site-url.test.ts`, `seo/{canonical,category-indexing,metadata,json-ld,robots,sitemap}.test.ts`, `seo/pages.test.tsx` (wiring), `seo/no-raw-html.test.ts` (guard), `ui/json-ld.test.tsx`; `BUG-002`, `TD-009`, `TD-010`, `planning/prework/MVP-021-prework-analysis.md`.
+**Modified:** `apps/web/app/{layout,page}.tsx`, `categories/[slug]/page.tsx`, `products/[slug]/page.tsx`; `apps/web/next.config.ts`; `apps/web/.env.example`; `turbo.json`; `packages/domain/catalog/src/{types,catalog-repository,index}.ts`; `packages/adapters/catalog/src/catalog-repository.ts` and its integration test; `packages/ui/src/index.ts`, `packages/ui/package.json` (dev dependency `@types/react-dom`, needed to type the server-render test) and `pnpm-lock.yaml`; READMEs (root, ui, domain, adapter); `docs/10-seo-content-growth.md`; `docs/final-decisions.md`, `docs/open-questions.md`; planning files.
+
+### Migration impact
+None. The sitemap query uses existing columns and indexes (`products.status`, `categories.slug`). Rollback is a code revert.
+
+### Commands executed (final state)
+| Command | Result |
+|---|---|
+| `pnpm format` / `pnpm format:check` | Pass |
+| `pnpm lint` | Pass (16 tasks) |
+| `pnpm typecheck` | Pass (31 tasks) |
+| `pnpm test` **with a real local Postgres attached** | Pass (31 tasks): `apps/web` 196 tests (was 11), `@ppu/ui` 56 (was 36), `@ppu/adapter-catalog` **37 DB-gated tests run and passed** (was 27), `@ppu/domain-catalog` 61, identity 3 and files 3 DB-gated also ran. Only the ClamAV (2) and MinIO (4) integration tests skipped — they need services that exist only in CI |
+| `pnpm build` | Pass (17 tasks); `/robots.txt` and `/sitemap.xml` are dynamic routes; no `seo.site_url_invalid` during the build (validation is lazy) |
+| `pnpm audit --audit-level=moderate` | Pass — no known vulnerabilities |
+
+**A real database without Docker.** No Postgres exists locally, so DB-gated tests had only ever run in CI. For this story a throwaway real Postgres (`embedded-postgres`, installed in a scratch directory *outside* the repo, data deleted afterwards) let the migrations apply, all DB-gated suites run, and the real pages render against real rows. It is not part of the repository.
+
+### Verification — real pages, real rows (dev server), then a production build
+Test rows existed only in the throwaway database (14 PUBLISHED + 1 DRAFT in one category; a draft-only category; empty categories; a published release plus an unpublished one; a hostile product). Requested as a crawler, every scenario matched the approved policy:
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Home | `index, follow`; absolute canonical and `og:url`; `WebSite` JSON-LD; Twitter `summary`; no `og:image` |
+| 2 | Category | base `index, follow` self-canonical + `CollectionPage`; `?page=1` canonical = base; `?page=2` self-canonical, `index, follow` |
+| 3 | Empty category | draft-only and no-product categories: HTTP 200 (not 404), `noindex, follow`, canonical = own base, no JSON-LD |
+| 4 | Pagination | `page=3` (out of range), `0`, `-1`, `abc` → `noindex, follow`, base canonical |
+| 5 | Variants | `q`, `sort=recent`, `sort=alphabetical`, `license`, `pageSize`, `page=2&q` → `noindex, follow`, base canonical, no JSON-LD |
+| 6 | Product | `index, follow`, absolute canonical, `Product` JSON-LD; version = newest *published* release (the unpublished `9.9.9-draft` was ignored) |
+| 7 | JSON-LD | exactly `@context`, `@type`, `name`, `description`, `url`, `category`, `additionalProperty`; no offers, price, availability, ratings, reviews, seller, brand or image |
+| 8 | Sitemap | 19 URLs: home, the 2 categories with PUBLISHED products, 16 published products; excludes both DRAFT products and both empty categories; no query strings; all absolute |
+| 9 | robots.txt | `Allow: /`, `Disallow: /api/`, absolute `Sitemap:` line; lists no protected, admin, creator or preview path |
+| 10 | Non-indexable | `/search` `noindex, follow`; `/signin` and `/account/sessions` `noindex, nofollow` + header; `/api/*` header; draft and unknown products/categories are HTTP 404 with `noindex`, no canonical, no JSON-LD |
+| 11 | Drafts | no DRAFT or unpublished row appears in the sitemap, any JSON-LD, or any page |
+| 12 | Page source | canonical and robots tags are in the raw `<head>` for Googlebot, Bingbot, Chrome, curl and an unknown crawler user agent |
+| 13 | Claims | no price, rating, review, certification or Microsoft endorsement is emitted |
+
+**Injection (hostile product `</script><script>window.pwned = true</script>` with `<img … onerror>` in the summary), in the live browser DOM:** `window.pwned` never set; exactly one JSON-LD script element; zero injected `img` elements; the JSON-LD parses and the name round-trips; the `<h1>` and tab title show the text inertly. The served payload is fully escaped (no raw `<`); the framework's own RSC payload also contains no unescaped injection sequence.
+
+**Production build, six site-URL scenarios** (build made with NO value, value supplied at `next start`): a valid `https` origin supplied at *runtime* took effect (canonical, sitemap and `Sitemap:` line all use it); mixed case + default port + trailing slash normalized to one origin; unset, `http://…`, `https://localhost` and a value with a path each **failed safe** — pages HTTP 200 with no canonical and no JSON-LD, no `Sitemap:` line, a valid empty sitemap, and `seo.site_url_invalid` logged with only the reason.
+
+**In the browser against the built app:** live DOM head for `?page=2` (self-canonical), the base (`CollectionPage`), `?q=` (noindex, base canonical) and the empty category all matched; the page UI is unchanged.
+
+### Security review (Definition-of-Done gate item)
+- **No new authenticated surface.** `robots.txt` and `sitemap.xml` are public read-only.
+- **Host-header/cache-poisoning:** the origin comes only from configuration, never from the request; verified by supplying the value at runtime.
+- **XSS:** the JSON-LD component is the only raw-HTML sink in the codebase (a source-scan test enforces this, and it replaces the MVP-005 claim that none existed). Hostile text is neutralized by escaping, proven three ways: string round-trip, an HTML-parser test with a negative control (the same data *without* escaping does break out, so the test can fail), and the live browser DOM. Metadata values are escaped by the framework.
+- **Information disclosure:** the sitemap and JSON-LD come from PUBLISHED data only (allow-list); DRAFT rows never appear; a draft URL is a 404 identical to an unknown one; `robots.txt` reveals only `/api/`.
+- **Configuration:** protocol allow-list, no credentials, bare origin, and in production no localhost/IP-literal/single-label hosts, all exercised in production mode.
+- **Claims:** no offers, price, rating, review, seller, brand, image, certification or Microsoft/endorsement claim; asserted by tests and confirmed on served pages.
+- **Availability risk (recorded, not built):** `sitemap.xml` is an unauthenticated route that queries the database; the query is bounded (two indexed queries, 50,000 cap). Response caching is a hosting/CDN decision (open question 5).
+- **Dependencies:** one dev-only types package added to `@ppu/ui`; audit clean. No secrets; the variable is a public origin.
+
+### Accessibility review (Definition-of-Done gate item)
+- **No visible change.** Head tags, JSON-LD, `robots.txt` and `sitemap.xml` render nothing; the only DOM addition is a non-rendered `<script>`. The category and product pages look identical (screenshot of a paginated category page checked).
+- Indirect WCAG items hold: each indexable page keeps a unique, descriptive `<title>` (2.4.2) and `<html lang="en">` is present (3.1.1). Not adding `BreadcrumbList` also avoided a navigation change.
+- **Not covered — stated plainly:** axe was not re-run because nothing visible changed; the systematic gate remains MVP-023's.
+
+### Bugs found
+- **BUG-002 (P3, new):** a repeated `q` parameter (`?q=a&q=b`) makes `/search` and category pages return HTTP 500 (`normalizeQuery` calls `.trim()` on an array). MVP-004 code, unchanged by this branch, confirmed on a file this story does not touch. **Not fixed** — the authorization forbids changing MVP-004 search behavior. → open question 32.
+- **BUG-001** (relative canonicals; indexable sign-in/account) is fixed by this story and closes when it is Done.
+
+### Tech debt created
+- **TD-009** — no environment-level `noindex` switch for staging/preview deployments (needs the hosting decision).
+- **TD-010** — single-file sitemap capped at 50,000 URLs (no sitemap index; no `lastmod`).
+- TD-008 was **not** implemented, as instructed; it remains a separate corrective change before MVP-012.
+
+### Issues found and fixed during implementation (same story, so not bugs)
+- **Documentation-writing artifact:** the literal text of the JSON escape for `<` was converted to a raw `<` when I wrote the decision docs, so two lines of the binding decision record and one analysis line read "escape `<` as `<`". Found by checking, restored, and all code now builds the sequence from character codes.
+- **Two corrections to my own pre-work analysis, verified empirically:** the site URL is read at *runtime* (I had assumed build-time inlining), and the misconfiguration error is logged *twice* per process, not once (Next loads the module once per server bundle). Comments and docs were corrected.
+- Stale `.next` type output from an earlier probe route broke a typecheck; cleared (gitignored). Vite 8 uses Oxc, so the test JSX option is `oxc.jsx`, not `esbuild.jsx`.
+
+### Interpretations within the approved policy (recorded in `docs/final-decisions.md`)
+Any parameter other than a single valid `page` (including `pageSize`, unknown and repeated parameters) marks a category URL as a variant; `?page=1` is `index, follow` with the base canonical; an empty category is self-canonical; version via `additionalProperty`; JSON-LD omitted when the origin is unavailable.
+
+### Not verified
+External validators (Rich Results Test, Schema Markup Validator) cannot reach localhost; run them once a preview URL exists. No real hosting, CDN or scale test. Product JSON-LD is expected to be schema.org-valid but *not* eligible for Product rich results (no offers, review or rating) — the accepted, documented trade-off.
+
+### Remaining work to reach Done
+1. Push, open the PR, confirm CI is green **with the DB-gated tests reported as passed, not skipped** (log inspected).
+2. Merge, confirm `develop` CI, then flip MVP-021 to Done in the backlog CSVs, status and traceability (FR-017 → Implemented); close BUG-001.
+
+### Next story recommendation
+Once Done: **MVP-023** (accessibility gate, and the Playwright/axe harness that would close the E2E half of TD-007). Separately, **TD-008** must land before MVP-012, and BUG-002 needs a product-owner decision (open question 32). MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) remain gated by unanswered product decisions.

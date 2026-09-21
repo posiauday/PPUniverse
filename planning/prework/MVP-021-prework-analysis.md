@@ -2,7 +2,7 @@
 
 Date: 2026-09-21. Branch: `feature/mvp-021-seo-metadata` (from `develop` at `f8c8c31`; no open PRs; no overlapping work). **No application code has been written.** Authority: `docs/final-decisions.md`, entry "Product-owner responses to MVP-005 open items; MVP-021 authorization".
 
-> **Approved 2026-09-21 with the product owner's decisions** (`docs/final-decisions.md`, "Product-owner decisions for MVP-021"). Open questions 29, 30 and 31 are **closed** as recommended, with two differences from this document's tables and defaults: (1) a **sort-only** category URL is `noindex, follow` with the base canonical (this analysis proposed `index, follow`); (2) an **empty category** emits a self-canonical to its base URL (this analysis said "none"). `pageSize`, unrecognized and repeated parameters are treated as variants under the same rule. TD-008 is **not** part of MVP-021. Where this document and the decision record differ, the decision record controls.
+> **Approved 2026-09-21 with the product owner's decisions** (`docs/final-decisions.md`, "Product-owner decisions for MVP-021"). Open questions 29, 30 and 31 are **closed** as recommended, with two differences from this document's tables and defaults: (1) a **sort-only** category URL is `noindex, follow` with the base canonical (this analysis proposed `index, follow`); (2) an **empty category** emits a self-canonical to its base URL (this analysis said "none"). `pageSize`, unrecognized and repeated parameters are treated as variants under the same rule. Product JSON-LD includes the current version as a schema.org `additionalProperty` when a published release exists (section 5 recommended deferring it; the decision permits it "when accurately modeled"). TD-008 is **not** part of MVP-021. Where this document and the decision record differ, the decision record controls.
 
 Facts below marked *(verified)* were checked in this session, not assumed.
 
@@ -75,9 +75,9 @@ Common to indexable pages: `og:type=website`, `og:site_name`, `og:locale=en_US`,
 | Production: `http:`, `localhost`, loopback/private IP literal, single-label host, credentials, non-root path, query or hash | **Rejected** (`INVALID`). |
 | Development/test: `http://localhost[:port]` or `http://127.0.0.1[:port]` | Accepted. |
 | Development/test: unset | Falls back to `http://localhost:${PORT ?? 3000}`. |
-| Production: unset or invalid | **Fail safe, keep serving:** omit canonical, `og:url` and JSON-LD; `robots.txt` omits the `Sitemap:` line; `sitemap.xml` is a valid **empty** sitemap; one `seo.site_url_invalid` error logged per process (reason only). Pages stay available — an SEO misconfiguration must not take the product offline. |
+| Production: unset or invalid | **Fail safe, keep serving:** omit canonical, `og:url` and JSON-LD; `robots.txt` omits the `Sitemap:` line; `sitemap.xml` is a valid **empty** sitemap; a `seo.site_url_invalid` error logged once per server bundle (observed: two lines per process, never one per request; reason only). Pages stay available — an SEO misconfiguration must not take the product offline. |
 - Validated **lazily at request time**, never at import or build, so `pnpm build` (CI runs it with the variable unset) still passes.
-- **Next inlines `NEXT_PUBLIC_*` at build time**, so each environment's build needs its own value. Documented in `.env.example`; hosting is still open (open question 5).
+- ~~Next inlines `NEXT_PUBLIC_*` at build time, so each environment's build needs its own value.~~ **Corrected during implementation (verified):** the server reads the variable at *runtime* — a production build made with no value picked up one supplied at `next start` — so it can be set per environment at start-up. Hosting is still open (open question 5).
 - Add to `turbo.json` `globalPassThroughEnv` (approved); documented placeholder in `apps/web/.env.example`. It is a public origin, not a secret.
 
 ## 8. Sitemap database-query design
@@ -114,7 +114,7 @@ Common to indexable pages: `og:type=website`, `og:site_name`, `og:locale=en_US`,
 
 ## 12. JSON-LD injection prevention
 - Builders return typed, server-controlled objects — no string concatenation into markup, no creator HTML.
-- One `serializeJsonLd(obj)`: `JSON.stringify`, then escape `<` → `<` (as approved), and additionally `>`, `&`, U+2028, U+2029 (a strict superset, harmless).
+- One `serializeJsonLd(obj)`: `JSON.stringify`, then escape `<` → `\u003c` (as approved), and additionally `>`, `&`, U+2028, U+2029 (a strict superset, harmless).
 - One `JsonLd` component in `@ppu/ui` (the single `dangerouslySetInnerHTML` in the codebase), typed to accept objects, not strings.
 - **Tests:**
   1. Serializer: `</script><script>alert(1)</script>`, `<!--`, `<script`, quotes, newlines, U+2028 → no raw `<` in output, and `JSON.parse` round-trips to the original.
