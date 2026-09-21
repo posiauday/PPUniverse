@@ -45,3 +45,50 @@ export interface SearchResult {
   page: number;
   pageSize: number;
 }
+
+export type PlatformArea =
+  | "POWER_APPS"
+  | "POWER_AUTOMATE"
+  | "POWER_BI"
+  | "DATAVERSE"
+  | "POWER_PAGES"
+  | "COPILOT_STUDIO"
+  | "MICROSOFT_FABRIC";
+
+export type CompatibilityEvidenceStatus = "TESTED" | "CREATOR_DECLARED" | "NOT_VERIFIED";
+
+export type SupportStatus =
+  "CREATOR_SUPPORTED" | "PLATFORM_SUPPORTED" | "COMMUNITY_SUPPORTED" | "UNSUPPORTED";
+
+export interface LicenseDefinitionRecord {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  sortOrder: number;
+}
+
+export interface SupportPolicyRecord {
+  status: SupportStatus;
+  channel: string | null;
+}
+
+/** `lastVerifiedAt` is a calendar date as `YYYY-MM-DD` (a DATE column, so no time-of-day/timezone to get wrong). */
+export interface CompatibilityEntry {
+  id: string;
+  platformArea: PlatformArea;
+  minReleaseYear: number;
+  minReleaseWave: number;
+  notes: string | null;
+  evidenceStatus: CompatibilityEvidenceStatus;
+  evidenceSummary: string | null;
+  lastVerifiedAt: string | null;
+}
+
+/** Everything the product detail page shows (MVP-005, FR-003). Empty collections / nulls mean "not provided yet". */
+export interface ProductDetail extends ProductWithCategory {
+  licenses: LicenseDefinitionRecord[];
+  currentVersion: string | null;
+  support: SupportPolicyRecord | null;
+  compatibility: CompatibilityEntry[];
+}

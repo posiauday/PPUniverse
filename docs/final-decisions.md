@@ -71,3 +71,53 @@ REST only — no GraphQL. Consistent with and sharpens this document's 2026-09-1
 
 ### Note on relayed decisions
 This entry originated from a document the product owner received from a separate AI tool (referred to as "Copilot" in this session) and pasted in for recording. Per this session's standing practice, nothing from a relayed document is treated as authoritative without checking it against this repo's actual tracked state first — the license-tier item is the concrete example: it would have silently contradicted `docs/open-questions.md` if accepted at face value. Future sessions should apply the same check to anything arriving via a relayed document rather than trusting its "LOCKED"/"approved" framing on its own.
+
+## 2026-09-21 — Product compatibility model (closes open question 6, part 1)
+
+**Source: direct product-owner instruction, given in chat on 2026-09-21.** Recorded here so this document, not the chat message or any handoff, is the approval source from this point on.
+
+### Approved compatibility model
+A product may have one or more compatibility entries. Every entry carries:
+- **Platform Area** — one of: Power Apps, Power Automate, Power BI, Dataverse, Power Pages, Copilot Studio, Microsoft Fabric. Architecture and Governance are marketplace *categories*, not Power Platform runtime areas, and are **not** compatibility platform areas unless a later product-owner decision explicitly approves that. The compatibility areas are independent of the six locked asset categories; approving them does not add product categories.
+- **Minimum Supported Release Wave** — structured as **Release Year** plus **Release Wave Number**, never one uncontrolled display string. Shown to users as e.g. "2025 release wave 2". There is no hardcoded per-year list, so a new year never needs a migration. Validation: the year is within a reasonable supported range, the wave is 1 or 2, and a release wave cannot exist without a platform area. Meaning: the *earliest* release wave for which the product **claims** compatibility — never presented as proof that it works with every later release.
+- **Compatibility Notes** (when applicable) — concise, factual, sanitized text for additional requirements and limitations not modeled as structured flags (e.g. requires Dataverse; premium connectors; Power BI Pro; Fabric capacity; on-premises data gateway; environment-maker permissions; commercial-cloud-only testing; sovereign-cloud not verified; model-driven app; custom connector). These examples must **not** become boolean columns in MVP-005; a future story may introduce structured requirement flags once real marketplace inventory shows which requirements need filtering.
+- **Evidence Status** — exactly three approved states:
+  - **Tested** — compatibility was tested using a documented environment or repeatable verification process.
+  - **Creator Declared** — the creator supplied the claim, but the marketplace has not independently verified it.
+  - **Not Verified** — no sufficient verification evidence is available.
+- **Evidence Summary** and **Last Verified Date** — both required when the status is Tested; the date is recorded when compatibility has been tested or reviewed. Evidence text must never expose private test-environment details, credentials, tenant identifiers, customer information, or internal operational data.
+
+### Claims that must not be made
+Compatibility is never presented as a guarantee without evidence. The labels "Microsoft Certified", "Microsoft Approved", "Officially Supported" and "Marketplace Verified" must not be displayed unless a separate documented process and explicit product-owner approval exist for that specific claim.
+
+### Product-page presentation
+An accessible compatibility matrix (or equivalent semantic section) with columns Platform Area, Minimum Release Wave, Evidence Status, Last Verified, Notes (an unverified entry reads "Not independently verified" under Last Verified). Status is never conveyed by color alone; labels are visible text; semantic headings and table markup; readable on mobile (any horizontal scroll region is keyboard-accessible and labeled); meaningful empty/unavailable states; nothing essential inside hover-only tooltips.
+
+### Empty and legacy data
+No compatibility data is invented and no `Product` rows are seeded. A product with no compatibility entries shows exactly: "Compatibility information has not yet been provided." The schema is additive and backward compatible with existing `Product` rows; no destructive migration.
+
+### Filtering
+The structured Platform Area and Release Year/Wave fields must support future filtering, but MVP-005 builds **no** filtering UI. Filtering stays owned by MVP-004 and any approved follow-up; completed MVP-004 behavior is not reopened without an explicitly approved extension. MVP-005 may expose the repository/query fields future filters need.
+
+### Explicitly excluded from MVP-005
+No structured fields for: Dataverse/premium-connector/gateway/Fabric requirements, environment type, commercial/sovereign/government cloud, required Power Platform license, required administrator role, connector-specific, browser or operating-system compatibility (all remain free text in Compatibility Notes). And no pricing, taxes, currencies, refund rules, team seat limits, enterprise contract terms, checkout, product analytics, collections, or creator-profile routes.
+
+### Engineering defaults applied within the latitude the instruction delegated
+Not product decisions; recorded so they are visible and reversible:
+- "Reasonable supported range" for the release year: the database enforces a deliberately wide static bound (2019–2100, so no per-year migration), and application-level validation is tighter (2019 through current calendar year + 2). 2019 is the earliest Microsoft release-wave year and was chosen as the floor; adjust if the product owner prefers otherwise.
+- At most one compatibility entry per (product, platform area): "minimum supported" is a single value per area, so a second entry for the same area would contradict it. Dropping this uniqueness later is a safe change; adding it after duplicates exist would not be.
+- Notes and evidence summaries are capped at 500 characters.
+
+### What this does and does not close
+- **Open question 6, part 1 (supported versions / compatibility model): CLOSED.**
+- **Part 2 (evidence method): the evidence-status vocabulary and Tested's required fields are approved above, but who may assign each status and what review a moderator performs are not decided** — that workflow belongs to MVP-012/013 and remains open.
+
+### Implementation record (MVP-005, 2026-09-21) — engineering choices for product-owner review
+The model above was implemented as approved. The following are choices made *within* it, not product decisions; each is reversible and listed so they can be reviewed or overridden:
+- **Wording that was not specified.** The product owner supplied exact wording only for the compatibility empty state and the "Not independently verified" label. The other empty states — "License information has not yet been provided.", "Version information has not yet been provided.", "Support information has not yet been provided." — follow the same pattern but are this story's own wording. So are the sentence explaining that the minimum release wave is a claim rather than proof, and the "What the evidence statuses mean" heading. The three evidence-status definitions are the approved text, verbatim.
+- **Evidence summary placement.** The summary is shown beneath the status label inside the Evidence Status cell rather than as a sixth column, so the matrix keeps exactly the five approved columns.
+- **Version.** Modeled as a minimal `Release` record (version string + publish time), not a product field, because FR-011 makes versions release-scoped. The page shows the newest *published* release; unpublished releases are never shown. Immutability, files and changelog remain MVP-012/014.
+- **Support.** Uses the four statuses already documented in `docs/09-marketplace-operations.md` (Creator-supported, Platform-supported, Community-supported, Unsupported), with a channel required unless the product is Unsupported. No response-time targets are modeled (open question 12).
+- **License.** The three locked tiers (Personal, Team, Enterprise) are seeded as reference data, sanctioned by `docs/13-implementation-readiness-plan.md`; a product lists one or more. No pricing, seat limits or contract terms are modeled (open question 7).
+- **Support channel links.** A channel is rendered as a link only if it is a plain `http(s)` URL with no embedded credentials; anything else (including `javascript:`, `mailto:` and free text) is shown as plain text.
+- **Private-data protection is display-time only for now.** Invisible and spoofing characters are stripped and markup is escaped, but write-time rejection of tenant identifiers, credentials and similar content is not built because no write path exists yet — see `planning/tech-debt/TD-006.md`.

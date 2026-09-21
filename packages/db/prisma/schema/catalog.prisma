@@ -3,9 +3,9 @@
 // product listing pages render" (FR-001) needs — a single primary
 // category per product, not the full ProductCategory many-to-many join
 // table the data model sketches (reversible to add later if a product
-// ever needs multiple categories). CompatibilityRecord, Prerequisite,
-// LicenseDefinition, ProductLicense, ProductMedia, ProductDocument
-// belong to MVP-005 (product detail evidence model); Collection/
+// ever needs multiple categories). The MVP-005 evidence entities (license,
+// release, support, compatibility) live in evidence.prisma; Prerequisite,
+// ProductMedia and ProductDocument remain unbuilt; Collection/
 // CollectionItem have no owning story yet (docs/open-questions.md).
 
 enum AssetType {
@@ -47,6 +47,11 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   publishedAt DateTime?
+
+  licenses      ProductLicense[]
+  releases      Release[]
+  supportPolicy SupportPolicy?
+  compatibility CompatibilityRecord[]
 
   @@index([categoryId])
   @@index([status])

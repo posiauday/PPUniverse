@@ -1,0 +1,121 @@
+// Product detail evidence model (MVP-005, FR-003): license, version,
+// support and compatibility. Compatibility fields and states are the
+// product-owner-approved model in docs/final-decisions.md (2026-09-21).
+// Everything here is additive — no existing table changes, so products
+// with no evidence rows simply show "not provided" states.
+//
+// CHECK constraints (release year/wave ranges, notes/summary length,
+// "Tested requires evidence", support-channel rule) are hand-written in
+// migration 20260921000000_add_product_evidence — Prisma's schema language
+// can't express them. Prisma Migrate does not introspect CHECKs, so they
+// won't show up in `migrate diff`; don't remove them thinking they're stray.
+
+enum PlatformArea {
+  POWER_APPS
+  POWER_AUTOMATE
+  POWER_BI
+  DATAVERSE
+  POWER_PAGES
+  COPILOT_STUDIO
+  MICROSOFT_FABRIC
+}
+
+enum CompatibilityEvidenceStatus {
+  TESTED
+  CREATOR_DECLARED
+  NOT_VERIFIED
+}
+
+enum SupportStatus {
+  CREATOR_SUPPORTED
+  PLATFORM_SUPPORTED
+  COMMUNITY_SUPPORTED
+  UNSUPPORTED
+}
+
+/// Reference data: the three locked license tiers (docs/final-decisions.md
+/// 2026-09-18). Pricing, seat limits and contract terms are deliberately
+/// not modeled — still open (open question 7).
+model LicenseDefinition {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products ProductLicense[]
+
+  @@map("license_definitions")
+}
+
+model ProductLicense {
+  productId           String
+  licenseDefinitionId String
+  createdAt           DateTime @default(now())
+
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  licenseDefinition LicenseDefinition @relation(fields: [licenseDefinitionId], references: [id], onDelete: Restrict)
+
+  @@id([productId, licenseDefinitionId])
+  @@index([licenseDefinitionId])
+  @@map("product_licenses")
+}
+
+/// Minimal on purpose: version is release-scoped (FR-011: corrections
+/// create another version). `publishedAt` null means not yet published.
+/// Immutability enforcement, files and changelog are MVP-012/014's scope.
+model Release {
+  id          String    @id @default(cuid())
+  productId   String
+  version     String
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, version])
+  @@index([productId, publishedAt])
+  @@map("releases")
+}
+
+/// One declaration per product (docs/09-marketplace-operations.md "Support
+/// model"). No response-time targets: those are published only after
+/// operational validation.
+model SupportPolicy {
+  productId String        @id
+  status    SupportStatus
+  channel   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("support_policies")
+}
+
+/// The earliest release wave the product *claims* compatibility with —
+/// never proof of compatibility with later releases. Year and wave are
+/// separate typed columns (not a display string) so future filtering works
+/// and a new year never needs a migration.
+model CompatibilityRecord {
+  id              String                      @id @default(cuid())
+  productId       String
+  platformArea    PlatformArea
+  minReleaseYear  Int
+  minReleaseWave  Int
+  notes           String?
+  evidenceStatus  CompatibilityEvidenceStatus
+  evidenceSummary String?
+  lastVerifiedAt  DateTime?                   @db.Date
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, platformArea])
+  @@index([platformArea, minReleaseYear, minReleaseWave])
+  @@map("compatibility_records")
+}
