@@ -427,3 +427,34 @@ Nothing here is a decision. It records what was built, what was measured, and on
 - **Engineering choices made within the latitude given** (for review): `retries: 0` everywhere (a flaky test is a defect); 3 CI workers (the repository is public, so the runner has 4 vCPUs); the application under test is a production build served by `next start` on port 3100; Tab walks start from an invisible focus sentinel at the top of the document so an earlier interaction cannot change where a walk begins; the harness never imports application code (the site name is duplicated in `packages/e2e/src/site.ts` on purpose).
 - **Not yet done, by decision:** the branch-protection rule on `develop` is created only after the accessibility job has run green in the pull request; it has not been created. Open question 17 stays open as narrowed.
 - **Update (2026-09-21): BUG-012 reproduces and the proposed fix works.** CI run 2 (35666983338, docs-only head 9cd68c5): the same signature. 417 of 420 passed, 3 Chromium failures (an unknown category slug and an unknown product slug returned 500 instead of 404; a session revoke failed), 0 skipped, 0 retries; Firefox and WebKit passed every test; the server log again shows TooManyConnections (8 lines). Whole job 5m57s, test execution 4m14s. The Playwright browser cache is saved only by a successful job, so both runs so far had a cold cache. Proposed fix validated in a throwaway git worktree (never committed, not on the feature branch): one condition in packages/db/src/index.ts (cache the client on globalThis in every environment) plus a unit test (packages/db/src/client-cache.test.ts). The test fails without the fix in production mode (and passes in development and test), and passes with it; with the fix, 40 sequential queries in production mode hold 1 open connection (was 41); and the full accessibility suite against a production build with the fix: 420 passed, 0 failed, 0 skipped, 0 retries (140 per engine) in 7.0m on a local Windows run with 3 workers; TooManyConnections lines in the server log: 0. Option A of open question 43 is therefore ready to apply as one separate commit once approved; it has not been applied to the feature branch.
+
+## 2026-09-21 — Product-owner decision: BUG-012 and MVP-023 sign-off
+
+**Source:** direct product-owner instruction ("PRODUCT-OWNER DECISION — BUG-012 AND MVP-023 SIGN-OFF"), 2026-09-21. It closes open question 43 and sets the order of the remaining MVP-023 steps.
+
+### BUG-012 — Option A (closes open question 43)
+- Apply the validated one-condition fix in `@ppu/db`. It is an approved change to delivered code under Q37 and the **only** `@ppu/db` change permitted in this story.
+- Before committing, the pull-request description states which the patch is: (i) a correction to connection lifecycle or release behavior, which is a root fix; or (ii) a raise of a connection limit or pool ceiling, which is a mitigation. If (ii), a tech-debt record for the underlying leak is created and BUG-012 says so plainly. A mitigation is never described as a fix.
+- Commit discipline: one minimal commit referencing BUG-012; no refactoring, renaming or tidying of adjacent `@ppu/db` code; a regression test if the condition is unit-testable (if it is not, the commit message and BUG-012 say why); and confirmation that the change does not alter RLS behavior, authorization, credential handling, or any connection string or secret surface.
+
+### Sequence — not reordered
+1. Apply the patch, commit, push to `feature/mvp-023-accessibility-gate`.
+2. Let CI run and wait for it. The local 420 of 420 result is not acted on.
+3. Read **both** CI job logs in full and confirm: the accessibility suite is green on chromium, firefox and webkit; no `TooManyConnections` in the server log; database-gated suites report PASSED, not skipped (colour codes render as literal `^[[..m`, so filters must match that form); skip count 0 or every skip explained; 0 retries.
+4. Report the measured accessibility runtime, with install time separate, against the 10-minute ceiling. If it is over, stop and propose options; do not drop engines, widths or rules.
+5. Only then create the `develop` branch-protection rule, using the exact check names as GitHub displays them, and report the names used.
+6. Then complete the security review (which must cover the `@ppu/db` change) and the accessibility review.
+7. Then mark Done, then merge with `gh pr merge`, never locally.
+
+If CI is not green after the patch, stop and report. The suite configuration, worker count, retries and timeouts are not iterated on to force a pass.
+
+### Accessibility review sign-off
+- **Not signed off yet.** Sign-off is authorized only after step 3 passes.
+- When recorded it states **scope and method, not conformance**: what (automated axe with the `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` and `wcag22aa` tags, plus scripted keyboard, focus and contrast checks); where (the enumerated page and state list, at 320, 375, 768 and 1280 px); engines (chromium, firefox and webkit at the pinned versions); the date and tool versions; and what was **not** done: screen readers (NVDA, JAWS, VoiceOver), voice control, switch access and magnification, all listed as not tested.
+- Prohibited in the sign-off and everywhere else: "WCAG compliant", "conformant", "accessible", "audited", "certified", and any claim of screen-reader support.
+- **Open question 38 stays OPEN.** This sign-off does not close it.
+
+### Unchanged
+- The do-not-implement list stands: MVP-007, 010, 011, 012, 013, 017, 018, 020; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics; creator and collections routes; compatibility workflow; search-behavior changes; promoting `develop` to `main`; redesigning sign-in or account.
+- The completion rule stands in full: not Done until tests pass, CI is green, database-gated tests are confirmed PASSED by reading the log, the accessibility job is green and required and within budget with its runtime reported, every F1–F10 fix has landed with a regression test, documentation including the "Not verified" section is updated, NFR-001 and NFR-008 traceability is updated, and both reviews are complete.
+- Open question 17 remains narrowed (not closed).
