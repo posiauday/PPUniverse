@@ -24,9 +24,10 @@ function getPrisma(): PrismaClient {
     return globalThis.__ppuPrisma;
   }
   const client = createPrismaClient();
-  if (process.env["NODE_ENV"] !== "production") {
-    globalThis.__ppuPrisma = client;
-  }
+  // Cached in every environment. The exported proxy below calls getPrisma() on every
+  // property access, so skipping the cache in production built a new client and a new
+  // connection pool for every query and exhausted Postgres (BUG-012).
+  globalThis.__ppuPrisma = client;
   return client;
 }
 
