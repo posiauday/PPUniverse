@@ -44,7 +44,7 @@ Full detail on every story is in `planning/progress-report.md`.
 - P0 points done: 50 / 140 (36%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 0 (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 1 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Open tech debt: 2 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning.
@@ -77,9 +77,10 @@ None found. See `planning/bugs.csv` (index) and `planning/bugs/` — both empty.
 
 ## Open tech debt
 
-1 open item (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+2 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
+- [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented".
 
 ## Notes
 - `planning/mvp-backlog.csv` is the canonical status record; `planning/backlog.csv` mirrors Sprint/Points/Status.
