@@ -704,12 +704,14 @@ Any query parameter other than a single valid `page` (including `pageSize`, unkn
 
 ## MVP-021 — Metadata, sitemap, canonical, structured data
 
-### Story status: QA (not Done)
+### Story status: Done
 **MVP-021 — Metadata sitemap canonical structured data** (Epic: SEO, Requirement: FR-017, Priority: P0, Sprint 4, 3 pts)
 
 Acceptance summary: "Indexable pages emit valid metadata and sitemap."
 
-Implemented and verified locally, including against real pages and a real Postgres. **Not Done:** it stays in QA until CI is green with the database-gated tests confirmed *passed* (not skipped), per the product owner's rule. This entry is updated with the CI result before the story is marked Done.
+Implemented, verified locally (including against real pages and a real Postgres), and confirmed in CI. It was held in **QA** until CI was green with the database-gated tests confirmed *passed* (not skipped) — the product owner's rule — and only then marked Done.
+
+**CI result (PR #5, run 35635150884):** both jobs (`Format, lint, typecheck, test, build` and `Secret scan`) passed. Confirmed from the job log, not the check mark: **458 tests passed, 0 skipped** — `@ppu/web` 196, `@ppu/ui` 56, `@ppu/adapter-catalog` 37 (the DB-gated suite reported as passed, 1.6s), `@ppu/domain-catalog` 61 — and every DB-gated suite ran and passed, including the ClamAV (2) and MinIO (4) suites that can only run in CI. `prisma migrate deploy` applied all migrations. The CI build logged no `seo.site_url_invalid` (validation is lazy), and `/robots.txt` and `/sitemap.xml` appear as dynamic routes. (The CI log stores terminal colour codes as literal `^[[…m` text, so the first attempts to count tests with an ANSI-stripping filter returned nothing; the totals above come from a parser written for that format.)
 
 **Sequence:** pre-work confirmations before any change (branch `feature/mvp-021-seo-metadata`; based on the latest `develop` `f8c8c31`, 0 commits behind; `git status` clean; `git log` reviewed; `gh pr list` 0 open; branch not yet pushed; no overlapping code). Decisions recorded first, in their own commits, on this same branch (`docs/final-decisions.md`, `docs/open-questions.md`, TD-008), then the implementation. The decision record travels in this story's pull request; no decision-only branch was created and nothing was merged locally.
 
@@ -783,7 +785,7 @@ Test rows existed only in the throwaway database (14 PUBLISHED + 1 DRAFT in one 
 
 ### Bugs found
 - **BUG-002 (P3, new):** a repeated `q` parameter (`?q=a&q=b`) makes `/search` and category pages return HTTP 500 (`normalizeQuery` calls `.trim()` on an array). MVP-004 code, unchanged by this branch, confirmed on a file this story does not touch. **Not fixed** — the authorization forbids changing MVP-004 search behavior. → open question 32.
-- **BUG-001** (relative canonicals; indexable sign-in/account) is fixed by this story and closes when it is Done.
+- **BUG-001** (relative canonicals; indexable sign-in/account) is fixed by this story and is now Resolved.
 
 ### Tech debt created
 - **TD-009** — no environment-level `noindex` switch for staging/preview deployments (needs the hosting decision).
@@ -802,8 +804,7 @@ Any parameter other than a single valid `page` (including `pageSize`, unknown an
 External validators (Rich Results Test, Schema Markup Validator) cannot reach localhost; run them once a preview URL exists. No real hosting, CDN or scale test. Product JSON-LD is expected to be schema.org-valid but *not* eligible for Product rich results (no offers, review or rating) — the accepted, documented trade-off.
 
 ### Remaining work to reach Done
-1. Push, open the PR, confirm CI is green **with the DB-gated tests reported as passed, not skipped** (log inspected).
-2. Merge, confirm `develop` CI, then flip MVP-021 to Done in the backlog CSVs, status and traceability (FR-017 → Implemented); close BUG-001.
+None — Done. FR-017 is Implemented and BUG-001 is Resolved. Follow-ups are tracked rather than remaining work on this story: TD-009, TD-010, BUG-002 (needs a product-owner decision), and TD-008 (must land before MVP-012).
 
 ### Next story recommendation
-Once Done: **MVP-023** (accessibility gate, and the Playwright/axe harness that would close the E2E half of TD-007). Separately, **TD-008** must land before MVP-012, and BUG-002 needs a product-owner decision (open question 32). MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) remain gated by unanswered product decisions.
+**MVP-023** (accessibility gate, and the Playwright/axe harness that would close the E2E half of TD-007). Separately, **TD-008** must land before MVP-012, and BUG-002 needs a product-owner decision (open question 32). MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) remain gated by unanswered product decisions.

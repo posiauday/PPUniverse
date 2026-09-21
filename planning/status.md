@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-21 — product-owner responses to MVP-005's open items recorded (`docs/final-decisions.md`): wording approved; Tested reserved with Creator Declared and Marketplace Reviewed as the only assignable statuses; remaining FR-003 items dispositioned; MVP-021 authorized. MVP-005 remains Done (CI green on PR #4, DB-gated tests confirmed passed). MVP-021 (metadata, sitemap, canonical, structured data) is implemented and locally verified — in QA awaiting CI; it is not Done until CI is green with the DB-gated tests confirmed passed.
+Last updated: 2026-09-21 — product-owner responses to MVP-005's open items recorded (`docs/final-decisions.md`): wording approved; Tested reserved with Creator Declared and Marketplace Reviewed as the only assignable statuses; remaining FR-003 items dispositioned; MVP-021 authorized. MVP-005 remains Done (CI green on PR #4, DB-gated tests confirmed passed). MVP-021 (metadata, sitemap, canonical, structured data) is Done: CI green on PR #5 with 458 tests passed and 0 skipped, including all DB-gated suites (catalog 37). BUG-001 is resolved; BUG-002 (found while verifying) is recorded and awaits a product-owner decision.
 
 ## Board
 
@@ -11,12 +11,12 @@ Last updated: 2026-09-21 — product-owner responses to MVP-005's open items rec
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 7 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 |
 | In Progress | 0 | — |
-| QA | 1 | MVP-021 (implemented; awaiting CI confirmation) |
+| QA | 0 | — |
 | Blocked | 0 | — |
-| Done | 7 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-022 |
+| Done | 8 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022 |
 | **Total** | **25** | |
 
-MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap). MVP-021 is now in QA (awaiting CI); MVP-007 is Ready. "Ready" means dependencies are met — MVP-007 is still gated by unanswered product decisions (see the recommendation below).
+MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below).
 
 ## Completed stories
 
@@ -28,6 +28,7 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 | MVP-004 | Catalog | FR-002 | 8 | 2026-09-21 |
 | MVP-005 | Catalog | FR-003 | 5 | 2026-09-21 |
 | MVP-006 | Files | FR-007 | 13 | 2026-09-18 |
+| MVP-021 | SEO | FR-017 | 3 | 2026-09-21 |
 | MVP-022 | Observability | NFR-007 | 8 | 2026-09-18 |
 
 ### MVP-004 — Catalog filtering and search
@@ -43,15 +44,22 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 - Recorded rather than hidden: TD-006 (no write path calls the evidence validator yet; no private-data screening), TD-007 (other FR-003 items have no owning story; no E2E yet). FR-003 is **Partially Implemented**. Also caught at the start of this story: FR-002's traceability had been overstated after MVP-004 (TD-005).
 - Full detail, including the security and accessibility reviews: `planning/progress-report.md`.
 
+### MVP-021 — Metadata, sitemap, canonical, structured data
+- Canonical URLs, page metadata, Open Graph and Twitter tags, `sitemap.xml`, `robots.txt` and schema.org JSON-LD, under the product owner's 2026-09-21 decisions. The site origin is `NEXT_PUBLIC_SITE_URL`, validated in one place, read at runtime, and failing safe (no incorrect canonical URLs) when missing or invalid in production.
+- Deny-by-default robots (every page `noindex` unless it opts in). Category policy as approved: empty categories `noindex` and out of the sitemap; valid `?page=N` self-canonical; search, sort, filter and mixed variants `noindex` with the base canonical — an intentional corrective SEO change owned by this story, with MVP-004's search unchanged. Product JSON-LD ships **without Offer data** and with no rich-result claim.
+- Verified on the real pages against a real Postgres (dev and production builds), a hostile product in the live browser DOM, and six production site-URL scenarios; **CI: 458 tests passed, 0 skipped**, including all DB-gated suites.
+- Recorded: BUG-001 resolved; **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code, out of scope, needs a decision, open question 32); TD-009 and TD-010. TD-008 was not touched.
+- Full detail, including the security and accessibility reviews: `planning/progress-report.md`.
+
 Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 7 / 25 (28%)
-- Points done: 55 / 165 (33%)
-- P0 points done: 55 / 140 (39%)
+- Stories done: 8 / 25 (32%)
+- Points done: 58 / 165 (35%)
+- P0 points done: 58 / 140 (41%)
 - P1 points done: 0 / 25 (0%)
-- Open bugs: 2 (see `planning/bugs.csv` and `planning/bugs/`)
+- Open bugs: 1 (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 7 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
@@ -59,7 +67,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 
 ## Remaining work summary
 
-18 of 25 stories remain (110 of 165 points).
+17 of 25 stories remain (107 of 165 points).
 
 | Sprint | Stories | Status | Points |
 |---|---|---|---|
@@ -67,7 +75,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 2 | MVP-002, MVP-003, MVP-006, MVP-022 | **Done** | 37 (done) |
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
 | 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 | Ready | 31 |
-| 4 | MVP-021 | **QA** (awaiting CI) | 3 |
+| 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
 | 4 | MVP-012 | Backlog | 8 |
 | 5 | MVP-008, MVP-013 | Backlog | 16 |
@@ -79,14 +87,16 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-First, finish **MVP-021** (QA — awaiting CI; see `planning/prework/MVP-021-prework-analysis.md` and the progress report). Open questions 29–31 were closed by the product owner's 2026-09-21 decisions. TD-008 is a separate corrective change and is not part of MVP-021; it must land before MVP-012. The strongest next candidate after MVP-021 is **MVP-023 (accessibility gate)** — it also brings the Playwright/axe harness that would close the E2E half of TD-007.
+The recommended next story is **MVP-023 (Manual and automated accessibility gate)**: P0, 8 points, Ready (depends only on MVP-003), and not gated by any open product decision. It brings the axe and Playwright harness that would close the E2E half of TD-007, and there are now real catalog, category and product journeys to test.
+
+Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) needs a decision on whether to approve a small corrective change (open question 32).
 
 Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-010, MVP-017, MVP-018, MVP-020 also remain Ready.
 
 ## Open bugs
 
-2 open:
-- [BUG-001](bugs/BUG-001.md) (P3, found 2026-09-21 during MVP-021 pre-work) — delivered pages emit relative canonical/`og:url` tags, and sign-in/account pages are indexable. No production deployment exists so nothing was exposed; it is fixed by MVP-021 (FR-017) and closes when that story is Done.
+1 open, 1 resolved:
+- [BUG-001](bugs/BUG-001.md) — **Resolved** by MVP-021 (PR #5, 2026-09-21): delivered pages emitted relative canonical/`og:url` tags and sign-in/account pages were indexable. No production deployment existed, so nothing was exposed.
 - [BUG-002](bugs/BUG-002.md) (P3, found 2026-09-21 while verifying MVP-021) — a repeated `q` parameter (`?q=a&q=b`) makes `/search` and category pages return HTTP 500 (`normalizeQuery` calls `.trim()` on an array). MVP-004 code; MVP-021 may not change MVP-004 search behavior, so it is recorded, not fixed — see open question 32.
 
 Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-003's Tailwind/rendering bugs before it) were all caught and fixed within their own story before reaching Done — per `CLAUDE.md`'s bug-vs-shortcut distinction, documented in `planning/progress-report.md`, not filed as bugs.
