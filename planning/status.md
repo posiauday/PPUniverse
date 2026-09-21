@@ -10,7 +10,7 @@ Last updated: 2026-09-21 — product-owner responses to MVP-005's open items rec
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 7 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 |
-| In Progress | 1 | MVP-021 (pre-work analysis delivered; no code yet) |
+| In Progress | 1 | MVP-021 (pre-work analysis approved 2026-09-21; implementation under way) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Done | 7 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-022 |
@@ -79,7 +79,7 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-021 (Metadata, sitemap, canonical, structured data)** is In Progress. Its pre-work analysis is delivered (`planning/prework/MVP-021-prework-analysis.md`); implementation starts once the product owner answers open questions 29–31 (empty-category indexing, canonical policy for category-page variants, Product JSON-LD go/defer) or accepts the recommended defaults, and confirms how to sequence TD-008 (open question 28). **MVP-023 (accessibility gate)** is the strongest follow-up — it also brings the Playwright/axe harness that would close the E2E half of TD-007.
+**MVP-021 (Metadata, sitemap, canonical, structured data)** is In Progress. Its pre-work analysis (`planning/prework/MVP-021-prework-analysis.md`) is approved, and open questions 29–31 are closed by the product owner's 2026-09-21 decisions (empty categories are noindex and out of the sitemap; parameter-specific canonical policy; Product JSON-LD ships without Offer data). TD-008 is a separate corrective change and is not part of MVP-021. **MVP-023 (accessibility gate)** is the strongest follow-up — it also brings the Playwright/axe harness that would close the E2E half of TD-007.
 
 Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-010, MVP-017, MVP-018, MVP-020 also remain Ready.
 
@@ -95,7 +95,7 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
 - [TD-006](tech-debt/TD-006.md) — **Open** (new, 2026-09-21): compatibility write-time rules (`validateCompatibilityEntry`) exist but no write path calls them yet, and nothing screens notes/summaries for private data — for MVP-012/013 to enforce.
 - [TD-007](tech-debt/TD-007.md) — **Open** (new, 2026-09-21): FR-003 items beyond license/version/support/compatibility (creator, screenshots, demo, price, prerequisites, setup, accessibility statement, changelog, version history, related assets) have no approved delivering story, and there is no Playwright E2E for the product page; FR-003 traceability is "Partially Implemented". Ownership dispositions were recorded 2026-09-21: creator to MVP-011, price to MVP-007, the rest proposed (not approved).
-- [TD-008](tech-debt/TD-008.md) — **Open** (new, 2026-09-21): merged MVP-005 still implements the Tested / Creator Declared / Not Verified vocabulary; the product owner's 2026-09-21 decision makes Creator Declared and Marketplace Reviewed the only assignable statuses and reserves Tested. No user-visible harm today (no product data exists); needs product-owner answers (open question 28) and a small corrective change before MVP-012/013.
+- [TD-008](tech-debt/TD-008.md) — **Open** (new, 2026-09-21): merged MVP-005 still implements the Tested / Creator Declared / Not Verified vocabulary; the product owner's 2026-09-21 decision makes Creator Declared and Marketplace Reviewed the only assignable statuses and reserves Tested. No user-visible harm today (no product data exists). Decisions recorded 2026-09-21 (Not Verified is legacy/reserved; a reviewed-at timestamp is approved); a separate small corrective change is required before MVP-012 permits compatibility-evidence writes and is **not** part of MVP-021.
 
 ## Proposed stories (not approved — not on the board, not counted above)
 [`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.

@@ -679,3 +679,25 @@ The MVP-005 entry states that no `dangerouslySetInnerHTML` exists in the codebas
 
 ### MVP-021 status
 **In Progress.** Pre-work analysis: `planning/prework/MVP-021-prework-analysis.md`. Implementation is waiting on the product owner's answers to open questions 29–31 (or acceptance of the stated defaults) and on how to sequence TD-008 (open question 28).
+
+## 2026-09-21 — Product-owner decisions for MVP-021 recorded; implementation authorized
+
+Source: direct product-owner instruction, 2026-09-21 (this message is the approval; earlier recommendations and handoff text are not). Recorded on the existing `feature/mvp-021-seo-metadata` branch and carried in the MVP-021 pull request — no decision-only branch, no local merge.
+
+**Pre-work confirmations (before any change):** branch is `feature/mvp-021-seo-metadata`; it is based on the latest `develop` (`f8c8c31`, 0 commits behind); `git status` clean (no untracked or staged files; the line-ending-only entries have no content diff); `git log` shows only the local decision commit `672b9c7` above `develop`; `gh pr list` shows 0 open PRs; the branch had not been pushed; a source search found no overlapping MVP-021 code.
+
+### Decisions recorded (`docs/final-decisions.md`, `docs/open-questions.md`)
+- **Q29 (closed):** a category with zero PUBLISHED products is `noindex, follow`, excluded from the sitemap, publicly reachable, and not a 404; indexability is derived from current published inventory.
+- **Q30 (closed):** parameter-specific canonical policy — base page self-canonical; valid `?page=N` self-canonical (page 1 normalized to base); invalid/zero/negative/non-numeric/out-of-range pages never indexable duplicates; `q`, sort-only, filter and mixed variants `noindex, follow` with the clean base canonical; sitemap lists base category pages only. An **intentional corrective SEO change owned by MVP-021, not a reopening of MVP-004**; MVP-004 search/filter behavior is unchanged. Regression tests required for base, `page=1`, `page=N`, `q`, `sort`, filter, mixed, empty and out-of-range cases.
+- **Q31 (closed):** Product JSON-LD ships now, without Offer data, from real PUBLISHED fields only; unavailable properties omitted entirely; price/Offer data must not be added until pricing, currency, tax and checkout are approved and implemented; no rich-result eligibility claim.
+- **Q28 (updated) / TD-008:** not folded into MVP-021; a separate small corrective change before MVP-012 permits compatibility-evidence writes. Creator Declared and Marketplace Reviewed are the only assignable statuses; **Not Verified is legacy/reserved and not assignable**; a nullable reviewed-at timestamp is approved (null for Creator Declared; set only by the trusted server-side moderation workflow; never from a client; cleared if a creator materially changes a reviewed claim; never fabricated).
+
+### Interpretations I made within the approved policy (recorded as reversible, not as decisions)
+Any query parameter other than a single valid `page` (including `pageSize`, unknown/tracking and repeated parameters) marks a category URL as a variant; the presence of `sort` (any value) is a sort variant; `?page=1` is `index, follow` with the base canonical; an empty category emits a self-canonical; version is expressed as a schema.org `additionalProperty`; JSON-LD is omitted when the site origin is unavailable.
+
+### Findings while recording
+- **No central environment-validation module exists** in `apps/web` (each `lib/*.ts` reads its own variables), so the "central environment validation, where applicable" instruction is met by making `apps/web/lib/site-url.ts` the single validation point for `NEXT_PUBLIC_SITE_URL`.
+- The moderation entities (`ModerationReview`, `ModerationComment`, `AuditEvent`) are named in `docs/06-data-model.md` but **do not exist in the schema**; TD-008's reviewer-reference proposal therefore points at MVP-013 rather than adding a column now.
+
+### Records changed
+`TD-008` rewritten with all nine required sections (schema inconsistency, approved statuses, state transitions, reviewed-timestamp behavior, legacy Not Verified handling, authorization, migration approach, tests, dependency on MVP-012/013) and left **Open**; `tech-debt.csv`, `status.md` updated. MVP-005 remains Done.

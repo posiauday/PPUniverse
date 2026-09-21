@@ -2,6 +2,8 @@
 
 Date: 2026-09-21. Branch: `feature/mvp-021-seo-metadata` (from `develop` at `f8c8c31`; no open PRs; no overlapping work). **No application code has been written.** Authority: `docs/final-decisions.md`, entry "Product-owner responses to MVP-005 open items; MVP-021 authorization".
 
+> **Approved 2026-09-21 with the product owner's decisions** (`docs/final-decisions.md`, "Product-owner decisions for MVP-021"). Open questions 29, 30 and 31 are **closed** as recommended, with two differences from this document's tables and defaults: (1) a **sort-only** category URL is `noindex, follow` with the base canonical (this analysis proposed `index, follow`); (2) an **empty category** emits a self-canonical to its base URL (this analysis said "none"). `pageSize`, unrecognized and repeated parameters are treated as variants under the same rule. TD-008 is **not** part of MVP-021. Where this document and the decision record differ, the decision record controls.
+
 Facts below marked *(verified)* were checked in this session, not assumed.
 
 ## 1. Requirement IDs

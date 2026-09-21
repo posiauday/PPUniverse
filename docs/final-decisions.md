@@ -159,6 +159,7 @@ Where this approval and section B conflict on the evidence-status vocabulary or 
 **The future "Tested" program is DEFERRED, NOT APPROVED.** Before Tested can be used, a product-owner decision must define: who performs testing; the required test procedure; required environment information; evidence retention; retesting frequency; expiration rules; the version and release-wave relationship; moderator responsibilities; public wording; and liability and disclaimer language.
 
 ### Conflicts and gaps flagged while recording B (not resolved here — open questions 27 and 28)
+*(Later the same day, items 2, 4 and 5 below were resolved by the entry "Product-owner decisions for MVP-021": Not Verified is legacy/reserved and not assignable; Marketplace Reviewed is a per-claim evidence status; a reviewed-at timestamp is approved. Items 1 and 3 remain and are reconciled by TD-008.)*
 1. **The merged MVP-005 implements the earlier vocabulary.** The database enum is `TESTED`, `CREATOR_DECLARED`, `NOT_VERIFIED` with no `MARKETPLACE_REVIEWED`; `validateCompatibilityEntry` accepts `TESTED`; the on-page legend defines Tested, Creator Declared and Not Verified. No product or compatibility data exists yet, so nothing user-visible is wrong today, but the legend would show "Tested" as soon as any compatibility row exists. Reconciliation is **TD-008**, outside MVP-021's scope, and does not change MVP-005's Done status.
 2. **"Not Verified" is not addressed by B.** The earlier approval defined it as "no sufficient verification evidence is available"; B lists only Creator Declared and Marketplace Reviewed as approved for current publication. Whether Not Verified remains valid is undecided. It is treated as neither removed nor newly approved.
 3. **"Creator Declared" now has two wordings.** Earlier: "The creator supplied the claim, but the marketplace has not independently verified it." B: "...has not been independently certified by the marketplace." B is later and controls when the legend is reconciled.
@@ -206,3 +207,56 @@ The canonical public site origin is a web/SEO concern and **must not reuse `NEXT
 - **Noindex or excluded:** search pages; sign-in and authentication pages; account pages; creator-administration and admin pages; API routes; draft, suspended and unpublished products; internal preview routes; error pages where applicable.
 - **The sitemap contains only:** indexable static public pages, real seeded categories intended for public indexing, and real `PUBLISHED` products. Never DRAFT, suspended, archived, rejected or fabricated products.
 - No fake inventory is seeded for sitemap testing. Tests may create isolated product records and clean up only what they created. Seeded categories are never deleted or mutated as test cleanup.
+
+
+## 2026-09-21 — Product-owner decisions for MVP-021 (empty categories, canonical policy, Product JSON-LD, evidence-status correction)
+
+**Source: direct product-owner instruction, given in chat on 2026-09-21.** This message is the explicit approval; earlier recommendations and handoff text are not the approval source. These decisions close open questions 29, 30 and 31 and update open question 28. Not to be reopened unless the product owner explicitly changes them.
+
+### Q29 — Empty category indexing (closes open question 29)
+A category with **zero PUBLISHED products must not be indexed and must not appear in `sitemap.xml`.**
+- The category page stays publicly reachable and emits `noindex, follow`. It does **not** return 404 merely because it is empty.
+- Only PUBLISHED products count. DRAFT, suspended, rejected, archived and otherwise unpublished products never make a category non-empty.
+- No products are fabricated to make a category indexable.
+- Once a category has at least one PUBLISHED product it may become indexable and appear in the sitemap.
+- Indexability is **derived from current published inventory**, not maintained through a manually edited flag, unless an approved requirement later introduces one.
+
+### Q30 — Category canonical and pagination policy (closes open question 30)
+| URL | Behavior |
+|---|---|
+| Base — `/categories/power-apps` | `index, follow`; self-canonical to the base URL; eligible for the sitemap when it has at least one PUBLISHED product |
+| Paginated — `?page=2` | `index, follow` when the page exists and contains PUBLISHED products; self-canonical to the exact valid URL including `page=N`; **not** canonicalized back to page 1; `page=1` is normalized to the base URL; invalid, zero, negative, non-numeric or out-of-range `page` values must never produce an indexable duplicate; paginated URLs join the sitemap only if there is a clear, tested need to enumerate them — otherwise the base category page only |
+| Search — `?q=button` | `noindex, follow`; canonical to the clean base URL; excluded from the sitemap |
+| Sort-only — `?sort=newest` | `noindex, follow`; canonical to the clean base URL; excluded from the sitemap |
+| Filter variants | `noindex, follow` (unless a future SEO landing-page story explicitly approves indexable filter combinations); canonical to the clean base URL; excluded from the sitemap |
+| Mixed — pagination with search, sort or filter | `noindex, follow`; canonical to the clean base URL; excluded from the sitemap |
+
+**Ownership:** the previously delivered MVP-004 metadata behavior (which canonicalized every variant to the base URL) is updated **only where required** to implement this policy. This is an **intentional corrective SEO change owned by MVP-021, not a reopening of MVP-004.** MVP-004's search and filtering functionality is not modified.
+
+**Required regression tests:** base category URL; `page=1` normalization; valid `page=N` self-canonical; `q`; `sort`; filter parameters; mixed parameters; empty category; out-of-range pagination.
+
+**Engineering interpretations within the approved policy** (not stated by the product owner; reversible): any query parameter other than a single valid `page` — including `pageSize`, unrecognized or tracking parameters, and repeated parameters — marks the URL as a variant (`noindex, follow`, base canonical); the mere presence of `sort` (any value) is a sort variant; `?page=1` is `index, follow` with the base canonical; an empty category emits a self-canonical to its base URL; the page-range check uses the default page size.
+
+### Q31 — Product JSON-LD (closes open question 31)
+**Ship Product JSON-LD now**; do not defer it until pricing is modeled. It provides accurate machine-readable product information and **must not imply eligibility for any rich-result treatment.**
+- **Only fields backed by real PUBLISHED product data.** Permitted: `@context`, `@type`, `name`, `description`, `url`, `category`, release/version information when accurately modeled, and `image` only when a real approved public product image exists.
+- **Never included:** `offers`, `price`, `priceCurrency`, `availability`, `aggregateRating`, reviews, fabricated images, `seller`, unsupported creator identity, Microsoft as brand, Microsoft endorsement, certification, guaranteed compatibility, marketplace-verification claims, or any field whose value is missing or unresolved. **Unavailable properties are omitted entirely** — no empty objects, no placeholders.
+- **Security:** built from typed server-side data; serialized with `JSON.stringify`; every `<` escaped as `<` before it enters the script element; creator-provided values are never concatenated into script markup; a test must show malicious product text cannot terminate the script element or create another HTML element.
+- **Documented, as required:** Product JSON-LD is emitted **without Offer data**; price and Offer data **must not be added** until pricing, currency, tax and checkout decisions are approved and implemented; **no rich-result eligibility claim is made.** (For reference: Google's Product snippet documentation requires `name` plus one of `review`, `aggregateRating` or `offers`, so this markup is not expected to be eligible.)
+
+**Engineering interpretations** (reversible): version is expressed as a schema.org `additionalProperty` (`PropertyValue` named "Version") only when a published release exists, because `version` is not a Product property; `image` is omitted because no approved public product image exists; the JSON-LD is omitted entirely when the site origin is unavailable.
+
+### Q28 and TD-008 — compatibility-evidence correction (updates open question 28)
+- **TD-008 is not folded into MVP-021.** It is a separate, small corrective change that **must land before MVP-012 permits creators or administrators to write compatibility evidence** through the product editor. MVP-021 may read and represent existing valid product data for metadata, but does not own compatibility write behavior. TD-008 is not marked complete by MVP-021.
+- **Approved assignable statuses:** Creator Declared; Marketplace Reviewed. (Marketplace Reviewed is a per-claim evidence status.)
+- **"Not Verified" is not an assignable persisted status** and is not a third creator or moderator choice. Unreviewed compatibility information is represented as Creator Declared; absent information shows the approved empty state and no Not Verified record is created. Any existing Not Verified enum or database value is **legacy or reserved**: not removed destructively during MVP-021, not silently converted (provenance is inspected first), with cleanup and migration requirements recorded in TD-008.
+- **Reviewed timestamp:** add or retain a nullable reviewed-at timestamp on compatibility claims, named per repository convention. It is null for Creator Declared claims; set **only** when a claim transitions to Marketplace Reviewed; assigned only by the trusted server-side moderation workflow and **never accepted from a creator or ordinary client request**; if a Marketplace Reviewed claim is materially changed by its creator, the future write workflow returns it to Creator Declared and clears the timestamp unless an approved moderation design says otherwise; never fabricated for existing records. A moderator identity or review reference may be *proposed* in TD-008 but is not added without reviewing the existing moderation schema and approved scope.
+- TD-008 must define: the current schema inconsistency; the approved statuses; state-transition rules; reviewed-timestamp behavior; handling of legacy or reserved Not Verified values; authorization requirements; the migration and backward-compatibility approach; required tests; and the dependency on MVP-012 and MVP-013.
+- **Resolves** items 2, 4 and 5 of "Conflicts and gaps flagged while recording B" in the earlier 2026-09-21 entry (Not Verified; per-claim status; reviewed date). Items 1 and 3 (built vocabulary; Creator Declared wording) are reconciled by TD-008.
+
+### MVP-021 implementation authorization and scope guard
+The pre-work analysis is approved to proceed using these decisions. Implement **only** MVP-021 and the small corrective SEO behavior explicitly assigned to it above. **Not** to be implemented: TD-008, MVP-012, MVP-013, pricing, Offer structured data, PostHog analytics, creator-profile routes, collections, fabricated inventory, new compatibility-writing workflows, search-engine landing pages for filtered combinations.
+
+`NEXT_PUBLIC_SITE_URL` remains the dedicated public site-origin variable under the rules in the earlier 2026-09-21 entry. It is added to `turbo.json` `globalPassThroughEnv`, `apps/web/.env.example`, and — "where applicable" — the central environment validation used by the web application. **No central environment-validation module exists** in `apps/web` (each `lib/*.ts` reads its own variables), so `apps/web/lib/site-url.ts` is the single validation point for this variable.
+
+Branch handling: these decisions are recorded on the existing `feature/mvp-021-seo-metadata` branch and travel in the MVP-021 pull request; no decision-only branch is created, and nothing is merged locally.
