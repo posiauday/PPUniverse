@@ -3,9 +3,9 @@ MVP-001,Repo Setup,Done,P0,1,5
 MVP-002,Auth,Done,P0,2,8
 MVP-003,Catalog,Done,P0,2,8
 MVP-004,Search filter sort and zero results,Done,P0,3,8
-MVP-005,Product detail evidence model,QA,P0,3,5
+MVP-005,Product detail evidence model,Done,P0,3,5
 MVP-006,Quarantine scan and private storage,Done,P0,2,13
-MVP-007,Checkout session,Backlog,P0,4,8
+MVP-007,Checkout session,Ready,P0,4,8
 MVP-008,Verified webhook fulfillment,Backlog,P0,5,8
 MVP-009,Authorized signed downloads,Backlog,P0,6,5
 MVP-010,Free entitlement flow,Ready,P0,3,3
@@ -19,7 +19,7 @@ MVP-017,Tutorials collections learning paths,Ready,P1,3,5
 MVP-018,Transactional email and preferences,Ready,P1,3,5
 MVP-019,Operations console and audit,Backlog,P0,6,13
 MVP-020,Consent legal deletion workflow,Ready,P0,3,5
-MVP-021,Metadata sitemap canonical structured data,Backlog,P0,4,3
+MVP-021,Metadata sitemap canonical structured data,Ready,P0,4,3
 MVP-022,Logs traces metrics and alerts,Done,P0,2,8
 MVP-023,Manual and automated accessibility gate,Ready,P0,3,8
 MVP-024,Support case workflow,Backlog,P1,7,5

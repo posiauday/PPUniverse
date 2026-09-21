@@ -521,12 +521,14 @@ None — Done as of this entry, pending the routine final CI confirmation on pus
 
 ## MVP-005 — Product detail evidence model
 
-### Story status: QA (not Done)
+### Story status: Done
 **MVP-005 — Product detail evidence model** (Epic: Catalog, Requirement: FR-003, Priority: P0, Sprint 3, 5 pts)
 
 Acceptance summary: "All required license/version/support/compatibility fields display."
 
-Implemented and verified locally. **Not Done**: per the product owner's rule for this story, it stays in QA until CI is green with the database-gated tests confirmed *passed* (not skipped). This entry is updated with the CI result before the story is marked Done.
+Implemented, verified locally, and confirmed in CI. The story was held in **QA** until CI was green with the database-gated tests confirmed *passed* (not skipped) — the product owner's rule for this story — and only then marked Done.
+
+**CI result (PR #4, run 35623812305)**: both jobs (`Format, lint, typecheck, test, build` and `Secret scan`) passed. Confirmed from the job log rather than the check mark: `catalog-repository.integration.test.ts` reported `✓ (27 tests)` in 1.2s — a pass, not a skip — and the other four DB-gated suites passed too (`clamav-scan-adapter` 2, `file-scan-repository` 3, `s3-storage-adapter` 4, `session-repository` 3). `prisma migrate deploy` applied both new migrations on CI's fresh Postgres. The CI Postgres server log shows nine `Failing row contains (...)` constraint violations — exactly the rows the constraint tests deliberately provoke (wave 3, years 2018 and 2101, blank notes, 501-character notes, Tested without evidence, Tested without a date, blank release version, supported-without-channel) — direct evidence the database CHECK constraints fire on a fresh database, not only on the dev project. The only "skipped" text in the log is pnpm's unrelated "resolution step is skipped".
 
 **Sequence, per the stop-conditions protocol**: pre-work verification and analysis were delivered before any code (branch `feature/mvp-005-product-evidence` from up-to-date `develop`; MVP-004 Done and merged; no overlapping MVP-005 work). Two questions the story could not answer itself (compatibility shape, evidence method) were put to the product owner and work stopped until the answer arrived. The decision was recorded in `docs/final-decisions.md` / `docs/open-questions.md` first, in its own commit, so the repo — not the chat message — is the approval source. Implementation followed.
 
@@ -583,11 +585,12 @@ No existing table has to change on rollback, so it is safe while no evidence dat
 |---|---|
 | `pnpm typecheck` | Pass (31 tasks) |
 | `pnpm lint` | Pass (16 tasks) |
-| `pnpm test` | Pass (31 tasks) — `@ppu/domain-catalog` 61 tests, `@ppu/ui` 36, `apps/web` 11. All DB-gated suites (including the 27 in `@ppu/adapter-catalog`) self-skip locally: **there is no Postgres locally, so these are unproven until CI runs them** |
+| `pnpm test` | Pass (31 tasks) — `@ppu/domain-catalog` 61 tests, `@ppu/ui` 36, `apps/web` 11. All DB-gated suites (including the 27 in `@ppu/adapter-catalog`) self-skip locally because there is no Postgres locally — they were run and passed in CI (see the CI row below) |
 | `pnpm build` | Pass (17 tasks) — `/products/[slug]` still listed dynamic (ƒ) |
 | `pnpm format:check` | Pass |
 | `pnpm audit --audit-level=moderate` | Pass — no known vulnerabilities |
 | Real Postgres (Supabase MCP) | Both migrations applied; constraint probes; advisors; rollback rehearsal — all as above |
+| CI on PR #4 (`gh run watch`, then job log inspected) | Pass — 27/27 catalog integration tests passed (not skipped) on CI's Postgres; both migrations applied by `prisma migrate deploy`; secret scan passed |
 
 ### Real verification (browser, not only tests)
 Rendered `ProductEvidence` with obviously-placeholder data on a temporary route (never committed, deleted afterwards; no data was stored anywhere) in the built-in browser:
@@ -629,14 +632,13 @@ None in already-delivered work. (The FR-002 traceability overstatement found at 
 - TD-005 (created earlier in this story) updated: the license and compatibility filters are now unblocked, pending a backlog decision. No filtering UI was built here, by instruction.
 
 ### Risks identified
-- **DB-gated tests are unproven until CI.** No local Postgres, so the adapter query, the ordering assertions and the constraint tests have only been type-checked; the migrations and constraints themselves *were* proven on real Postgres.
+- **DB-gated tests — resolved.** There is no local Postgres, so the adapter query, ordering assertions and constraint tests were only type-checked locally; they have since passed in CI (see the CI result above). Any future change to them still only gets real coverage in CI.
 - **Platform-area ordering relies on Postgres enum declaration order.** A future `ALTER TYPE ... ADD VALUE` appends to the end unless `BEFORE`/`AFTER` is used, which would change the displayed order.
 - **`lastVerifiedAt`** relies on Prisma returning a `DATE` as UTC midnight; covered by an integration test, which runs in CI's UTC environment.
 - **Wording review.** The empty-state text for license/version/support, the release-wave explanation and the legend heading are this story's own wording (only the compatibility empty state and "Not independently verified" were specified). Flagged in `docs/final-decisions.md` for the product owner.
 
 ### Remaining work to reach Done
-1. Push, open the PR, and confirm CI is green **with the DB-gated tests reported as passed, not skipped** (log inspected, not just the check mark).
-2. Merge, confirm `develop` CI, then flip MVP-005 to Done in the backlog CSVs, status, traceability and this entry; promote MVP-007 and MVP-021 to Ready.
+None — Done. MVP-007 and MVP-021 were promoted to Ready. (Follow-ups are tracked as TD-006 and TD-007, not as remaining work on this story.)
 
 ### Next story recommendation
-Once Done: **MVP-021 (metadata, sitemap, canonical, structured data)** — depends only on MVP-005, smallest P0 (3 pts), not gated by an open product decision. **MVP-023** (accessibility gate + the Playwright/axe harness that would close TD-007's E2E half) is the strongest follow-up. MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) are dependency-ready but gated by unanswered product decisions.
+**MVP-021 (metadata, sitemap, canonical, structured data)** — depends only on MVP-005, smallest P0 (3 pts), not gated by an open product decision. **MVP-023** (accessibility gate + the Playwright/axe harness that would close TD-007's E2E half) is the strongest follow-up. MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) are dependency-ready but gated by unanswered product decisions.
