@@ -3,7 +3,7 @@ MVP-001,Repo Setup,Done,P0,1,5
 MVP-002,Auth,Done,P0,2,8
 MVP-003,Catalog,Done,P0,2,8
 MVP-004,Search filter sort and zero results,Done,P0,3,8
-MVP-005,Product detail evidence model,Ready,P0,3,5
+MVP-005,Product detail evidence model,In Progress,P0,3,5
 MVP-006,Quarantine scan and private storage,Done,P0,2,13
 MVP-007,Checkout session,Backlog,P0,4,8
 MVP-008,Verified webhook fulfillment,Backlog,P0,5,8

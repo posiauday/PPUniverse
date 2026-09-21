@@ -2,15 +2,15 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-18 — MVP-004 (Catalog filtering and search) Done.
+Last updated: 2026-09-21 — MVP-005 (Product detail evidence model) In Progress; product-owner compatibility model recorded (`docs/final-decisions.md`, closes open question 6 part 1).
 
 ## Board
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 11 | MVP-007, MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-021, MVP-024, MVP-025 |
-| Ready | 7 | MVP-005, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 |
-| In Progress | 0 | — |
+| Backlog | 12 | MVP-007, MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-021, MVP-024, MVP-025 |
+| Ready | 6 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 |
+| In Progress | 1 | MVP-005 |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Done | 6 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-006, MVP-022 |
@@ -25,7 +25,7 @@ MVP-004 has no downstream stories depending on it directly, so it doesn't unbloc
 | MVP-001 | Foundation | NFR-007 | 5 | 2026-09-16 |
 | MVP-002 | Identity | FR-004 | 8 | 2026-09-18 |
 | MVP-003 | Catalog | FR-001 | 8 | 2026-09-18 |
-| MVP-004 | Catalog | FR-002 | 8 | 2026-09-18 |
+| MVP-004 | Catalog | FR-002 | 8 | 2026-09-21 |
 | MVP-006 | Files | FR-007 | 13 | 2026-09-18 |
 | MVP-022 | Observability | NFR-007 | 8 | 2026-09-18 |
 
