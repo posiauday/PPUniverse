@@ -865,3 +865,28 @@ The product owner's direct 2026-09-21 instruction decided Q32–Q37 and Q39–Q4
 
 ### Remaining work
 Post the stop-gate confirmation (git state, page inventory, pinned versions and licences, ordered Q37 commit list, conflicts) and wait for the product owner's answers to the conflicts; then implement the harness, the Q37 fixes (each a separate commit with a failing-before regression test), the CI job, the documentation and the manual-review checklist; open one PR; read the CI log; and complete the security and accessibility reviews before any merge.
+
+## MVP-023 — Stop-gate answered; implementation authorized (no code yet)
+
+### Story status: In Progress (H1 next)
+The product owner answered the stop-gate confirmation on 2026-09-21 (`docs/final-decisions.md`, "Product-owner response to the MVP-023 stop-gate confirmation"):
+1. **Required for merge: Option B, enforced.** After the accessibility job has run green in the MVP-023 PR, a branch-protection rule is created on `develop` only (pull request required, 0 approvals, both jobs required by their displayed names, branches need not be up to date, not enforced for administrators, force pushes and deletion blocked). No setting is applied before then. This narrows open question 17, which stays OPEN (`main`, reviewer and approval rules, ruleset strategy, repository visibility); TD-011 tracks it.
+2. **Three engines** (Chromium, Firefox, WebKit); "four" was a counting error, not a scope reduction.
+3. **`/account`** is covered as a 404 check only; no page, redirect or stub.
+4. **ADR-004 → Accepted, scoped to the testing-stack rows only.**
+5. **PROP-006** stays in `planning/proposed-stories.md`.
+6. **Three additive files permitted:** `not-found.tsx` (F5), a sign-in route-segment layout (F8), one small client wrapper for a persistent status region (F7); stop and ask if any fix needs more than its new file plus a minimal call-site edit.
+7. **Interpretations confirmed:** `packages/e2e` with `test:e2e` and `test:a11y`; only the CLAUDE.md Commands section changes; the unstyled sign-in/account pages get an advisory bug record; BUG-004/006/007/008 are fixed because Q37 names them, not because Q35 would block on a P3.
+
+Additional requirements recorded: install time reported separately from test time; browser cache in CI without weakening the pins; the 10-minute ceiling stands; test-side auth interception only; the "Not verified" section is a named completion item.
+
+### Verified before recording
+`origin/develop` = `73ba6a4` (unchanged), no open PRs, the branch is not on the remote; the working tree is clean apart from the known line-ending-only files.
+
+### Files changed / commands executed / risks
+- **Files:** `docs/final-decisions.md`, `docs/open-questions.md` (items 17, 33, 39, 40, 41), `planning/tech-debt/TD-011.md`, `planning/tech-debt.csv`, `planning/status.md`, this report. No application or test code.
+- **Commands:** `git fetch`, `git rev-parse`, `gh pr list`, `git ls-remote`, and one recording script that writes nothing unless every anchor and CSV check passes.
+- **Risks:** the 10-minute ceiling is unmeasured for three engines × four widths; WebKit on the CI runner is untried; creating the protection rule needs repository-admin rights (the account has them) and stops the story if it fails.
+
+### Remaining work
+H1 (harness), F1–F10 (each with a regression test proven failing first), G1–G3; push with the docs commits and open one PR; read both CI logs; create the protection rule; complete the security and accessibility reviews; then Done and merge via `gh pr merge`.

@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is In Progress: the product owner's 2026-09-21 decisions (Q32–Q37, Q39–Q42; Q38 open) are recorded in `docs/final-decisions.md`, the estimate moves from 8 to 13 points, and implementation is authorized behind a stop-gate confirmation. **No code written yet.** MVP-021 is Done (PR #5, 458 tests, 0 skipped).
+Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is In Progress: the product owner answered the stop-gate confirmation (`docs/final-decisions.md`) — branch protection on `develop` (Option B, applied only after the accessibility job runs green in the PR), three engines, `/account` as a 404 check, ADR-004 scoped to the testing stack — and authorized implementation in the order H1, F1–F10, G1–G3. **No code written yet.** MVP-021 is Done (PR #5, 458 tests, 0 skipped).
 
 ## Board
 
@@ -10,7 +10,7 @@ Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) i
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 6 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 |
-| In Progress | 1 | MVP-023 (decisions recorded; stop-gate confirmation pending; no code yet) |
+| In Progress | 1 | MVP-023 (stop-gate answered; implementation authorized; H1 next) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Done | 8 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022 |
@@ -60,7 +60,7 @@ Full detail on every story is in `planning/progress-report.md`.
 - P0 points done: 58 / 145 (40%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 7 (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 7 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Open tech debt: 8 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
@@ -115,6 +115,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-008](tech-debt/TD-008.md) — **Open** (new, 2026-09-21): merged MVP-005 still implements the Tested / Creator Declared / Not Verified vocabulary; the product owner's 2026-09-21 decision makes Creator Declared and Marketplace Reviewed the only assignable statuses and reserves Tested. No user-visible harm today (no product data exists). Decisions recorded 2026-09-21 (Not Verified is legacy/reserved; a reviewed-at timestamp is approved); a separate small corrective change is required before MVP-012 permits compatibility-evidence writes and is **not** part of MVP-021.
 - [TD-009](tech-debt/TD-009.md) — **Open** (new, 2026-09-21): no environment-level noindex switch for staging/preview deployments; needs the hosting decision (open question 5).
 - [TD-010](tech-debt/TD-010.md) — **Open** (new, 2026-09-21, Low): the sitemap is one file capped at 50,000 URLs (no sitemap index, no `lastmod`).
+- [TD-011](tech-debt/TD-011.md) — **Open** (new, 2026-09-21): `main` is unprotected and no reviewer or approval rules exist; `develop` protection is decided for MVP-023 but the rest of open question 17 is not (Medium).
 
 ## Proposed stories (not approved — not on the board, not counted above)
 [`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.

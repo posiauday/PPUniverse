@@ -278,7 +278,7 @@ The approved decisions above were implemented as written. Recorded here so they 
 **Source:** direct product-owner instruction ("DIRECT PRODUCT-OWNER DECISIONS FOR MVP-023"), given in-session on 2026-09-21. It is the approval source for Q32, Q33–Q37 and Q39–Q42 below, and for those only. The MVP-023 pre-work analysis, the Copilot handoff and any agent recommendation are not approvals. Q38 stays open. Anything not decided here stays open. The pre-work analysis (`planning/prework/MVP-023-prework-analysis.md`) is accepted as the basis for implementation; authorization is limited to the scope below.
 
 ### Q33 — Browser matrix (closes part of open question 22)
-- The blocking accessibility gate runs on three Playwright engine projects: **chromium**, **firefox** and **webkit**. Edge is covered by Chromium; no separate branded Edge channel is added to the blocking gate. WebKit is included because it is the only engine on iOS, and excluding it would leave the largest mobile surface unverified. (The instruction text says "four engines" but names three; the three named are recorded here. See "Conflicts and gaps found" below.)
+- The blocking accessibility gate runs on three Playwright engine projects: **chromium**, **firefox** and **webkit**. Edge is covered by Chromium; no separate branded Edge channel is added to the blocking gate. WebKit is included because it is the only engine on iOS, and excluding it would leave the largest mobile surface unverified. (Correction, 2026-09-21: the original instruction said "four engines"; that was a counting error and the three named engines are the decision — see "Product-owner response to the MVP-023 stop-gate confirmation", item 2.)
 - The blocking gate uses Playwright's **pinned bundled browser builds**. `@playwright/test` is pinned exactly (no caret or tilde range). No "latest", moving or branded-channel build may gate a merge; such runs are allowed only as non-blocking, clearly labelled exploratory checks. Reason: a merge gate must be reproducible, so a browser auto-update can never turn a green PR red without a code or version change.
 - The exact pinned versions are recorded in the accessibility documentation.
 
@@ -331,7 +331,7 @@ The approved decisions above were implemented as written. Recorded here so they 
 
 ### Q41 — Tooling confirmation
 - Approved accessibility testing stack: **Playwright (`@playwright/test`)** for E2E and browser automation; **`axe-core`**; **`@axe-core/playwright`**. Unit and integration testing remains Vitest.
-- ADR-004's status changes from Proposed to Accepted, dated 2026-09-21, noting this instruction as the approval source. Exact versions are pinned (no ranges) and recorded in the accessibility documentation and the ADR. The licence of each package is verified at the installed version and recorded (not carried forward from the instruction). All three are devDependencies and must not ship in the application bundle; this is confirmed after install.
+- ADR-004's status changes from Proposed to Accepted, dated 2026-09-21, noting this instruction as the approval source. **Scope (2026-09-21 response, item 4): the Accepted status covers only the testing-stack rows; no other ADR row is approved by it.** Exact versions are pinned (no ranges) and recorded in the accessibility documentation and the ADR. The licence of each package is verified at the installed version and recorded (not carried forward from the instruction). All three are devDependencies and must not ship in the application bundle; this is confirmed after install.
 - The testing row in the 2026-09-17 decisions table (above) now names axe-core and `@axe-core/playwright` alongside Playwright.
 
 ### Q42 — NFR-008 ownership (closes open question 22)
@@ -344,9 +344,69 @@ The approved decisions above were implemented as written. Recorded here so they 
 - **Process:** continue on `feature/mvp-023-accessibility-gate`; decisions are recorded on that branch (no decisions-only branch or PR); one real PR via `gh pr create`; never work on `main`; never merge locally; merge only via `gh pr merge`. A stop-gate confirmation (git state, page inventory, pinned versions and licences, ordered Q37 commit list, conflicts) is posted before the first code commit; if it lists any conflict, work stops until the product owner answers.
 - **Done only when** all tests pass; CI is green; database-gated tests are confirmed PASSED from the CI log (not the status tick); the accessibility job is green, required, within budget and its measured runtime reported; every Q37 A/AA fix has landed with a regression test; documentation (including the "Not verified" section) and traceability for NFR-001 and NFR-008 are updated; and the security and accessibility reviews are complete.
 
-### Conflicts and gaps found while recording (2026-09-21) — not resolved here
+### Conflicts and gaps found while recording (2026-09-21) — all five answered the same day (see the stop-gate response below)
 1. **No enforcement mechanism exists for "required for merge" (Q39).** `gh api` shows neither `develop` nor `main` has branch protection, and the repository has no rulesets, so no CI job is currently a required check. Open question 17 (branch protection and required status checks) is still open and this instruction did not close it. Making the accessibility job required through GitHub would create protection rules and would also decide part of question 17. Not done; the product owner is asked how to proceed.
 2. **"Four engines" versus three named (Q33).** Playwright ships exactly chromium, firefox and webkit; the three named are implemented. Confirmation requested.
 3. **`/account` is not a route.** `apps/web/app` has `account/sessions` only; no `account/page.tsx`, and no redirect. `/account` will not be gated as a page (it renders the 404, covered by the 404 checks). Adding an `/account` page would be a new feature and is not done.
 4. **ADR-004 status scope (Q41).** Flipping the ADR's status to Accepted is recorded as the Q41 approval; it does not approve, change or close anything else, and vendor/business items the ADR lists as open stay governed by this file and `docs/open-questions.md`.
 5. **Where the BUG-002 proposal lives (Q32).** `planning/mvp-backlog.csv` and `planning/backlog.csv` have no "Proposed" status (their statuses are Backlog, Ready, In Progress, QA, Blocked, Done), and `planning/proposed-stories.md` is the register for Proposed items. PROP-006 is recorded there, not in the two CSVs.
+
+## 2026-09-21 — Product-owner response to the MVP-023 stop-gate confirmation
+
+**Source:** direct product-owner instruction ("PRODUCT-OWNER RESPONSE TO MVP-023 STOP-GATE CONFIRMATION"), 2026-09-21. It answers the five conflicts the stop-gate confirmation raised, plus two further points, and authorizes implementation. Nothing not answered here is decided. Question 38 remains open.
+
+### 1. Required-for-merge mechanism — Option B, enforced (narrows open question 17; does not close it)
+- **Sequencing (binding).** No repository setting is applied until the accessibility job has run green at least once in the MVP-023 pull request, because GitHub can only require a check name it has already observed. Order: implement H1, F1–F10 and G1–G3 → push, open the PR and let CI run → confirm both jobs green and read the logs → only then create the branch-protection rule → report in the PR that the rule was created, with the exact check names used.
+- **Rule set to create** (nothing else is enabled; no organization-level or repository-level rulesets; `main` is not touched):
+
+  | Setting | Value |
+  |---|---|
+  | Repository | `posiauday/PPUniverse` |
+  | Branch | `develop` only |
+  | Require a pull request | Yes |
+  | Required approvals | 0 |
+  | Required status checks | Both: the existing job's display name ("Format, lint, typecheck, test, build") and the new accessibility job's display name. Names are used exactly as GitHub displays them after the run; if either differs from these, the actual name is reported and no job is renamed to match this record. |
+  | Require branches up to date before merging | No |
+  | Enforce for administrators | No |
+  | Block force pushes | Yes |
+  | Block branch deletion | Yes |
+- If creating the rule fails, or the available settings do not match the above, stop and report; do not substitute a different configuration.
+- **Open question 17 is narrowed, not closed.** This closes required status checks and force-push and deletion protection on `develop` (once applied). It does not close protection of `main`, reviewer and approval rules, or any ruleset strategy; question 17 stays OPEN with that remainder. Tech-debt record TD-011 tracks the unprotected `main` and the absent reviewer rules.
+
+### 2. Engine count — three engines (corrects a counting error in Q33)
+- Chromium, Firefox and WebKit. "Four engines" in Q33 was a counting error; the named list was correct. Recorded here so it is not later mistaken for a scope reduction: no engine was removed. Edge is covered by Chromium and no branded Edge channel is added.
+
+### 3. `/account` is not a page
+- Confirmed: `/account` is covered as a 404 check only. No `/account` page, redirect or route stub is created; that would be a new feature inside an accessibility story. The documentation notes that if `/account` becomes a real page in a future story, that story must add it to the gate.
+
+### 4. ADR-004 status — Accepted, with a scope note
+- ADR-004's status becomes Accepted, dated 2026-09-21, with a note that this approval covers **only the testing-stack rows** — Playwright, axe-core and `@axe-core/playwright`, at the pinned versions — and that no other row in the ADR is approved by it. Any other row needs its own decision. (This narrows the Q41 wording above.)
+
+### 5. BUG-002 proposal location
+- Confirmed: PROP-006 in `planning/proposed-stories.md` (FR-002, P3, unscheduled, not started). No "Proposed" status is invented in the backlog CSVs, and it is not started under this authorization.
+
+### 6. New files in delivered areas — acceptable under Q37
+- Permitted: a new `not-found.tsx` (F5); a new route-segment layout for the sign-in metadata (F8); one small client wrapper holding a persistent status region (F7). They are additive and framework-idiomatic; converting the sign-in page away from a client component, or restructuring the sessions page, would be the structural changes Q37 forbids.
+- Constraints on each: minimal and single-purpose; no change to existing rendering, layout, styling, copy or behavior beyond what the named success criterion requires; no renaming, moving or refactoring of adjacent code; it ships with its regression test, proven failing before the fix; the new file is listed in the PR description with its bug ID and criterion. If any fix begins to require changes beyond its own new file plus a minimal edit at the call site, stop and ask.
+
+### 7. Interpretations — all three confirmed
+- (a) The harness lives in a private workspace package `packages/e2e` with root scripts `test:e2e` and `test:a11y`. Only the Commands section of `CLAUDE.md` is updated, factually; its rules, Definition of Done and every other section are not edited. After install, confirm that no accessibility tooling reaches the application bundle.
+- (b) The unstyled appearance of the sign-in and account pages becomes a new advisory bug record. Those pages are not fixed, restyled or redesigned in this story.
+- (c) BUG-004, BUG-006, BUG-007 and BUG-008 are fixed because Q37 named them in scope, **not** because Q35 would block on a P3. Future stories apply Q35's threshold, not this story's fix list.
+
+### Additional requirements
+- **Timing.** Browser and dependency install time is reported separately from test-execution time. Playwright browser binaries are cached in CI if that can be done without weakening the reproducibility of the pinned versions. The Q39 rule stands: if the measured total exceeds the 10-minute ceiling, stop and propose options (sharding, trimming redundant page/width combinations, splitting the full matrix to a scheduled run); engines, widths and rules are not dropped to fit.
+- **Auth interception.** Intercepting the auth API inside the test, to reach the sign-in "send failed" and "sent" states, is test-side only and acceptable. It must not introduce any product-side test mode, bypass, env-gated branch or relaxed authorization, and the PR description states that explicitly.
+- **Q38.** The "Not verified" documentation section is a named completion item, not an afterthought. It lists screen readers (NVDA, JAWS, VoiceOver), voice control, switch access and magnification as not tested, and must not be softened. No claim of screen-reader support, WCAG compliance, conformance, accessibility, audit or certification appears anywhere — code, docs, UI, metadata or commit messages.
+
+### Authorization to proceed
+- Proceed in this order: H1, then F1 through F10, then G1, G2, G3, on `feature/mvp-023-accessibility-gate`. The docs-only commits are pushed together with the first code commit; one real PR via `gh pr create`; never work on `main`; never merge locally.
+- Stage explicit paths only; inspect `git diff --cached --stat` for line-ending noise before every commit; run the formatter before committing; restore `apps/web/next-env.d.ts` if the dev server alters it; build any literal backslash-u sequence from character codes, assert on the produced bytes and verify after writing.
+- Before the first commit, re-verify that `origin/develop` is still `73ba6a4` and that no new PR has appeared (done 2026-09-21: unchanged, none open).
+
+### Do not implement (restated)
+- Stories MVP-007, 010, 011, 012, 013, 017, 018, 020. Debt TD-004, 005, 006, 008, 009, 010. Items BUG-002 and PROP-001 to PROP-006. Features: pricing; Offer or price structured data; analytics (FR-016); creator routes; collections routes; compatibility workflow or vocabulary changes; search-behavior changes; product-detail additions.
+- Also: promoting `develop` to `main`; redesigning or restyling sign-in or account; a test-only auth bypass or any weakening of server-enforced authorization; fabricated marketplace inventory; Microsoft endorsement, certification or verification claims; closing any open question not closed above (17 is narrowed, not closed; 38 stays open). If the work appears to require any of these, stop and ask.
+
+### Completion rule (restated)
+MVP-023 is not Done until: all tests pass; CI is green; database-gated tests are confirmed PASSED by reading the CI log, not the status tick (colour codes appear as literal `^[[..m` text, so log filters must match that form; skip count is 0, or every skip is explained and approved); the accessibility job is green, required per item 1, and its measured runtime is within the 10-minute ceiling and reported in the PR with install time reported separately; every Q37 fix (F1–F10) has landed with a regression test proven failing before the fix; documentation is updated, including the browser and breakpoint matrices and the "Not verified" section; traceability is updated for NFR-001 and NFR-008; and the security and accessibility reviews are complete. Merge only via `gh pr merge`, and only after the branch-protection rule in item 1 has been created. Never merge locally.
