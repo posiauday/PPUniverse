@@ -22,13 +22,14 @@ export function SearchForm({
       <label htmlFor="catalog-search-q" className="sr-only">
         {label}
       </label>
+      {/* The default border token is 1.35:1 against the page; a control's boundary needs 3:1 (BUG-004, WCAG 1.4.11). */}
       <input
         id="catalog-search-q"
         type="search"
         name="q"
         defaultValue={defaultValue}
         placeholder={label}
-        className="flex-1 rounded-card border border-border px-3 py-2 text-sm"
+        className="flex-1 rounded-card border border-muted-foreground px-3 py-2 text-sm"
       />
       {preserveParams
         ? Object.entries(preserveParams).map(([key, value]) =>
