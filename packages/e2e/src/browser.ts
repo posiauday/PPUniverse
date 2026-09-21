@@ -57,23 +57,51 @@ export async function measureFocusIndicator(page: Page): Promise<FocusIndicator 
 }
 
 /**
+ * Puts keyboard focus at the very start of the document, whatever had it before. A
+ * bare blur() is not enough: browsers continue sequential navigation from where focus
+ * last was, so after an interaction (a submitted form, say) the next Tab would skip
+ * everything before that point. An invisible focusable sentinel is inserted as the
+ * body's first child and focused, so the next real Tab press lands on the first
+ * focusable element in document order. It is removed by `endTabWalk`.
+ */
+async function beginTabWalk(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document.querySelector("[data-e2e-sentinel]")?.remove();
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    window.scrollTo(0, 0);
+    const sentinel = document.createElement("span");
+    sentinel.setAttribute("data-e2e-sentinel", "1");
+    sentinel.tabIndex = 0;
+    sentinel.style.cssText =
+      "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none";
+    document.body.prepend(sentinel);
+    sentinel.focus();
+  });
+}
+
+async function endTabWalk(page: Page): Promise<void> {
+  await page.evaluate(() => document.querySelector("[data-e2e-sentinel]")?.remove());
+}
+
+/**
  * Presses Tab (a real key press) from the top of the page until `target` has
  * focus; fails if it is never reached. Used instead of `locator.focus()` so the
  * :focus-visible heuristics apply exactly as they do for a keyboard user.
  */
 export async function tabUntilFocused(page: Page, target: Locator, max = 40): Promise<void> {
-  await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur?.();
-    window.scrollTo(0, 0);
-  });
-  for (let press = 0; press < max; press++) {
-    await page.keyboard.press("Tab");
-    const focused = await target
-      .evaluate((element) => element === document.activeElement)
-      .catch(() => false);
-    if (focused) return;
+  await beginTabWalk(page);
+  try {
+    for (let press = 0; press < max; press++) {
+      await page.keyboard.press("Tab");
+      const focused = await target
+        .evaluate((element) => element === document.activeElement)
+        .catch(() => false);
+      if (focused) return;
+    }
+    throw new Error(`Tab did not reach the target within ${max} key presses`);
+  } finally {
+    await endTabWalk(page);
   }
-  throw new Error(`Tab did not reach the target within ${max} key presses`);
 }
 
 export interface TabStop {
@@ -145,15 +173,15 @@ export async function engineTabsToLinks(page: Page): Promise<boolean> {
 export async function traverseTabOrder(page: Page, max = 80): Promise<TabTraversal> {
   const tabsToLinks = await engineTabsToLinks(page);
   await ensureHelpers(page);
+  await beginTabWalk(page);
   await page.evaluate(() => {
-    (document.activeElement as HTMLElement | null)?.blur?.();
-    window.scrollTo(0, 0);
     const focusable =
       "a[href], button:not([disabled]), input:not([disabled]):not([type='hidden']), select:not([disabled]), " +
       "textarea:not([disabled]), summary, [tabindex]:not([tabindex='-1'])";
     for (const element of document.querySelectorAll(focusable)) {
       // tabindex="-1" is a deliberate opt-out of the tab order, so it is not expected to be reached.
       if (element.getAttribute("tabindex") === "-1") continue;
+      if (element.hasAttribute("data-e2e-sentinel")) continue;
       if (element.checkVisibility()) element.setAttribute("data-e2e-expected", "1");
     }
   });
@@ -167,6 +195,7 @@ export async function traverseTabOrder(page: Page, max = 80): Promise<TabTravers
       if (!element || element === document.body || element === document.documentElement) {
         return "left" as const;
       }
+      if (element.hasAttribute("data-e2e-sentinel")) return "wrapped" as const;
       if (element.hasAttribute("data-e2e-tab-seen")) return "wrapped" as const;
       element.setAttribute("data-e2e-tab-seen", "1");
       return "new" as const;
@@ -180,6 +209,7 @@ export async function traverseTabOrder(page: Page, max = 80): Promise<TabTravers
   }
   if (!ended) {
     await clearTraversalMarkers(page);
+    await endTabWalk(page);
     throw new Error(
       `Focus neither left the document nor wrapped after ${max} Tab presses: possible unbounded tab order or keyboard trap.`,
     );
@@ -203,6 +233,7 @@ export async function traverseTabOrder(page: Page, max = 80): Promise<TabTravers
   }
 
   const unreached = await clearTraversalMarkers(page);
+  await endTabWalk(page);
   return { stops, linkStops, tabsToLinks, unreached };
 }
 

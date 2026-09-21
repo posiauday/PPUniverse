@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { interceptSignInSend } from "../../../src/auth-intercept.js";
 import { tabUntilFocused } from "../../../src/browser.js";
 import { expect, test } from "../../../src/fixtures.js";
 
@@ -12,23 +13,6 @@ import { expect, test } from "../../../src/fixtures.js";
  * states without sending mail. That is test-side only: nothing in the application
  * changes for tests (decision Q40 and the stop-gate response).
  */
-
-type SendOutcome = "sent" | "failed";
-
-async function interceptSend(page: Page, outcome: SendOutcome): Promise<void> {
-  await page.route("**/api/auth/signin/email", async (route) => {
-    const origin = new URL(route.request().url()).origin;
-    const url =
-      outcome === "sent"
-        ? `${origin}/api/auth/verify-request?provider=email&type=email`
-        : `${origin}/api/auth/error?error=EmailSignin`;
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ url }),
-    });
-  });
-}
 
 /** Submits the form with the Enter key from the email field: a real key press, as a keyboard user would. */
 async function submitFromEmailField(page: Page, value: string): Promise<void> {
@@ -74,7 +58,7 @@ test.describe("BUG-005: sign-in errors name the field, are tied to it, and keep 
   test("a failed send keeps the error tied to the field and moves focus back to it", async ({
     page,
   }) => {
-    await interceptSend(page, "failed");
+    await interceptSignInSend(page, "failed");
     await page.goto("/signin");
     const email = page.getByLabel("Email address");
     await submitWithButton(page, "e2e-a11y@example.invalid");
@@ -87,7 +71,7 @@ test.describe("BUG-005: sign-in errors name the field, are tied to it, and keep 
   test("a successful send announces the outcome and keeps focus on a real control, not the body", async ({
     page,
   }) => {
-    await interceptSend(page, "sent");
+    await interceptSignInSend(page, "sent");
     await page.goto("/signin");
     const email = page.getByLabel("Email address");
     const submit = page.getByRole("button", { name: /send sign-in link/i });
