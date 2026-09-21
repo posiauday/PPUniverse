@@ -2,15 +2,15 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-21 — product-owner responses to MVP-005's open items recorded (`docs/final-decisions.md`): wording approved; Tested reserved with Creator Declared and Marketplace Reviewed as the only assignable statuses; remaining FR-003 items dispositioned; MVP-021 authorized. MVP-005 remains Done (CI green on PR #4, DB-gated tests confirmed passed). MVP-021 (metadata, sitemap, canonical, structured data) is Done: CI green on PR #5 with 458 tests passed and 0 skipped, including all DB-gated suites (catalog 37). BUG-001 is resolved; BUG-002 (found while verifying) is recorded and awaits a product-owner decision.
+Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is In Progress: pre-work analysis delivered (`planning/prework/MVP-023-prework-analysis.md`), **no code written**, awaiting the product owner's answers to open questions 33–42. The pre-work measured the accessibility baseline of the delivered pages and recorded six defects (BUG-003 to BUG-008). MVP-021 is Done (PR #5, 458 tests, 0 skipped).
 
 ## Board
 
 | Column | Count | Stories |
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
-| Ready | 7 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 |
-| In Progress | 0 | — |
+| Ready | 6 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 |
+| In Progress | 1 | MVP-023 (pre-work analysis delivered; no code yet) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Done | 8 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022 |
@@ -59,7 +59,7 @@ Full detail on every story is in `planning/progress-report.md`.
 - Points done: 58 / 165 (35%)
 - P0 points done: 58 / 140 (41%)
 - P1 points done: 0 / 25 (0%)
-- Open bugs: 1 (see `planning/bugs.csv` and `planning/bugs/`)
+- Open bugs: 7 (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 7 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
@@ -74,7 +74,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 1 | MVP-001 | **Done** | 5 (done) |
 | 2 | MVP-002, MVP-003, MVP-006, MVP-022 | **Done** | 37 (done) |
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
-| 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020, MVP-023 | Ready | 31 |
+| 3 | MVP-023 | **In Progress** (pre-work) | 8 |
+| 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 | Ready | 23 |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
 | 4 | MVP-012 | Backlog | 8 |
@@ -95,9 +96,11 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 ## Open bugs
 
-1 open, 1 resolved:
+7 open, 1 resolved:
 - [BUG-001](bugs/BUG-001.md) — **Resolved** by MVP-021 (PR #5, 2026-09-21): delivered pages emitted relative canonical/`og:url` tags and sign-in/account pages were indexable. No production deployment existed, so nothing was exposed.
 - [BUG-002](bugs/BUG-002.md) (P3, found 2026-09-21 while verifying MVP-021) — a repeated `q` parameter (`?q=a&q=b`) makes `/search` and category pages return HTTP 500 (`normalizeQuery` calls `.trim()` on an array). MVP-004 code; MVP-021 may not change MVP-004 search behavior, so it is recorded, not fixed — see open question 32.
+
+- **BUG-003 to BUG-008** (found 2026-09-21 while measuring the MVP-023 accessibility baseline on the real pages; all NFR-001): [BUG-003](bugs/BUG-003.md) invisible keyboard focus ring on the Search button (P2, measured 1.06:1); [BUG-004](bugs/BUG-004.md) search input border 1.35:1 and placeholder 3.46:1 (P3); [BUG-005](bugs/BUG-005.md) sign-in generic error, focus dropped, unstyled page and title (P2); [BUG-006](bugs/BUG-006.md) session revoke drops focus and announces nothing (P3); [BUG-007](bugs/BUG-007.md) skipped heading levels in card lists (P3); [BUG-008](bugs/BUG-008.md) default 404 has no main landmark (P3). Whether MVP-023 fixes them or they are scheduled separately is open question 37.
 
 Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-003's Tailwind/rendering bugs before it) were all caught and fixed within their own story before reaching Done — per `CLAUDE.md`'s bug-vs-shortcut distinction, documented in `planning/progress-report.md`, not filed as bugs.
 

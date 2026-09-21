@@ -808,3 +808,32 @@ None — Done. FR-017 is Implemented and BUG-001 is Resolved. Follow-ups are tra
 
 ### Next story recommendation
 **MVP-023** (accessibility gate, and the Playwright/axe harness that would close the E2E half of TD-007). Separately, **TD-008** must land before MVP-012, and BUG-002 needs a product-owner decision (open question 32). MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) remain gated by unanswered product decisions.
+
+## MVP-023 — Manual and automated accessibility gate: pre-work (analysis delivered, no code)
+
+### Story status: In Progress (pre-work only)
+**MVP-023 — Manual and automated accessibility gate** (Epic: Accessibility, Requirement: NFR-001, Priority: P0, Sprint 3, 8 pts). Acceptance summary: "Core journeys meet defined WCAG gate."
+
+**No application or test code has been written.** The written analysis (13 required sections plus a measured baseline) is `planning/prework/MVP-023-prework-analysis.md`. Work is paused until the product owner answers open questions 33–42 (or accepts the stated defaults).
+
+**Mandatory first actions, verified:** read `CLAUDE.md`, `docs/final-decisions.md`, `planning/status.md`, `planning/progress-report.md`, `docs/open-questions.md` in that order; `git status` clean (line-ending-only noise, zero content diffs); `develop` = `origin/develop` = `73ba6a4`; 0 open PRs; no MVP-023 branch; no Playwright or axe code or configuration anywhere; the only movement since `status.md` was last edited is the merge commit for PR #5 itself. Branch `feature/mvp-023-accessibility-gate` created from that commit. The usage limit that interrupted the session left no partial MVP-023 work.
+
+### Baseline measured on the real pages (evidence for the analysis, not a gate result)
+A throwaway real Postgres and dev server (outside the repository, deleted afterwards) with throwaway rows. axe-core 4.10.2 (WCAG A/AA + best-practice), 11 pages × 4 widths = 44 scans, each page in a same-origin iframe of that width; plus real key presses, clicks, computed styles and a contrast calculation for what axe cannot judge.
+- **Automated:** `heading-order` on category and search pages (h1 then h3); `landmark-one-main` and `region` on the framework's default 404; contrast "incomplete" on the product page's clipped table at 375/320 px; no horizontal overflow at 320 px anywhere; everything else clean.
+- **Manual/measured (axe blind):** the Search button's focus ring is near-white on white (**1.06:1**, invisible); the search input border is **1.35:1** and its placeholder **3.46:1**; sign-in shows only a generic error and drops focus to `<body>`; revoking a session drops focus and announces nothing; sign-in, account and 404 titles are the site name only; sign-in and account pages are entirely unstyled.
+- **Recorded as six bugs, NFR-001:** BUG-003 (focus ring, P2), BUG-004 (input contrast, P3), BUG-005 (sign-in, P2), BUG-006 (session revoke, P3), BUG-007 (heading levels, P3), BUG-008 (404 page, P3). Whether MVP-023 fixes them or they are scheduled separately is open question 37.
+- **Limits, stated plainly:** one browser engine (Chromium); a local dev server; axe 4.10.2 (the proposal pins 4.13.0, so re-baseline); **no screen reader was run** — Claude cannot operate NVDA, JAWS or VoiceOver, so screen-reader compatibility is unverified; synthetic key events did not trigger every default browser action (Enter-to-submit, arrow-key scrolling), so keyboard checks that mattered used real Tab presses and real clicks.
+
+### Findings while reading the repository
+- `docs/final-decisions.md` names Playwright but **not axe-core**; axe-core appears only in ADR-004's testing row, and ADR-004's status is still **"Proposed"** although `final-decisions.md` says it "confirms" ADR-004's decisions. Surfaced as open question 41 rather than assumed.
+- `docs/11-test-strategy.md` already lists "critical accessibility issue in core path" as a release blocker, which supports (but does not define) the gate question 35.
+- The TRD's pull-request check list has no E2E or accessibility stage, and open question 20 (CI time and cost) is unanswered — a blocking accessibility job needs that decision (question 39).
+- The two axe packages are MPL-2.0 (dev-only, not shipped); flagged for the product owner (question 41).
+- No custom `error.tsx`, `not-found.tsx` or `loading.tsx` exists, so `docs/05`'s required states (system error, permission denied, offline, loading) are not implemented; recorded, out of scope.
+
+### Records created or changed
+`planning/prework/MVP-023-prework-analysis.md`; `docs/open-questions.md` (items 33–42 added; items 22 and 32 annotated); `planning/bugs/BUG-003.md` to `BUG-008.md` and `planning/bugs.csv`; `planning/mvp-backlog.csv` and `planning/backlog.csv` (MVP-023 → In Progress); `planning/status.md`. **Nothing was implemented, nothing was recorded in `docs/final-decisions.md`, and no decision was assumed.** MVP-003/004/005/021/022 behavior is unchanged; the corrective changes to delivered pages are documented in the analysis and await question 37.
+
+### Remaining work
+Await answers to questions 33–42; then implement per the approved scope, with CI green and the DB-gated tests confirmed passed from the log, before marking Done.
