@@ -51,6 +51,10 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
             "catalog-repo-detail-draft",
             "catalog-repo-detail-unreleased",
             "catalog-repo-evidence-constraints",
+            "catalog-repo-sitemap-a",
+            "catalog-repo-sitemap-b",
+            "catalog-repo-sitemap-draft",
+            "catalog-repo-sitemap-draft-only",
           ],
         },
       },
@@ -369,6 +373,113 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
       await expect(db.licenseDefinition.delete({ where: { id: tier.id } })).rejects.toThrow();
     });
+  });
+
+  describe("listSitemapEntries (MVP-021)", () => {
+    // A DRAFT-only product in a different seeded category, to prove that a
+    // category with no PUBLISHED product is left out. Only these rows are
+    // created here and only these rows are deleted; the seeded categories
+    // themselves are never touched.
+    const draftOnlyCategorySlug = "governance-assets";
+
+    beforeAll(async () => {
+      const draftOnlyCategory = await db.category.findUniqueOrThrow({
+        where: { slug: draftOnlyCategorySlug },
+      });
+      await db.product.createMany({
+        data: [
+          {
+            slug: "catalog-repo-sitemap-a",
+            name: "Sitemap Product A",
+            summary: "Published.",
+            status: "PUBLISHED",
+            categoryId,
+            publishedAt: new Date(),
+          },
+          {
+            slug: "catalog-repo-sitemap-b",
+            name: "Sitemap Product B",
+            summary: "Published.",
+            status: "PUBLISHED",
+            categoryId,
+            publishedAt: new Date(),
+          },
+          {
+            slug: "catalog-repo-sitemap-draft",
+            name: "Sitemap Draft",
+            summary: "Never listed.",
+            status: "DRAFT",
+            categoryId,
+          },
+          {
+            slug: "catalog-repo-sitemap-draft-only",
+            name: "Sitemap Draft Only",
+            summary: "Never listed.",
+            status: "DRAFT",
+            categoryId: draftOnlyCategory.id,
+          },
+        ],
+      });
+    });
+
+    it("lists PUBLISHED products and never a DRAFT one", async () => {
+      const entries = await repo.listSitemapEntries(50_000);
+
+      expect(entries.productSlugs).toContain("catalog-repo-sitemap-a");
+      expect(entries.productSlugs).toContain("catalog-repo-sitemap-b");
+      expect(entries.productSlugs).not.toContain("catalog-repo-sitemap-draft");
+      expect(entries.productSlugs).not.toContain("catalog-repo-sitemap-draft-only");
+      expect(entries.truncated).toBe(false);
+    });
+
+    it("lists a category if and only if it currently has a PUBLISHED product", async () => {
+      const entries = await repo.listSitemapEntries(50_000);
+      const categories = await db.category.findMany();
+
+      for (const category of categories) {
+        const published = await db.product.count({
+          where: { categoryId: category.id, status: "PUBLISHED" },
+        });
+        expect(entries.categorySlugs.includes(category.slug), category.slug).toBe(published > 0);
+      }
+      // This test's own published products make the primary category eligible.
+      expect(entries.categorySlugs).toContain(categorySlug);
+    });
+
+    it("does not count a DRAFT product toward making its category eligible", async () => {
+      const published = await db.product.count({
+        where: { category: { slug: draftOnlyCategorySlug }, status: "PUBLISHED" },
+      });
+      const entries = await repo.listSitemapEntries(50_000);
+      expect(entries.categorySlugs.includes(draftOnlyCategorySlug)).toBe(published > 0);
+    });
+
+    it("returns the same order on every call", async () => {
+      const first = await repo.listSitemapEntries(50_000);
+      const second = await repo.listSitemapEntries(50_000);
+      expect(second.productSlugs).toEqual(first.productSlugs);
+      expect(second.categorySlugs).toEqual(first.categorySlugs);
+    });
+
+    it("bounds categories plus products by maxEntries and reports truncation", async () => {
+      const entries = await repo.listSitemapEntries(2);
+      expect(entries.categorySlugs.length + entries.productSlugs.length).toBeLessThanOrEqual(2);
+      expect(entries.truncated).toBe(true);
+    });
+
+    it("returns nothing but reports truncation when maxEntries is zero", async () => {
+      const entries = await repo.listSitemapEntries(0);
+      expect(entries.categorySlugs).toEqual([]);
+      expect(entries.productSlugs).toEqual([]);
+      expect(entries.truncated).toBe(true);
+    });
+
+    it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+      "rejects an invalid maxEntries of %s",
+      async (invalid) => {
+        await expect(repo.listSitemapEntries(invalid)).rejects.toThrow(RangeError);
+      },
+    );
   });
 
   describe("searchProducts", () => {

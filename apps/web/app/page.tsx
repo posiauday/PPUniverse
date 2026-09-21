@@ -1,7 +1,11 @@
-import { CategoryCard } from "@ppu/ui";
+import { CategoryCard, JsonLd } from "@ppu/ui";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { formatBuildLabel } from "../lib/build-info";
 import { catalogRepository } from "../lib/catalog";
+import { buildWebSiteJsonLd } from "../lib/seo/json-ld";
+import { buildHomeMetadata } from "../lib/seo/metadata";
+import { getSiteUrl } from "../lib/site-url";
 
 // Rendered per-request, not statically at build time: the category list
 // changes as the catalog grows, and a build-time snapshot would also
@@ -11,8 +15,13 @@ import { catalogRepository } from "../lib/catalog";
 // static assets).
 export const dynamic = "force-dynamic";
 
+export function generateMetadata(): Metadata {
+  return buildHomeMetadata(getSiteUrl());
+}
+
 export default async function HomePage() {
   const categories = await catalogRepository.listCategories();
+  const site = getSiteUrl();
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -40,6 +49,8 @@ export default async function HomePage() {
       <p data-testid="build-label" className="sr-only">
         {formatBuildLabel("power-platform-universe", "0.0.0")}
       </p>
+
+      {site.ok ? <JsonLd data={buildWebSiteJsonLd(site.origin)} /> : null}
     </main>
   );
 }

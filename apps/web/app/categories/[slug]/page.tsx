@@ -5,12 +5,16 @@ import {
   resolveSortOption,
   totalPages as computeTotalPages,
 } from "@ppu/domain-catalog";
-import { Pagination, ProductCard, SearchForm, SortLinks } from "@ppu/ui";
+import { JsonLd, Pagination, ProductCard, SearchForm, SortLinks } from "@ppu/ui";
 import { logger } from "@ppu/telemetry";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildCatalogUrl } from "../../../lib/catalog-url";
-import { catalogRepository } from "../../../lib/catalog";
+import { getCategory, getCategoryListing, resolveCategorySeo } from "../../../lib/category-listing";
+import { categoryUrl } from "../../../lib/seo/canonical";
+import { buildCollectionPageJsonLd } from "../../../lib/seo/json-ld";
+import { buildCategoryMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
+import { getSiteUrl } from "../../../lib/site-url";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -21,27 +25,30 @@ interface CategoryPageProps {
 // per-request rather than being statically generated at build time.
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+/**
+ * Indexing and canonical policy (MVP-021, FR-017; docs/final-decisions.md, Q29
+ * and Q30). This intentionally replaces MVP-004's earlier "canonical is always
+ * the base URL" behavior with the product owner's parameter-specific policy: an
+ * intentional corrective SEO change owned by MVP-021, not a reopening of
+ * MVP-004 — this page's search, sort, pagination and filtering are unchanged.
+ * See lib/seo/category-indexing.ts for the rules.
+ */
+export async function generateMetadata({
+  params,
+  searchParams,
+}: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await catalogRepository.findCategoryBySlug(slug);
+  const category = await getCategory(slug);
   if (!category) {
-    return { title: "Category not found" };
+    return buildNotFoundMetadata("Category not found");
   }
-  return {
-    title: `${category.name} | Power Platform Universe`,
-    description: category.description ?? `Browse ${category.name} on Power Platform Universe.`,
-    // Always points to the base, unfiltered/unsorted/page-1 URL regardless
-    // of active query params — consolidates SEO signal onto one canonical
-    // page per category instead of diluting it across every
-    // sort/search/page combination (docs/04-information-architecture.md
-    // "SEO-safe URL structure").
-    alternates: { canonical: `/categories/${category.slug}` },
-  };
+  const decision = await resolveCategorySeo(category.slug, await searchParams);
+  return buildCategoryMetadata({ site: getSiteUrl(), category, decision });
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params;
-  const category = await catalogRepository.findCategoryBySlug(slug);
+  const category = await getCategory(slug);
   if (!category) {
     notFound();
   }
@@ -52,13 +59,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const page = parsePage(rawParams["page"]);
   const pageSize = parsePageSize(rawParams["pageSize"]);
 
-  const result = await catalogRepository.searchProducts({
-    query,
-    categorySlug: category.slug,
-    sort,
-    page,
-    pageSize,
-  });
+  const result = await getCategoryListing(category.slug, query, sort, page, pageSize);
 
   logger.info("catalog.category_browse", {
     categorySlug: category.slug,
@@ -72,6 +73,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const basePath = `/categories/${category.slug}`;
   const currentParams = { q: query, sort, pageSize: rawParams["pageSize"] };
   const hasActiveFilter = Boolean(query) || sort !== "recent";
+
+  // CollectionPage structured data only on the clean, indexable base URL. When
+  // the URL has no parameters this reuses the query the page already ran.
+  const site = getSiteUrl();
+  const isCleanBaseUrl = Object.keys(rawParams).length === 0;
+  const seo = site.ok && isCleanBaseUrl ? await resolveCategorySeo(category.slug, rawParams) : null;
+  const jsonLd =
+    site.ok && seo?.reason === "BASE"
+      ? buildCollectionPageJsonLd({
+          url: categoryUrl(site.origin, category.slug),
+          name: category.name,
+          description: category.description,
+        })
+      : null;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -130,6 +145,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         totalPages={computeTotalPages(result.total, pageSize)}
         hrefFor={(nextPage) => buildCatalogUrl(basePath, currentParams, { page: String(nextPage) })}
       />
+
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
     </main>
   );
 }

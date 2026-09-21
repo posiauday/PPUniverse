@@ -43,6 +43,8 @@ DATABASE_URL="postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schem
 
 Without `DATABASE_URL`, everything else (typecheck, lint, unit tests, build) still works — DB-dependent integration tests skip themselves (`describe.skipIf`) rather than failing.
 
+`apps/web` also reads `NEXT_PUBLIC_SITE_URL` — the public site origin used for canonical URLs, Open Graph tags, `sitemap.xml` and structured data (see `apps/web/.env.example`; it is deliberately separate from `NEXTAUTH_URL`). It is optional in development and test (defaults to `http://localhost:3000`) and required in production as an absolute `https` origin on a public hostname. If it is missing or invalid in production the site keeps serving but omits canonical URLs and structured data, returns an empty sitemap, and logs `seo.site_url_invalid`.
+
 CI (`.github/workflows/ci.yml`) runs format-check, lint, typecheck, test (unit + integration, against a Postgres service container), build, a non-blocking dependency audit, and a secret scan on every pull request.
 
 ## Repository structure

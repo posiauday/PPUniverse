@@ -1,10 +1,14 @@
 import { presentProductEvidence } from "@ppu/domain-catalog";
-import { ProductEvidence } from "@ppu/ui";
+import { JsonLd, ProductEvidence } from "@ppu/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { catalogRepository } from "../../../lib/catalog";
+import { productUrl } from "../../../lib/seo/canonical";
+import { buildProductJsonLd } from "../../../lib/seo/json-ld";
+import { buildNotFoundMetadata, buildProductMetadata } from "../../../lib/seo/metadata";
+import { getSiteUrl } from "../../../lib/site-url";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -24,13 +28,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const { slug } = await params;
   const product = await getProductDetail(slug);
   if (!product) {
-    return { title: "Product not found" };
+    return buildNotFoundMetadata("Product not found");
   }
-  return {
-    title: `${product.name} | Power Platform Universe`,
-    description: product.summary,
-    alternates: { canonical: `/products/${product.slug}` },
-  };
+  return buildProductMetadata({ site: getSiteUrl(), product });
 }
 
 /**
@@ -39,6 +39,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
  * changelog, pricing and checkout belong to later stories. Sections with no
  * data yet render explicit "not provided" wording rather than disappearing, and
  * nothing here is ever inferred or filled in on the creator's behalf.
+ *
+ * Structured data (MVP-021): Product JSON-LD is emitted WITHOUT Offer data and
+ * makes no rich-result eligibility claim — see lib/seo/json-ld.ts.
  */
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
@@ -46,6 +49,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) {
     notFound();
   }
+
+  const site = getSiteUrl();
+  const jsonLd = site.ok
+    ? buildProductJsonLd({
+        url: productUrl(site.origin, product.slug),
+        name: product.name,
+        summary: product.summary,
+        categoryName: product.category.name,
+        currentVersion: product.currentVersion,
+      })
+    : null;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
@@ -56,6 +70,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <p className="mt-4">{product.summary}</p>
 
       <ProductEvidence evidence={presentProductEvidence(product)} />
+
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
     </main>
   );
 }

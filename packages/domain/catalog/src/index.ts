@@ -7,6 +7,7 @@ export type {
   SortOption,
   SearchOptions,
   SearchResult,
+  SitemapEntries,
   PlatformArea,
   CompatibilityEvidenceStatus,
   SupportStatus,

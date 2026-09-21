@@ -85,6 +85,18 @@ export interface CompatibilityEntry {
   lastVerifiedAt: string | null;
 }
 
+/**
+ * Slugs eligible for `sitemap.xml` (MVP-021, FR-017). A category is listed only
+ * when it has at least one PUBLISHED product (derived from current inventory,
+ * never a manually edited flag); products are PUBLISHED only. `truncated` is
+ * true when more entries existed than the caller's `maxEntries` allowed.
+ */
+export interface SitemapEntries {
+  categorySlugs: string[];
+  productSlugs: string[];
+  truncated: boolean;
+}
+
 /** Everything the product detail page shows (MVP-005, FR-003). Empty collections / nulls mean "not provided yet". */
 export interface ProductDetail extends ProductWithCategory {
   licenses: LicenseDefinitionRecord[];
