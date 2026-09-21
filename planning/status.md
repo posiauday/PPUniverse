@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is In Progress: pre-work analysis delivered (`planning/prework/MVP-023-prework-analysis.md`), **no code written**, awaiting the product owner's answers to open questions 33–42. The pre-work measured the accessibility baseline of the delivered pages and recorded six defects (BUG-003 to BUG-008). MVP-021 is Done (PR #5, 458 tests, 0 skipped).
+Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) is In Progress: the product owner's 2026-09-21 decisions (Q32–Q37, Q39–Q42; Q38 open) are recorded in `docs/final-decisions.md`, the estimate moves from 8 to 13 points, and implementation is authorized behind a stop-gate confirmation. **No code written yet.** MVP-021 is Done (PR #5, 458 tests, 0 skipped).
 
 ## Board
 
@@ -10,7 +10,7 @@ Last updated: 2026-09-21 — MVP-023 (manual and automated accessibility gate) i
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 6 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 |
-| In Progress | 1 | MVP-023 (pre-work analysis delivered; no code yet) |
+| In Progress | 1 | MVP-023 (decisions recorded; stop-gate confirmation pending; no code yet) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Done | 8 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022 |
@@ -56,25 +56,25 @@ Full detail on every story is in `planning/progress-report.md`.
 ## Progress metrics
 
 - Stories done: 8 / 25 (32%)
-- Points done: 58 / 165 (35%)
-- P0 points done: 58 / 140 (41%)
+- Points done: 58 / 170 (34%)
+- P0 points done: 58 / 145 (40%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 7 (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 7 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
-Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning.
+Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
 
 ## Remaining work summary
 
-17 of 25 stories remain (107 of 165 points).
+17 of 25 stories remain (112 of 170 points).
 
 | Sprint | Stories | Status | Points |
 |---|---|---|---|
 | 1 | MVP-001 | **Done** | 5 (done) |
 | 2 | MVP-002, MVP-003, MVP-006, MVP-022 | **Done** | 37 (done) |
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
-| 3 | MVP-023 | **In Progress** (pre-work) | 8 |
+| 3 | MVP-023 | **In Progress** (decisions recorded; 13 points, was 8) | 13 |
 | 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 | Ready | 23 |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
@@ -88,9 +88,9 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-The recommended next story is **MVP-023 (Manual and automated accessibility gate)**: P0, 8 points, Ready (depends only on MVP-003), and not gated by any open product decision. It brings the axe and Playwright harness that would close the E2E half of TD-007, and there are now real catalog, category and product journeys to test.
+**MVP-023 (Manual and automated accessibility gate)** is In Progress: P0, 13 points (revised from 8 by the 2026-09-21 product-owner decision), depends only on MVP-003, and its decisions are recorded in `docs/final-decisions.md`; implementation is authorized behind a stop-gate confirmation. It brings the axe and Playwright harness that would close the E2E half of TD-007, and there are now real catalog, category and product journeys to test.
 
-Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) needs a decision on whether to approve a small corrective change (open question 32).
+Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
 Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-010, MVP-017, MVP-018, MVP-020 also remain Ready.
 

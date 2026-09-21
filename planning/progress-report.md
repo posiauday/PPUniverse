@@ -837,3 +837,31 @@ A throwaway real Postgres and dev server (outside the repository, deleted afterw
 
 ### Remaining work
 Await answers to questions 33–42; then implement per the approved scope, with CI green and the DB-gated tests confirmed passed from the log, before marking Done.
+
+## MVP-023 — Manual and automated accessibility gate: product-owner decisions recorded, implementation authorized
+
+### Story status: In Progress (decisions recorded; stop-gate confirmation pending; no code written)
+**MVP-023** (Epic: Accessibility; NFR-001, and NFR-008 by decision Q42), P0. Estimate revised **8 → 13 points** by decision Q37, because the WCAG A/AA corrective fixes are in scope.
+
+The product owner's direct 2026-09-21 instruction decided Q32–Q37 and Q39–Q42 and left Q38 open with a binding interim position: **screen-reader compatibility is unverified, and nothing may say otherwise.** The decisions are recorded in `docs/final-decisions.md` ("Product-owner decisions for MVP-023"), `docs/open-questions.md` (items 20, 22, 26, 32–42), `planning/proposed-stories.md` (PROP-006, the BUG-002 corrective story, Proposed), `planning/backlog.csv` (estimate), `planning/status.md`, and `planning/requirement-traceability.csv` (NFR-001 and NFR-008: In progress, not Implemented).
+
+### Verified before recording
+- Branch `feature/mvp-023-accessibility-gate` carries one commit (`a05ce5f`, docs and planning only, 13 files); `develop` = `origin/develop` = `73ba6a4`; no open pull requests.
+- Repository routes (`apps/web/app`): `/`, `/categories/[slug]`, `/products/[slug]`, `/search`, `/signin`, `/account/sessions`; API routes, `robots.txt` and `sitemap.xml` are not pages. There is no `/account` page and no `not-found.tsx`, `error.tsx` or `loading.tsx`.
+- Tooling, read from a scratch install **outside the repository** (nothing has been added to the repo): `@playwright/test` 1.63.0 (Apache-2.0), `@axe-core/playwright` 4.13.0 (MPL-2.0, depends on `axe-core ~4.13.0`), `axe-core` 4.13.0 (MPL-2.0).
+- GitHub: neither `develop` nor `main` has branch protection, and there are no rulesets (`gh api`, read-only).
+
+### Conflicts found while recording (in `docs/final-decisions.md`, not resolved)
+1. "Required for merge" (Q39) has no GitHub mechanism: no branch protection exists and open question 17 is still open.
+2. "Four engines" (Q33) versus three named; three are implemented.
+3. `/account` is not a route (only `/account/sessions`).
+4. Scope of the ADR-004 status change (Q41): it approves the testing stack and does not approve or close anything else.
+5. PROP-006 is in the proposals register because the backlog CSVs have no Proposed status.
+
+### Files changed / commands executed / risks
+- **Files:** the six records above. No application or test code.
+- **Commands:** `git status`, `git log`, `git fetch`, `gh pr list`, `gh api` (branch protection and rulesets, read-only), a scratch `npm install` outside the repo to read installed licences, and one recording script that validates CSV field counts and line endings.
+- **Risks:** a required check cannot be enforced through GitHub until the product owner decides how (open question 17); the 10-minute CI ceiling may be tight for three engines × four widths and is unmeasured (any shortfall returns as a new decision, never a weaker gate); WebKit on the CI runner needs system dependencies and is untried.
+
+### Remaining work
+Post the stop-gate confirmation (git state, page inventory, pinned versions and licences, ordered Q37 commit list, conflicts) and wait for the product owner's answers to the conflicts; then implement the harness, the Q37 fixes (each a separate commit with a failing-before regression test), the CI job, the documentation and the manual-review checklist; open one PR; read the CI log; and complete the security and accessibility reviews before any merge.

@@ -11,6 +11,7 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 | PROP-003 | Product Accessibility Disclosure | accessibility statement | P2 | 5 | Proposed |
 | PROP-004 | Product Releases and Changelog | changelog, version history | P1 | 5 | Proposed |
 | PROP-005 | Related Assets | related assets | P2 | 3 | Proposed — **deferred** |
+| PROP-006 | Repeated Query Parameter Handling (BUG-002 corrective) | — (FR-002; not an FR-003 item) | P3 | not estimated (expected small) | Proposed — approved in principle, not scheduled |
 
 ## Items assigned to existing approved stories (not proposals)
 - **Creator** → MVP-011 (Creator applications): creator identity and creator-profile *ownership* only. The public creator page/route stays unresolved under open question 24 and must not be built unless approved.
@@ -62,3 +63,16 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 - **Security impact:** low — link-integrity and spam abuse between creators; no untrusted markup.
 - **Accessibility impact:** list and card semantics reuse the existing accessible `ProductCard`.
 - **Suggested priority / estimate:** P2 / 3.
+
+## PROP-006 — Repeated Query Parameter Handling (BUG-002 corrective)
+- **Origin:** MVP-023 product-owner decision Q32 (2026-09-21, `docs/final-decisions.md`). Not an FR-003 proposal; recorded in this register because `planning/mvp-backlog.csv` and `planning/backlog.csv` have no Proposed status.
+- **Proposed scope:** `normalizeQuery` (MVP-004) handles repeated or array query parameters safely on `/search` and the category routes, so `?q=a&q=b` no longer returns HTTP 500. No other search-behavior change. The handling choice (first value, or no query) is to be confirmed when the story is scheduled; open question 32 records the safest reversible default.
+- **Requirement relationship:** FR-002 (search and filtering).
+- **Reference:** BUG-002 (`planning/bugs/BUG-002.md`).
+- **Sequencing:** after MVP-023, and before any story that expands search.
+- **Dependencies:** MVP-004 (Done).
+- **Acceptance criteria:** to be written when scheduled; the minimum is that a repeated `q` no longer returns HTTP 500 and that the chosen handling is covered by a unit test and an integration check.
+- **Security impact:** low — removes an unhandled-exception path reachable by any anonymous request.
+- **Accessibility impact:** none expected.
+- **Suggested priority / estimate:** P3 / not estimated.
+- **Status:** Proposed. The product owner approved the story in principle (Q32); it is not scheduled and not started.
