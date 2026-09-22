@@ -1044,3 +1044,40 @@ CI run 6 (`5dedfba`) came back green: both logs read in full, 420/420 accessibil
 **Remaining, not blocking:** BUG-002 (as PROP-006, unscheduled), BUG-009/010/011 (advisory-to-P3, sign-in/account styling and two narrow error-path focus gaps), BUG-014 (monitor), TD-011/TD-012/TD-013.
 
 Next: open the PR for merge via `gh pr merge` once the product owner confirms, and recommend the next unblocked story.
+
+### CI run 7 (docs-only, 18b7b46) failed on a NEW signature; BUG-014 retitled and broadened; instrumentation extended (2026-09-21)
+
+A pure documentation push (marking MVP-023 Done) triggered run 7, now required by the
+branch-protection rule created after run 6. It failed `signin-send-failed @ 320px`
+(Firefox) — a different test than BUG-014's original occurrence, but the network log
+showed the same signature: no auth-API request at all after the click, and the field's
+error state never populated. **Not merged**; the merge was blocked by the protection
+rule regardless, and no fix, retry or workaround was applied.
+
+**Decision:** broaden BUG-014 (retitled to name the signature, not one symptom) to
+cover both occurrences (run 4 `signin-sent`, run 7 `signin-send-failed`), explicitly
+stating the shared cause is suspected, not proven. A fixed classification criterion was
+decided in advance: reaching the button but the handler not firing is a product defect;
+the click never reaching the button is a test defect; anything else stops for a report.
+
+**Instrumentation extended** (test logic only, `packages/e2e/src/signin-click-diagnostics.ts`
+wired into `submitSignIn` in `pages.ts` and read by `failure-evidence.ts`): on any future
+sign-in-submit failure, captures a hit test at the click point, a hydration marker on the
+button, its visibility/pointer-events/z-index/bounding rect and viewport containment, a
+capture-phase click/submit event log, and the interception-to-click timing gap — enough
+to classify the next occurrence against the fixed criterion without guessing.
+
+**Proven before relying on it:** a deliberately failing, otherwise-healthy submit for all
+three sign-in states, chromium and firefox, showed the button hydrated, hit correctly,
+and both click and submit events firing on the correct targets — the instrumentation
+itself works. Workspace-wide lint/typecheck/test/build clean (551 tests).
+
+**Local verification could not be completed this round**: not a code issue — the local
+machine's C: drive was found at 0.19GB free (346GB volume), a pre-existing condition this
+session did not cause and only partly could clean up (~45MB of its own scratch leftovers
+freed; the drive remained essentially full). CI is relied on as the authoritative check
+for this push, consistent with the standing rule to never act on local results in place
+of it.
+
+Per instruction, this instrumentation commit IS the next CI sample — no separate push was
+made just to re-run the check. Report pending on that run.

@@ -2,6 +2,12 @@ import { expect, type Page } from "@playwright/test";
 import { interceptSignInSend } from "./auth-intercept.js";
 import { type GatedRoute } from "./page-routes.js";
 import { NO_MATCH_TERM, SEARCH_TERM, type FixtureSet } from "./seed.js";
+import {
+  inspectSignInSubmitButton,
+  installClickEventTracer,
+  recordSignInClickDiagnostics,
+  type ClickEventLogEntry,
+} from "./signin-click-diagnostics.js";
 
 /**
  * The page inventory for the accessibility gate: every state of every implemented
@@ -33,9 +39,44 @@ export interface GatedPage {
 const SEND_LINK = /send sign-in link/i;
 const VALID_EMAIL = "e2e-a11y@example.invalid";
 
-async function submitSignIn(page: Page, email: string): Promise<void> {
+/**
+ * Submits the sign-in form. Also gathers click-diagnostics evidence (decision,
+ * 2026-09-21: "Run 7 failure / sign-in submit signature") for the two CI failures
+ * observed on this exact interaction (run 4 signin-sent, run 7 signin-send-failed,
+ * both Firefox, both 320px): whether the click reaches the button (hit test), whether
+ * it was hydrated at that moment, and whether the browser's own click/submit events
+ * fire at all. Recorded on §window§ for §failure-evidence.ts§ to attach ONLY if the
+ * test ends up failing; adds a few fast, synchronous-in-page evaluate calls regardless
+ * (unavoidable, since whether the test will fail is not known in advance).
+ */
+async function submitSignIn(
+  page: Page,
+  email: string,
+  interceptionRegisteredAtMs: number | null = null,
+): Promise<void> {
+  await page.evaluate(installClickEventTracer);
+  const button = page.getByRole("button", { name: SEND_LINK });
+  const box = await button.boundingBox();
+  const preClick = box
+    ? await page.evaluate(inspectSignInSubmitButton, {
+        clickX: box.x + box.width / 2,
+        clickY: box.y + box.height / 2,
+      })
+    : null;
+
   if (email) await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: SEND_LINK }).click();
+  const clickIssuedAtMs = Date.now();
+  await button.click();
+
+  const events = await page.evaluate(
+    () => (window as unknown as { __e2eClickEvents?: ClickEventLogEntry[] }).__e2eClickEvents ?? [],
+  );
+  await page.evaluate(recordSignInClickDiagnostics, {
+    interceptionRegisteredAtMs,
+    clickIssuedAtMs,
+    preClick,
+    events,
+  });
 }
 
 export const GATED_PAGES: readonly GatedPage[] = [
@@ -131,8 +172,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/signin",
     prepare: async (page) => {
-      await interceptSignInSend(page, "failed");
-      await submitSignIn(page, VALID_EMAIL);
+      const interceptedAtMs = await interceptSignInSend(page, "failed");
+      await submitSignIn(page, VALID_EMAIL, interceptedAtMs);
       await expect(page.getByLabel("Email address")).toHaveAccessibleDescription(/try again/i);
     },
   },
@@ -144,8 +185,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/signin",
     prepare: async (page) => {
-      await interceptSignInSend(page, "sent");
-      await submitSignIn(page, VALID_EMAIL);
+      const interceptedAtMs = await interceptSignInSend(page, "sent");
+      await submitSignIn(page, VALID_EMAIL, interceptedAtMs);
       await expect(page.getByRole("status")).toContainText(/check your email/i);
     },
   },

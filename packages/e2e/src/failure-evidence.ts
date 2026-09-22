@@ -6,6 +6,7 @@ import type {
   TestInfo,
 } from "@playwright/test";
 import { installFailureEvidenceTracer } from "./failure-evidence-inpage.js";
+import type { SignInClickDiagnostics } from "./signin-click-diagnostics.js";
 import type { TitleTraceEvent } from "./title-trace.js";
 
 /**
@@ -119,6 +120,23 @@ export function createFailureEvidenceSink(): FailureEvidenceSink {
         body: JSON.stringify(titleTrace, null, 2),
       });
       await testInfo.attach("failure-page.html", { contentType: "text/html", body: html });
+
+      // Only present for the sign-in submit states (decision, 2026-09-21: "Run 7 failure
+      // / sign-in submit signature"); most failures have nothing here, so nothing is
+      // attached for them.
+      const clickDiagnostics = await page
+        .evaluate(
+          () =>
+            (window as unknown as { __e2eClickDiagnostics?: SignInClickDiagnostics[] })
+              .__e2eClickDiagnostics ?? [],
+        )
+        .catch(() => []);
+      if (clickDiagnostics.length > 0) {
+        await testInfo.attach("failure-click-diagnostics.json", {
+          contentType: "application/json",
+          body: JSON.stringify(clickDiagnostics, null, 2),
+        });
+      }
     },
   };
 }

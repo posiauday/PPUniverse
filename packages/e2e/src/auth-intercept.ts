@@ -11,7 +11,13 @@ export type SendOutcome = "sent" | "failed";
  *
  * next-auth's client reads `error` from the query string of the URL in the JSON body.
  */
-export async function interceptSignInSend(page: Page, outcome: SendOutcome): Promise<void> {
+/**
+ * Returns the Node wall-clock time (§Date.now()§) at which the route interception was
+ * confirmed registered, so a caller can record how long before a subsequent click it
+ * was in place (decision, 2026-09-21: "Run 7 failure / sign-in submit signature",
+ * item 2d).
+ */
+export async function interceptSignInSend(page: Page, outcome: SendOutcome): Promise<number> {
   await page.route("**/api/auth/signin/email", async (route) => {
     const origin = new URL(route.request().url()).origin;
     const url =
@@ -24,4 +30,5 @@ export async function interceptSignInSend(page: Page, outcome: SendOutcome): Pro
       body: JSON.stringify({ url }),
     });
   });
+  return Date.now();
 }
