@@ -1168,4 +1168,53 @@ C: free space rechecked before doing anything further: **7.95GB**, up from 0.19G
 
 A full local Playwright accessibility run (real Postgres, a production build, three browser engines) was not attempted: it is the one thing the simulation above cannot substitute for evidence-wise (an actual browser, not jsdom), but it is also disk- and time-costly relative to what was needed to fix a deterministic, 100%-reproducible defect in this session's own code — as opposed to BUG-014 itself, which is genuinely intermittent and where CI has always been the authoritative source. Committing this fix as the next CI sample, per the standing instruction, rather than treating a local run as a substitute for it.
 
-Pushed as `<pending>`. Report pending on run 10.
+Pushed as `8d4c724`.
+
+### Run 10 disposition: prior evidence voided, and run 10 as pushed cannot satisfy the required self-check (2026-09-22)
+
+Direct product-owner instruction, "Run 10 disposition": runs 8 and 9 carry NO
+evidentiary weight for the sign-in signature, in either direction — both threw during
+`evaluate()` serialization, and a green result from a broken instrument is not evidence
+of absence. Recorded in BUG-014.
+
+**Before any classification, the instrument itself must be proven in a real browser,
+not a simulation.** Checking this against the current harness surfaced a real
+architectural gap, independent of run 10's eventual pass/fail: `failure-evidence.ts`'s
+`attachOnFailure` returns immediately on a passing test ("a green run pays nothing
+extra," by design), so on any run where every sign-in state passes, no click-diagnostics
+evidence is ever extracted from the browser at all — nothing to inspect. Even a run that
+fails only gives the `fill()`-affected snapshots from `signin-sent`/`signin-send-failed`,
+not a clean untouched-element control; `signin-validation-error` (the one state where
+`fill()` is skipped and the two snapshots would be a genuine positive control) is not
+part of BUG-014's failing signature and so never gets its diagnostics attached either.
+**Run 10, as already pushed, cannot satisfy the self-check regardless of its outcome.**
+
+**Added** (`packages/e2e/tests/a11y/harness-smoke.spec.ts`, test logic only, no product
+code, no suite configuration change): a dedicated, unconditional self-check, independent
+of the sign-in flow, asserted directly with `expect()` so its result — pass or fail — is
+its own visible test outcome in every run, not something that only surfaces on a
+sign-in failure:
+- (a)/(b) the SAME untouched element reports the SAME identity token across TWO
+  SEPARATE `evaluate()` calls — only provable in a real browser: if the `WeakMap` were
+  built fresh inside the function body instead of read from a persistent `window`
+  global, this would fail every time, which is the proof for where the store lives.
+- (c) a genuinely different element reports a DIFFERENT identity token.
+- (d) a real, physical click anywhere in the document is captured by BOTH the
+  `document`-level listener and React's own root-container listener — not only by
+  something scoped to the clicked element itself.
+
+C: free space rechecked before this round's local verification: **7.94GB** (no
+meaningful change from the prior round's 7.95GB; no cleanup performed). Verified with
+`pnpm --filter @ppu/e2e typecheck`, `pnpm --filter @ppu/e2e lint`, and
+`pnpm exec prettier --check --end-of-line auto` (clean after one `--write` pass) — the
+same necessary-but-not-sufficient checks as before, since this test only calls the
+already-fixed, already-simulated `installClickEventTracer`/`snapshotButtonNode` rather
+than defining new `evaluate()`-passed closures of its own, so the specific
+serialization risk from run 9 does not reapply here the same way. Its actual claims
+(identity persistence and distinctness in a REAL browser) can only be proven by CI
+itself — that is the entire point of adding it.
+
+Pushed as `<pending>`, as the next sample (run 10 could not have answered this
+regardless of its own outcome, so this is not a docs-only push obtained to re-run an
+unchanged commit — it is new, required instrumentation, per the standing rule that such
+a commit IS the sample). Report pending.
