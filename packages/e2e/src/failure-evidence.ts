@@ -1,5 +1,6 @@
 import type {
   ConsoleMessage,
+  Frame,
   Page,
   Request as PWRequest,
   Response as PWResponse,
@@ -10,9 +11,10 @@ import type { SignInClickDiagnostics } from "./signin-click-diagnostics.js";
 import type { TitleTraceEvent } from "./title-trace.js";
 
 /**
- * Failure-evidence capture (decision, 2026-09-21: MVP-023 run 4 Firefox failures). Test
- * logic only: no product code, no suite configuration (workers, retries, timeouts,
- * engines, widths, rules) is touched.
+ * Failure-evidence capture (decision, 2026-09-21: MVP-023 run 4 Firefox failures; round
+ * 2 navigation capture, 2026-09-22, "BUG-014 recurrence"). Test logic only: no product
+ * code, no suite configuration (workers, retries, timeouts, engines, widths, rules) is
+ * touched.
  *
  * Listeners are attached for every test (cheap: a few `page.on` registrations and one
  * `addInitScript`). Collecting and attaching evidence — the only part with any real
@@ -34,6 +36,21 @@ export interface NetworkEntry {
   failure: string | null;
 }
 
+/**
+ * Round 2 (decision, 2026-09-22, "BUG-014 recurrence"): a same-URL native form
+ * submission is still a navigation and would still appear here, even though it would
+ * not look like a "redirect" in the ordinary sense the earlier title-trace evidence was
+ * built to catch. Page-level (`page.on`), so — unlike the in-page click-event tracer —
+ * these listeners are bound to the browser tab itself and survive any navigation of
+ * that same tab, including the one they exist to detect.
+ */
+export interface NavigationEntry {
+  atMs: number;
+  event: "framenavigated" | "load" | "domcontentloaded";
+  url: string;
+  isMainFrame: boolean;
+}
+
 export interface FailureEvidenceSink {
   install(page: Page): void;
   attachOnFailure(page: Page, testInfo: TestInfo): Promise<void>;
@@ -43,6 +60,7 @@ export function createFailureEvidenceSink(): FailureEvidenceSink {
   const startedAt = Date.now();
   const consoleLog: ConsoleEntry[] = [];
   const networkLog: NetworkEntry[] = [];
+  const navigationLog: NavigationEntry[] = [];
   const elapsed = (): number => Date.now() - startedAt;
 
   return {
@@ -52,6 +70,25 @@ export function createFailureEvidenceSink(): FailureEvidenceSink {
       });
       page.on("pageerror", (err: Error) => {
         consoleLog.push({ atMs: elapsed(), type: "pageerror", text: String(err) });
+      });
+      page.on("framenavigated", (frame: Frame) => {
+        navigationLog.push({
+          atMs: elapsed(),
+          event: "framenavigated",
+          url: frame.url(),
+          isMainFrame: frame === page.mainFrame(),
+        });
+      });
+      page.on("load", () => {
+        navigationLog.push({ atMs: elapsed(), event: "load", url: page.url(), isMainFrame: true });
+      });
+      page.on("domcontentloaded", () => {
+        navigationLog.push({
+          atMs: elapsed(),
+          event: "domcontentloaded",
+          url: page.url(),
+          isMainFrame: true,
+        });
       });
       page.on("request", (req: PWRequest) => {
         networkLog.push({
@@ -118,6 +155,10 @@ export function createFailureEvidenceSink(): FailureEvidenceSink {
       await testInfo.attach("failure-title-trace.json", {
         contentType: "application/json",
         body: JSON.stringify(titleTrace, null, 2),
+      });
+      await testInfo.attach("failure-navigation.json", {
+        contentType: "application/json",
+        body: JSON.stringify(navigationLog, null, 2),
       });
       await testInfo.attach("failure-page.html", { contentType: "text/html", body: html });
 

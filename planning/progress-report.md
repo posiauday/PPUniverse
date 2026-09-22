@@ -1442,3 +1442,87 @@ an inconclusive negative control is not evidence either way.)
 Committing sections 3 and 4 together per instruction. Pushed as `<pending>`; CI's
 result — including whether its scan range now matches the pushed commits — to be read
 in full before proceeding to the security review, accessibility review, and merge.
+
+### Run 15 (`b025116`): Secret scan finally green, but BUG-014's signature recurred — the first time on a fully self-check-verified instrument (2026-09-22)
+
+**Secret scan: green.** Its printed scan range still ended at `021a1ea` (the same
+API-lag characteristic identified earlier), but everything within whatever range it
+did scan is correctly suppressed by `.gitleaksignore`, and the full true range was
+already independently verified clean locally. `Format, lint, typecheck, test, build`:
+green (1m59s). **`Accessibility`: failed** — but only one test, out of 423: `[firefox]
+signin-sent @ 320px`. Every other state, every other engine, every other width,
+passed, and the self-check passed in all three engines on this exact run, including
+Firefox — the first time this signature has recurred on a run where the instrument's
+own correctness was proven in the same run, same engine, immediately beforehand.
+
+**Full evidence pulled from the CI artifact** (`results.json`'s inline base64
+attachment bodies, decoded — the click-diagnostics JSON is not written as a separate
+file in the uploaded artifact, only embedded inline): the button was connected,
+hydrated, hit-testable and unchanged between resolution and dispatch (identical
+`nodeId`, zero `rectDelta`) — node-side, unimpeachable. But `events.document: []` and
+`events.root: []` — zero captured click or submit events at either listener — and
+`failure-network.json` showed only the initial page load, no
+`POST /api/auth/signin/email` at all. `failure-console.json` was empty.
+`failure-title-trace.json` showed no navigation (title stayed on the sign-in page
+throughout), which weighed against, but did not fully eliminate, a navigation having
+occurred.
+
+### BUG-014 reclassified; round 2 (the last authorized inside MVP-023) instrumented and pushed (2026-09-22, direct product-owner instruction: "BUG-014 recurrence")
+
+**Reclassified, not merely "ambiguous":** run 15's evidence is unreadable, not a hard
+case between test/product defect, because the self-check proves the mechanism works in
+general but never proved the SPECIFIC listener on the sign-in page was still attached
+to the live document at the moment of the click. Every symptom observed is equally
+consistent with "nothing happened" and with "the document was silently replaced and
+the listener that captured nothing was no longer the live one."
+
+**New hypothesis, explicitly unproven:** a native HTML form submission, not prevented
+because the React handler had not attached (e.g. a hydration race), replacing the
+document between listener install and click dispatch. If true, the product defect and
+the observation failure are the same event.
+
+**Round 2 instrumentation** (test logic only, no product code, no suite configuration
+change — full detail in `planning/bugs/BUG-014.md`):
+- `packages/e2e/src/signin-click-diagnostics.ts`: `installClickEventTracer` now writes
+  an install-time token to `window` and returns it; a new `checkObserverLiveness()`
+  reads it back, called immediately before AND immediately after the click. A SEPARATE
+  bubble-phase `submit` listener at `document` (alongside the existing capture-phase
+  one) records `defaultPrevented` at the point in propagation where it is actually
+  meaningful — document is the outermost point in the tree, so a bubble-phase listener
+  there runs last among document-reachable listeners, after any bubble handler
+  (including React's) has had its chance to call it; a capture-phase read would show
+  `false` even when everything is working normally.
+- `packages/e2e/src/failure-evidence.ts`: now also subscribes to Playwright's
+  `framenavigated`/`load`/`domcontentloaded` page events for the duration of each test,
+  attached on failure as `failure-navigation.json` — page-level, so (unlike the
+  in-page click tracer) these survive the very navigation they exist to detect.
+- `packages/e2e/src/auth-intercept.ts`: `interceptSignInSend` now returns an object
+  exposing `invocationCount()`, a closure counter incremented inside the route handler
+  itself, so "was the interceptor ever actually reached" is read directly rather than
+  inferred from the network log.
+- `packages/e2e/src/pages.ts`: `submitSignIn` wires all of the above together and
+  treats an `evaluate()` call that itself throws (engines report this as roughly
+  "Execution context was destroyed") as an even stronger, more direct signal of a
+  document replacement than a merely-missing token — recorded explicitly, not
+  swallowed into a bare `null`.
+
+**Verified before pushing:** `typecheck`, `lint`, full-repo `prettier --check` all
+clean. Extended the `fn.toString()`-based serialization simulation (the same technique
+used for the run-9 and run-12 fixes) to the three new/changed self-contained
+functions: confirmed `installClickEventTracer` returns its token with no
+`ReferenceError`; confirmed `checkObserverLiveness` correctly reads the token back on
+the SAME simulated document and correctly reports `tokenPresent: false` on a
+DIFFERENT one (proving the mechanism would actually catch a real replacement, not just
+assuming it would); confirmed the new bubble-phase native-submit listener correctly
+records `defaultPrevented: true` when something prevents a dispatched submit event and
+`defaultPrevented: false` when nothing does. Also ran gitleaks locally against the
+working tree (uncommitted; a plain directory scan, not a substitute for the real
+history-based CI gate) to confirm none of this round's new code or comments
+accidentally reintroduced the earlier false-positive pattern — clean.
+
+C: free space before this round's local work: **11.62GB**, above the 2GB threshold.
+
+Pushed as `<pending>` — the last investigation round authorized inside this story.
+Disposition after this round is decided in advance (product-owner instruction, "BUG-014
+recurrence," section 4): in all three possible outcomes (product defect, test defect,
+still unreadable), MVP-023 proceeds to completion. Report pending.

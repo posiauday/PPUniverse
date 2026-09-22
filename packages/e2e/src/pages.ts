@@ -1,13 +1,16 @@
 import { expect, type Page } from "@playwright/test";
-import { interceptSignInSend } from "./auth-intercept.js";
+import { interceptSignInSend, type SignInInterception } from "./auth-intercept.js";
 import { type GatedRoute } from "./page-routes.js";
 import { NO_MATCH_TERM, SEARCH_TERM, type FixtureSet } from "./seed.js";
 import {
+  checkObserverLiveness,
   installClickEventTracer,
   recordSignInClickDiagnostics,
   snapshotButtonNode,
   type ButtonSnapshot,
   type ClickEventLogEntry,
+  type NativeSubmitLogEntry,
+  type ObserverLivenessResult,
   type RootContainerInfo,
 } from "./signin-click-diagnostics.js";
 
@@ -42,25 +45,47 @@ const SEND_LINK = /send sign-in link/i;
 const VALID_EMAIL = "e2e-a11y@example.invalid";
 
 /**
+ * Reads observer liveness (round 2, decision 2026-09-22 "BUG-014 recurrence") and
+ * turns a thrown evaluate() into evidence rather than an unhandled rejection: an
+ * execution-context-destroyed error is the strongest possible signal of a document
+ * replacement happening at that exact moment, so it is recorded as `evaluateError`,
+ * not swallowed into a bare null.
+ */
+async function readObserverLiveness(page: Page): Promise<ObserverLivenessResult> {
+  return page.evaluate(checkObserverLiveness).then(
+    (snapshot) => ({ ...snapshot, evaluateError: null }),
+    (error: unknown) => ({
+      atMs: -1,
+      tokenPresent: false,
+      token: null,
+      evaluateError: String(error),
+    }),
+  );
+}
+
+/**
  * Submits the sign-in form. Also gathers click-diagnostics evidence (decisions,
- * 2026-09-21: "Run 7 failure / sign-in submit signature", then "Run 8 disposition") for
- * the two CI failures observed on this exact interaction (run 4 signin-sent, run 7
- * signin-send-failed, both Firefox, both 320px): whether the click reaches the button
- * (hit test), whether it was hydrated, whether the browser's own click/submit events
- * fire at document AND at React's own root, and — because `fill()`'s re-render is a
- * specific, unproven candidate cause — whether the button is still the SAME node,
- * still connected, and still laid out the same way immediately before the click as it
- * was right after the locator resolved. Recorded on `window` for `failure-evidence.ts`
- * to attach ONLY if the test ends up failing; adds a few fast, synchronous-in-page
- * evaluate calls regardless (unavoidable, since whether the test will fail is not known
- * in advance).
+ * 2026-09-21: "Run 7 failure / sign-in submit signature", "Run 8 disposition"; round 2,
+ * 2026-09-22, "BUG-014 recurrence") for the CI failures observed on this exact
+ * interaction (runs 4, 7, 15, all Firefox, all 320px): whether the click reaches the
+ * button (hit test), whether it was hydrated, whether the browser's own click/submit
+ * events fire at document AND at React's own root, whether the button is still the
+ * SAME node, still connected, and still laid out the same way immediately before the
+ * click as it was right after the locator resolved — and, since run 15 showed all of
+ * the above can be clean while the observer itself silently died, whether the
+ * install-time observer token is still readable immediately before AND immediately
+ * after the click, whether a native (unprevented) form submission was seen, and
+ * whether the route interceptor was ever actually invoked. Recorded on `window` for
+ * `failure-evidence.ts` to attach ONLY if the test ends up failing; adds a few fast,
+ * synchronous-in-page evaluate calls regardless (unavoidable, since whether the test
+ * will fail is not known in advance).
  */
 async function submitSignIn(
   page: Page,
   email: string,
-  interceptionRegisteredAtMs: number | null = null,
+  interception: SignInInterception | null = null,
 ): Promise<void> {
-  await page.evaluate(installClickEventTracer);
+  const installToken = await page.evaluate(installClickEventTracer);
   const rootContainer = await page.evaluate(
     () =>
       (window as unknown as { __e2eRootInfo?: RootContainerInfo }).__e2eRootInfo ?? {
@@ -84,8 +109,14 @@ async function submitSignIn(
     .evaluate(snapshotButtonNode)
     .catch((): ButtonSnapshot | null => null);
 
+  // Round 2, items 2a/2b: read immediately before AND immediately after the click, not
+  // just once — the whole point is to catch a replacement that happens DURING dispatch.
+  const observerBeforeClick = await readObserverLiveness(page);
+
   const clickIssuedAtMs = Date.now();
   await button.click();
+
+  const observerAfterClick = await readObserverLiveness(page);
 
   const events = await page.evaluate(() => {
     const w = window as unknown as {
@@ -94,6 +125,14 @@ async function submitSignIn(
     };
     return { document: w.__e2eClickEvents ?? [], root: w.__e2eRootClickEvents ?? null };
   });
+
+  const nativeSubmitLog = await page
+    .evaluate(
+      () =>
+        (window as unknown as { __e2eNativeSubmitLog?: NativeSubmitLogEntry[] })
+          .__e2eNativeSubmitLog ?? [],
+    )
+    .catch((): NativeSubmitLogEntry[] => []);
 
   const nodeReplacedBetweenResolutionAndDispatch =
     atResolution && atDispatch ? atResolution.nodeId !== atDispatch.nodeId : null;
@@ -108,14 +147,19 @@ async function submitSignIn(
       : null;
 
   await page.evaluate(recordSignInClickDiagnostics, {
-    interceptionRegisteredAtMs,
+    interceptionRegisteredAtMs: interception?.registeredAtMs ?? null,
+    interceptionInvocationCount: interception?.invocationCount() ?? null,
     clickIssuedAtMs,
     rootContainer,
+    installToken,
+    observerBeforeClick,
+    observerAfterClick,
     atResolution,
     atDispatch,
     nodeReplacedBetweenResolutionAndDispatch,
     rectDelta,
     events,
+    nativeSubmitLog,
   });
 }
 
@@ -212,8 +256,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/signin",
     prepare: async (page) => {
-      const interceptedAtMs = await interceptSignInSend(page, "failed");
-      await submitSignIn(page, VALID_EMAIL, interceptedAtMs);
+      const interception = await interceptSignInSend(page, "failed");
+      await submitSignIn(page, VALID_EMAIL, interception);
       await expect(page.getByLabel("Email address")).toHaveAccessibleDescription(/try again/i);
     },
   },
@@ -225,8 +269,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/signin",
     prepare: async (page) => {
-      const interceptedAtMs = await interceptSignInSend(page, "sent");
-      await submitSignIn(page, VALID_EMAIL, interceptedAtMs);
+      const interception = await interceptSignInSend(page, "sent");
+      await submitSignIn(page, VALID_EMAIL, interception);
       await expect(page.getByRole("status")).toContainText(/check your email/i);
     },
   },

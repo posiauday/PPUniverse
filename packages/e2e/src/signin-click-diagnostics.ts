@@ -40,6 +40,18 @@
  * duplication"; that broke both functions at runtime with a `ReferenceError` the first
  * time they actually ran in a browser, caught in CI, not locally.)
  *
+ * Round 2 (decision, 2026-09-22, "BUG-014 recurrence" — the last investigation round
+ * authorized inside MVP-023): the signature recurred on a run where every check above
+ * proved trustworthy, and the evidence came back unreadable rather than classifiable —
+ * a live, stable, connected button, but zero captured events at any listener and zero
+ * matching network request. That is equally consistent with "nothing happened" as with
+ * "the document was replaced and the listener that captured nothing was no longer the
+ * live one." `checkObserverLiveness` closes that gap: an install-time token on
+ * `window`, read back immediately before and immediately after the click. If the token
+ * is gone, or reading it throws because the execution context was destroyed, the
+ * document changed and every OTHER observation from that attempt is void, not merely
+ * inconclusive.
+ *
  * Test logic only; nothing here runs in, or is reachable from, the application.
  */
 
@@ -54,23 +66,48 @@ export interface RootContainerInfo {
   description: string | null;
 }
 
+export interface NativeSubmitLogEntry {
+  atMs: number;
+  /**
+   * Read from a SEPARATE bubble-phase listener at `document`, not the capture-phase
+   * one above: document is the outermost point in the DOM tree, so a bubble-phase
+   * listener there runs LAST among document-reachable listeners, after any
+   * bubble-phase handler (including React's own default event delegation) has already
+   * had its chance to call `preventDefault()`. Reading this from the capture-phase
+   * listener instead would show `false` even in the normal, working case, since
+   * capture fires before bubble-phase handlers run at all.
+   */
+  defaultPrevented: boolean;
+}
+
 /**
  * Installs capture-phase `click`/`submit` listeners at `document` (always) and, if
  * React's root container can be found, ALSO there — a click that reaches document but
- * not the root is a distinguishable, visible fact, not an assumption. Self-contained:
- * see the module comment for why.
+ * not the root is a distinguishable, visible fact, not an assumption. ALSO installs a
+ * separate bubble-phase `submit` listener at `document` (round 2, see the module
+ * comment) to observe `defaultPrevented` at the point in propagation where it is
+ * meaningful, and writes an install-time token to `window` so a later, separate call
+ * can prove the observer is still alive rather than assume it. Self-contained: see the
+ * module comment for why. Returns that token.
  */
-export function installClickEventTracer(): void {
+export function installClickEventTracer(): string {
   const DOC_EVENTS_KEY = "__e2eClickEvents";
   const ROOT_EVENTS_KEY = "__e2eRootClickEvents";
   const ROOT_INFO_KEY = "__e2eRootInfo";
+  const OBSERVER_TOKEN_KEY = "__e2eObserverToken";
+  const NATIVE_SUBMIT_KEY = "__e2eNativeSubmitLog";
 
   const w = window as unknown as {
     [DOC_EVENTS_KEY]?: ClickEventLogEntry[];
     [ROOT_EVENTS_KEY]?: ClickEventLogEntry[];
     [ROOT_INFO_KEY]?: RootContainerInfo;
+    [OBSERVER_TOKEN_KEY]?: string;
+    [NATIVE_SUBMIT_KEY]?: NativeSubmitLogEntry[];
   };
-  if (w[DOC_EVENTS_KEY]) return;
+  if (w[DOC_EVENTS_KEY]) return w[OBSERVER_TOKEN_KEY] ?? "";
+
+  const token = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  w[OBSERVER_TOKEN_KEY] = token;
 
   const describeTarget = (target: EventTarget | null): string => {
     if (!(target instanceof Element)) return String(target);
@@ -85,6 +122,16 @@ export function installClickEventTracer(): void {
   w[DOC_EVENTS_KEY] = docLog;
   document.addEventListener("click", record(docLog, "click"), { capture: true });
   document.addEventListener("submit", record(docLog, "submit"), { capture: true });
+
+  const nativeSubmitLog: NativeSubmitLogEntry[] = [];
+  w[NATIVE_SUBMIT_KEY] = nativeSubmitLog;
+  document.addEventListener(
+    "submit",
+    (event) => {
+      nativeSubmitLog.push({ atMs: performance.now(), defaultPrevented: event.defaultPrevented });
+    },
+    { capture: false },
+  );
 
   // A scan for React's root-container marker (a property key starting with
   // "__reactContainer$", attached to whatever node createRoot/hydrateRoot was given) —
@@ -117,6 +164,37 @@ export function installClickEventTracer(): void {
     rootNode.addEventListener("click", record(rootLog, "click"), { capture: true });
     rootNode.addEventListener("submit", record(rootLog, "submit"), { capture: true });
   }
+
+  return token;
+}
+
+export interface ObserverLivenessSnapshot {
+  atMs: number;
+  tokenPresent: boolean;
+  token: string | null;
+}
+
+/**
+ * Reads back the install-time token written by `installClickEventTracer`, called
+ * immediately before AND immediately after the click dispatch (round 2, see the module
+ * comment). If the document has been replaced since install, this token — like every
+ * other piece of `window`-scoped state this module relies on — cannot have survived,
+ * so its absence here is direct proof the observer died, not merely a missing data
+ * point.
+ *
+ * The caller should also treat an `evaluate()` call to this function throwing (Firefox
+ * and other engines report this as roughly "Execution context was destroyed") as an
+ * EVEN STRONGER, more direct signal of the same thing: the document was in the middle
+ * of being replaced at the exact moment this was asked, not merely already replaced by
+ * the time it was asked. This function cannot express that itself — a thrown error
+ * never returns a value — so it is the caller's `.catch()` that must record it.
+ * Self-contained: see the module comment for why.
+ */
+export function checkObserverLiveness(): ObserverLivenessSnapshot {
+  const OBSERVER_TOKEN_KEY = "__e2eObserverToken";
+  const w = window as unknown as { [OBSERVER_TOKEN_KEY]?: string };
+  const token = w[OBSERVER_TOKEN_KEY] ?? null;
+  return { atMs: performance.now(), tokenPresent: token !== null, token };
 }
 
 export interface HitTestResult {
@@ -195,12 +273,38 @@ export function snapshotButtonNode(element: Element): ButtonSnapshot {
   };
 }
 
+/**
+ * `checkObserverLiveness`'s result, plus what the calling code on the Node side
+ * observed trying to get it: `evaluateError` is set when the `evaluate()` call itself
+ * threw rather than returning — round 2's strongest possible signal of a document
+ * replacement happening at that exact moment, not merely already having happened.
+ */
+export interface ObserverLivenessResult extends ObserverLivenessSnapshot {
+  evaluateError: string | null;
+}
+
 export interface SignInClickDiagnostics {
   /** Node wall-clock (Date.now()), a DIFFERENT clock from the in-page fields below — see
    * failure-evidence.ts for why they cannot be merged onto one axis. */
   interceptionRegisteredAtMs: number | null;
+  /** How many times interceptSignInSend's own route handler fired, read at the point
+   * this diagnostic was recorded (round 2, item 2e) — null when this state has no
+   * interception at all (signin-validation-error, where the email field is empty and
+   * no request is ever expected). */
+  interceptionInvocationCount: number | null;
   clickIssuedAtMs: number;
   rootContainer: RootContainerInfo;
+  /** The token installClickEventTracer wrote to window at install time, so a later
+   * mismatch or absence in observerBeforeClick/observerAfterClick is a comparison
+   * against a known-good value, not just "was something there". */
+  installToken: string;
+  /** Read immediately before button.click() (round 2, items 2a/2b). */
+  observerBeforeClick: ObserverLivenessResult;
+  /** Read immediately after button.click() (round 2, items 2a/2b). A missing token or
+   * an evaluateError here, when observerBeforeClick was fine, is direct evidence the
+   * document was replaced by the click itself — not evidence the application ignored
+   * a click that a live observer would have seen. */
+  observerAfterClick: ObserverLivenessResult;
   /** Snapshotted right after the locator resolves, BEFORE fill(). */
   atResolution: ButtonSnapshot | null;
   /** Snapshotted again immediately before the click is dispatched, AFTER fill() — the
@@ -212,6 +316,9 @@ export interface SignInClickDiagnostics {
   /** atDispatch.rect minus atResolution.rect; null if either snapshot is missing. */
   rectDelta: { dx: number; dy: number; dwidth: number; dheight: number } | null;
   events: { document: ClickEventLogEntry[]; root: ClickEventLogEntry[] | null };
+  /** From the SEPARATE bubble-phase submit listener (round 2, item 2d) — see
+   * NativeSubmitLogEntry for why defaultPrevented is only meaningful read this way. */
+  nativeSubmitLog: NativeSubmitLogEntry[];
 }
 
 /**
