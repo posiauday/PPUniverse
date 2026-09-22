@@ -1218,3 +1218,37 @@ Pushed as `<pending>`, as the next sample (run 10 could not have answered this
 regardless of its own outcome, so this is not a docs-only push obtained to re-run an
 unchanged commit — it is new, required instrumentation, per the standing rule that such
 a commit IS the sample). Report pending.
+
+### Run 10's actual result, and a second, pre-existing Format-check gap found and fixed (2026-09-22)
+
+Run 10 (`8d4c724`) completed: **Accessibility green** (BUG-014's signature did not
+recur on this run), `Secret scan` failed (the same unresolved gitleaks false positive),
+`Format check` failed — but on `packages/e2e/src/pages.ts`, a file this round did not
+touch at all. Per section 1 of "Run 10 disposition," this run's Accessibility result is
+recorded but voided for classification purposes: the self-check that would prove the
+identity mechanism worked correctly during this pass did not exist yet (added in
+`021a1ea`, pushed after run 10 was already in flight), so a green Accessibility job here
+is not, by itself, usable evidence either way.
+
+**`pages.ts`'s formatting issue is a real, standing gap in this session's own
+verification, not a new defect just introduced.** `git log` shows it was last edited in
+`7529f73` (the same commit whose `ReferenceError` was fixed in `8d4c724`) and has
+carried an un-prettier-compliant formatting since then — through `8d4c724` and
+`021a1ea` — because both of those rounds' local verification only ran
+`prettier --check` against the ONE file each round had actually edited, never the full
+`pnpm format:check` CI actually runs across the whole scoped tree. Running the full
+check locally this round (`pnpm exec prettier --check --end-of-line auto .`) found
+exactly this one file, confirmed nothing else in the tracked scope is affected, and
+`--write` produced a pure line-wrapping change (two multi-line expressions reflowed;
+confirmed with `git diff`, no logic touched). Re-verified with `typecheck` and `lint`
+(clean) and the full repo-wide format check (clean) after the fix.
+
+This closes the actual root cause of BOTH run 9's and run 10's `Format check` failures —
+run 9's Format-check failure was attributed entirely to the round's skipped local
+verification at the time (correct, but incomplete: `pages.ts` needed fixing too and was
+missed because verification was scoped too narrowly even after local checks resumed).
+
+Pushed as `<pending>`, alongside run 11 (`021a1ea`, the self-check) which was already in
+flight when this was found and will likely still show the same Format-check failure on
+`pages.ts` for the same reason. Report pending on whichever run actually carries both
+fixes.

@@ -62,11 +62,17 @@ async function submitSignIn(
 ): Promise<void> {
   await page.evaluate(installClickEventTracer);
   const rootContainer = await page.evaluate(
-    () => (window as unknown as { __e2eRootInfo?: RootContainerInfo }).__e2eRootInfo ?? { found: false, description: null },
+    () =>
+      (window as unknown as { __e2eRootInfo?: RootContainerInfo }).__e2eRootInfo ?? {
+        found: false,
+        description: null,
+      },
   );
 
   const button = page.getByRole("button", { name: SEND_LINK });
-  const atResolution = await button.evaluate(snapshotButtonNode).catch((): ButtonSnapshot | null => null);
+  const atResolution = await button
+    .evaluate(snapshotButtonNode)
+    .catch((): ButtonSnapshot | null => null);
 
   if (email) await page.getByLabel("Email address").fill(email);
 
@@ -74,7 +80,9 @@ async function submitSignIn(
   // immediately before the click, not reused from before it. Its own hit test uses this
   // exact element reference, so the snapshot and the hit test can never disagree about
   // which node they mean.
-  const atDispatch = await button.evaluate(snapshotButtonNode).catch((): ButtonSnapshot | null => null);
+  const atDispatch = await button
+    .evaluate(snapshotButtonNode)
+    .catch((): ButtonSnapshot | null => null);
 
   const clickIssuedAtMs = Date.now();
   await button.click();
