@@ -1526,3 +1526,53 @@ Pushed as `<pending>` — the last investigation round authorized inside this st
 Disposition after this round is decided in advance (product-owner instruction, "BUG-014
 recurrence," section 4): in all three possible outcomes (product defect, test defect,
 still unreadable), MVP-023 proceeds to completion. Report pending.
+
+### Run 16 (`aed24d8`): fully green — BUG-014 did not recur even with the most rigorous instrumentation yet; MVP-023 complete and merged (2026-09-22)
+
+**All three jobs green.** `Secret scan`: clean (still the same lagging scan-range
+characteristic, harmlessly — everything within whatever range it did scan remains
+correctly suppressed). `Format, lint, typecheck, test, build`: green, 1m59s; every
+DB-gated integration suite (`clamav-scan-adapter` 2, `s3-storage-adapter` 4,
+`file-scan-repository` 3, `session-repository` 3, `catalog-repository` 37 — all ran for
+real, none skipped). `Accessibility`: **423 passed, 0 failed, 0 skipped, 0 retries**,
+self-check passing in all three engines — the round-2 observer-liveness, navigation and
+native-submit instrumentation was live for this run and recorded nothing, because
+BUG-014's signature did not recur at all. Per the disposition decided in advance
+("BUG-014 recurrence," section 4), MVP-023 proceeds to completion regardless of which
+of the three outcomes materialized — a clean, non-recurring result is squarely within
+that instruction, not an exception to it.
+
+**Runtime, install separate, cache state:** deps 7s (cache hit), Playwright browsers
+25s (cache hit), application build 27s, **test execution 4m9s**, whole job 5m39s
+(ceiling 10 minutes, target 5-8).
+
+**Security review** (`docs/final-decisions.md`, "MVP-023: final security and
+accessibility review, Done, merge"): re-read the actual current content of every file
+under review rather than re-asserting from memory. `@ppu/db`'s BUG-012 fix confirmed
+still in place and confirmed a root fix (connection caching is unconditional now, RLS
+and authorization untouched, credential handling unchanged). `SessionsHeading`'s
+BUG-013 mitigation confirmed `.textContent`-only, no injection surface, correctly still
+labelled a mitigation not a root fix. The e2e/diagnostics package confirmed
+structurally dev-only (`private: true`, `.pnpmfile.cjs` intact, zero references from
+`apps/web`) - not re-verified via a fresh full production build this round, noted as
+such rather than implied. `.gitleaksignore` confirmed exactly 5 fingerprint entries, no
+config/rule/entropy changes, real-secret detection proven (not assumed) intact by the
+earlier negative control. No findings.
+
+**Accessibility review** (same entry): scope-and-method wording only, the prohibited
+list respected, BUG-013's residual gap and BUG-014's open/non-reproducing/monitor-only
+status both carried forward explicitly, open question 38 still noted as unanswered.
+
+**`planning/requirement-traceability.csv`:** NFR-001 and NFR-008 updated to cite the
+actual merged-head run (`aed24d8`, 423/423) in place of the stale `5dedfba` (420/420)
+reference, and NFR-001 now names BUG-014's status explicitly.
+
+**`planning/mvp-backlog.csv` and `planning/backlog.csv`** have shown MVP-023 as `Done`
+since 2026-09-21 - a marking made before the entire run-8-through-16 investigation this
+report documents. Noted plainly rather than left silent: the CLAUDE.md completion gate
+(tests passing, security review completed, documentation and traceability updated) is
+only genuinely satisfied as of this entry. The status value does not need to change,
+because it is accurate now; the timing gap between when it was marked and when it
+became true is the thing worth recording.
+
+**Merged via `gh pr merge` (not locally, not squashed).**
