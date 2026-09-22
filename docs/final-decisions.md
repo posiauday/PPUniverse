@@ -589,3 +589,36 @@ Signed download delivery or any part of FR-007 — that is MVP-009's, and it is 
 
 ### Process
 Implementation authorized on `feature/mvp-010-free-entitlement`, for the scope above and nothing else. One real PR via `gh pr create` when ready; never `main`, never a local merge, never squashed. Disk protocol stands: free space reported before any local run, under 2GB stops rather than runs. Completion rule unchanged (tests pass; all required checks green on the head being merged; DB-gated suites confirmed PASSED by reading the log, not the status tick; skip count 0 or explained; 0 retries; docs and traceability updated; security and accessibility reviews complete). A new product decision surfacing mid-implementation is recorded with a safest reversible default and stops for approval — not resolved unilaterally.
+
+## 2026-09-22 — MVP-010: security and accessibility review, Done, merge (closes FR-005)
+
+PR #8 (`feature/mvp-010-free-entitlement`). Run 1 (`77abff0`) failed Accessibility on two real test-isolation bugs (not the implementation itself) — `planning/progress-report.md` has the full account. Run 2 (`e1d5dcf`, the merged head) is green on all three jobs: 477/477 accessibility tests passed, self-check passing in all three engines, 0 skipped, 0 retries; `Format, lint, typecheck, test, build` green with the new `@ppu/adapter-entitlements` integration suite (5/5, including the concurrent-grant race-safety test) confirmed passing for real by reading the log; `Secret scan` clean.
+
+### Security review
+
+Every claim below re-verified directly against the actual committed code on the merged head, not re-asserted from the implementation plan.
+
+- **Authorization, server-side, deny-by-default:** `route.ts` never reads a request body — confirmed by direct inspection, no `request.json()`/`await request` anywhere in the file. The product's `PUBLISHED` status is re-read from the database on every request (`findPublishedProductBySlug`) and independently re-checked (`isProductEligibleForFreeEntitlement`); nothing about eligibility is ever accepted from the client. A `DRAFT` product and a nonexistent one both return the same `404`, so the endpoint never leaks which unpublished products exist.
+- **`revokedAt` enforcement:** `isDownloadAllowed` is called before `recordDownload` on every request, returning `403 ENTITLEMENT_REVOKED` if it is ever non-null. No code path in this story sets it, and the code says so in three places (schema comment, domain function comment, route comment) so a future reader is not misled into thinking revocation is implemented.
+- **Idempotency, proven twice over:** the unique constraint (`entitlements_userId_productId_key`) is live in the migration (confirmed: `ENABLE ROW LEVEL SECURITY` and the constraint both present, read directly). `grantOrReuseEntitlement`'s race-safety was proven against a real database with a genuine concurrent-request integration test, not assumed. Run 1 additionally proved, the hard way, that idempotency has to be deliberate everywhere it's needed — the test fixture's own `grantEntitlement` helper wasn't idempotent and broke in CI; the production repository's *was*, from the first commit, and never broke.
+- **Data minimisation:** `Download` stores exactly `entitlementId`, `userId`, `productId`, `requestedAt`, `createdAt` — confirmed against the schema file directly. No IP address, no user agent, nothing beyond audit necessity.
+- **RLS:** both new tables (`entitlements`, `downloads`) have `ENABLE ROW LEVEL SECURITY` in the same migration that creates them — confirmed by reading the migration file directly, lines 75–76.
+- **No product analytics, no new secret/credential surface:** confirmed — the only telemetry is `@ppu/telemetry`'s structured `logger.info` calls (`entitlement.granted`, `entitlement.download_recorded`); nothing touches `Sentry`/`PostHog`/any analytics adapter.
+- **FR-007 boundary held:** no `ReleaseFile`, no `SignedDownloadGrant`, no file-serving code anywhere in this diff — confirmed by the file list in the PR; the only new product-facing surface is the entitlement grant and its UI.
+- **Production build confirmed clean of test tooling:** re-verified — `pnpm build`'s output contains no reference to `playwright` or `axe-core`, matching the established invariant.
+- No findings.
+
+### Accessibility review sign-off
+
+**Scope and method, not conformance — no claim of "WCAG compliant", "conformant", "accessible", "audited", "certified", or screen-reader support is made here or anywhere else in this story's records.**
+
+- **What:** the same automated axe-core (`wcag2a`/`wcag2aa`/`wcag21a`/`wcag21aa`/`wcag22aa` blocking, `best-practice` advisory) plus scripted real-key-press keyboard traversal with focus-indicator contrast measurement that MVP-023 established — no new method introduced.
+- **Where, new in this story:** three states added to the existing page inventory — `product-free-idle` (signed in, not yet entitled), `product-free-entitled` (signed in, already entitled), `product-free-granted` (signed in, immediately after granting) — each at 320/375/768/1280px, in chromium/firefox/webkit, run 2 confirmed 0 failures across all of them.
+- **Guest coverage:** the sign-in prompt a signed-out visitor sees needed no new state — `product-full`/`product-minimal` (already `auth: "guest"`) render it as part of their existing coverage.
+- **Date:** 2026-09-22. Result: 477/477 automated checks passing (CI run 2, `e1d5dcf`, merge to follow).
+- **NOT tested:** screen readers, voice control, switch access, magnification, human manual review — unchanged from MVP-023's standing position; this story adds no new claim about any of them.
+- **Known open, carried forward, unaffected by this story:** BUG-013's residual framework-timing gap; BUG-014, open, non-reproducing, monitor-only, permanently instrumented.
+
+### Done and merge
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-010 moves In Progress → Done. Merged via `gh pr merge` (not locally, not squashed).

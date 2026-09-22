@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-22 — MVP-010 (Free entitlement flow, FR-005) pre-work analysis delivered on `feature/mvp-010-free-entitlement` (`planning/prework/MVP-010-prework-analysis.md`); **pre-work only, no code written**, per the product-owner instruction. Two items need a decision before implementation: open questions 44 (free-download sign-in policy) and 45 (entitlement revocation), both with a safest-reversible default proposed and neither approved. A gap found in passing: `packages/domain/entitlements/README.md`'s placeholder attributes entitlement ownership to MVP-009; the traceability CSV and backlog already correctly assign FR-005 to MVP-010 — the README needs correcting as part of this story, not a separate one.
+Last updated: 2026-09-22 — MVP-010 (Free entitlement flow, FR-005) is **Done and merged**. PR #8 merged via `gh pr merge` (not squashed) after CI run 2 (`e1d5dcf`, the merged head) went green on all three jobs: 477/477 accessibility checks (three new states — `product-free-idle`, `product-free-entitled`, `product-free-granted` — across all widths and engines), self-check passing in all three engines, the new `@ppu/adapter-entitlements` integration suite (5/5, including a genuine concurrent-request race-safety test against a real database) confirmed passing for real, Secret scan clean. Open questions 44 (universal sign-in, per-product policy deferred) and 45 (product-scoped, permanent-until-revoked, `revokedAt` enforced at read time) were decided and closed before implementation. Run 1 (`77abff0`) failed on two real test-isolation bugs the local dev-mode checks could not have surfaced — found, root-caused and fixed before run 2 (full detail: `planning/progress-report.md`). FR-005 is Implemented; FR-007 (signed delivery) stays explicitly out of scope, blocked by the absent `ReleaseFile` model, owned by MVP-009.
 
 MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 merged via `gh pr merge` (merge commit `ed9b09b`, not squashed) after the final CI run (`aed24d8`, re-confirmed on the actual merged head `7e10c4a`) went green on all three jobs: 423/423 accessibility checks, 0 skipped, 0 retries, self-check passing in all three engines, every DB-gated integration suite passing for real, Secret scan clean. The `develop` branch-protection rule is live (confirmed by reading it back directly, not assumed); the security review and the accessibility review sign-off are recorded in `docs/final-decisions.md`. NFR-001 and NFR-008 are Implemented. Findings resolved along the way: BUG-012 (production `@ppu/db` connection-pool defect, root-fixed), BUG-013 (Firefox title-disappearance after a session revoke, mitigated), and a secret-scanner false positive (a fingerprint-scoped `.gitleaksignore`, this repository's first suppression, `docs/final-decisions.md`). **BUG-014** (intermittent Firefox @320px sign-in-submit signature) stays **open, monitor-only, permanently instrumented** — three occurrences across sixteen CI runs, two evidence-backed investigation rounds complete, root cause unproven, does not block.
 
@@ -12,13 +12,13 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 5 | MVP-007, MVP-011, MVP-017, MVP-018, MVP-020 |
-| In Progress | 1 | MVP-010 (pre-work delivered, awaiting decision on open questions 44/45 before implementation) |
+| In Progress | 0 | — |
 | QA | 0 | — |
 | Blocked | 0 | — |
-| Done | 9 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022, MVP-023 |
+| Done | 10 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-021, MVP-022, MVP-023 |
 | **Total** | **25** | |
 
-MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-023 (depends only on MVP-003, already Done) likewise has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself — its value is the accessibility harness (`packages/e2e`) every future UI story now runs against, and the branch-protection rule now enforcing it. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below).
+MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-023 (depends only on MVP-003, already Done) likewise has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself — its value is the accessibility harness (`packages/e2e`) every future UI story now runs against, and the branch-protection rule now enforcing it. MVP-010 (depends on MVP-002 and MVP-006, both already Done) also has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below).
 
 ## Completed stories
 
@@ -30,6 +30,7 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 | MVP-004 | Catalog | FR-002 | 8 | 2026-09-21 |
 | MVP-005 | Catalog | FR-003 | 5 | 2026-09-21 |
 | MVP-006 | Files | FR-007 | 13 | 2026-09-18 |
+| MVP-010 | Free assets | FR-005 | 3 | 2026-09-22 |
 | MVP-021 | SEO | FR-017 | 3 | 2026-09-21 |
 | MVP-022 | Observability | NFR-007 | 8 | 2026-09-18 |
 
@@ -46,6 +47,14 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 - Recorded rather than hidden: TD-006 (no write path calls the evidence validator yet; no private-data screening), TD-007 (other FR-003 items have no owning story; no E2E yet). FR-003 is **Partially Implemented**. Also caught at the start of this story: FR-002's traceability had been overstated after MVP-004 (TD-005).
 - Full detail, including the security and accessibility reviews: `planning/progress-report.md`.
 
+### MVP-010 — Free entitlement flow
+- `POST /api/products/[slug]/entitlement` grants (or idempotently reuses) a free `Entitlement` and records an append-only `Download` audit event, for a signed-in user only — no guest path, no per-product policy field (decision Q44). Product eligibility (`PUBLISHED`) is re-read and re-checked server-side on every request; nothing is ever trusted from the client.
+- Does not deliver a file: `ReleaseFile` doesn't exist yet in the schema (confirmed by reading `packages/db/prisma/schema/files.prisma` directly, not assumed), so signed delivery stays entirely MVP-009's, unbuilt here.
+- `Entitlement` is product-scoped and permanent-until-revoked; `revokedAt` is present and **enforced at read time**, though nothing in this story ever sets it (decision Q45's amendment) — a future revocation feature only has to write the column, not also add the check.
+- A real, reproduced race-safety property, not assumed: two concurrent grant requests for the same user/product against a real database produce exactly one entitlement row, proven by an integration test.
+- Two real test-isolation bugs were found by CI's first real production-mode run (not by local testing, which could not have reproduced them) and fixed before merge — full account in `planning/progress-report.md`.
+- Full detail, including the security and accessibility reviews: `planning/progress-report.md` and `docs/final-decisions.md`.
+
 ### MVP-021 — Metadata, sitemap, canonical, structured data
 - Canonical URLs, page metadata, Open Graph and Twitter tags, `sitemap.xml`, `robots.txt` and schema.org JSON-LD, under the product owner's 2026-09-21 decisions. The site origin is `NEXT_PUBLIC_SITE_URL`, validated in one place, read at runtime, and failing safe (no incorrect canonical URLs) when missing or invalid in production.
 - Deny-by-default robots (every page `noindex` unless it opts in). Category policy as approved: empty categories `noindex` and out of the sitemap; valid `?page=N` self-canonical; search, sort, filter and mixed variants `noindex` with the base canonical — an intentional corrective SEO change owned by this story, with MVP-004's search unchanged. Product JSON-LD ships **without Offer data** and with no rich-result claim.
@@ -57,9 +66,9 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 9 / 25 (36%)
-- Points done: 71 / 170 (42%)
-- P0 points done: 71 / 145 (49%)
+- Stories done: 10 / 25 (40%)
+- Points done: 74 / 170 (44%)
+- P0 points done: 74 / 145 (51%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 5 (BUG-002, BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 8 resolved (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 9 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
@@ -69,7 +78,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 
 ## Remaining work summary
 
-16 of 25 stories remain (99 of 170 points).
+15 of 25 stories remain (96 of 170 points).
 
 | Sprint | Stories | Status | Points |
 |---|---|---|---|
@@ -77,7 +86,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 2 | MVP-002, MVP-003, MVP-006, MVP-022 | **Done** | 37 (done) |
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
 | 3 | MVP-023 | **Done** | 13 (done) |
-| 3 | MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 | Ready | 23 |
+| 3 | MVP-010 | **Done** | 3 (done) |
+| 3 | MVP-011, MVP-017, MVP-018, MVP-020 | Ready | 20 |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
 | 4 | MVP-012 | Backlog | 8 |
@@ -90,11 +100,11 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-010 (Free entitlement flow)**: P0, dependencies MVP-002 and MVP-006, both Done, and not gated by any open product decision. **MVP-020 (Consent, legal deletion workflow)** is equally unblocked (P0, depends only on MVP-002) and is the other clean option. MVP-017 and MVP-018 (P1) are also Ready and ungated. It brings the axe and Playwright harness that would close the E2E half of TD-007, and there are now real catalog, category and product journeys to test.
+**MVP-020 (Consent, legal deletion workflow)**: P0, dependency MVP-002 already Done, and not gated by any open product decision. MVP-017 and MVP-018 (P1) are also Ready and ungated. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
 
 Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
-Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-010, MVP-017, MVP-018, MVP-020 also remain Ready.
+Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-017, MVP-018, MVP-020 also remain Ready.
 
 ## Open bugs
 
