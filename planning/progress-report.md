@@ -991,3 +991,42 @@ still a cache miss (no run has yet completed successfully to save one).
 the accessibility review sign-off, marking Done, and the merge. The branch is held
 at `a5f44c0` pending the product owner's decision on BUG-013's proposed fix and on
 `signin-sent`.
+
+### BUG-013 fix applied; BUG-014 opened for signin-sent (2026-09-21)
+
+**Reproduction attempts, before writing anything:** tried to make the title-removal race
+deterministically reproducible using the same event-driven tracer that caught it in CI
+(not the coarse poll a first attempt used, which found nothing) — delaying the `_rsc`
+refetch response (0/300/800/1500ms, three attempts each, Firefox) and nine concurrent
+revoke cycles across all three engines to mimic CI's worker contention. **Never
+reproduced.** Per instruction, no end-to-end regression test for the race is shipped;
+this is stated plainly in `planning/bugs/BUG-013.md`.
+
+**Fix applied (candidate (a), the only product-code change authorized):** one new,
+separate `useEffect` in `apps/web/app/account/sessions/SessionsHeading.tsx` that finds
+or creates the `<title>` element and corrects its text on every re-render, handling the
+**absent** case (create, not merely assign) that the CI evidence actually showed. Marked
+and removed on unmount if still present, so nothing is left behind. Classified honestly
+as a **mitigation**, not a root fix — the underlying gap is recorded as **TD-013**, which
+also notes no other route currently calls `router.refresh()` but a future one would not
+be covered.
+
+**Regression coverage:** `SessionsHeading.test.ts` unit-tests the mitigation's decision
+function (`computeTitleFallback`) deterministically — proving it creates rather than
+assigns when the title is absent — standing in for the race reproduction that could not
+be achieved.
+
+**Verified before pushing:** workspace-wide `pnpm lint/typecheck/test/build` clean (543
+tests including the 4 new ones); the full local `tests/a11y` run passed 420/420 on all
+three engines after the fix, including the existing F7 regression specs, unaffected.
+
+**BUG-014 opened** for `signin-sent` (product-owner decision: monitor, do not fix, does
+not block MVP-023 — a single non-recurring observation in 5 runs, with the permanent
+failure-evidence instrumentation now in place to catch it if it recurs).
+
+**Still to do, per the sequence:** push; wait for CI; read both logs in full; report
+runtime with install time separate and cache state; if green, create the `develop`
+protection rule and report the exact check names; complete the security review
+(covering both the BUG-012 `@ppu/db` change and this `SessionsHeading` change) and the
+accessibility review (stating scope and method, not conformance); then Done; then
+`gh pr merge`, never locally.
