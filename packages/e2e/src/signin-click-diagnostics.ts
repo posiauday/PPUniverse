@@ -86,25 +86,36 @@ export function installClickEventTracer(): void {
   document.addEventListener("click", record(docLog, "click"), { capture: true });
   document.addEventListener("submit", record(docLog, "submit"), { capture: true });
 
-  // A full scan of the document for React's root-container marker (a property key
-  // starting with "__reactContainer$", attached to whatever DOM node createRoot was
-  // given) — not a guess at Next.js's mounting convention, because assuming a specific
-  // element (#__next is a Pages Router convention, not App Router's) would risk
-  // silently finding nothing and reporting a false "not found".
-  const rootElement = [...document.querySelectorAll("*")].find((candidate) =>
+  // A scan for React's root-container marker (a property key starting with
+  // "__reactContainer$", attached to whatever node createRoot/hydrateRoot was given) —
+  // not a guess at Next.js's mounting convention, because assuming a specific element
+  // (#__next is a Pages Router convention, not App Router's) would risk silently
+  // finding nothing and reporting a false "not found". An EARLIER version of this scan
+  // checked only document.querySelectorAll("*") (Element nodes) and always reported
+  // "not found" in every engine, 100% reproducibly (caught by this file's own
+  // self-check in harness-smoke.spec.ts, not by a BUG-014 run): Next.js's App Router
+  // hydrates onto `document` ITSELF
+  // (node_modules/next/dist/client/app-index.js: "const appElement = document"), and
+  // document is a Document, not an Element, so querySelectorAll("*") can never include
+  // it. document is checked explicitly alongside the element scan for that reason.
+  const rootCandidates: (Document | Element)[] = [document, ...document.querySelectorAll("*")];
+  const rootNode = rootCandidates.find((candidate) =>
     Object.keys(candidate).some((key) => key.startsWith("__reactContainer$")),
   );
-  w[ROOT_INFO_KEY] = rootElement
+  w[ROOT_INFO_KEY] = rootNode
     ? {
         found: true,
-        description: `${rootElement.tagName.toLowerCase()}${rootElement.id ? `#${rootElement.id}` : ""}`,
+        description:
+          rootNode === document
+            ? "document"
+            : `${(rootNode as Element).tagName.toLowerCase()}${(rootNode as Element).id ? `#${(rootNode as Element).id}` : ""}`,
       }
     : { found: false, description: null };
-  if (rootElement) {
+  if (rootNode) {
     const rootLog: ClickEventLogEntry[] = [];
     w[ROOT_EVENTS_KEY] = rootLog;
-    rootElement.addEventListener("click", record(rootLog, "click"), { capture: true });
-    rootElement.addEventListener("submit", record(rootLog, "submit"), { capture: true });
+    rootNode.addEventListener("click", record(rootLog, "click"), { capture: true });
+    rootNode.addEventListener("submit", record(rootLog, "submit"), { capture: true });
   }
 }
 

@@ -1252,3 +1252,37 @@ Pushed as `<pending>`, alongside run 11 (`021a1ea`, the self-check) which was al
 flight when this was found and will likely still show the same Format-check failure on
 `pages.ts` for the same reason. Report pending on whichever run actually carries both
 fixes.
+
+### Run 12 (`e79d8cf`): Format check green, but the new self-check itself failed in all three engines — an instrument defect, not a BUG-014 finding (2026-09-22)
+
+`Format check`: **green** — the `pages.ts` fix held. `Secret scan`: still the same
+unresolved false positive. `Accessibility`: **failed**, but every actual sign-in state
+(`signin-validation-error`, `signin-send-failed`, `signin-sent`) **passed cleanly in all
+three engines** — the failures were entirely the new self-check test itself
+(`harness-smoke.spec.ts`), in chromium, firefox and webkit. Per "Run 10 disposition"'s
+own branch for this case ("FAILS ON THE DIAGNOSTICS THEMSELVES... fix the instrument
+only, do not classify BUG-014 from that run"): the signature not recurring in this run
+is noted, but this run still does not satisfy section 2, since the control that failed
+is the proof mechanism itself.
+
+**Root cause, confirmed from Next.js's own client source, not guessed:** the React
+root-container scan in `installClickEventTracer` checked only
+`document.querySelectorAll("*")` (Element nodes). Next.js's App Router hydrates directly
+onto `document` itself — `node_modules/next/dist/client/app-index.js`:
+`const appElement = document;` then `hydrateRoot(appElement, ...)` — and `document` is a
+`Document`, not an `Element`, so `querySelectorAll("*")` can never include it. The scan
+therefore reported "not found" 100% reproducibly (deterministic, not flaky).
+
+**Fixed** (`packages/e2e/src/signin-click-diagnostics.ts`, test logic only): the scan
+now checks `document` itself alongside the element scan. Verified with
+typecheck/lint/full-repo format check (all clean) and by extending the same
+serialization-simulation technique used for the run-9 fix: a
+`__reactContainer$`-prefixed property set directly on a jsdom `document` (simulating
+what React's real `hydrateRoot(document, ...)` does, since jsdom does not run real
+React) is now correctly found, reported as `"document"`, and a dispatched click is
+captured at both listener levels — which are the same node in this app, by its own
+architecture, now documented in the code rather than assumed. Recorded in BUG-014.
+
+C: free space: unchanged from the last check this round (no cleanup performed).
+
+Pushed as `<pending>`, as the next sample.
