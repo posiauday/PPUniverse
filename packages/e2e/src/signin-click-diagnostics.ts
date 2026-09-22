@@ -1,43 +1,43 @@
 /**
  * Diagnoses the sign-in "Send sign-in link" click (decisions, 2026-09-21: "Run 7
  * failure / sign-in submit signature", then "Run 8 disposition"). Two CI failures so
- * far (run 4 §signin-sent§, run 7 §signin-send-failed§, both Firefox, both 320px, both
+ * far (run 4 `signin-sent`, run 7 `signin-send-failed`, both Firefox, both 320px, both
  * on this control) showed the app's handler never executing — no request, no
  * client-side validation error.
  *
  * Refined per the second decision, because a listener attached too late, or to the
  * wrong node, or a single pre-fill snapshot cannot rule out the specific hypothesis
- * under test: that §fill()§'s re-render replaces or detaches the button between locator
+ * under test: that `fill()`'s re-render replaces or detaches the button between locator
  * resolution and click dispatch, so the click lands on an orphan node that never
  * reaches React. Unproven — a candidate, not a conclusion. This module exists to
  * confirm or eliminate it with evidence, not to assume it:
  *
- * - Listeners are attached at §document§ (before any interaction) AND, if it can be
+ * - Listeners are attached at `document` (before any interaction) AND, if it can be
  *   found, at the DOM node React itself created its root on — so an event reaching
  *   document but never reaching React's own root is a distinguishable, visible fact.
  * - The button is snapshotted TWICE with the same function — once right after the
- *   locator resolves, again immediately before the click is dispatched (after §fill()§,
+ *   locator resolves, again immediately before the click is dispatched (after `fill()`,
  *   which is the specific re-render under suspicion) — so identity, connectedness and
  *   layout are compared across exactly the window the hypothesis is about, not before
  *   it.
- * - Node identity is tracked with a §WeakMap§ keyed by the actual element object: if the
+ * - Node identity is tracked with a `WeakMap` keyed by the actual element object: if the
  *   button locator resolves to a *different* object on the second snapshot, that is a
  *   replaced node, not the same one merely re-measured.
  *
- * All timestamps here are §performance.now()§, which is already relative to this
+ * All timestamps here are `performance.now()`, which is already relative to this
  * document's navigation start — no manual zeroing needed, and all in-page fields in
  * this module share one clock.
  *
- * §installClickEventTracer§ and §snapshotButtonNode§ are each passed BY REFERENCE to
- * Playwright's §evaluate()§, which serializes only that one function's own source text
- * (§Function.prototype.toString()§) and re-executes it inside the browser — it does
+ * `installClickEventTracer` and `snapshotButtonNode` are each passed BY REFERENCE to
+ * Playwright's `evaluate()`, which serializes only that one function's own source text
+ * (`Function.prototype.toString()`) and re-executes it inside the browser — it does
  * NOT carry along module-scope constants or helper functions declared outside the
  * function body. Each of those two functions is therefore fully self-contained: every
  * constant and helper it needs is declared INSIDE it, even at the cost of a little
  * duplication between them, matching the pattern already used in
- * §failure-evidence-inpage.ts§. (An earlier version of this file hoisted shared
- * constants and a shared §describeTarget§ helper to module scope "to avoid
- * duplication"; that broke both functions at runtime with a §ReferenceError§ the first
+ * `failure-evidence-inpage.ts`. (An earlier version of this file hoisted shared
+ * constants and a shared `describeTarget` helper to module scope "to avoid
+ * duplication"; that broke both functions at runtime with a `ReferenceError` the first
  * time they actually ran in a browser, caught in CI, not locally.)
  *
  * Test logic only; nothing here runs in, or is reachable from, the application.
@@ -55,7 +55,7 @@ export interface RootContainerInfo {
 }
 
 /**
- * Installs capture-phase §click§/§submit§ listeners at §document§ (always) and, if
+ * Installs capture-phase `click`/`submit` listeners at `document` (always) and, if
  * React's root container can be found, ALSO there — a click that reaches document but
  * not the root is a distinguishable, visible fact, not an assumption. Self-contained:
  * see the module comment for why.
@@ -146,13 +146,13 @@ export interface ButtonSnapshot {
 }
 
 /**
- * Snapshots whatever element a locator resolves to, called via §locator.evaluate()§ so
+ * Snapshots whatever element a locator resolves to, called via `locator.evaluate()` so
  * Playwright hands it the freshly re-queried live element each time — not a coordinate
  * or selector re-evaluated separately, which could resolve to something else. Typed as
- * the general §Element§ (not §HTMLButtonElement§) because Playwright's own §evaluate()§
+ * the general `Element` (not `HTMLButtonElement`) because Playwright's own `evaluate()`
  * signature is generic over the element a locator could resolve to, and everything used
- * here (§getComputedStyle§, §getBoundingClientRect§, §isConnected§, §checkVisibility§) is
- * available on §Element§ itself. Self-contained: see the module comment for why.
+ * here (`getComputedStyle`, `getBoundingClientRect`, `isConnected`, `checkVisibility`) is
+ * available on `Element` itself. Self-contained: see the module comment for why.
  */
 export function snapshotButtonNode(element: Element): ButtonSnapshot {
   const NODE_IDENTITY_KEY = "__e2eNodeIdentities";
@@ -204,7 +204,7 @@ export interface SignInClickDiagnostics {
   /** Snapshotted right after the locator resolves, BEFORE fill(). */
   atResolution: ButtonSnapshot | null;
   /** Snapshotted again immediately before the click is dispatched, AFTER fill() — the
-   * specific re-render under suspicion. Its own §hitTest§ field uses the exact same
+   * specific re-render under suspicion. Its own `hitTest` field uses the exact same
    * element reference this snapshot was taken from. */
   atDispatch: ButtonSnapshot | null;
   /** True if atDispatch resolved to a different element object than atResolution. */
@@ -215,11 +215,20 @@ export interface SignInClickDiagnostics {
 }
 
 /**
- * Pushes one attempt's diagnostics onto §window.__e2eClickDiagnostics§ for later
+ * Pushes one attempt's diagnostics onto `window.__e2eClickDiagnostics` for later
  * attachment. Self-contained: see the module comment for why.
+ *
+ * The local constant below is named `DIAGNOSTICS_GLOBAL_NAME`, not `KEY` (decision,
+ * 2026-09-22, "Run 13 / merge authorization"): a secret scanner flagged
+ * `const KEY = "__e2eClickDiagnostics";` as a generic-api-key finding — triggered by the
+ * identifier keyword, not the value, since structurally identical
+ * `const KEY = "..."` patterns elsewhere in this file family were unflagged. This name
+ * also more accurately describes what the constant is: the name of a `window` property
+ * used to carry diagnostics, not a credential of any kind. The value itself
+ * (`"__e2eClickDiagnostics"`) is unchanged — this is a rename, not a behavior change.
  */
 export function recordSignInClickDiagnostics(entry: SignInClickDiagnostics): void {
-  const KEY = "__e2eClickDiagnostics";
-  const w = window as unknown as { [KEY]: SignInClickDiagnostics[] };
-  (w[KEY] ??= []).push(entry);
+  const DIAGNOSTICS_GLOBAL_NAME = "__e2eClickDiagnostics";
+  const w = window as unknown as { [DIAGNOSTICS_GLOBAL_NAME]: SignInClickDiagnostics[] };
+  (w[DIAGNOSTICS_GLOBAL_NAME] ??= []).push(entry);
 }

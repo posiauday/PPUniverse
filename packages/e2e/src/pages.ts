@@ -47,10 +47,10 @@ const VALID_EMAIL = "e2e-a11y@example.invalid";
  * the two CI failures observed on this exact interaction (run 4 signin-sent, run 7
  * signin-send-failed, both Firefox, both 320px): whether the click reaches the button
  * (hit test), whether it was hydrated, whether the browser's own click/submit events
- * fire at document AND at React's own root, and — because §fill()§'s re-render is a
+ * fire at document AND at React's own root, and — because `fill()`'s re-render is a
  * specific, unproven candidate cause — whether the button is still the SAME node,
  * still connected, and still laid out the same way immediately before the click as it
- * was right after the locator resolved. Recorded on §window§ for §failure-evidence.ts§
+ * was right after the locator resolved. Recorded on `window` for `failure-evidence.ts`
  * to attach ONLY if the test ends up failing; adds a few fast, synchronous-in-page
  * evaluate calls regardless (unavoidable, since whether the test will fail is not known
  * in advance).

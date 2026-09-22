@@ -1285,4 +1285,49 @@ architecture, now documented in the code rather than assumed. Recorded in BUG-01
 
 C: free space: unchanged from the last check this round (no cleanup performed).
 
-Pushed as `<pending>`, as the next sample.
+Pushed as `28ba291`.
+
+### Run 13 accepted; secret-scan rename applied; merge authorized (2026-09-22, direct product-owner instruction: "Run 13 / merge authorization")
+
+**Run 13 (`28ba291`) accepted as the first admissible sample.** Runs 8-12's status
+recorded explicitly in BUG-014 (a table, not prose implying it) rather than left
+implied: 8/9/10/12 void, 11 cancelled, 13 the first with a real-browser-verified
+instrument. The unconditional self-check is now a permanent fixture — recorded in
+BUG-014 as not to be removed, skipped, or made conditional.
+
+**Secret scan: renamed, not allowlisted** (`packages/e2e/src/signin-click-diagnostics.ts`,
+test logic only): the local `const KEY = "__e2eClickDiagnostics";` that gitleaks flagged
+is now `const DIAGNOSTICS_GLOBAL_NAME = "__e2eClickDiagnostics";` — the identifier
+renamed, the string value (and therefore all runtime behavior) unchanged. Rationale
+recorded in the code and in BUG-014: the finding is triggered by the identifier keyword
+"KEY", not the value, since structurally identical `const KEY = "..."` patterns
+elsewhere in this file family are unflagged; the new name also more accurately
+describes what the constant is. No allowlist entry, inline suppression, or scanner
+config change was made.
+
+**A second, unrelated defect found and fixed in the same pass:** while editing this
+file, found that its JSDoc comments used a literal "`" character around code
+identifiers (e.g. `fill()`) instead of backticks — an artifact of this session's own
+markdown-generation convention (`→backtick substitution scripts used for
+planning/*.csv and docs/*.md edits) leaking into direct Write/Edit calls on .ts source,
+which never go through that conversion. Swept the whole repository
+(`git ls-files | xargs grep -l "`"`) to scope this precisely: every OTHER occurrence
+(`docs/final-decisions.md`, `apps/worker/src/index.ts`,
+`packages/domain/identity/src/session-authorization.ts`, etc.) is a legitimate,
+pre-existing section reference ("`1", "`5" meaning "section 1", "section 5"), unrelated
+and untouched. Only three files, all test code touched earlier this session, had the
+actual mistake: `signin-click-diagnostics.ts` (fixed as part of the rename),
+`packages/e2e/src/auth-intercept.ts` and `packages/e2e/src/pages.ts` (one comment each,
+fixed). Comment text only — no behavior change.
+
+Verified: `typecheck`, `lint`, full-repo `prettier --check` all clean. Extended the
+serialization simulation to `recordSignInClickDiagnostics` itself (not previously
+checked individually) — confirmed it still accumulates correctly across separate
+serialized calls after the rename, using the new identifier.
+
+C: free space before this round's local work: **5.85GB** — above the 2GB threshold, no
+cleanup performed.
+
+Pushed as `<pending>`, per the authorized sequence: apply the rename, commit, push, then
+read both required job logs in full before proceeding to the security review,
+accessibility review, and merge.

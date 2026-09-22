@@ -12,7 +12,7 @@ export type SendOutcome = "sent" | "failed";
  * next-auth's client reads `error` from the query string of the URL in the JSON body.
  */
 /**
- * Returns the Node wall-clock time (§Date.now()§) at which the route interception was
+ * Returns the Node wall-clock time (`Date.now()`) at which the route interception was
  * confirmed registered, so a caller can record how long before a subsequent click it
  * was in place (decision, 2026-09-21: "Run 7 failure / sign-in submit signature",
  * item 2d).
