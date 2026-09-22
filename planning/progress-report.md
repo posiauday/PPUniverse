@@ -1770,3 +1770,28 @@ decision entry, not repeated here).
 
 **Not yet done:** push, open the PR, read CI's real production-mode result in full,
 complete the formal security and accessibility review sign-off, mark Done, merge.
+
+### Run 1 (`77abff0`, PR #8): two real bugs found in CI's real production build — fixed (2026-09-22)
+
+Secret scan and `Format, lint, typecheck, test, build` both green (the latter confirms
+the 5 new DB-gated integration tests, including the concurrency test, PASSED for real —
+read directly from the log, not inferred from the status tick). `Accessibility` failed
+— on genuinely new problems the local dev-mode pass had not (and structurally could
+not have) surfaced, not the `nextjs-portal` artifact:
+
+1. **`entitlements_userId_productId_key` unique-constraint violation, `product-free-entitled` at every width past the first.** `seed.ts`'s `grantEntitlement` helper called `prisma.entitlement.create()` directly — not idempotent, unlike the production repository's own `grantOrReuseEntitlement`. `product-free-entitled` runs once per tested width against the same worker-scoped fixture user and product; the first width's grant succeeds, every width after it threw. Fixed: `grantEntitlement` now catches a real `P2002` and treats it as already-granted, mirroring the production pattern it should have matched from the start.
+2. **`product-free-granted` timing out waiting for its own button, from the third tested width onward.** The same underlying cause, one level up: this state's own `prepare` grants an entitlement (by clicking, via the real API) as part of what it tests — the first width's click succeeds and persists, so every later width's run found the button already replaced by the "already have this" message, correctly, since the app was correctly reporting a real, persistent entitlement. Fixed: added a `resetEntitlement` fixture helper that deletes any existing entitlement for the fixture user and product, called at the start of this state's `prepare`, before every width's click — not found or needed locally because the narrow local runs used did not happen to repeat this exact state across all four widths in the same way run 1's full CI matrix did.
+
+Also fixed, mechanical: `fixtures-cleanup.spec.ts` had two hardcoded expectations of "2
+fixture products per worker," stale since `freeGrantProduct` (item 1 above's sibling
+fix, added earlier this same round for a different collision) made it 3.
+
+**Verified before re-pushing**, against a real database again (embedded-postgres,
+restarted): `@ppu/e2e`'s full unit/integration suite (82/82, including the corrected
+cleanup counts); the full `product-free-*` matrix at all four widths in chromium
+(14/14) — this time deliberately exercising the exact same repeated-width-per-state
+pattern that broke in CI, not the narrower slice checked before run 1. Full-repo
+`prettier --check`: clean.
+
+Pushed as `<pending>`. This is the second CI sample for this story — not a docs-only
+push, a genuine fix for what run 1 found.

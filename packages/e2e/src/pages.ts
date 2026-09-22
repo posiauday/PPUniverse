@@ -249,7 +249,14 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 200,
     path: (seed) => `/products/${seed.freeGrantProduct.slug}`,
-    prepare: async (page) => {
+    prepare: async (page, seed) => {
+      // Reset first, then reload: this state is tested at every width against the
+      // same worker-scoped fixture user and product, so without this only the
+      // FIRST width's run would ever see the "not yet entitled" starting point —
+      // every later width would find the button already gone from an earlier
+      // width's own successful grant (found in CI, not locally, run 1).
+      await seed.resetEntitlement(seed.freeGrantProduct.slug);
+      await page.reload();
       await page.getByRole("button", { name: /get for free/i }).click();
       await expect(page.getByRole("status")).toHaveText(/you now have this for free/i);
     },

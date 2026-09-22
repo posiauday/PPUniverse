@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { prisma } from "@ppu/db";
+import { Prisma, prisma } from "@ppu/db";
 import { assertSafeDatabaseTarget } from "./db-guard.js";
 import { RESERVED_PREFIX, assertReserved, newWorkerPrefix } from "./prefix.js";
 
@@ -55,11 +55,28 @@ export interface FixtureSet {
   /**
    * Grants this worker's fixture user a free entitlement to the given
    * product (MVP-010, FR-005), for exercising the "already entitled" page
-   * state. No separate cleanup call is needed: Entitlement.userId cascades
-   * on delete (packages/db/prisma/schema/entitlements.prisma), so removing
-   * the fixture user at cleanup() removes this too.
+   * state. Idempotent — a repeat call for the same product is a no-op, not
+   * an error: the same state runs once per tested width against the same
+   * worker-scoped fixture user and product, so a naive create() would throw
+   * a real unique-constraint violation on the second width onward (found in
+   * CI, not locally, run 1). No separate cleanup call is needed:
+   * Entitlement.userId cascades on delete (packages/db/prisma/schema/
+   * entitlements.prisma), so removing the fixture user at cleanup() removes
+   * this too.
    */
   grantEntitlement(productSlug: string): Promise<void>;
+  /**
+   * Removes any existing entitlement for this worker's fixture user and the
+   * given product (MVP-010), so a state that grants one ITSELF, through a UI
+   * interaction rather than this helper, can start from a guaranteed-clean
+   * slate on every tested width — otherwise only the first width's run
+   * would ever see the "not yet entitled" starting condition, since the
+   * fixture user and product persist across every width the same state is
+   * tested at (found in CI, not locally, run 1: product-free-granted timed
+   * out from the third tested width onward, waiting for a button that could
+   * only ever exist before the first width's own grant).
+   */
+  resetEntitlement(productSlug: string): Promise<void>;
   cleanup(): Promise<void>;
 }
 
@@ -268,9 +285,19 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       createExtraSession: () => makeSession(new Date(now.getTime() - (3 + extras++) * HOUR_MS)),
       grantEntitlement: async (productSlug: string) => {
         const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
-        await prisma.entitlement.create({
-          data: { userId: user.id, productId: product.id, source: "FREE_POLICY" },
-        });
+        try {
+          await prisma.entitlement.create({
+            data: { userId: user.id, productId: product.id, source: "FREE_POLICY" },
+          });
+        } catch (error) {
+          const alreadyGranted =
+            error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+          if (!alreadyGranted) throw error;
+        }
+      },
+      resetEntitlement: async (productSlug: string) => {
+        const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
+        await prisma.entitlement.deleteMany({ where: { userId: user.id, productId: product.id } });
       },
       cleanup,
     };

@@ -31,7 +31,10 @@ test.describe("fixture cleanup is scoped to the rows its worker created", () => 
 
     try {
       expect(first.prefix).not.toBe(second.prefix);
-      expect(await prisma.product.count({ where: { slug: { startsWith: first.prefix } } })).toBe(2);
+      // 3 fixture products per worker: fullProduct, minimalProduct, freeGrantProduct
+      // (MVP-010) — isolated from each other so a state that grants a free
+      // entitlement can never leak into one that expects none yet.
+      expect(await prisma.product.count({ where: { slug: { startsWith: first.prefix } } })).toBe(3);
       expect(
         await prisma.session.count({ where: { sessionToken: { startsWith: first.prefix } } }),
       ).toBe(2);
@@ -46,7 +49,7 @@ test.describe("fixture cleanup is scoped to the rows its worker created", () => 
       ).toBe(0);
       // ...the second worker's rows are untouched...
       expect(await prisma.product.count({ where: { slug: { startsWith: second.prefix } } })).toBe(
-        2,
+        3,
       );
       expect(await prisma.user.count({ where: { email: { startsWith: second.prefix } } })).toBe(1);
       expect(
