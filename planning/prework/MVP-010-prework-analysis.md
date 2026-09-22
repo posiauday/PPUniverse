@@ -1,6 +1,6 @@
 # MVP-010 pre-work analysis — Free entitlement flow (FR-005)
 
-Story instruction: "STORY INSTRUCTION — MVP-010 (FR-005, Free entitlement flow)", 2026-09-22, direct product-owner instruction. **Pre-work only. No code has been written.** This document is the deliverable; implementation does not begin until it is reviewed and approved.
+Story instruction: "STORY INSTRUCTION — MVP-010 (FR-005, Free entitlement flow)", 2026-09-22, direct product-owner instruction. Originally pre-work only; **open questions 44 and 45 were closed 2026-09-22** (direct product-owner instruction, "MVP-010 open questions 44 and 45", recorded in `docs/final-decisions.md`) and implementation is now authorized for exactly the scope that decision and this document describe. Updates made to this document on closing: marked below wherever a proposal became a decision; nothing proposed here was silently changed.
 
 ## State verified before starting
 
@@ -46,7 +46,7 @@ Confirmed, not inferred, from three independent sources that all agree:
 
 If sign-in is **not** required for a given product's free download, the flow has no `User` to attach an `Entitlement` to — `Entitlement.userId` would need to become nullable, or a guest-only, entitlement-less "just log a `Download`" path would need to exist alongside the signed-in path. That is a second, materially different code path (anonymous request handling, no session to authorize against, a different shape of "record" with no persistent right attached to it), not just a boolean flag. Building the real per-product policy this round means building and testing both paths in one story.
 
-**Proposing the safest reversible default, per the instruction's own suggestion, and treating it as exactly that — a proposal, not approved:** require sign-in for **all** free downloads in this story (no product-level field, no guest path). This is reversible: adding the per-product policy and the guest path later is additive, not a rewrite of anything MVP-010 would build under this default. **Recorded in `docs/open-questions.md` below; not decided here.**
+**DECIDED (2026-09-22, `docs/final-decisions.md`, "MVP-010 open questions 44 and 45"):** require sign-in for **all** free downloads in this story. No product-level field, no guest path, no disabled or unused policy flag. The per-product policy is deferred, not omitted — a real future story, stated plainly as such so it is never mistaken for the intended end state.
 
 ### 3. Test data
 
@@ -64,7 +64,7 @@ Proposing the same reserved-prefix pattern already proven in the accessibility s
 
 **The existing schema does not settle this — nothing currently implies permanent, revocable, or version-scoped.** The only relevant signal is `docs/06-data-model.md`'s constraint that "Entitlement references the order line, admin grant or subscription source" — all three of those are inherently **product**-scoped commercial events (you buy or are granted access to a product, not one specific release of it), not version-scoped. A free entitlement is a fourth kind of source with the same shape: I'm proposing it be **product-scoped** (one entitlement covers all past and future releases of that product), for consistency with that pattern and because scoping to a single release would mean a user needs a new entitlement every time a creator ships an update to something they already have for free — which contradicts ordinary marketplace expectations and isn't asked for anywhere.
 
-Whether it is **permanent** or **revocable on product suspension** is a genuine product policy question, not something the schema or FR-005 answers. Proposing the safest reversible default: **permanent once granted** (a `revokedAt` column exists for future use, but nothing in this story sets it) — consistent with how most marketplaces treat something a user already has, and reversible (a later story can add the actual suspension-triggered revocation logic without a schema change, since the column would already be there). **Recorded in `docs/open-questions.md` below; not decided here.**
+**DECIDED (2026-09-22, `docs/final-decisions.md`, "MVP-010 open questions 44 and 45"):** permanent-until-revoked, **approved with an amendment**: `revokedAt` is included AND **enforced at read time** — a download is denied when it is non-null — even though no code path in this story ever sets it. Rationale recorded in the decision: an unenforced reserved column invites a future revocation feature that ships without the check; enforcing the condition now costs one comparison and means product suspension behaves correctly the moment any future write path sets the column.
 
 ## Proposed entities and fields
 
@@ -78,7 +78,7 @@ Two new tables (`packages/db/prisma/schema/entitlements.prisma`), matching this 
 | `productId` | `String` | No | FK → `Product` |
 | `source` | `EntitlementSource` enum | No | `FREE_POLICY` only, for now — extensible when MVP-007/008 add `ORDER_LINE`/`ADMIN_GRANT`/`SUBSCRIPTION`, matching the data model's own list of sources |
 | `grantedAt` | `DateTime @default(now())` | No | |
-| `revokedAt` | `DateTime?` | Yes | Unset by this story; reserved for a future revocation workflow (Q5) |
+| `revokedAt` | `DateTime?` | Yes | **Enforced at read time** (decision, 2026-09-22): a download is denied whenever this is non-null. No code path in this story ever sets it — nothing revokes an entitlement here — but the check exists and is live from the first migration, not added later alongside whatever eventually writes to it. |
 | `createdAt` / `updatedAt` | `DateTime` | No | Standard convention used everywhere else in this schema |
 
 Cardinality: **one `Entitlement` per (`userId`, `productId`)** — `@@unique([userId, productId])`, ordered so the same index also serves "list a user's entitlements" lookups without a second index. Re-running the free flow for a product the user is already entitled to is idempotent (reuses the existing row), consistent with "always create an entitlement... record" meaning "ensure one exists," not "always insert a new one" — an entitlement is the *right*, not an event.
@@ -95,8 +95,8 @@ Cardinality: **one `Entitlement` per (`userId`, `productId`)** — `@@unique([us
 
 Cardinality: **many `Download` rows per `Entitlement`** — an append-only event log, one row per completed flow invocation (a user can "download" the same free product more than once; each is its own record). No unique constraint.
 
-### `Product.requiresSignInForFreeDownload` (conditional — only if Q2 is decided as "build it now")
-`Boolean @default(true)`, additive, backward compatible (existing rows get `true` via the migration's `DEFAULT`). **Not built unless Q2 is answered "yes, build the real policy field now."** Under the proposed safest default (sign-in always required), this column is not added in this pass.
+### `Product.requiresSignInForFreeDownload` — **not built** (decided 2026-09-22)
+No `Product` column is added. Q44 closed with the universal-sign-in default; the per-product policy field is deferred to a future story, not built in any form here, including disabled or unused.
 
 ## Constraint and index plan
 
@@ -141,6 +141,9 @@ None exists today — confirmed by reading `apps/web/app/products/[slug]/page.ts
 - No file is served or referenced by this story — the signed-URL/storage-path security surface (FR-007's "storage paths are never public") is entirely MVP-009's, untouched here.
 - Idempotent grant (unique constraint) prevents a duplicate-request race from creating two entitlement rows; the repository's upsert must be written to rely on the database constraint (an `ON CONFLICT DO NOTHING`-shaped operation or Prisma's `upsert`), not a check-then-insert that a concurrent request could race.
 - RLS enabled on both new tables from their first migration, matching every other table in this schema — no table is ever created RLS-less even temporarily.
+- **Never trust a client-supplied price, free flag, or product state** (decision, 2026-09-22): eligibility is re-derived server-side from the database row on every request, never accepted as a parameter.
+- **`revokedAt` is enforced at read time** (decision, 2026-09-22): a download is denied when it is non-null, even though nothing in this story sets it.
+- **Data minimisation** (decision, 2026-09-22): `Download` stores only `entitlementId`, `userId`, `productId`, `requestedAt` — no IP address, no user agent, no field beyond what audit needs.
 
 ## Accessibility impact
 
@@ -179,20 +182,20 @@ Following `apps/web/lib/observability.ts`'s confirmed, existing pattern (`withOb
 
 ## Remaining ambiguities (not resolved here)
 
-1. **Q2 (sign-in policy)** — recorded in `docs/open-questions.md` below.
-2. **Q5 (revocation on suspension)** — recorded in `docs/open-questions.md` below.
-3. **Account-deletion interaction** — whether an `Entitlement` should be preserved, anonymized, or cascade-deleted when a user's account is deleted (MVP-020's scope, not this story's) is flagged but not decided; the proposed `Cascade` default above is reversible.
+1. ~~Q2 (sign-in policy)~~ — **CLOSED 2026-09-22**, see above.
+2. ~~Q5 (revocation on suspension)~~ — **CLOSED 2026-09-22**, see above.
+3. **Account-deletion interaction** — whether an `Entitlement` should be preserved, anonymized, or cascade-deleted when a user's account is deleted (MVP-020's scope, not this story's) is flagged but not decided; the proposed `Cascade` default above is reversible. Not closed by the 2026-09-22 decision.
 4. **UI placement once MVP-007 exists** — the "show the free-download control whenever a product has no paid affordance" default above is a placeholder that will need revisiting once checkout exists and some products are genuinely priced; not a decision this story can make in isolation since MVP-007 doesn't exist yet.
 5. **Exact route/action shape** (a dedicated `POST /api/products/[slug]/entitlement` route vs. a Server Action) is an implementation choice, not a product decision — proposing whichever this repository's existing convention favors once actually implemented; `apps/web/app/api/*` already has precedent for user-triggered mutations (e.g., `api/me/sessions/[id]`), so a route handler is the likely fit, but this is not being decided as part of pre-work.
 
 ## Open questions recorded
 
-Two items added to `docs/open-questions.md` as part of this pre-work, each with the safest reversible default proposed above and explicitly marked not approved. See that file for the exact entries (items 44 and 45).
+Items 44 and 45 in `docs/open-questions.md`, both **CLOSED 2026-09-22** (`docs/final-decisions.md`, "MVP-010 open questions 44 and 45"). See that file for the exact closing entries.
 
 ## Do-not-implement list (restated, unchanged)
 
 MVP-007, 008, 009, 011, 012, 013, 017, 018, 020; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics beyond the telemetry events named above; creator and collections routes; compatibility workflow; search behaviour changes; promoting `develop` to `main`. No modification to completed MVP-001/002/003/004/005/006/021/022/023 behavior. No gate check weakened, skipped, quarantined or conditionally excluded. The accessibility self-check stays permanent and unconditional. BUG-014 stays open, monitor-only, permanently instrumented — not touched under this authorization.
 
-## Stopping here
+## Implementation authorized (2026-09-22)
 
-Per the instruction: **STOP after the pre-work analysis.** No code has been written. Waiting for review and approval, including explicit answers to open questions 44 and 45, before any implementation begins.
+Open questions 44 and 45 closed; implementation authorized on `feature/mvp-010-free-entitlement` for exactly the scope this document and `docs/final-decisions.md`'s "MVP-010 open questions 44 and 45" entry describe, and nothing else. See `planning/progress-report.md` for the implementation record as it proceeds.

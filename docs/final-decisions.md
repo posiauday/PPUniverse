@@ -560,3 +560,32 @@ This sign-off satisfies the MVP-023 completion rule's accessibility-review requi
 `planning/mvp-backlog.csv` and `planning/backlog.csv` have shown MVP-023 as `Done` since 2026-09-21 (a decision made before the run-8-through-16 investigation this document records) — noted here because the CLAUDE.md completion gate (tests passing, documentation and traceability updated, security review completed) is only genuinely satisfied as of THIS entry, not as of the earlier marking. The status value itself does not need to change, because it is now accurate; the gap between when it was marked and when it became true is recorded here rather than left silent.
 
 Merged via `gh pr merge` (not locally, not squashed) once this entry and the corresponding `progress-report.md` entry were written.
+
+## 2026-09-22 — MVP-010 (FR-005, Free entitlement flow): open questions 44 and 45
+
+Direct product-owner instruction, "MVP-010 open questions 44 and 45." Closes both questions raised in `planning/prework/MVP-010-prework-analysis.md` and authorizes implementation for the scope stated there and in this entry, nothing else.
+
+### Q44 — sign-in requirement: the proposed default is approved
+Require sign-in for all free downloads in MVP-010. **The per-product "requires sign-in" policy field is deferred, not omitted** — it is a real future story, not a cut feature, because building it now means building a second identity model alongside it: anonymous ownership, email capture, abuse controls, and a claim-on-registration path, not a schema column. **Do not add the field now, disabled or otherwise; do not add an unused policy flag.** Universal sign-in is stated plainly as this MVP's position, not the intended end state, so a future reader does not mistake it for a permanent product decision.
+
+### Q45 — entitlement scope and lifecycle: approved, with an amendment
+**Approved as proposed:** product-scoped (not release-scoped), permanent-until-revoked.
+
+**Amended on `revokedAt`:** the nullable column is included **and enforced at read time** — a download is denied when `revokedAt` is non-null. No code path in this story ever sets it; that is stated plainly in the schema comment and the implementation, not left implicit. Rationale to record: an unenforced reserved column invites a future revocation feature that ships without the check being wired in; enforcing the read-time condition now costs one comparison and means product suspension behaves correctly the moment any future write path sets the column — nothing about revocation itself needs to be re-derived later.
+
+### Stale README
+Approved: correct `packages/domain/entitlements/README.md`'s ownership line as part of this story — a one-line correction inside the area MVP-010 is filling in, not a broader documentation pass.
+
+### Required in the implementation
+- **Authorization, server-side, deny-by-default:** the product must be `PUBLISHED` and free at request time, checked server-side; a client-supplied price, free flag or product state is never trusted; entitlement is denied for draft, suspended, archived or rejected products; download is denied when `revokedAt` is non-null.
+- **Idempotency:** a unique constraint on `(userId, productId)` prevents duplicate entitlements from repeated requests; `Download` stays append-only (one row per download event), a materially different cardinality from `Entitlement`, not merged into it.
+- **Data minimisation:** the `Download` record captures only what audit needs. No IP address, user agent, or personal data beyond what an already-approved decision covers. Anything that looks like it needs one is recorded as a new open question, not added.
+- **Schema:** hand-written migration, reversible, non-destructive; `ENABLE ROW LEVEL SECURITY` on every new table, in the same migration that creates it, per the established convention — not deferred to a follow-up.
+- **Accessibility gate:** any new UI surface is added to the enumerated page/state list in `packages/e2e`, exercised at 320/375/768/1280 across all three engines; the route-coverage spec is not satisfied by adding a real, user-facing page to an exclusion list; empty, loading, denied and already-entitled states are all included, not only the success path.
+- **Telemetry:** `@ppu/telemetry` structured logs only. No product analytics — FR-016 stays deferred.
+
+### Do not implement (restated for this story)
+Signed download delivery or any part of FR-007 — that is MVP-009's, and it is blocked by the absent `ReleaseFile` model (see the pre-work analysis). **If the work appears to require connecting `FileScan` to a `Release` or `Product`, stop and ask — that is a backlog change, not an implementation choice.** Also excluded, restated unchanged from the pre-work authorization: MVP-007, 008, 009, 011, 012, 013, 017, 018, 020; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics; creator and collections routes; compatibility workflow; search-behaviour changes; promoting `develop` to `main`; the per-product sign-in policy field (Q44). No modification to completed MVP-001/002/003/004/005/006/021/022/023 behaviour. No gate check weakened, skipped, quarantined or conditionally excluded. The accessibility self-check stays permanent and unconditional. BUG-014 stays open, monitor-only, permanently instrumented — not touched under this authorization.
+
+### Process
+Implementation authorized on `feature/mvp-010-free-entitlement`, for the scope above and nothing else. One real PR via `gh pr create` when ready; never `main`, never a local merge, never squashed. Disk protocol stands: free space reported before any local run, under 2GB stops rather than runs. Completion rule unchanged (tests pass; all required checks green on the head being merged; DB-gated suites confirmed PASSED by reading the log, not the status tick; skip count 0 or explained; 0 retries; docs and traceability updated; security and accessibility reviews complete). A new product decision surfacing mid-implementation is recorded with a safest reversible default and stops for approval — not resolved unilaterally.

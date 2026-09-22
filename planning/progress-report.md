@@ -1638,3 +1638,29 @@ moved from Ready to In Progress (pre-work is work, even though no code exists ye
 
 **Stopped here, per instruction.** Waiting for review of the pre-work analysis and
 explicit answers to open questions 44 and 45 before writing any implementation code.
+
+### MVP-010: open questions 44 and 45 closed, implementation authorized (2026-09-22)
+
+Direct product-owner instruction, "MVP-010 open questions 44 and 45."
+
+- **Q44:** the proposed default approved as-is — require sign-in for all free downloads;
+  the per-product policy field is deferred (a real future story, not a cut feature) and
+  not added now in any form, including disabled or unused.
+- **Q45:** approved with an amendment — product-scoped, permanent-until-revoked as
+  proposed, but `revokedAt` must be **enforced at read time** (a download denied when
+  non-null) even though nothing in this story sets it, rather than merely reserved for
+  later. Rationale recorded: an unenforced reserved column invites a future revocation
+  feature that ships without the check.
+- **Stale README correction approved**, scoped to the one ownership line.
+- Explicit implementation requirements added beyond the pre-work proposal: server-side
+  re-derivation of product/eligibility state on every request (never trust a
+  client-supplied price/free flag/state); data minimisation on `Download` (audit fields
+  only, no IP/user agent); the accessibility gate must cover empty/loading/denied/
+  already-entitled states, not just success; `@ppu/telemetry` only, no analytics.
+- **Explicitly excluded, restated:** any part of FR-007/signed delivery — blocked by the
+  absent `ReleaseFile` model; if implementation appears to need connecting `FileScan`
+  to a `Release`/`Product`, stop and ask.
+
+`docs/final-decisions.md`, `docs/open-questions.md` (44, 45 closed) and
+`planning/prework/MVP-010-prework-analysis.md` updated to record the decision.
+Implementation authorized on `feature/mvp-010-free-entitlement`.
