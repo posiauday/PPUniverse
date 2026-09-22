@@ -1331,3 +1331,50 @@ cleanup performed.
 Pushed as `<pending>`, per the authorized sequence: apply the rename, commit, push, then
 read both required job logs in full before proceeding to the security review,
 accessibility review, and merge.
+
+### Run 14 (`cf28b33`): both required checks green, but Secret scan still fails after the rename — STOPPED per section 2, not merging (2026-09-22)
+
+**Both required checks green.** `Format, lint, typecheck, test, build`: ✓ (1m53s).
+`Accessibility`: ✓ — 423 passed, 0 skipped, 0 retries, self-check passing in all three
+engines again (4.2m test execution); the sign-in signature did not recur.
+
+**Secret scan still fails after the rename — 3 leaks found, none at the current file
+tip.** Reading the raw gitleaks log surfaced something the earlier rounds had missed:
+gitleaks's own printed command scans a **commit-range diff** (`git log` between two
+SHAs with `--first-parent`), not the current working tree. All three findings point to
+commits already in this branch's history, each showing the pattern at the moment it was
+introduced there — a rename applied only in the latest commit cannot retroactively
+change what an earlier commit's own diff contains:
+
+| # | File | Line | Commit | What's there |
+|---|---|---|---|---|
+| 1 | `packages/e2e/src/signin-click-diagnostics.ts` | 129 | `424049f` | The original declaration, using the identifier the rename replaced |
+| 2 | `planning/progress-report.md` | 1092 | `7529f73` | This session's own documentation, quoting that exact declaration verbatim while describing the false positive |
+| 3 | `planning/progress-report.md` | 1135 | `8d4c724` | Same — quoted again in a later entry |
+
+**A compounding factor, now visible and worth recording plainly:** every progress-report
+entry written across this investigation that quoted the flagged declaration verbatim,
+to document *why* it was believed to be a false positive, re-introduced the identical
+trigger pattern into a NEW commit each time — findings 2 and 3 above are exactly that.
+Explaining the false positive has been re-triggering it. (This entry itself avoids
+quoting the exact declaration for that reason — see the rename commit's own message
+and `signin-click-diagnostics.ts`'s doc comment for the literal before/after text.)
+
+**One more thing observed, not fully explained, and worth flagging rather than
+asserting:** the gitleaks command's printed end-of-range commit was `021a1ea` — three
+commits behind `cf28b33`, the actual head this run was triggered by. Why the action
+resolved an older SHA is not established here (could be how `gitleaks-action` derives
+the PR's head across rapid successive pushes, or something else) — but a practical
+consequence follows either way: `cf28b33`'s own progress-report addition (the "Run 13
+accepted..." entry above) also quotes the flagged declaration verbatim, and was not yet
+in this run's scanned range. That occurrence has not been fixed and has not yet
+surfaced as its own finding — it is likely to on a future scan. No git-history rewrite
+has been attempted or is proposed here; this is reported as an observed fact for a
+decision, not acted on.
+
+**Per section 2 of "Run 13 / merge authorization" ("If the finding persists after the
+rename, STOP and report. Do not add an allowlist entry, inline suppression, rule
+exclusion or config change without a separate decision"): stopped here.** No allowlist
+entry, suppression, or gitleaks config change has been made. The security review,
+accessibility review, Done marking, and merge have NOT been started — all deferred
+pending a decision on this.
