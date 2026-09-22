@@ -1128,3 +1128,44 @@ that never reaches React.
 
 Pushed as `<pending>`, per instruction (no documentation-only push used to obtain a
 sample). Report pending on run 9.
+
+### CI run 9: all three jobs failed, one of them a defect in this session's own test code (2026-09-21/22)
+
+Run 9 (`7529f73`) failed on all three jobs:
+- `Secret scan`: the same unresolved gitleaks false positive as run 8 (`const KEY = "__e2eClickDiagnostics";`) — unchanged, still awaiting the product owner's decision, not touched.
+- `Format, lint, typecheck, test, build`: failed on formatting. This round's code was written under the disk protocol without a local `prettier` run (C: was at 0.19GB), verified by manual review only — the review missed a real formatting deviation. Because this job runs its steps in sequence and stops after the first failure, lint/typecheck/test/build never ran at all; their status is unknown, not passing.
+- `Accessibility (axe + Playwright)`: 54 failures, all with the identical error:
+  `ReferenceError: DOC_EVENTS_KEY is not defined`, thrown inside `installClickEventTracer`
+  the moment Playwright serialized it and re-executed it in the browser. **This is a
+  defect in this session's own test code, unrelated to BUG-014's signature — not a new
+  finding about the application.** The refinement pushed in `7529f73` had hoisted several
+  `const` key strings (`DOC_EVENTS_KEY`, `ROOT_EVENTS_KEY`, `ROOT_INFO_KEY`,
+  `NODE_IDENTITY_KEY`) and a shared `describeTarget`/`findReactRootContainer` pair of
+  helper functions to module scope "to avoid duplication" between
+  `installClickEventTracer` and `snapshotButtonNode`. Both functions are passed BY
+  REFERENCE to Playwright's `evaluate()`, which serializes ONLY that one function's own
+  source text (`Function.prototype.toString()`) and re-executes it as an isolated script
+  in the browser — it does not carry along anything declared outside the function body.
+  Every module-scope constant and every external helper function reference was
+  therefore invisible at runtime, even though it type-checked cleanly (a module-scope
+  `const` is perfectly valid, resolvable TypeScript from inside a function in the same
+  module; the failure exists only after Playwright extracts the function in isolation,
+  which `tsc` has no way to model). Because `submitSignIn` calls
+  `installClickEventTracer` on every sign-in-adjacent state, and `keyboard.spec.ts`'s
+  traversal also calls `state.prepare()`, this one defect cascaded across most of the
+  sign-in-related matrix — a false-positive failure signal, not 54 independent findings.
+
+### Run 9's defect fixed; verified by simulating Playwright's actual serialization, not by local Playwright run (2026-09-22)
+
+C: free space rechecked before doing anything further: **7.95GB**, up from 0.19GB (recovered independently of this session; no cleanup was performed this round). Above the 2GB threshold, so local verification was permitted this round.
+
+**Fix** (`packages/e2e/src/signin-click-diagnostics.ts`, test logic only, no product code, no suite configuration change): `installClickEventTracer` and `snapshotButtonNode` were rewritten to be fully self-contained — every key string they use, and a small local `describeTarget`-equivalent each, is now declared INSIDE the function body that uses it, duplicated between the two rather than shared from module scope. This matches the pattern already proven correct elsewhere in this file family (`failure-evidence-inpage.ts`'s `installFailureEvidenceTracer`, and this same file's own `recordSignInClickDiagnostics`, which never had the bug because it already declared its key locally).
+
+**Verified three ways, in order of what each can and cannot prove:**
+1. `pnpm --filter @ppu/e2e typecheck` and `pnpm --filter @ppu/e2e lint`: both clean. Necessary but **not sufficient** — as run 9 showed, this exact class of bug type-checks and lints cleanly, because module-scope references are valid, ordinary TypeScript; the failure only exists once Playwright extracts a function's source text and re-executes it alone.
+2. `pnpm exec prettier --check --end-of-line auto` on the changed file: clean after one `--write` pass (the gap that caused run 9's Format-check failure — this time actually run locally, not skipped).
+3. **A direct simulation of Playwright's own serialization mechanism**, since neither of the above tests the actual failure mode: a scratch script compiled the file with `tsc`, then for each of `installClickEventTracer` and `snapshotButtonNode` took `fn.toString()` and re-executed that string as a freestanding function via `new Function()` — exactly what Playwright's `evaluate()` does — inside a jsdom-backed DOM (real `window`/`document`/`Element`, not stubs of the code under test; only jsdom's own gaps, such as a missing `elementFromPoint`, were stubbed). Result: no `ReferenceError` from either function; the idempotency guard in `installClickEventTracer` still correctly no-ops on a second, separately-serialized call; and the `WeakMap`-based node-identity tracking in `snapshotButtonNode` correctly reports the same element as known (same `nodeId`) across two separate serialized calls, and a different element as unknown (a different `nodeId`) — the specific mechanism the node-identity comparison in BUG-014's evidence depends on. This is the first time that mechanism has been checked at all, in either this run or run 8, since a full accessibility run was not part of this round's authorization and the earlier rounds relied on review alone.
+
+A full local Playwright accessibility run (real Postgres, a production build, three browser engines) was not attempted: it is the one thing the simulation above cannot substitute for evidence-wise (an actual browser, not jsdom), but it is also disk- and time-costly relative to what was needed to fix a deterministic, 100%-reproducible defect in this session's own code — as opposed to BUG-014 itself, which is genuinely intermittent and where CI has always been the authoritative source. Committing this fix as the next CI sample, per the standing instruction, rather than treating a local run as a substitute for it.
+
+Pushed as `<pending>`. Report pending on run 10.
