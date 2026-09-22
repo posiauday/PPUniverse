@@ -1,4 +1,5 @@
 import { test as base, expect } from "@playwright/test";
+import { createFailureEvidenceSink } from "./failure-evidence.js";
 import { createFixtures, type FixtureSet } from "./seed.js";
 
 /**
@@ -13,6 +14,13 @@ const SESSION_COOKIE = "next-auth.session-token";
 interface TestFixtures {
   /** Signs the default browser context in as the worker's fixture user. */
   signedIn: void;
+  /**
+   * Auto-attached (decision, 2026-09-21: MVP-023 run 4 Firefox failures): records
+   * console, network and title/route-announcer evidence for every test, but only
+   * attaches it to a test that does NOT pass. Test logic only — no suite configuration
+   * (workers, retries, timeouts, engines, widths, rules) is changed by this.
+   */
+  failureEvidence: void;
 }
 
 interface WorkerFixtures {
@@ -33,6 +41,16 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       }
     },
     { scope: "worker" },
+  ],
+
+  failureEvidence: [
+    async ({ page }, use, testInfo) => {
+      const sink = createFailureEvidenceSink();
+      sink.install(page);
+      await use();
+      await sink.attachOnFailure(page, testInfo);
+    },
+    { auto: true },
   ],
 
   signedIn: [
