@@ -1030,3 +1030,17 @@ protection rule and report the exact check names; complete the security review
 (covering both the BUG-012 `@ppu/db` change and this `SessionsHeading` change) and the
 accessibility review (stating scope and method, not conformance); then Done; then
 `gh pr merge`, never locally.
+
+## MVP-023 — Manual and automated accessibility gate: DONE
+
+CI run 6 (`5dedfba`) came back green: both logs read in full, 420/420 accessibility checks, 0 skipped, 0 retries, 0 `TooManyConnections`, all five database-gated suites PASSED with their counts. The `develop` branch-protection rule was created exactly as decided (both check names, 0 approvals, not enforced for admins, force-push and deletion blocked; `main` untouched). The security review and the accessibility review sign-off are recorded in `docs/final-decisions.md` (2026-09-21, "MVP-023 reviews, branch protection, and Done").
+
+**Final shape:** the `packages/e2e` harness (Playwright 1.63.0 + axe-core/`@axe-core/playwright` 4.13.0, exact pins, dev-only, confirmed not shipped); ten WCAG A/AA fixes (F1–F10, each its own commit with a regression test shown failing first); a 16-state page matrix on three engines at four widths; a keyboard-traversal spec; a route-coverage guard; failure-evidence instrumentation (console, network, title/announcer trace, HTML) that costs nothing on passing runs; a separate, now-required CI job; `docs/14-accessibility-testing.md`; and two findings resolved along the way — **BUG-012** (a production connection-pool defect in `@ppu/db`, root-fixed) and **BUG-013** (a Firefox-only title-disappearance defect after a session revoke, mitigated, with the underlying gap tracked as TD-013 and a companion record, BUG-014, for the one still-unexplained `signin-sent` observation that does not block this story).
+
+**Requirement coverage:** NFR-001 (accessibility) and NFR-008 (browser/breakpoint matrix, closing open question 22) are both Implemented; `planning/requirement-traceability.csv` updated with the evidence.
+
+**Not claimed:** WCAG conformance, an accessibility audit or certification, or screen-reader support. Screen-reader compatibility remains unverified; open question 38 (manual/AT review ownership) stays open for a future story or process decision.
+
+**Remaining, not blocking:** BUG-002 (as PROP-006, unscheduled), BUG-009/010/011 (advisory-to-P3, sign-in/account styling and two narrow error-path focus gaps), BUG-014 (monitor), TD-011/TD-012/TD-013.
+
+Next: open the PR for merge via `gh pr merge` once the product owner confirms, and recommend the next unblocked story.

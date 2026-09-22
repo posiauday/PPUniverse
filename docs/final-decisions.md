@@ -458,3 +458,52 @@ If CI is not green after the patch, stop and report. The suite configuration, wo
 - The do-not-implement list stands: MVP-007, 010, 011, 012, 013, 017, 018, 020; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics; creator and collections routes; compatibility workflow; search-behavior changes; promoting `develop` to `main`; redesigning sign-in or account.
 - The completion rule stands in full: not Done until tests pass, CI is green, database-gated tests are confirmed PASSED by reading the log, the accessibility job is green and required and within budget with its runtime reported, every F1–F10 fix has landed with a regression test, documentation including the "Not verified" section is updated, NFR-001 and NFR-008 traceability is updated, and both reviews are complete.
 - Open question 17 remains narrowed (not closed).
+
+## 2026-09-21 — MVP-023 reviews, branch protection, and Done (closes NFR-001, NFR-008)
+
+**Source:** direct product-owner instruction ("Product-owner decision — BUG-013 and signin-sent"), step 5–7 of its sequence, carried out after CI run 6 (`5dedfba`) came back green.
+
+### Branch protection created (closes the remainder of decision 1, MVP-023 stop-gate response)
+Applied via the GitHub API on 2026-09-21, after run 6's accessibility job ran green (required — GitHub can only require a check name it has observed), exactly the rule decided earlier and no more:
+
+| Setting | Applied |
+|---|---|
+| Repository | `posiauday/PPUniverse` |
+| Branch | `develop` only — `main` confirmed still unprotected, no rulesets exist |
+| Required status checks (exact names, read from run 6's check-runs) | `Format, lint, typecheck, test, build` and `Accessibility (axe + Playwright)` |
+| Strict (branches must be up to date) | No |
+| Required pull-request reviews | Yes, 0 approvals |
+| Enforce for administrators | No |
+| Force pushes | Blocked |
+| Deletions | Blocked |
+
+This closes the required-status-check and force-push/deletion portion of open question 17 for `develop`. `main` protection, reviewer/approval rules and any ruleset strategy remain open (TD-011).
+
+### CI run 6 (`5dedfba`) — both logs read in full
+- **Existing job:** green. 547 tests passed, **0 skipped**, 0 failed; every integration suite executed with a check mark and a count: catalog 37, session 3, file-scan 3, S3 4, ClamAV 2. Dependency audit clean.
+- **Accessibility job:** green. **420 of 420** passed — 140 per engine on chromium, firefox and webkit — **0 skipped, 0 retries**. **0** `TooManyConnections` lines in the server log (BUG-012's fix holds). All axe scans clean on real pages; the one advisory `heading-order` finding is from the negative-control spec itself (labelled "advisory-only"), not a real page; `color-contrast` on the product page's compatibility table at 320/375px is unchanged and flagged "needs manual review", as before.
+- **Timing**, install separate: dependencies 7s; browsers + system dependencies 36s; migrations 1s; build 22s; **test execution 3m 21s**; **whole job 5m 05s** (ceiling 10 minutes, target 5–8; the browser cache saved for the first time on this run, since every earlier run had failed before reaching that point — future runs should see a hit).
+
+### Security review
+Scope: every file this PR changes (`git diff origin/develop...HEAD`) — 9 application files (harness excluded, see below), the CI workflow, the pnpm resolution hook, and the private harness package itself.
+
+- **No API route, auth configuration, adapter or domain file is touched.** Confirmed by path (`apps/web/app/api`, `apps/web/lib/auth`, `packages/adapters`, `packages/domain` — none appear in the diff).
+- **No injection sinks introduced.** Scanned every added line for `dangerouslySetInnerHTML`, `innerHTML`, `eval`, `new Function`, `document.write`: none. `SessionsHeading.tsx`'s title-repair code uses `textContent` only, never HTML parsing.
+- **No secret-like strings, credentials, tokens or connection details** in any added line (scanned; the only matches are inside comments explaining the change, e.g. naming `DATABASE_URL` and `NEXTAUTH_SECRET` as concepts, not values).
+- **BUG-012 (`packages/db/src/index.ts`):** confirmed unchanged — row-level security (database-side, no client code sets a role or session setting), authorization, and credential handling (`DATABASE_URL` is read and passed to the adapter exactly as before). One stated, accepted consequence: the client is now cached in production too, so a rotated database credential needs a process restart (already noted when the fix was approved).
+- **BUG-013 (`SessionsHeading.tsx`):** a DOM-only mitigation, no data flow, no new endpoint, no new dependency; the node it creates is explicitly marked and only ever removed by code that checks that same mark.
+- **Accessibility tooling is dev-only, confirmed again on this build:** the production `.next` output and the app's production dependency tree contain no reference to `axe-core`, `@axe-core/playwright`, `@playwright/test` or `playwright-core`. `.pnpmfile.cjs` (the mechanism that keeps it that way) changes no other package's resolution.
+- **CI workflow (`.github/workflows/ci.yml`):** the new job uses no secrets, requests no elevated permissions, and runs against its own throwaway Postgres service container exactly like the existing job.
+- No findings. No follow-up items beyond the ones already recorded (TD-011, TD-012, TD-013).
+
+### Accessibility review sign-off
+**Scope and method, not conformance — no claim of "WCAG compliant", "conformant", "accessible", "audited", "certified", or screen-reader support is made here or anywhere else in this story's records.**
+
+- **What:** automated axe-core, rules tagged `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` and `wcag22aa` (blocking) plus `best-practice` (advisory, reported only); scripted real-key-press keyboard traversal with computed and painted focus-indicator contrast measurement; computed and painted border and placeholder contrast; heading-outline and horizontal-overflow checks.
+- **Where:** the 16-state page inventory in `packages/e2e/src/pages.ts` (home; category populated/empty; product full/minimal evidence; search no-query/results/no-results; sign-in idle/validation-error/send-failed/sent; account sessions/after-revoke; 404 for an unknown URL and for `/account`), each at 320, 375, 768 and 1280 px.
+- **Engines and versions:** Playwright 1.63.0's pinned, bundled builds — chromium 153.0.8010.12, firefox 155.0, webkit 26.6.
+- **Date:** 2026-09-21. Result: 420 of 420 automated checks passing (CI run 6, `5dedfba`); ten WCAG A/AA fixes (F1–F10) landed with regression tests shown failing first; one additional fix (BUG-013) for a defect found during implementation, landed with a unit-tested mitigation and an honest account of a race that could not be reproduced deterministically for an end-to-end regression test.
+- **NOT tested:** screen readers (NVDA, JAWS, VoiceOver), voice control, switch access, magnification, or any browser/assistive-technology pairing. No human manual review was performed.
+- **Known open, carried past this sign-off:** BUG-013 is a mitigation, not a root-cause fix (TD-013); BUG-014 (`signin-sent`, one non-recurring observation) is monitored, not fixed, and does not block; open question 38 (who performs manual/AT review, cadence, pairs) is unanswered.
+
+This sign-off satisfies the MVP-023 completion rule's accessibility-review requirement for what was authorized: automated coverage plus the specific, evidenced fixes decided in this story. It does not certify, and must not be read as certifying, anything beyond that.

@@ -21,6 +21,6 @@ MVP-019,Admin,Operations console and audit,P0,Backlog,FR-015,"Sensitive actions 
 MVP-020,Privacy,Consent legal deletion workflow,P0,Ready,FR-004,"Consent and deletion request are recorded",MVP-002
 MVP-021,SEO,Metadata sitemap canonical structured data,P0,Done,FR-017,"Indexable pages emit valid metadata and sitemap",MVP-005
 MVP-022,Observability,Logs traces metrics and alerts,P0,Done,NFR-007,"Critical journeys have correlation and runbooks",MVP-001
-MVP-023,Accessibility,Manual and automated accessibility gate,P0,Blocked,NFR-001;NFR-008,"Core journeys meet defined WCAG gate",MVP-003
+MVP-023,Accessibility,Manual and automated accessibility gate,P0,Done,NFR-001;NFR-008,"Core journeys meet defined WCAG gate",MVP-003
 MVP-024,Support,Support case workflow,P1,Backlog,FR-018,"Case links to user/product/order/version",MVP-019
 MVP-025,Launch,End-to-end launch gate,P0,Backlog,MVP Release,"Free and paid golden paths, restore and incident tests pass",All P0
