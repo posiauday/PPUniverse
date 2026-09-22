@@ -12,6 +12,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:e2e": "pnpm --filter @ppu/e2e test:e2e",
+    "test:a11y": "pnpm --filter @ppu/e2e test:a11y",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

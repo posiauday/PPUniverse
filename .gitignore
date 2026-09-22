@@ -31,3 +31,7 @@ pnpm-debug.log*
 
 # Prisma
 packages/db/src/generated/
+# Playwright accessibility gate output (MVP-023)
+packages/e2e/test-results/
+packages/e2e/playwright-report/
+packages/e2e/results/

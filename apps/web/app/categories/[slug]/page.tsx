@@ -119,6 +119,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         ) : null}
       </div>
 
+      {/* Card titles are h3, so the list needs an h2 above it or the outline jumps from h1 to h3 (BUG-007, WCAG 1.3.1). */}
+      {result.items.length > 0 ? <h2 className="sr-only">Products</h2> : null}
       {result.items.length === 0 ? (
         <p className="mt-8 text-muted-foreground" aria-live="polite">
           {query

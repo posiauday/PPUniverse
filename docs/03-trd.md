@@ -30,7 +30,7 @@ Local, preview, development, test/staging and production. Production data cannot
 - File validation by declared type, detected type, extension, size, archive depth and scan status.
 
 ## Deployment
-Pull request checks: formatting, lint, types, unit tests, integration tests, migration validation, dependency scan, secret scan and build. Staging receives migration and smoke tests. Production requires approval with backup/restore point, migration plan and rollback steps.
+Pull request checks: formatting, lint, types, unit tests, integration tests, migration validation, dependency scan, secret scan and build. A separate accessibility job runs in parallel (Playwright and axe-core on chromium, firefox and webkit at 320, 375, 768 and 1280 px; `docs/14-accessibility-testing.md`) and is required for merge by decision (MVP-023, Q39); `docs/final-decisions.md` and `docs/open-questions.md` item 17 record how that is enforced. Staging receives migration and smoke tests. Production requires approval with backup/restore point, migration plan and rollback steps.
 
 ## Observability
 Use correlation IDs across web, worker and provider webhooks. Record service level indicators for availability, latency, error rate, job lag, webhook failures, checkout failures, download authorization failures and scan backlog. Alerts must link to runbooks.

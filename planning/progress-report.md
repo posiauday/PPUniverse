@@ -808,3 +808,771 @@ None — Done. FR-017 is Implemented and BUG-001 is Resolved. Follow-ups are tra
 
 ### Next story recommendation
 **MVP-023** (accessibility gate, and the Playwright/axe harness that would close the E2E half of TD-007). Separately, **TD-008** must land before MVP-012, and BUG-002 needs a product-owner decision (open question 32). MVP-007 (open questions 3, 7, 8) and MVP-011 (open questions 2, 8) remain gated by unanswered product decisions.
+
+## MVP-023 — Manual and automated accessibility gate: pre-work (analysis delivered, no code)
+
+### Story status: In Progress (pre-work only)
+**MVP-023 — Manual and automated accessibility gate** (Epic: Accessibility, Requirement: NFR-001, Priority: P0, Sprint 3, 8 pts). Acceptance summary: "Core journeys meet defined WCAG gate."
+
+**No application or test code has been written.** The written analysis (13 required sections plus a measured baseline) is `planning/prework/MVP-023-prework-analysis.md`. Work is paused until the product owner answers open questions 33–42 (or accepts the stated defaults).
+
+**Mandatory first actions, verified:** read `CLAUDE.md`, `docs/final-decisions.md`, `planning/status.md`, `planning/progress-report.md`, `docs/open-questions.md` in that order; `git status` clean (line-ending-only noise, zero content diffs); `develop` = `origin/develop` = `73ba6a4`; 0 open PRs; no MVP-023 branch; no Playwright or axe code or configuration anywhere; the only movement since `status.md` was last edited is the merge commit for PR #5 itself. Branch `feature/mvp-023-accessibility-gate` created from that commit. The usage limit that interrupted the session left no partial MVP-023 work.
+
+### Baseline measured on the real pages (evidence for the analysis, not a gate result)
+A throwaway real Postgres and dev server (outside the repository, deleted afterwards) with throwaway rows. axe-core 4.10.2 (WCAG A/AA + best-practice), 11 pages × 4 widths = 44 scans, each page in a same-origin iframe of that width; plus real key presses, clicks, computed styles and a contrast calculation for what axe cannot judge.
+- **Automated:** `heading-order` on category and search pages (h1 then h3); `landmark-one-main` and `region` on the framework's default 404; contrast "incomplete" on the product page's clipped table at 375/320 px; no horizontal overflow at 320 px anywhere; everything else clean.
+- **Manual/measured (axe blind):** the Search button's focus ring is near-white on white (**1.06:1**, invisible); the search input border is **1.35:1** and its placeholder **3.46:1**; sign-in shows only a generic error and drops focus to `<body>`; revoking a session drops focus and announces nothing; sign-in, account and 404 titles are the site name only; sign-in and account pages are entirely unstyled.
+- **Recorded as six bugs, NFR-001:** BUG-003 (focus ring, P2), BUG-004 (input contrast, P3), BUG-005 (sign-in, P2), BUG-006 (session revoke, P3), BUG-007 (heading levels, P3), BUG-008 (404 page, P3). Whether MVP-023 fixes them or they are scheduled separately is open question 37.
+- **Limits, stated plainly:** one browser engine (Chromium); a local dev server; axe 4.10.2 (the proposal pins 4.13.0, so re-baseline); **no screen reader was run** — Claude cannot operate NVDA, JAWS or VoiceOver, so screen-reader compatibility is unverified; synthetic key events did not trigger every default browser action (Enter-to-submit, arrow-key scrolling), so keyboard checks that mattered used real Tab presses and real clicks.
+
+### Findings while reading the repository
+- `docs/final-decisions.md` names Playwright but **not axe-core**; axe-core appears only in ADR-004's testing row, and ADR-004's status is still **"Proposed"** although `final-decisions.md` says it "confirms" ADR-004's decisions. Surfaced as open question 41 rather than assumed.
+- `docs/11-test-strategy.md` already lists "critical accessibility issue in core path" as a release blocker, which supports (but does not define) the gate question 35.
+- The TRD's pull-request check list has no E2E or accessibility stage, and open question 20 (CI time and cost) is unanswered — a blocking accessibility job needs that decision (question 39).
+- The two axe packages are MPL-2.0 (dev-only, not shipped); flagged for the product owner (question 41).
+- No custom `error.tsx`, `not-found.tsx` or `loading.tsx` exists, so `docs/05`'s required states (system error, permission denied, offline, loading) are not implemented; recorded, out of scope.
+
+### Records created or changed
+`planning/prework/MVP-023-prework-analysis.md`; `docs/open-questions.md` (items 33–42 added; items 22 and 32 annotated); `planning/bugs/BUG-003.md` to `BUG-008.md` and `planning/bugs.csv`; `planning/mvp-backlog.csv` and `planning/backlog.csv` (MVP-023 → In Progress); `planning/status.md`. **Nothing was implemented, nothing was recorded in `docs/final-decisions.md`, and no decision was assumed.** MVP-003/004/005/021/022 behavior is unchanged; the corrective changes to delivered pages are documented in the analysis and await question 37.
+
+### Remaining work
+Await answers to questions 33–42; then implement per the approved scope, with CI green and the DB-gated tests confirmed passed from the log, before marking Done.
+
+## MVP-023 — Manual and automated accessibility gate: product-owner decisions recorded, implementation authorized
+
+### Story status: In Progress (decisions recorded; stop-gate confirmation pending; no code written)
+**MVP-023** (Epic: Accessibility; NFR-001, and NFR-008 by decision Q42), P0. Estimate revised **8 → 13 points** by decision Q37, because the WCAG A/AA corrective fixes are in scope.
+
+The product owner's direct 2026-09-21 instruction decided Q32–Q37 and Q39–Q42 and left Q38 open with a binding interim position: **screen-reader compatibility is unverified, and nothing may say otherwise.** The decisions are recorded in `docs/final-decisions.md` ("Product-owner decisions for MVP-023"), `docs/open-questions.md` (items 20, 22, 26, 32–42), `planning/proposed-stories.md` (PROP-006, the BUG-002 corrective story, Proposed), `planning/backlog.csv` (estimate), `planning/status.md`, and `planning/requirement-traceability.csv` (NFR-001 and NFR-008: In progress, not Implemented).
+
+### Verified before recording
+- Branch `feature/mvp-023-accessibility-gate` carries one commit (`a05ce5f`, docs and planning only, 13 files); `develop` = `origin/develop` = `73ba6a4`; no open pull requests.
+- Repository routes (`apps/web/app`): `/`, `/categories/[slug]`, `/products/[slug]`, `/search`, `/signin`, `/account/sessions`; API routes, `robots.txt` and `sitemap.xml` are not pages. There is no `/account` page and no `not-found.tsx`, `error.tsx` or `loading.tsx`.
+- Tooling, read from a scratch install **outside the repository** (nothing has been added to the repo): `@playwright/test` 1.63.0 (Apache-2.0), `@axe-core/playwright` 4.13.0 (MPL-2.0, depends on `axe-core ~4.13.0`), `axe-core` 4.13.0 (MPL-2.0).
+- GitHub: neither `develop` nor `main` has branch protection, and there are no rulesets (`gh api`, read-only).
+
+### Conflicts found while recording (in `docs/final-decisions.md`, not resolved)
+1. "Required for merge" (Q39) has no GitHub mechanism: no branch protection exists and open question 17 is still open.
+2. "Four engines" (Q33) versus three named; three are implemented.
+3. `/account` is not a route (only `/account/sessions`).
+4. Scope of the ADR-004 status change (Q41): it approves the testing stack and does not approve or close anything else.
+5. PROP-006 is in the proposals register because the backlog CSVs have no Proposed status.
+
+### Files changed / commands executed / risks
+- **Files:** the six records above. No application or test code.
+- **Commands:** `git status`, `git log`, `git fetch`, `gh pr list`, `gh api` (branch protection and rulesets, read-only), a scratch `npm install` outside the repo to read installed licences, and one recording script that validates CSV field counts and line endings.
+- **Risks:** a required check cannot be enforced through GitHub until the product owner decides how (open question 17); the 10-minute CI ceiling may be tight for three engines × four widths and is unmeasured (any shortfall returns as a new decision, never a weaker gate); WebKit on the CI runner needs system dependencies and is untried.
+
+### Remaining work
+Post the stop-gate confirmation (git state, page inventory, pinned versions and licences, ordered Q37 commit list, conflicts) and wait for the product owner's answers to the conflicts; then implement the harness, the Q37 fixes (each a separate commit with a failing-before regression test), the CI job, the documentation and the manual-review checklist; open one PR; read the CI log; and complete the security and accessibility reviews before any merge.
+
+## MVP-023 — Stop-gate answered; implementation authorized (no code yet)
+
+### Story status: In Progress (H1 next)
+The product owner answered the stop-gate confirmation on 2026-09-21 (`docs/final-decisions.md`, "Product-owner response to the MVP-023 stop-gate confirmation"):
+1. **Required for merge: Option B, enforced.** After the accessibility job has run green in the MVP-023 PR, a branch-protection rule is created on `develop` only (pull request required, 0 approvals, both jobs required by their displayed names, branches need not be up to date, not enforced for administrators, force pushes and deletion blocked). No setting is applied before then. This narrows open question 17, which stays OPEN (`main`, reviewer and approval rules, ruleset strategy, repository visibility); TD-011 tracks it.
+2. **Three engines** (Chromium, Firefox, WebKit); "four" was a counting error, not a scope reduction.
+3. **`/account`** is covered as a 404 check only; no page, redirect or stub.
+4. **ADR-004 → Accepted, scoped to the testing-stack rows only.**
+5. **PROP-006** stays in `planning/proposed-stories.md`.
+6. **Three additive files permitted:** `not-found.tsx` (F5), a sign-in route-segment layout (F8), one small client wrapper for a persistent status region (F7); stop and ask if any fix needs more than its new file plus a minimal call-site edit.
+7. **Interpretations confirmed:** `packages/e2e` with `test:e2e` and `test:a11y`; only the CLAUDE.md Commands section changes; the unstyled sign-in/account pages get an advisory bug record; BUG-004/006/007/008 are fixed because Q37 names them, not because Q35 would block on a P3.
+
+Additional requirements recorded: install time reported separately from test time; browser cache in CI without weakening the pins; the 10-minute ceiling stands; test-side auth interception only; the "Not verified" section is a named completion item.
+
+### Verified before recording
+`origin/develop` = `73ba6a4` (unchanged), no open PRs, the branch is not on the remote; the working tree is clean apart from the known line-ending-only files.
+
+### Files changed / commands executed / risks
+- **Files:** `docs/final-decisions.md`, `docs/open-questions.md` (items 17, 33, 39, 40, 41), `planning/tech-debt/TD-011.md`, `planning/tech-debt.csv`, `planning/status.md`, this report. No application or test code.
+- **Commands:** `git fetch`, `git rev-parse`, `gh pr list`, `git ls-remote`, and one recording script that writes nothing unless every anchor and CSV check passes.
+- **Risks:** the 10-minute ceiling is unmeasured for three engines × four widths; WebKit on the CI runner is untried; creating the protection rule needs repository-admin rights (the account has them) and stops the story if it fails.
+
+### Remaining work
+H1 (harness), F1–F10 (each with a regression test proven failing first), G1–G3; push with the docs commits and open one PR; read both CI logs; create the protection rule; complete the security and accessibility reviews; then Done and merge via `gh pr merge`.
+
+## MVP-023 — Manual and automated accessibility gate: implemented in PR #6; Blocked on BUG-012
+
+### Story status: Blocked (implementation complete; awaiting a product-owner decision on BUG-012)
+**MVP-023** (Epic: Accessibility; NFR-001 and NFR-008), P0, 13 points. Implemented in pull request #6. It is **not Done** and **not merged**: the first CI run of the accessibility job failed three Chromium tests, and the cause is a production defect in a completed story (BUG-012) that the MVP-023 authorization does not allow it to fix. The branch-protection rule has not been created (by decision, it waits for a green accessibility job).
+
+### Story completed (what exists on the branch)
+- **H1 and follow-up:** `packages/e2e`: exact-pinned Playwright 1.63.0, `@axe-core/playwright` 4.13.0, `axe-core` 4.13.0; chromium, firefox and webkit projects; a database guard (loopback Postgres plus `E2E_ALLOW_DATABASE_WRITES=1`); reserved-prefix rows deleted by ids-and-prefix; database-created sessions; contrast, focus, heading, overflow and Tab helpers; negative controls. `.pnpmfile.cjs` keeps Playwright out of the web app's production dependency tree.
+- **F1 to F10:** the Q37 fixes, each a separate commit with a regression test that failed against the unfixed production build first: BUG-003 (focus ring 1.06:1 to 18.13:1), BUG-004 (border 1.35:1 to 7.48:1; placeholder 3.45:1 to 7.48:1), BUG-007 (hidden h2), BUG-008 (not-found page and title), BUG-005 (sign-in errors, focus, title), BUG-006 (session revoke, title). New files in delivered areas: `not-found.tsx`, `signin/layout.tsx`, `SessionsHeading.tsx`.
+- **G1:** 16-state page matrix (x 4 widths x 3 engines), keyboard traversal, route-coverage guard with negative controls.
+- **G2:** the separate parallel `accessibility` CI job ("Accessibility (axe + Playwright)"), per-phase timing, a run summary, uploaded report.
+- **G3:** `docs/14-accessibility-testing.md`, ADR-004 (Accepted for the testing rows only, with pins and licences), the TRD check list, CLAUDE.md Commands, README, the test strategy pointer, bug and tech-debt records, this report.
+
+### Files changed
+`packages/e2e/**` (new); `.pnpmfile.cjs`, `pnpm-lock.yaml`, `package.json`, `.gitignore`, `.github/workflows/ci.yml`; `apps/web/app/globals.css`, `not-found.tsx`, `signin/layout.tsx`, `signin/page.tsx`, `search/page.tsx`, `categories/[slug]/page.tsx`, `account/sessions/{SessionsHeading.tsx,page.tsx}`; `packages/ui/src/search-form.tsx`; `docs/14-accessibility-testing.md`, ADR-004, TRD, `docs/final-decisions.md`, `docs/open-questions.md`, `docs/11-test-strategy.md`, `README.md`, `CLAUDE.md` (Commands section only); planning records.
+
+### Commands executed
+`pnpm install`, `pnpm add`-equivalent pins, `pnpm exec playwright install chromium firefox webkit` (about 400 MB), `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm audit --audit-level=high` (clean), `playwright test` on all three engines locally, `git`, `gh pr create`, `gh run view` and `gh api` for logs; a throwaway local Postgres outside the repository.
+
+### Verification
+- **Local (Windows, throwaway Postgres):** lint, typecheck, test, build and audit clean; harness 69 unit tests; the full `tests/a11y` run (first run 405 passed, 12 failed from a Tab-walk start artifact, fixed; then keyboard, negative-control and regression specs all pass on three engines).
+- **CI run 35665652208:** existing job passed, read from the log: 527 tests passed, 0 skipped, 0 failed, integration suites executed (catalog 37, session 3, file-scan 3, S3 4, ClamAV 2). Secret scan passed. **Accessibility job failed:** 417 of 420 passed (chromium 137/3, firefox 140/0, webkit 140/0), 0 skipped, 0 retries, all 192 axe scans clean, no advisory findings on real pages, one manual-review item (axe `color-contrast` could not decide the product compatibility table at 320 and 375 px).
+- **Timing (first run, cold browser cache, 3 workers on a 4-vCPU runner):** dependencies 6 s; browsers plus system dependencies 46 s (cache miss); migrations 2 s; build 27 s; test execution 4m28s; whole job 6m18s. Inside the 10-minute ceiling; the target is 5 to 8 minutes.
+- **Manual (agent-performed, not human review):** real Tab presses; the Tab order of all 16 states reads in visual order with no positive `tabindex`; contrast re-measured on the fixed elements from painted pixels and from computed style (identical in all engines). **No screen reader was run.**
+
+### The finding that stops the story
+The three failures were HTTP 500s from Postgres "too many clients" (Prisma P2037): an unknown product slug returned 500 instead of 404, a category page had no products, and a session DELETE failed. Cause: in a production build `packages/db/src/index.ts` (MVP-002) creates a new Prisma client and pool for every query, because it only caches the client when `NODE_ENV !== "production"`. Reproduced locally: 40 sequential queries leave **41** open connections in production mode and **1** in development. Recorded as **BUG-012 (P1)**; question to the product owner is open question 43 (recommendation: approve the one-line fix inside MVP-023 as a separate commit with a failing-first regression test). Retries or fewer workers would only hide it, so neither was added.
+
+### Risks identified
+- BUG-012 is a real production outage risk for every database-backed route, present since MVP-002 and invisible to dev/test.
+- The accessibility job is flaky until BUG-012 is fixed; it must not be made a required check while it can fail for that reason.
+- WebKit link reachability by keyboard is not verifiable (documented); screen readers, voice control, switch access and magnification are not verified; open question 38 is unanswered.
+- `.pnpmfile.cjs` is a workaround (TD-012).
+
+### Remaining work
+1. Product-owner decision on open question 43 (A, B or C).
+2. If A: a separate minimal commit fixing `@ppu/db` with a regression test proven failing first; re-run CI; read both job logs (DB-gated tests PASSED, skip count) and the accessibility job's timing.
+3. Only after both jobs are green: create the branch-protection rule on `develop` exactly as decided and report the check names in the PR.
+4. Security and accessibility reviews; mark Done; merge with `gh pr merge`; update open questions 20, 22, 33 to 37 and 39 to 42 from decided to closed, with evidence.
+5. Recommend the next unblocked story.
+
+### Update: CI run 2 and the BUG-012 fix experiment (2026-09-21)
+- CI run 2 (35666983338, docs-only head 9cd68c5): the same signature. 417 of 420 passed, 3 Chromium failures (an unknown category slug and an unknown product slug returned 500 instead of 404; a session revoke failed), 0 skipped, 0 retries; Firefox and WebKit passed every test; the server log again shows TooManyConnections (8 lines). Whole job 5m57s, test execution 4m14s. The Playwright browser cache is saved only by a successful job, so both runs so far had a cold cache.
+- Proposed fix validated in a throwaway git worktree (never committed, not on the feature branch): one condition in packages/db/src/index.ts (cache the client on globalThis in every environment) plus a unit test (packages/db/src/client-cache.test.ts). The test fails without the fix in production mode (and passes in development and test), and passes with it; with the fix, 40 sequential queries in production mode hold 1 open connection (was 41); and the full accessibility suite against a production build with the fix: 420 passed, 0 failed, 0 skipped, 0 retries (140 per engine) in 7.0m on a local Windows run with 3 workers; TooManyConnections lines in the server log: 0.
+- **Nothing was changed on the feature branch for the fix.** The experiment lived in a throwaway worktree that is removed; the patch is one condition in `packages/db/src/index.ts` plus one new test file, ready to apply on approval (open question 43, option A).
+- **Still not done:** the branch-protection rule (waits for a green accessibility job), the security review sign-off, and the accessibility review sign-off (the manual-review reviewer is open question 38). A security scan of this PR's application, auth and CI changes found nothing: 9 application files and 137 lines changed, no API route, auth configuration, adapter or domain file touched, no injection sinks, no secret-like strings, and no new workflow permissions or secrets used.
+
+### Decision received: BUG-012 option A (2026-09-21)
+The product owner approved option A (`docs/final-decisions.md`, "Product-owner decision: BUG-012 and MVP-023 sign-off"; open question 43 closed). The fix is a **root fix (i)**, not a mitigation: it corrects the client and connection lifecycle and raises no limit. It is the only `@ppu/db` change permitted in this story.
+
+Fixed sequence: push the fix; wait for CI; read both job logs in full (accessibility green on chromium, firefox and webkit; no `TooManyConnections`; database-gated suites PASSED; skip count; 0 retries); report the runtime against the 10-minute ceiling; only then create the `develop` branch-protection rule with the check names as GitHub displays them; then the security review (covering the `@ppu/db` change) and the accessibility review; then Done; then `gh pr merge`.
+
+The accessibility review is **not signed off**; sign-off is authorized only after the CI logs are read and confirmed, and it will state scope and method, not conformance. Open question 38 stays open. The local 420 of 420 result is not relied on.
+
+### CI run 5 (instrumented) and the Firefox title-defect finding (2026-09-21)
+
+**Instrumentation added** (commit `a5f44c0`, test logic only, no suite configuration
+touched): `packages/e2e/src/failure-evidence.ts` and `failure-evidence-inpage.ts`
+capture console, network, an in-page title/route-announcer trace, and the page HTML,
+attached ONLY on a failing test. `packages/e2e/src/title-trace.ts` (+ unit tests)
+applies the product owner's pre-registered criterion in code, not by eye. Proven
+locally first: a deliberately failing scratch test showed all four attachments; that
+run caught a real bug in the tracer itself (a `MutationObserver.observe()` call on a
+still-null `document.documentElement` crashed in one engine because `addInitScript`
+runs before `<html>` exists) — fixed, then re-verified against the real signin-sent
+and sessions-after-revoke scenarios in all three engines with clean traces.
+
+**Overhead:** a full local run of `tests/a11y` with the instrumentation passed
+420/420 in 6.0 minutes, no slower than an earlier equivalent run without it (7.0
+minutes) — within normal variance, not a regression. CI run 5 (5m37s whole job) was
+in fact a little faster than uninstrumented run 4 (5m56s).
+
+**CI run 5 result:** 1 of 3 run-4 failures recurred — `sessions-after-revoke @ 768px`
+(Firefox). `signin-sent @ 320px` and `sessions-after-revoke @ 1280px` did not recur
+this time, so no fresh evidence exists for them; `signin-sent`'s only evidence
+remains run 4's pre-instrumentation trace (no `/api/auth/*` request after the click,
+no console errors) and is not yet classified — it is a distinct failure class, not
+folded into the title analysis, per instruction.
+
+**The recurring failure, classified:** applying `classifyTitleTrace` to the captured
+trace gives **product-defect**: Next's own route announcer fired while
+`document.title` read `""`, and the failure-time HTML snapshot shows `<head>` with
+no `<title>` element at all (independent corroboration; the element was removed, not
+emptied, which is also why neither title-change detector caught an intermediate
+state). Recorded as **BUG-013** (P3: the core journey and its announcement — our own
+`role="status"` region from F7 — are unaffected; a duplicate, first-party announcer
+and the document/tab title are what briefly go silent).
+
+**Fix: proposed, NOT applied.** Two candidates recorded in BUG-013; recommended is a
+client-side title safety net in the already-touched `SessionsHeading` component.
+Per instruction, this stops here for approval before any product-code change.
+
+**Both CI logs read in full for run 5:** existing job green (543 tests, 0 skipped, 0
+failed, every integration suite executed); accessibility job 419/420, 0 skipped, 0
+retries, no `TooManyConnections`; whole job 5m37s, test execution 4m01s, browsers
+still a cache miss (no run has yet completed successfully to save one).
+
+**Still not done, unchanged:** the `develop` protection rule, the security review,
+the accessibility review sign-off, marking Done, and the merge. The branch is held
+at `a5f44c0` pending the product owner's decision on BUG-013's proposed fix and on
+`signin-sent`.
+
+### BUG-013 fix applied; BUG-014 opened for signin-sent (2026-09-21)
+
+**Reproduction attempts, before writing anything:** tried to make the title-removal race
+deterministically reproducible using the same event-driven tracer that caught it in CI
+(not the coarse poll a first attempt used, which found nothing) — delaying the `_rsc`
+refetch response (0/300/800/1500ms, three attempts each, Firefox) and nine concurrent
+revoke cycles across all three engines to mimic CI's worker contention. **Never
+reproduced.** Per instruction, no end-to-end regression test for the race is shipped;
+this is stated plainly in `planning/bugs/BUG-013.md`.
+
+**Fix applied (candidate (a), the only product-code change authorized):** one new,
+separate `useEffect` in `apps/web/app/account/sessions/SessionsHeading.tsx` that finds
+or creates the `<title>` element and corrects its text on every re-render, handling the
+**absent** case (create, not merely assign) that the CI evidence actually showed. Marked
+and removed on unmount if still present, so nothing is left behind. Classified honestly
+as a **mitigation**, not a root fix — the underlying gap is recorded as **TD-013**, which
+also notes no other route currently calls `router.refresh()` but a future one would not
+be covered.
+
+**Regression coverage:** `SessionsHeading.test.ts` unit-tests the mitigation's decision
+function (`computeTitleFallback`) deterministically — proving it creates rather than
+assigns when the title is absent — standing in for the race reproduction that could not
+be achieved.
+
+**Verified before pushing:** workspace-wide `pnpm lint/typecheck/test/build` clean (543
+tests including the 4 new ones); the full local `tests/a11y` run passed 420/420 on all
+three engines after the fix, including the existing F7 regression specs, unaffected.
+
+**BUG-014 opened** for `signin-sent` (product-owner decision: monitor, do not fix, does
+not block MVP-023 — a single non-recurring observation in 5 runs, with the permanent
+failure-evidence instrumentation now in place to catch it if it recurs).
+
+**Still to do, per the sequence:** push; wait for CI; read both logs in full; report
+runtime with install time separate and cache state; if green, create the `develop`
+protection rule and report the exact check names; complete the security review
+(covering both the BUG-012 `@ppu/db` change and this `SessionsHeading` change) and the
+accessibility review (stating scope and method, not conformance); then Done; then
+`gh pr merge`, never locally.
+
+## MVP-023 — Manual and automated accessibility gate: DONE
+
+CI run 6 (`5dedfba`) came back green: both logs read in full, 420/420 accessibility checks, 0 skipped, 0 retries, 0 `TooManyConnections`, all five database-gated suites PASSED with their counts. The `develop` branch-protection rule was created exactly as decided (both check names, 0 approvals, not enforced for admins, force-push and deletion blocked; `main` untouched). The security review and the accessibility review sign-off are recorded in `docs/final-decisions.md` (2026-09-21, "MVP-023 reviews, branch protection, and Done").
+
+**Final shape:** the `packages/e2e` harness (Playwright 1.63.0 + axe-core/`@axe-core/playwright` 4.13.0, exact pins, dev-only, confirmed not shipped); ten WCAG A/AA fixes (F1–F10, each its own commit with a regression test shown failing first); a 16-state page matrix on three engines at four widths; a keyboard-traversal spec; a route-coverage guard; failure-evidence instrumentation (console, network, title/announcer trace, HTML) that costs nothing on passing runs; a separate, now-required CI job; `docs/14-accessibility-testing.md`; and two findings resolved along the way — **BUG-012** (a production connection-pool defect in `@ppu/db`, root-fixed) and **BUG-013** (a Firefox-only title-disappearance defect after a session revoke, mitigated, with the underlying gap tracked as TD-013 and a companion record, BUG-014, for the one still-unexplained `signin-sent` observation that does not block this story).
+
+**Requirement coverage:** NFR-001 (accessibility) and NFR-008 (browser/breakpoint matrix, closing open question 22) are both Implemented; `planning/requirement-traceability.csv` updated with the evidence.
+
+**Not claimed:** WCAG conformance, an accessibility audit or certification, or screen-reader support. Screen-reader compatibility remains unverified; open question 38 (manual/AT review ownership) stays open for a future story or process decision.
+
+**Remaining, not blocking:** BUG-002 (as PROP-006, unscheduled), BUG-009/010/011 (advisory-to-P3, sign-in/account styling and two narrow error-path focus gaps), BUG-014 (monitor), TD-011/TD-012/TD-013.
+
+Next: open the PR for merge via `gh pr merge` once the product owner confirms, and recommend the next unblocked story.
+
+### CI run 7 (docs-only, 18b7b46) failed on a NEW signature; BUG-014 retitled and broadened; instrumentation extended (2026-09-21)
+
+A pure documentation push (marking MVP-023 Done) triggered run 7, now required by the
+branch-protection rule created after run 6. It failed `signin-send-failed @ 320px`
+(Firefox) — a different test than BUG-014's original occurrence, but the network log
+showed the same signature: no auth-API request at all after the click, and the field's
+error state never populated. **Not merged**; the merge was blocked by the protection
+rule regardless, and no fix, retry or workaround was applied.
+
+**Decision:** broaden BUG-014 (retitled to name the signature, not one symptom) to
+cover both occurrences (run 4 `signin-sent`, run 7 `signin-send-failed`), explicitly
+stating the shared cause is suspected, not proven. A fixed classification criterion was
+decided in advance: reaching the button but the handler not firing is a product defect;
+the click never reaching the button is a test defect; anything else stops for a report.
+
+**Instrumentation extended** (test logic only, `packages/e2e/src/signin-click-diagnostics.ts`
+wired into `submitSignIn` in `pages.ts` and read by `failure-evidence.ts`): on any future
+sign-in-submit failure, captures a hit test at the click point, a hydration marker on the
+button, its visibility/pointer-events/z-index/bounding rect and viewport containment, a
+capture-phase click/submit event log, and the interception-to-click timing gap — enough
+to classify the next occurrence against the fixed criterion without guessing.
+
+**Proven before relying on it:** a deliberately failing, otherwise-healthy submit for all
+three sign-in states, chromium and firefox, showed the button hydrated, hit correctly,
+and both click and submit events firing on the correct targets — the instrumentation
+itself works. Workspace-wide lint/typecheck/test/build clean (551 tests).
+
+**Local verification could not be completed this round**: not a code issue — the local
+machine's C: drive was found at 0.19GB free (346GB volume), a pre-existing condition this
+session did not cause and only partly could clean up (~45MB of its own scratch leftovers
+freed; the drive remained essentially full). CI is relied on as the authoritative check
+for this push, consistent with the standing rule to never act on local results in place
+of it.
+
+Per instruction, this instrumentation commit IS the next CI sample — no separate push was
+made just to re-run the check. Report pending on that run.
+
+### CI run 8: signature did not recur, but Secret scan failed for the first time; run 9 pending (2026-09-21)
+
+Run 8 (`424049f`, the extended-instrumentation commit) had both required checks green:
+420/420 accessibility checks (BUG-014's signature did not recur — neither `signin-sent`
+nor `signin-send-failed` failed), 547 unit/integration tests with all five
+database-gated suites PASSED, 0 skipped, 0 retries. **Not merged.** A third job,
+`Secret scan`, failed for the first time in this entire story: gitleaks' generic-api-key
+rule flagged a module-scope string constant in the new diagnostics file — the window
+property name the harness uses to carry click diagnostics, assigned to an identifier
+the scanner's rule treats as a secret keyword. (Redacted here per the 2026-09-22
+"Secret scan false positive" decision: quoting the flagged declaration verbatim
+regenerates the same finding in whatever commit quotes it — see that decision's own
+entry below for why.) Two identical patterns elsewhere in the same file family
+(`const KEY = "__e2eTitleTrace";`, `const KEY = "__e2eClickEvents";`) were NOT flagged,
+consistent with an entropy-threshold false positive tied to string length, not an
+actual secret — none of the three touches a credential, environment variable, or
+external call. Not renamed, not allowlisted, not otherwise touched; reported and left
+for the product owner's decision. `Secret scan` is not one of the two required checks in
+the branch-protection rule, so it does not block merge eligibility, but a security job
+turning red for the first time is not something to quietly proceed past.
+
+### Disk protocol adopted; instrumentation refined a second time; run 9 pushed (2026-09-21)
+
+**Disk protocol:** free space is now reported before any local run, and a run is
+skipped entirely (relying on CI) if free space is under 2GB. C: was at 0.19GB free
+before this round (unrelated to this session's own footprint — the authorized,
+repo-scoped cleanup categories were audited and found to be either already minimal (this
+session's own scratch downloads, freed earlier) or physically on G: with 62GB free, not
+C:; the Playwright browser cache held only the pinned version, nothing extra to remove).
+No local `pnpm` command was run this round; the code below was verified by careful
+manual review instead, with CI's fast lint/typecheck job relied on to catch anything
+missed, rather than the far more expensive accessibility job.
+
+**Instrumentation refined** (`packages/e2e/src/signin-click-diagnostics.ts`, test logic
+only): the original design snapshotted the button once, BEFORE `fill()` — exactly the
+gap the product owner's evidence-refinement instruction identified, since `fill()`'s
+own re-render is the specific event the replaced-node hypothesis is about. Now the
+button is snapshotted twice (via `locator.evaluate()`, so each snapshot uses whatever
+element is freshly resolved at that moment, not a stale reference) — once at
+resolution, once immediately before the click — compared for node identity (a
+`WeakMap` keyed by the actual element object), `isConnected`, and a bounding-box delta.
+Listeners now also attach to React's own root container when it can be found (a full
+scan of the document for its `__reactContainer$` marker, not an assumed mount point),
+so an event reaching `document` but not React's root is a distinguishable fact. A named
+hypothesis was added to BUG-014, explicitly flagged as unproven: that `fill()`'s
+re-render could replace or detach the button, so the click dispatches to an orphan node
+that never reaches React.
+
+Pushed as `<pending>`, per instruction (no documentation-only push used to obtain a
+sample). Report pending on run 9.
+
+### CI run 9: all three jobs failed, one of them a defect in this session's own test code (2026-09-21/22)
+
+Run 9 (`7529f73`) failed on all three jobs:
+- `Secret scan`: the same unresolved gitleaks false positive as run 8 (the same flagged declaration described above, not reproduced here — see that entry) — unchanged, still awaiting the product owner's decision, not touched.
+- `Format, lint, typecheck, test, build`: failed on formatting. This round's code was written under the disk protocol without a local `prettier` run (C: was at 0.19GB), verified by manual review only — the review missed a real formatting deviation. Because this job runs its steps in sequence and stops after the first failure, lint/typecheck/test/build never ran at all; their status is unknown, not passing.
+- `Accessibility (axe + Playwright)`: 54 failures, all with the identical error:
+  `ReferenceError: DOC_EVENTS_KEY is not defined`, thrown inside `installClickEventTracer`
+  the moment Playwright serialized it and re-executed it in the browser. **This is a
+  defect in this session's own test code, unrelated to BUG-014's signature — not a new
+  finding about the application.** The refinement pushed in `7529f73` had hoisted several
+  `const` key strings (`DOC_EVENTS_KEY`, `ROOT_EVENTS_KEY`, `ROOT_INFO_KEY`,
+  `NODE_IDENTITY_KEY`) and a shared `describeTarget`/`findReactRootContainer` pair of
+  helper functions to module scope "to avoid duplication" between
+  `installClickEventTracer` and `snapshotButtonNode`. Both functions are passed BY
+  REFERENCE to Playwright's `evaluate()`, which serializes ONLY that one function's own
+  source text (`Function.prototype.toString()`) and re-executes it as an isolated script
+  in the browser — it does not carry along anything declared outside the function body.
+  Every module-scope constant and every external helper function reference was
+  therefore invisible at runtime, even though it type-checked cleanly (a module-scope
+  `const` is perfectly valid, resolvable TypeScript from inside a function in the same
+  module; the failure exists only after Playwright extracts the function in isolation,
+  which `tsc` has no way to model). Because `submitSignIn` calls
+  `installClickEventTracer` on every sign-in-adjacent state, and `keyboard.spec.ts`'s
+  traversal also calls `state.prepare()`, this one defect cascaded across most of the
+  sign-in-related matrix — a false-positive failure signal, not 54 independent findings.
+
+### Run 9's defect fixed; verified by simulating Playwright's actual serialization, not by local Playwright run (2026-09-22)
+
+C: free space rechecked before doing anything further: **7.95GB**, up from 0.19GB (recovered independently of this session; no cleanup was performed this round). Above the 2GB threshold, so local verification was permitted this round.
+
+**Fix** (`packages/e2e/src/signin-click-diagnostics.ts`, test logic only, no product code, no suite configuration change): `installClickEventTracer` and `snapshotButtonNode` were rewritten to be fully self-contained — every key string they use, and a small local `describeTarget`-equivalent each, is now declared INSIDE the function body that uses it, duplicated between the two rather than shared from module scope. This matches the pattern already proven correct elsewhere in this file family (`failure-evidence-inpage.ts`'s `installFailureEvidenceTracer`, and this same file's own `recordSignInClickDiagnostics`, which never had the bug because it already declared its key locally).
+
+**Verified three ways, in order of what each can and cannot prove:**
+1. `pnpm --filter @ppu/e2e typecheck` and `pnpm --filter @ppu/e2e lint`: both clean. Necessary but **not sufficient** — as run 9 showed, this exact class of bug type-checks and lints cleanly, because module-scope references are valid, ordinary TypeScript; the failure only exists once Playwright extracts a function's source text and re-executes it alone.
+2. `pnpm exec prettier --check --end-of-line auto` on the changed file: clean after one `--write` pass (the gap that caused run 9's Format-check failure — this time actually run locally, not skipped).
+3. **A direct simulation of Playwright's own serialization mechanism**, since neither of the above tests the actual failure mode: a scratch script compiled the file with `tsc`, then for each of `installClickEventTracer` and `snapshotButtonNode` took `fn.toString()` and re-executed that string as a freestanding function via `new Function()` — exactly what Playwright's `evaluate()` does — inside a jsdom-backed DOM (real `window`/`document`/`Element`, not stubs of the code under test; only jsdom's own gaps, such as a missing `elementFromPoint`, were stubbed). Result: no `ReferenceError` from either function; the idempotency guard in `installClickEventTracer` still correctly no-ops on a second, separately-serialized call; and the `WeakMap`-based node-identity tracking in `snapshotButtonNode` correctly reports the same element as known (same `nodeId`) across two separate serialized calls, and a different element as unknown (a different `nodeId`) — the specific mechanism the node-identity comparison in BUG-014's evidence depends on. This is the first time that mechanism has been checked at all, in either this run or run 8, since a full accessibility run was not part of this round's authorization and the earlier rounds relied on review alone.
+
+A full local Playwright accessibility run (real Postgres, a production build, three browser engines) was not attempted: it is the one thing the simulation above cannot substitute for evidence-wise (an actual browser, not jsdom), but it is also disk- and time-costly relative to what was needed to fix a deterministic, 100%-reproducible defect in this session's own code — as opposed to BUG-014 itself, which is genuinely intermittent and where CI has always been the authoritative source. Committing this fix as the next CI sample, per the standing instruction, rather than treating a local run as a substitute for it.
+
+Pushed as `8d4c724`.
+
+### Run 10 disposition: prior evidence voided, and run 10 as pushed cannot satisfy the required self-check (2026-09-22)
+
+Direct product-owner instruction, "Run 10 disposition": runs 8 and 9 carry NO
+evidentiary weight for the sign-in signature, in either direction — both threw during
+`evaluate()` serialization, and a green result from a broken instrument is not evidence
+of absence. Recorded in BUG-014.
+
+**Before any classification, the instrument itself must be proven in a real browser,
+not a simulation.** Checking this against the current harness surfaced a real
+architectural gap, independent of run 10's eventual pass/fail: `failure-evidence.ts`'s
+`attachOnFailure` returns immediately on a passing test ("a green run pays nothing
+extra," by design), so on any run where every sign-in state passes, no click-diagnostics
+evidence is ever extracted from the browser at all — nothing to inspect. Even a run that
+fails only gives the `fill()`-affected snapshots from `signin-sent`/`signin-send-failed`,
+not a clean untouched-element control; `signin-validation-error` (the one state where
+`fill()` is skipped and the two snapshots would be a genuine positive control) is not
+part of BUG-014's failing signature and so never gets its diagnostics attached either.
+**Run 10, as already pushed, cannot satisfy the self-check regardless of its outcome.**
+
+**Added** (`packages/e2e/tests/a11y/harness-smoke.spec.ts`, test logic only, no product
+code, no suite configuration change): a dedicated, unconditional self-check, independent
+of the sign-in flow, asserted directly with `expect()` so its result — pass or fail — is
+its own visible test outcome in every run, not something that only surfaces on a
+sign-in failure:
+- (a)/(b) the SAME untouched element reports the SAME identity token across TWO
+  SEPARATE `evaluate()` calls — only provable in a real browser: if the `WeakMap` were
+  built fresh inside the function body instead of read from a persistent `window`
+  global, this would fail every time, which is the proof for where the store lives.
+- (c) a genuinely different element reports a DIFFERENT identity token.
+- (d) a real, physical click anywhere in the document is captured by BOTH the
+  `document`-level listener and React's own root-container listener — not only by
+  something scoped to the clicked element itself.
+
+C: free space rechecked before this round's local verification: **7.94GB** (no
+meaningful change from the prior round's 7.95GB; no cleanup performed). Verified with
+`pnpm --filter @ppu/e2e typecheck`, `pnpm --filter @ppu/e2e lint`, and
+`pnpm exec prettier --check --end-of-line auto` (clean after one `--write` pass) — the
+same necessary-but-not-sufficient checks as before, since this test only calls the
+already-fixed, already-simulated `installClickEventTracer`/`snapshotButtonNode` rather
+than defining new `evaluate()`-passed closures of its own, so the specific
+serialization risk from run 9 does not reapply here the same way. Its actual claims
+(identity persistence and distinctness in a REAL browser) can only be proven by CI
+itself — that is the entire point of adding it.
+
+Pushed as `<pending>`, as the next sample (run 10 could not have answered this
+regardless of its own outcome, so this is not a docs-only push obtained to re-run an
+unchanged commit — it is new, required instrumentation, per the standing rule that such
+a commit IS the sample). Report pending.
+
+### Run 10's actual result, and a second, pre-existing Format-check gap found and fixed (2026-09-22)
+
+Run 10 (`8d4c724`) completed: **Accessibility green** (BUG-014's signature did not
+recur on this run), `Secret scan` failed (the same unresolved gitleaks false positive),
+`Format check` failed — but on `packages/e2e/src/pages.ts`, a file this round did not
+touch at all. Per section 1 of "Run 10 disposition," this run's Accessibility result is
+recorded but voided for classification purposes: the self-check that would prove the
+identity mechanism worked correctly during this pass did not exist yet (added in
+`021a1ea`, pushed after run 10 was already in flight), so a green Accessibility job here
+is not, by itself, usable evidence either way.
+
+**`pages.ts`'s formatting issue is a real, standing gap in this session's own
+verification, not a new defect just introduced.** `git log` shows it was last edited in
+`7529f73` (the same commit whose `ReferenceError` was fixed in `8d4c724`) and has
+carried an un-prettier-compliant formatting since then — through `8d4c724` and
+`021a1ea` — because both of those rounds' local verification only ran
+`prettier --check` against the ONE file each round had actually edited, never the full
+`pnpm format:check` CI actually runs across the whole scoped tree. Running the full
+check locally this round (`pnpm exec prettier --check --end-of-line auto .`) found
+exactly this one file, confirmed nothing else in the tracked scope is affected, and
+`--write` produced a pure line-wrapping change (two multi-line expressions reflowed;
+confirmed with `git diff`, no logic touched). Re-verified with `typecheck` and `lint`
+(clean) and the full repo-wide format check (clean) after the fix.
+
+This closes the actual root cause of BOTH run 9's and run 10's `Format check` failures —
+run 9's Format-check failure was attributed entirely to the round's skipped local
+verification at the time (correct, but incomplete: `pages.ts` needed fixing too and was
+missed because verification was scoped too narrowly even after local checks resumed).
+
+Pushed as `<pending>`, alongside run 11 (`021a1ea`, the self-check) which was already in
+flight when this was found and will likely still show the same Format-check failure on
+`pages.ts` for the same reason. Report pending on whichever run actually carries both
+fixes.
+
+### Run 12 (`e79d8cf`): Format check green, but the new self-check itself failed in all three engines — an instrument defect, not a BUG-014 finding (2026-09-22)
+
+`Format check`: **green** — the `pages.ts` fix held. `Secret scan`: still the same
+unresolved false positive. `Accessibility`: **failed**, but every actual sign-in state
+(`signin-validation-error`, `signin-send-failed`, `signin-sent`) **passed cleanly in all
+three engines** — the failures were entirely the new self-check test itself
+(`harness-smoke.spec.ts`), in chromium, firefox and webkit. Per "Run 10 disposition"'s
+own branch for this case ("FAILS ON THE DIAGNOSTICS THEMSELVES... fix the instrument
+only, do not classify BUG-014 from that run"): the signature not recurring in this run
+is noted, but this run still does not satisfy section 2, since the control that failed
+is the proof mechanism itself.
+
+**Root cause, confirmed from Next.js's own client source, not guessed:** the React
+root-container scan in `installClickEventTracer` checked only
+`document.querySelectorAll("*")` (Element nodes). Next.js's App Router hydrates directly
+onto `document` itself — `node_modules/next/dist/client/app-index.js`:
+`const appElement = document;` then `hydrateRoot(appElement, ...)` — and `document` is a
+`Document`, not an `Element`, so `querySelectorAll("*")` can never include it. The scan
+therefore reported "not found" 100% reproducibly (deterministic, not flaky).
+
+**Fixed** (`packages/e2e/src/signin-click-diagnostics.ts`, test logic only): the scan
+now checks `document` itself alongside the element scan. Verified with
+typecheck/lint/full-repo format check (all clean) and by extending the same
+serialization-simulation technique used for the run-9 fix: a
+`__reactContainer$`-prefixed property set directly on a jsdom `document` (simulating
+what React's real `hydrateRoot(document, ...)` does, since jsdom does not run real
+React) is now correctly found, reported as `"document"`, and a dispatched click is
+captured at both listener levels — which are the same node in this app, by its own
+architecture, now documented in the code rather than assumed. Recorded in BUG-014.
+
+C: free space: unchanged from the last check this round (no cleanup performed).
+
+Pushed as `28ba291`.
+
+### Run 13 accepted; secret-scan rename applied; merge authorized (2026-09-22, direct product-owner instruction: "Run 13 / merge authorization")
+
+**Run 13 (`28ba291`) accepted as the first admissible sample.** Runs 8-12's status
+recorded explicitly in BUG-014 (a table, not prose implying it) rather than left
+implied: 8/9/10/12 void, 11 cancelled, 13 the first with a real-browser-verified
+instrument. The unconditional self-check is now a permanent fixture — recorded in
+BUG-014 as not to be removed, skipped, or made conditional.
+
+**Secret scan: renamed, not allowlisted** (`packages/e2e/src/signin-click-diagnostics.ts`,
+test logic only): the module-scope string constant that gitleaks flagged (not
+reproduced here — quoting the old declaration verbatim is what regenerated this same
+finding in the commits described further below) had its identifier renamed from a
+single all-caps word matching the scanner's own trigger keyword to
+`DIAGNOSTICS_GLOBAL_NAME` — the identifier renamed, the string value (and therefore all
+runtime behavior) unchanged. Rationale recorded in the code and in BUG-014: the finding
+is triggered by the identifier keyword, not the value, since structurally identical
+`const KEY = "..."` patterns
+elsewhere in this file family are unflagged; the new name also more accurately
+describes what the constant is. No allowlist entry, inline suppression, or scanner
+config change was made.
+
+**A second, unrelated defect found and fixed in the same pass:** while editing this
+file, found that its JSDoc comments used a literal "`" character around code
+identifiers (e.g. `fill()`) instead of backticks — an artifact of this session's own
+markdown-generation convention (`→backtick substitution scripts used for
+planning/*.csv and docs/*.md edits) leaking into direct Write/Edit calls on .ts source,
+which never go through that conversion. Swept the whole repository
+(`git ls-files | xargs grep -l "`"`) to scope this precisely: every OTHER occurrence
+(`docs/final-decisions.md`, `apps/worker/src/index.ts`,
+`packages/domain/identity/src/session-authorization.ts`, etc.) is a legitimate,
+pre-existing section reference ("`1", "`5" meaning "section 1", "section 5"), unrelated
+and untouched. Only three files, all test code touched earlier this session, had the
+actual mistake: `signin-click-diagnostics.ts` (fixed as part of the rename),
+`packages/e2e/src/auth-intercept.ts` and `packages/e2e/src/pages.ts` (one comment each,
+fixed). Comment text only — no behavior change.
+
+Verified: `typecheck`, `lint`, full-repo `prettier --check` all clean. Extended the
+serialization simulation to `recordSignInClickDiagnostics` itself (not previously
+checked individually) — confirmed it still accumulates correctly across separate
+serialized calls after the rename, using the new identifier.
+
+C: free space before this round's local work: **5.85GB** — above the 2GB threshold, no
+cleanup performed.
+
+Pushed as `<pending>`, per the authorized sequence: apply the rename, commit, push, then
+read both required job logs in full before proceeding to the security review,
+accessibility review, and merge.
+
+### Run 14 (`cf28b33`): both required checks green, but Secret scan still fails after the rename — STOPPED per section 2, not merging (2026-09-22)
+
+**Both required checks green.** `Format, lint, typecheck, test, build`: ✓ (1m53s).
+`Accessibility`: ✓ — 423 passed, 0 skipped, 0 retries, self-check passing in all three
+engines again (4.2m test execution); the sign-in signature did not recur.
+
+**Secret scan still fails after the rename — 3 leaks found, none at the current file
+tip.** Reading the raw gitleaks log surfaced something the earlier rounds had missed:
+gitleaks's own printed command scans a **commit-range diff** (`git log` between two
+SHAs with `--first-parent`), not the current working tree. All three findings point to
+commits already in this branch's history, each showing the pattern at the moment it was
+introduced there — a rename applied only in the latest commit cannot retroactively
+change what an earlier commit's own diff contains:
+
+| # | File | Line | Commit | What's there |
+|---|---|---|---|---|
+| 1 | `packages/e2e/src/signin-click-diagnostics.ts` | 129 | `424049f` | The original declaration, using the identifier the rename replaced |
+| 2 | `planning/progress-report.md` | 1092 | `7529f73` | This session's own documentation, quoting that exact declaration verbatim while describing the false positive |
+| 3 | `planning/progress-report.md` | 1135 | `8d4c724` | Same — quoted again in a later entry |
+
+**A compounding factor, now visible and worth recording plainly:** every progress-report
+entry written across this investigation that quoted the flagged declaration verbatim,
+to document *why* it was believed to be a false positive, re-introduced the identical
+trigger pattern into a NEW commit each time — findings 2 and 3 above are exactly that.
+Explaining the false positive has been re-triggering it. (This entry itself avoids
+quoting the exact declaration for that reason — see the rename commit's own message
+and `signin-click-diagnostics.ts`'s doc comment for the literal before/after text.)
+
+**One more thing observed, not fully explained, and worth flagging rather than
+asserting:** the gitleaks command's printed end-of-range commit was `021a1ea` — three
+commits behind `cf28b33`, the actual head this run was triggered by. Why the action
+resolved an older SHA is not established here (could be how `gitleaks-action` derives
+the PR's head across rapid successive pushes, or something else) — but a practical
+consequence follows either way: `cf28b33`'s own progress-report addition (the "Run 13
+accepted..." entry above) also quotes the flagged declaration verbatim, and was not yet
+in this run's scanned range. That occurrence has not been fixed and has not yet
+surfaced as its own finding — it is likely to on a future scan. No git-history rewrite
+has been attempted or is proposed here; this is reported as an observed fact for a
+decision, not acted on.
+
+**Per section 2 of "Run 13 / merge authorization" ("If the finding persists after the
+rename, STOP and report. Do not add an allowlist entry, inline suppression, rule
+exclusion or config change without a separate decision"): stopped here.** No allowlist
+entry, suppression, or gitleaks config change has been made. The security review,
+accessibility review, Done marking, and merge have NOT been started — all deferred
+pending a decision on this.
+
+### Secret scan false positive resolved: scan-range investigation, local reproduction, redaction, scoped .gitleaksignore (2026-09-22, direct product-owner instruction: "Secret scan false positive")
+
+**1. Established what the scanner actually scans, before touching anything.**
+Read the CI workflow (`.github/workflows/ci.yml`): `gitleaks/gitleaks-action@v2`, checkout
+with `fetch-depth: 0` (full history — ruled out a shallow-checkout cause immediately).
+Downloaded the action's own source (`gh api repos/gitleaks/gitleaks-action/contents/src`)
+rather than guess: for `pull_request` events, `src/gitleaks.js`'s `ScanPullRequest` calls
+`GET /repos/{owner}/{repo}/pulls/{pull_number}/commits` and sets `baseRef` to that list's
+FIRST commit, `headRef` to its LAST — not `github.sha`, not any local git ref. Confirmed
+directly against PR #6 (`gh api repos/.../pulls/6/commits`): the API still returned
+`021a1ea` as the last commit well after `cf28b33` had been pushed — a known
+eventual-consistency characteristic of that endpoint, not a defect in this repository's
+checkout or workflow. This explains the range lag precisely rather than assuming it.
+
+**2. Reproduced locally and enumerated every finding.** Installed gitleaks 8.24.3 (the
+exact version CI pins, confirmed via `gitleaks version`) from the official release,
+since the scan-range mechanism above meant CI's own 3-finding count could not be
+trusted as complete. Ran it over the PR's TRUE full range (its actual first commit
+through the actual current head, using the same `--log-opts=--no-merges --first-parent`
+flags the action itself uses) — found **5** findings, not 3: the 2 not yet visible in
+any CI run were the rename commit's OWN doc-comment and its OWN progress-report entry,
+each quoting the flagged declaration verbatim while explaining it, regenerating the
+same finding in the very commit meant to fix it. All 5 share the identical rule
+(`generic-api-key`) and identical entropy (3.784942 — the same string every time); none
+touches a real credential. Every fingerprint below was copied verbatim from gitleaks'
+own output, never hand-constructed.
+
+**3. Redacted the regenerating quotes.** In `planning/progress-report.md` (three
+historical entries) and `signin-click-diagnostics.ts`'s own rename-rationale comment
+(missed in the first redaction pass — exactly the kind of mistake this step exists to
+catch), replaced every verbatim quote of the flagged declaration with a description of
+what it is, each stating why the literal is not reproduced.
+
+**4. Added `.gitleaksignore`** at the repository root: five entries, each the exact
+fingerprint gitleaks printed, each with a comment naming what the value is and why it
+is not a secret. Fingerprint-only — no path glob, no rule disable, no entropy-threshold
+change, no inline `gitleaks:allow`, no `--no-git`/filesystem-mode flag. Recorded in
+`docs/final-decisions.md` as this repository's first suppression and the precedent that
+sets.
+
+**5. Verified the suppression is narrow, not over-broad.** C: free space rechecked
+before this round's local work: **9.77GB**, above the 2GB threshold. Re-ran gitleaks
+locally with `.gitleaksignore` in place: **zero findings** — the 5 suppressed exactly
+match the 5 enumerated, no collateral suppression. Negative control: in an isolated
+scratch repository (git-initialized under the session scratchpad, never committed to
+this project, discarded afterward), confirmed gitleaks still detects a properly-formed
+dummy secret (a syntactically valid AWS access key ID and a Stripe-shaped token) with
+this repository's real `.gitleaksignore` copied alongside — 2 leaks found, proving the
+suppression is fingerprint-scoped and the scanner remains fully functional, not
+silenced. (A first attempt at this control used a badly-formed dummy value that matched
+no real rule at all — caught and corrected before drawing any conclusion from it, since
+an inconclusive negative control is not evidence either way.)
+
+Committing sections 3 and 4 together per instruction. Pushed as `<pending>`; CI's
+result — including whether its scan range now matches the pushed commits — to be read
+in full before proceeding to the security review, accessibility review, and merge.
+
+### Run 15 (`b025116`): Secret scan finally green, but BUG-014's signature recurred — the first time on a fully self-check-verified instrument (2026-09-22)
+
+**Secret scan: green.** Its printed scan range still ended at `021a1ea` (the same
+API-lag characteristic identified earlier), but everything within whatever range it
+did scan is correctly suppressed by `.gitleaksignore`, and the full true range was
+already independently verified clean locally. `Format, lint, typecheck, test, build`:
+green (1m59s). **`Accessibility`: failed** — but only one test, out of 423: `[firefox]
+signin-sent @ 320px`. Every other state, every other engine, every other width,
+passed, and the self-check passed in all three engines on this exact run, including
+Firefox — the first time this signature has recurred on a run where the instrument's
+own correctness was proven in the same run, same engine, immediately beforehand.
+
+**Full evidence pulled from the CI artifact** (`results.json`'s inline base64
+attachment bodies, decoded — the click-diagnostics JSON is not written as a separate
+file in the uploaded artifact, only embedded inline): the button was connected,
+hydrated, hit-testable and unchanged between resolution and dispatch (identical
+`nodeId`, zero `rectDelta`) — node-side, unimpeachable. But `events.document: []` and
+`events.root: []` — zero captured click or submit events at either listener — and
+`failure-network.json` showed only the initial page load, no
+`POST /api/auth/signin/email` at all. `failure-console.json` was empty.
+`failure-title-trace.json` showed no navigation (title stayed on the sign-in page
+throughout), which weighed against, but did not fully eliminate, a navigation having
+occurred.
+
+### BUG-014 reclassified; round 2 (the last authorized inside MVP-023) instrumented and pushed (2026-09-22, direct product-owner instruction: "BUG-014 recurrence")
+
+**Reclassified, not merely "ambiguous":** run 15's evidence is unreadable, not a hard
+case between test/product defect, because the self-check proves the mechanism works in
+general but never proved the SPECIFIC listener on the sign-in page was still attached
+to the live document at the moment of the click. Every symptom observed is equally
+consistent with "nothing happened" and with "the document was silently replaced and
+the listener that captured nothing was no longer the live one."
+
+**New hypothesis, explicitly unproven:** a native HTML form submission, not prevented
+because the React handler had not attached (e.g. a hydration race), replacing the
+document between listener install and click dispatch. If true, the product defect and
+the observation failure are the same event.
+
+**Round 2 instrumentation** (test logic only, no product code, no suite configuration
+change — full detail in `planning/bugs/BUG-014.md`):
+- `packages/e2e/src/signin-click-diagnostics.ts`: `installClickEventTracer` now writes
+  an install-time token to `window` and returns it; a new `checkObserverLiveness()`
+  reads it back, called immediately before AND immediately after the click. A SEPARATE
+  bubble-phase `submit` listener at `document` (alongside the existing capture-phase
+  one) records `defaultPrevented` at the point in propagation where it is actually
+  meaningful — document is the outermost point in the tree, so a bubble-phase listener
+  there runs last among document-reachable listeners, after any bubble handler
+  (including React's) has had its chance to call it; a capture-phase read would show
+  `false` even when everything is working normally.
+- `packages/e2e/src/failure-evidence.ts`: now also subscribes to Playwright's
+  `framenavigated`/`load`/`domcontentloaded` page events for the duration of each test,
+  attached on failure as `failure-navigation.json` — page-level, so (unlike the
+  in-page click tracer) these survive the very navigation they exist to detect.
+- `packages/e2e/src/auth-intercept.ts`: `interceptSignInSend` now returns an object
+  exposing `invocationCount()`, a closure counter incremented inside the route handler
+  itself, so "was the interceptor ever actually reached" is read directly rather than
+  inferred from the network log.
+- `packages/e2e/src/pages.ts`: `submitSignIn` wires all of the above together and
+  treats an `evaluate()` call that itself throws (engines report this as roughly
+  "Execution context was destroyed") as an even stronger, more direct signal of a
+  document replacement than a merely-missing token — recorded explicitly, not
+  swallowed into a bare `null`.
+
+**Verified before pushing:** `typecheck`, `lint`, full-repo `prettier --check` all
+clean. Extended the `fn.toString()`-based serialization simulation (the same technique
+used for the run-9 and run-12 fixes) to the three new/changed self-contained
+functions: confirmed `installClickEventTracer` returns its token with no
+`ReferenceError`; confirmed `checkObserverLiveness` correctly reads the token back on
+the SAME simulated document and correctly reports `tokenPresent: false` on a
+DIFFERENT one (proving the mechanism would actually catch a real replacement, not just
+assuming it would); confirmed the new bubble-phase native-submit listener correctly
+records `defaultPrevented: true` when something prevents a dispatched submit event and
+`defaultPrevented: false` when nothing does. Also ran gitleaks locally against the
+working tree (uncommitted; a plain directory scan, not a substitute for the real
+history-based CI gate) to confirm none of this round's new code or comments
+accidentally reintroduced the earlier false-positive pattern — clean.
+
+C: free space before this round's local work: **11.62GB**, above the 2GB threshold.
+
+Pushed as `<pending>` — the last investigation round authorized inside this story.
+Disposition after this round is decided in advance (product-owner instruction, "BUG-014
+recurrence," section 4): in all three possible outcomes (product defect, test defect,
+still unreadable), MVP-023 proceeds to completion. Report pending.
+
+### Run 16 (`aed24d8`): fully green — BUG-014 did not recur even with the most rigorous instrumentation yet; MVP-023 complete and merged (2026-09-22)
+
+**All three jobs green.** `Secret scan`: clean (still the same lagging scan-range
+characteristic, harmlessly — everything within whatever range it did scan remains
+correctly suppressed). `Format, lint, typecheck, test, build`: green, 1m59s; every
+DB-gated integration suite (`clamav-scan-adapter` 2, `s3-storage-adapter` 4,
+`file-scan-repository` 3, `session-repository` 3, `catalog-repository` 37 — all ran for
+real, none skipped). `Accessibility`: **423 passed, 0 failed, 0 skipped, 0 retries**,
+self-check passing in all three engines — the round-2 observer-liveness, navigation and
+native-submit instrumentation was live for this run and recorded nothing, because
+BUG-014's signature did not recur at all. Per the disposition decided in advance
+("BUG-014 recurrence," section 4), MVP-023 proceeds to completion regardless of which
+of the three outcomes materialized — a clean, non-recurring result is squarely within
+that instruction, not an exception to it.
+
+**Runtime, install separate, cache state:** deps 7s (cache hit), Playwright browsers
+25s (cache hit), application build 27s, **test execution 4m9s**, whole job 5m39s
+(ceiling 10 minutes, target 5-8).
+
+**Security review** (`docs/final-decisions.md`, "MVP-023: final security and
+accessibility review, Done, merge"): re-read the actual current content of every file
+under review rather than re-asserting from memory. `@ppu/db`'s BUG-012 fix confirmed
+still in place and confirmed a root fix (connection caching is unconditional now, RLS
+and authorization untouched, credential handling unchanged). `SessionsHeading`'s
+BUG-013 mitigation confirmed `.textContent`-only, no injection surface, correctly still
+labelled a mitigation not a root fix. The e2e/diagnostics package confirmed
+structurally dev-only (`private: true`, `.pnpmfile.cjs` intact, zero references from
+`apps/web`) - not re-verified via a fresh full production build this round, noted as
+such rather than implied. `.gitleaksignore` confirmed exactly 5 fingerprint entries, no
+config/rule/entropy changes, real-secret detection proven (not assumed) intact by the
+earlier negative control. No findings.
+
+**Accessibility review** (same entry): scope-and-method wording only, the prohibited
+list respected, BUG-013's residual gap and BUG-014's open/non-reproducing/monitor-only
+status both carried forward explicitly, open question 38 still noted as unanswered.
+
+**`planning/requirement-traceability.csv`:** NFR-001 and NFR-008 updated to cite the
+actual merged-head run (`aed24d8`, 423/423) in place of the stale `5dedfba` (420/420)
+reference, and NFR-001 now names BUG-014's status explicitly.
+
+**`planning/mvp-backlog.csv` and `planning/backlog.csv`** have shown MVP-023 as `Done`
+since 2026-09-21 - a marking made before the entire run-8-through-16 investigation this
+report documents. Noted plainly rather than left silent: the CLAUDE.md completion gate
+(tests passing, security review completed, documentation and traceability updated) is
+only genuinely satisfied as of this entry. The status value does not need to change,
+because it is accurate now; the timing gap between when it was marked and when it
+became true is the thing worth recording.
+
+**Merged via `gh pr merge` (not locally, not squashed).**

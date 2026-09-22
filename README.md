@@ -43,9 +43,19 @@ DATABASE_URL="postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schem
 
 Without `DATABASE_URL`, everything else (typecheck, lint, unit tests, build) still works — DB-dependent integration tests skip themselves (`describe.skipIf`) rather than failing.
 
+**Accessibility tests.** `packages/e2e` holds the Playwright + axe-core accessibility gate (MVP-023). It runs against a production build and a **local** Postgres, and refuses to write to any other database:
+
+```bash
+pnpm build
+pnpm --filter @ppu/e2e browsers:install   # once
+E2E_ALLOW_DATABASE_WRITES=1 pnpm test:a11y
+```
+
+See `docs/14-accessibility-testing.md` for the browser and breakpoint matrices, what is and is not verified (no screen reader has been run), and the manual-review checklist.
+
 `apps/web` also reads `NEXT_PUBLIC_SITE_URL` — the public site origin used for canonical URLs, Open Graph tags, `sitemap.xml` and structured data (see `apps/web/.env.example`; it is deliberately separate from `NEXTAUTH_URL`). It is optional in development and test (defaults to `http://localhost:3000`) and required in production as an absolute `https` origin on a public hostname. If it is missing or invalid in production the site keeps serving but omits canonical URLs and structured data, returns an empty sitemap, and logs `seo.site_url_invalid`.
 
-CI (`.github/workflows/ci.yml`) runs format-check, lint, typecheck, test (unit + integration, against a Postgres service container), build, a non-blocking dependency audit, and a secret scan on every pull request.
+CI (`.github/workflows/ci.yml`) runs format-check, lint, typecheck, test (unit + integration, against a Postgres service container), build, a non-blocking dependency audit, and a secret scan on every pull request. A separate accessibility job runs the Playwright and axe-core suite in parallel.
 
 ## Repository structure
 
@@ -57,6 +67,7 @@ packages/db             Prisma schema/client — Identity domain so far (User, A
 packages/domain/identity        Session-ownership rules, repository port + in-memory fake
 packages/adapters/identity      Prisma-backed session repository
 packages/adapters/email          Minimal EmailAdapter (console/dev implementation)
+packages/e2e            Playwright + axe-core accessibility gate (MVP-023); development and CI only, never shipped
 packages/config, telemetry, ui                       structural placeholders, filled in by the stories that need them
 packages/domain/<name>                                one per TRD domain, structural placeholders except identity
 packages/adapters/<name>                              one per external integration, structural placeholders except identity/email
