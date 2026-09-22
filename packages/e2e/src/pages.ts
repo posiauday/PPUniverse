@@ -3,10 +3,12 @@ import { interceptSignInSend } from "./auth-intercept.js";
 import { type GatedRoute } from "./page-routes.js";
 import { NO_MATCH_TERM, SEARCH_TERM, type FixtureSet } from "./seed.js";
 import {
-  inspectSignInSubmitButton,
   installClickEventTracer,
   recordSignInClickDiagnostics,
+  snapshotButtonNode,
+  type ButtonSnapshot,
   type ClickEventLogEntry,
+  type RootContainerInfo,
 } from "./signin-click-diagnostics.js";
 
 /**
@@ -40,14 +42,18 @@ const SEND_LINK = /send sign-in link/i;
 const VALID_EMAIL = "e2e-a11y@example.invalid";
 
 /**
- * Submits the sign-in form. Also gathers click-diagnostics evidence (decision,
- * 2026-09-21: "Run 7 failure / sign-in submit signature") for the two CI failures
- * observed on this exact interaction (run 4 signin-sent, run 7 signin-send-failed,
- * both Firefox, both 320px): whether the click reaches the button (hit test), whether
- * it was hydrated at that moment, and whether the browser's own click/submit events
- * fire at all. Recorded on §window§ for §failure-evidence.ts§ to attach ONLY if the
- * test ends up failing; adds a few fast, synchronous-in-page evaluate calls regardless
- * (unavoidable, since whether the test will fail is not known in advance).
+ * Submits the sign-in form. Also gathers click-diagnostics evidence (decisions,
+ * 2026-09-21: "Run 7 failure / sign-in submit signature", then "Run 8 disposition") for
+ * the two CI failures observed on this exact interaction (run 4 signin-sent, run 7
+ * signin-send-failed, both Firefox, both 320px): whether the click reaches the button
+ * (hit test), whether it was hydrated, whether the browser's own click/submit events
+ * fire at document AND at React's own root, and — because §fill()§'s re-render is a
+ * specific, unproven candidate cause — whether the button is still the SAME node,
+ * still connected, and still laid out the same way immediately before the click as it
+ * was right after the locator resolved. Recorded on §window§ for §failure-evidence.ts§
+ * to attach ONLY if the test ends up failing; adds a few fast, synchronous-in-page
+ * evaluate calls regardless (unavoidable, since whether the test will fail is not known
+ * in advance).
  */
 async function submitSignIn(
   page: Page,
@@ -55,26 +61,52 @@ async function submitSignIn(
   interceptionRegisteredAtMs: number | null = null,
 ): Promise<void> {
   await page.evaluate(installClickEventTracer);
+  const rootContainer = await page.evaluate(
+    () => (window as unknown as { __e2eRootInfo?: RootContainerInfo }).__e2eRootInfo ?? { found: false, description: null },
+  );
+
   const button = page.getByRole("button", { name: SEND_LINK });
-  const box = await button.boundingBox();
-  const preClick = box
-    ? await page.evaluate(inspectSignInSubmitButton, {
-        clickX: box.x + box.width / 2,
-        clickY: box.y + box.height / 2,
-      })
-    : null;
+  const atResolution = await button.evaluate(snapshotButtonNode).catch((): ButtonSnapshot | null => null);
 
   if (email) await page.getByLabel("Email address").fill(email);
+
+  // Snapshotted AGAIN, after fill() — the specific re-render under suspicion — and
+  // immediately before the click, not reused from before it. Its own hit test uses this
+  // exact element reference, so the snapshot and the hit test can never disagree about
+  // which node they mean.
+  const atDispatch = await button.evaluate(snapshotButtonNode).catch((): ButtonSnapshot | null => null);
+
   const clickIssuedAtMs = Date.now();
   await button.click();
 
-  const events = await page.evaluate(
-    () => (window as unknown as { __e2eClickEvents?: ClickEventLogEntry[] }).__e2eClickEvents ?? [],
-  );
+  const events = await page.evaluate(() => {
+    const w = window as unknown as {
+      __e2eClickEvents?: ClickEventLogEntry[];
+      __e2eRootClickEvents?: ClickEventLogEntry[];
+    };
+    return { document: w.__e2eClickEvents ?? [], root: w.__e2eRootClickEvents ?? null };
+  });
+
+  const nodeReplacedBetweenResolutionAndDispatch =
+    atResolution && atDispatch ? atResolution.nodeId !== atDispatch.nodeId : null;
+  const rectDelta =
+    atResolution && atDispatch
+      ? {
+          dx: atDispatch.rect.x - atResolution.rect.x,
+          dy: atDispatch.rect.y - atResolution.rect.y,
+          dwidth: atDispatch.rect.width - atResolution.rect.width,
+          dheight: atDispatch.rect.height - atResolution.rect.height,
+        }
+      : null;
+
   await page.evaluate(recordSignInClickDiagnostics, {
     interceptionRegisteredAtMs,
     clickIssuedAtMs,
-    preClick,
+    rootContainer,
+    atResolution,
+    atDispatch,
+    nodeReplacedBetweenResolutionAndDispatch,
+    rectDelta,
     events,
   });
 }

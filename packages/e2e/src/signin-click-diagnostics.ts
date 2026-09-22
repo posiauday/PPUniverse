@@ -1,13 +1,32 @@
 /**
- * Diagnoses the sign-in "Send sign-in link" click (decision, 2026-09-21: "Run 7 failure
- * / sign-in submit signature"). Two CI failures so far (run 4 §signin-sent§, run 7
- * §signin-send-failed§, both Firefox, both 320px, both on this control) showed the
- * app's handler never executing — no request, no client-side validation error. This
- * captures, on the same in-page clock (§performance.now()§, which is already relative to
- * this document's navigation start — no manual zeroing needed), the facts the fixed
- * classification criterion needs: whether the click reached the button (hit test),
- * whether it was hydrated at that moment, and whether the browser's own click/submit
- * events fired at all.
+ * Diagnoses the sign-in "Send sign-in link" click (decisions, 2026-09-21: "Run 7
+ * failure / sign-in submit signature", then "Run 8 disposition"). Two CI failures so
+ * far (run 4 §signin-sent§, run 7 §signin-send-failed§, both Firefox, both 320px, both
+ * on this control) showed the app's handler never executing — no request, no
+ * client-side validation error.
+ *
+ * Refined per the second decision, because a listener attached too late, or to the
+ * wrong node, or a single pre-fill snapshot cannot rule out the specific hypothesis
+ * under test: that §fill()§'s re-render replaces or detaches the button between locator
+ * resolution and click dispatch, so the click lands on an orphan node that never
+ * reaches React. Unproven — a candidate, not a conclusion. This module exists to
+ * confirm or eliminate it with evidence, not to assume it:
+ *
+ * - Listeners are attached at §document§ (before any interaction) AND, if it can be
+ *   found, at the DOM node React itself created its root on — so an event reaching
+ *   document but never reaching React's own root is a distinguishable, visible fact.
+ * - The button is snapshotted TWICE with the same function — once right after the
+ *   locator resolves, again immediately before the click is dispatched (after §fill()§,
+ *   which is the specific re-render under suspicion) — so identity, connectedness and
+ *   layout are compared across exactly the window the hypothesis is about, not before
+ *   it.
+ * - Node identity is tracked with a §WeakMap§ keyed by the actual element object: if the
+ *   button locator resolves to a *different* object on the second snapshot, that is a
+ *   replaced node, not the same one merely re-measured.
+ *
+ * All timestamps here are §performance.now()§, which is already relative to this
+ * document's navigation start — no manual zeroing needed, and all in-page fields in
+ * this module share one clock.
  *
  * Test logic only; nothing here runs in, or is reachable from, the application.
  */
@@ -18,100 +37,139 @@ export interface ClickEventLogEntry {
   target: string;
 }
 
-/**
- * Installs capture-phase listeners on §document§ for §click§ and §submit§, before the
- * click is attempted, so the trace shows whether either fired at all and on what target
- * — not just whether OUR click call resolved.
- */
-export function installClickEventTracer(): void {
-  const KEY = "__e2eClickEvents";
-  const w = window as unknown as { [KEY]: ClickEventLogEntry[] };
-  if (w[KEY]) return;
-  const log: ClickEventLogEntry[] = [];
-  w[KEY] = log;
-
-  const describe = (target: EventTarget | null): string => {
-    if (!(target instanceof Element)) return String(target);
-    const id = target.id ? `#${target.id}` : "";
-    const text = (target.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 30);
-    return `${target.tagName.toLowerCase()}${id}${text ? ` "${text}"` : ""}`;
-  };
-  const record = (type: "click" | "submit") => (event: Event) =>
-    log.push({ type, atMs: performance.now(), target: describe(event.target) });
-  document.addEventListener("click", record("click"), { capture: true });
-  document.addEventListener("submit", record("submit"), { capture: true });
+export interface RootContainerInfo {
+  found: boolean;
+  description: string | null;
 }
 
-export interface SubmitButtonInspection {
-  atMs: number;
-  buttonFound: boolean;
-  buttonHydrated: boolean;
-  buttonVisible: boolean;
-  buttonRect: { x: number; y: number; width: number; height: number } | null;
-  inViewport: boolean;
-  pointerEvents: string | null;
-  zIndex: string | null;
+const DOC_EVENTS_KEY = "__e2eClickEvents";
+const ROOT_EVENTS_KEY = "__e2eRootClickEvents";
+const ROOT_INFO_KEY = "__e2eRootInfo";
+const NODE_IDENTITY_KEY = "__e2eNodeIdentities";
+
+function describeTarget(target: EventTarget | null): string {
+  if (!(target instanceof Element)) return String(target);
+  const id = target.id ? `#${target.id}` : "";
+  const text = (target.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 30);
+  return `${target.tagName.toLowerCase()}${id}${text ? ` "${text}"` : ""}`;
+}
+
+/**
+ * Scans every element in the document for React's root-container marker (a property
+ * key starting with §__reactContainer$§, attached to whatever DOM node §createRoot§ was
+ * given). A full scan, not a guess at Next.js's mounting convention, because assuming a
+ * specific element (§#__next§ is a Pages Router convention, not App Router's) would risk
+ * silently finding nothing and reporting a false "not found".
+ */
+function findReactRootContainer(): RootContainerInfo {
+  const all = document.querySelectorAll("*");
+  for (const el of all) {
+    if (Object.keys(el).some((key) => key.startsWith("__reactContainer$"))) {
+      return { found: true, description: `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}` };
+    }
+  }
+  return { found: false, description: null };
+}
+
+/**
+ * Installs capture-phase §click§/§submit§ listeners at §document§ (always) and, if
+ * React's root container can be found, ALSO there — a click that reaches document but
+ * not the root is a distinguishable, visible fact, not an assumption.
+ */
+export function installClickEventTracer(): void {
+  const w = window as unknown as {
+    [DOC_EVENTS_KEY]?: ClickEventLogEntry[];
+    [ROOT_EVENTS_KEY]?: ClickEventLogEntry[];
+    [ROOT_INFO_KEY]?: RootContainerInfo;
+  };
+  if (w[DOC_EVENTS_KEY]) return;
+
+  const docLog: ClickEventLogEntry[] = [];
+  w[DOC_EVENTS_KEY] = docLog;
+  const record = (log: ClickEventLogEntry[], type: "click" | "submit") => (event: Event) =>
+    log.push({ type, atMs: performance.now(), target: describeTarget(event.target) });
+  document.addEventListener("click", record(docLog, "click"), { capture: true });
+  document.addEventListener("submit", record(docLog, "submit"), { capture: true });
+
+  const rootInfo = findReactRootContainer();
+  w[ROOT_INFO_KEY] = rootInfo;
+  if (rootInfo.found) {
+    const el = [...document.querySelectorAll("*")].find((candidate) =>
+      Object.keys(candidate).some((key) => key.startsWith("__reactContainer$")),
+    );
+    if (el) {
+      const rootLog: ClickEventLogEntry[] = [];
+      w[ROOT_EVENTS_KEY] = rootLog;
+      el.addEventListener("click", record(rootLog, "click"), { capture: true });
+      el.addEventListener("submit", record(rootLog, "submit"), { capture: true });
+    }
+  }
+}
+
+export interface HitTestResult {
   clickPoint: { x: number; y: number };
   elementAtClickPoint: string;
   hitTargetsButton: boolean;
-  viewport: { width: number; height: number };
+}
+
+export interface ButtonSnapshot {
+  atMs: number;
+  nodeId: string;
+  /** False on the very first snapshot of a given element; meaningful from the second
+   * snapshot of "the same locator" onward — true means a DIFFERENT element object than
+   * whatever was snapshotted before it (a replaced node), not merely re-measured. */
+  isKnownNode: boolean;
+  isConnected: boolean;
+  hydrated: boolean;
+  visible: boolean;
+  rect: { x: number; y: number; width: number; height: number };
+  pointerEvents: string | null;
+  zIndex: string | null;
+  fontsStatus: string;
+  /** Hit-tested against THIS SAME element reference and its own just-measured centre —
+   * no separate re-resolution, so the snapshot and the hit test can never disagree
+   * about which node they mean. */
+  hitTest: HitTestResult;
 }
 
 /**
- * Inspects the "Send sign-in link" button right before a click is attempted at
- * (clickX, clickY) — the same point Playwright's own §.click()§ targets (the element's
- * centre). Everything here answers one question: did the click, as a real pointer
- * event, have any chance of reaching the button? Takes one object argument, as
- * §page.evaluate(fn, arg)§ requires when §fn§ is passed by reference.
+ * Snapshots whatever element a locator resolves to, called via §locator.evaluate()§ so
+ * Playwright hands it the freshly re-queried live element each time — not a coordinate
+ * or selector re-evaluated separately, which could resolve to something else. Typed as
+ * the general §Element§ (not §HTMLButtonElement§) because Playwright's own §evaluate()§
+ * signature is generic over the element a locator could resolve to, and everything used
+ * here (§getComputedStyle§, §getBoundingClientRect§, §isConnected§, §checkVisibility§) is
+ * available on §Element§ itself.
  */
-export function inspectSignInSubmitButton({
-  clickX,
-  clickY,
-}: {
-  clickX: number;
-  clickY: number;
-}): SubmitButtonInspection {
-  const describe = (el: Element | null): string => {
-    if (!el) return "(none)";
-    const id = el.id ? `#${el.id}` : "";
-    const text = (el.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 40);
-    return `${el.tagName.toLowerCase()}${id}${text ? ` "${text}"` : ""}`;
-  };
-
-  const buttons = [...document.querySelectorAll("button")];
-  const button =
-    buttons.find((candidate) => /send sign-in link/i.test(candidate.textContent ?? "")) ?? null;
-  const style = button ? getComputedStyle(button) : null;
-  const rect = button?.getBoundingClientRect() ?? null;
-  const atPoint = document.elementFromPoint(clickX, clickY);
-  const hitTargetsButton = button !== null && (atPoint === button || button.contains(atPoint));
-  // React attaches a fibre/props property (key starts with "__reactProps$") to a DOM
-  // node once it has rendered and attached its event handlers; its absence means the
-  // element exists in the DOM but React has not yet made it interactive.
-  const hydrated =
-    button !== null && Object.keys(button).some((key) => key.startsWith("__reactProps"));
-  const inViewport =
-    rect !== null &&
-    rect.width > 0 &&
-    rect.height > 0 &&
-    rect.left >= 0 &&
-    rect.top >= 0 &&
-    rect.right <= window.innerWidth &&
-    rect.bottom <= window.innerHeight;
-
+export function snapshotButtonNode(element: Element): ButtonSnapshot {
+  const w = window as unknown as { [NODE_IDENTITY_KEY]?: WeakMap<Element, string> };
+  const map = (w[NODE_IDENTITY_KEY] ??= new WeakMap<Element, string>());
+  const isKnownNode = map.has(element);
+  let nodeId = map.get(element);
+  if (!nodeId) {
+    nodeId = Math.random().toString(36).slice(2, 10);
+    map.set(element, nodeId);
+  }
+  const style = getComputedStyle(element);
+  const rect = element.getBoundingClientRect();
+  const clickPoint = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+  const atPoint = document.elementFromPoint(clickPoint.x, clickPoint.y);
+  const hitTargetsButton = element.isConnected && (atPoint === element || element.contains(atPoint));
   return {
     atMs: performance.now(),
-    buttonFound: button !== null,
-    buttonHydrated: hydrated,
-    buttonVisible: button?.checkVisibility() ?? false,
-    buttonRect: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
-    inViewport,
-    pointerEvents: style?.pointerEvents ?? null,
-    zIndex: style?.zIndex ?? null,
-    clickPoint: { x: clickX, y: clickY },
-    elementAtClickPoint: describe(atPoint),
-    hitTargetsButton,
-    viewport: { width: window.innerWidth, height: window.innerHeight },
+    nodeId,
+    isKnownNode,
+    isConnected: element.isConnected,
+    // React attaches a fibre/props property (key starts with "__reactProps$") to a DOM
+    // node once it has rendered and attached its event handlers; its absence means the
+    // element exists in the DOM but React has not made it interactive.
+    hydrated: Object.keys(element).some((key) => key.startsWith("__reactProps")),
+    visible: element.checkVisibility(),
+    rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+    pointerEvents: style.pointerEvents,
+    zIndex: style.zIndex,
+    fontsStatus: document.fonts.status,
+    hitTest: { clickPoint, elementAtClickPoint: describeTarget(atPoint), hitTargetsButton },
   };
 }
 
@@ -120,8 +178,18 @@ export interface SignInClickDiagnostics {
    * failure-evidence.ts for why they cannot be merged onto one axis. */
   interceptionRegisteredAtMs: number | null;
   clickIssuedAtMs: number;
-  preClick: SubmitButtonInspection | null;
-  events: ClickEventLogEntry[];
+  rootContainer: RootContainerInfo;
+  /** Snapshotted right after the locator resolves, BEFORE fill(). */
+  atResolution: ButtonSnapshot | null;
+  /** Snapshotted again immediately before the click is dispatched, AFTER fill() — the
+   * specific re-render under suspicion. Its own §hitTest§ field uses the exact same
+   * element reference this snapshot was taken from. */
+  atDispatch: ButtonSnapshot | null;
+  /** True if atDispatch resolved to a different element object than atResolution. */
+  nodeReplacedBetweenResolutionAndDispatch: boolean | null;
+  /** atDispatch.rect minus atResolution.rect; null if either snapshot is missing. */
+  rectDelta: { dx: number; dy: number; dwidth: number; dheight: number } | null;
+  events: { document: ClickEventLogEntry[]; root: ClickEventLogEntry[] | null };
 }
 
 /** Pushes one attempt's diagnostics onto window.__e2eClickDiagnostics for later attachment. */

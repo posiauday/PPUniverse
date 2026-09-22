@@ -1081,3 +1081,50 @@ of it.
 
 Per instruction, this instrumentation commit IS the next CI sample — no separate push was
 made just to re-run the check. Report pending on that run.
+
+### CI run 8: signature did not recur, but Secret scan failed for the first time; run 9 pending (2026-09-21)
+
+Run 8 (`424049f`, the extended-instrumentation commit) had both required checks green:
+420/420 accessibility checks (BUG-014's signature did not recur — neither `signin-sent`
+nor `signin-send-failed` failed), 547 unit/integration tests with all five
+database-gated suites PASSED, 0 skipped, 0 retries. **Not merged.** A third job,
+`Secret scan`, failed for the first time in this entire story: gitleaks' generic-api-key
+rule flagged `const KEY = "__e2eClickDiagnostics";` in the new diagnostics file. Two
+identical patterns elsewhere in the same file family
+(`const KEY = "__e2eTitleTrace";`, `const KEY = "__e2eClickEvents";`) were NOT flagged,
+consistent with an entropy-threshold false positive tied to string length, not an
+actual secret — none of the three touches a credential, environment variable, or
+external call. Not renamed, not allowlisted, not otherwise touched; reported and left
+for the product owner's decision. `Secret scan` is not one of the two required checks in
+the branch-protection rule, so it does not block merge eligibility, but a security job
+turning red for the first time is not something to quietly proceed past.
+
+### Disk protocol adopted; instrumentation refined a second time; run 9 pushed (2026-09-21)
+
+**Disk protocol:** free space is now reported before any local run, and a run is
+skipped entirely (relying on CI) if free space is under 2GB. C: was at 0.19GB free
+before this round (unrelated to this session's own footprint — the authorized,
+repo-scoped cleanup categories were audited and found to be either already minimal (this
+session's own scratch downloads, freed earlier) or physically on G: with 62GB free, not
+C:; the Playwright browser cache held only the pinned version, nothing extra to remove).
+No local `pnpm` command was run this round; the code below was verified by careful
+manual review instead, with CI's fast lint/typecheck job relied on to catch anything
+missed, rather than the far more expensive accessibility job.
+
+**Instrumentation refined** (`packages/e2e/src/signin-click-diagnostics.ts`, test logic
+only): the original design snapshotted the button once, BEFORE `fill()` — exactly the
+gap the product owner's evidence-refinement instruction identified, since `fill()`'s
+own re-render is the specific event the replaced-node hypothesis is about. Now the
+button is snapshotted twice (via `locator.evaluate()`, so each snapshot uses whatever
+element is freshly resolved at that moment, not a stale reference) — once at
+resolution, once immediately before the click — compared for node identity (a
+`WeakMap` keyed by the actual element object), `isConnected`, and a bounding-box delta.
+Listeners now also attach to React's own root container when it can be found (a full
+scan of the document for its `__reactContainer$` marker, not an assumed mount point),
+so an event reaching `document` but not React's root is a distinguishable fact. A named
+hypothesis was added to BUG-014, explicitly flagged as unproven: that `fill()`'s
+re-render could replace or detach the button, so the click dispatches to an orphan node
+that never reaches React.
+
+Pushed as `<pending>`, per instruction (no documentation-only push used to obtain a
+sample). Report pending on run 9.
