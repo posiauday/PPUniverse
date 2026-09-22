@@ -2,15 +2,17 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-22 — MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 merged via `gh pr merge` (merge commit `ed9b09b`, not squashed) after the final CI run (`aed24d8`, re-confirmed on the actual merged head `7e10c4a`) went green on all three jobs: 423/423 accessibility checks, 0 skipped, 0 retries, self-check passing in all three engines, every DB-gated integration suite passing for real, Secret scan clean. The `develop` branch-protection rule is live (confirmed by reading it back directly, not assumed); the security review and the accessibility review sign-off are recorded in `docs/final-decisions.md`. NFR-001 and NFR-008 are Implemented. Findings resolved along the way: BUG-012 (production `@ppu/db` connection-pool defect, root-fixed), BUG-013 (Firefox title-disappearance after a session revoke, mitigated), and a secret-scanner false positive (a fingerprint-scoped `.gitleaksignore`, this repository's first suppression, `docs/final-decisions.md`). **BUG-014** (intermittent Firefox @320px sign-in-submit signature) stays **open, monitor-only, permanently instrumented** — three occurrences across sixteen CI runs, two evidence-backed investigation rounds complete, root cause unproven, does not block.
+Last updated: 2026-09-22 — MVP-010 (Free entitlement flow, FR-005) pre-work analysis delivered on `feature/mvp-010-free-entitlement` (`planning/prework/MVP-010-prework-analysis.md`); **pre-work only, no code written**, per the product-owner instruction. Two items need a decision before implementation: open questions 44 (free-download sign-in policy) and 45 (entitlement revocation), both with a safest-reversible default proposed and neither approved. A gap found in passing: `packages/domain/entitlements/README.md`'s placeholder attributes entitlement ownership to MVP-009; the traceability CSV and backlog already correctly assign FR-005 to MVP-010 — the README needs correcting as part of this story, not a separate one.
+
+MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 merged via `gh pr merge` (merge commit `ed9b09b`, not squashed) after the final CI run (`aed24d8`, re-confirmed on the actual merged head `7e10c4a`) went green on all three jobs: 423/423 accessibility checks, 0 skipped, 0 retries, self-check passing in all three engines, every DB-gated integration suite passing for real, Secret scan clean. The `develop` branch-protection rule is live (confirmed by reading it back directly, not assumed); the security review and the accessibility review sign-off are recorded in `docs/final-decisions.md`. NFR-001 and NFR-008 are Implemented. Findings resolved along the way: BUG-012 (production `@ppu/db` connection-pool defect, root-fixed), BUG-013 (Firefox title-disappearance after a session revoke, mitigated), and a secret-scanner false positive (a fingerprint-scoped `.gitleaksignore`, this repository's first suppression, `docs/final-decisions.md`). **BUG-014** (intermittent Firefox @320px sign-in-submit signature) stays **open, monitor-only, permanently instrumented** — three occurrences across sixteen CI runs, two evidence-backed investigation rounds complete, root cause unproven, does not block.
 
 ## Board
 
 | Column | Count | Stories |
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
-| Ready | 6 | MVP-007, MVP-010, MVP-011, MVP-017, MVP-018, MVP-020 |
-| In Progress | 0 | — |
+| Ready | 5 | MVP-007, MVP-011, MVP-017, MVP-018, MVP-020 |
+| In Progress | 1 | MVP-010 (pre-work delivered, awaiting decision on open questions 44/45 before implementation) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Done | 9 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-021, MVP-022, MVP-023 |

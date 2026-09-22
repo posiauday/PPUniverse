@@ -1576,3 +1576,65 @@ because it is accurate now; the timing gap between when it was marked and when i
 became true is the thing worth recording.
 
 **Merged via `gh pr merge` (not locally, not squashed).**
+
+## MVP-010 (Free entitlement flow, FR-005) — pre-work analysis, 2026-09-22
+
+**Pre-work only, per direct product-owner instruction. No code written.** Branch
+`feature/mvp-010-free-entitlement` created from `develop` (`6ca91b2`, the post-MVP-023
+head) after verifying no open PRs and no overlapping work (`gh pr list --state all`: all
+seven prior PRs MERGED). C: free space checked before any local command: **11.17GB**.
+
+**Read in full before proposing anything:** `CLAUDE.md`, `docs/final-decisions.md` (all
+563 lines), `planning/status.md`, `docs/open-questions.md`, `planning/mvp-backlog.csv`,
+`planning/backlog.csv`, `planning/requirement-traceability.csv`, `docs/02-prd.md`'s FR-005
+and FR-007 wording verbatim, `docs/06-data-model.md`, and the actual current Prisma
+schema (`identity.prisma`, `catalog.prisma`, `evidence.prisma`, `files.prisma`,
+`schema.prisma`) plus one migration for RLS/CREATE TABLE convention.
+
+**A decisive, non-obvious finding from reading the schema directly, not assuming:**
+`ReleaseFile` does not exist yet. `packages/db/prisma/schema/files.prisma`'s own
+comment says it "belongs to the stories that need them (MVP-009, MVP-012, MVP-014)" —
+`FileScan` (MVP-006) has no foreign key to `Release` or `Product` at all. There is
+currently no way to reference "the file for this product." This settles the delivery-
+boundary question cleanly: MVP-010 cannot deliver a file even if asked to, because the
+model connecting a scanned file to a release doesn't exist — it creates an
+`Entitlement` and a `Download` audit record, referencing each other, not a file.
+FR-005's and FR-007's traceability rows already independently confirm this same split
+(FR-005 → MVP-010; FR-007 → MVP-006/MVP-009).
+
+**A second finding, a gap not a conflict:** `packages/domain/entitlements/README.md`
+(the MVP-001 structural placeholder) attributes entitlement-domain ownership to
+MVP-009, predating the FR-005/FR-007 split now reflected in the backlog and
+traceability CSVs. Flagged for correction as part of MVP-010's own change set.
+
+**Two genuine open questions, not resolved unilaterally**, recorded in
+`docs/open-questions.md` as items 44 and 45, each with a safest reversible default
+proposed and explicitly marked not approved:
+- **44 (sign-in policy):** FR-005 says free downloads "may require sign-in based on
+  product policy" — a real per-product field, which does not exist today and, if
+  built now, requires a second guest-request code path (no `User` to attach an
+  entitlement to) alongside the signed-in one. Proposed default: require sign-in for
+  all free downloads in this story, defer the per-product policy and guest path.
+- **45 (revocation):** the schema is silent on whether a free entitlement is
+  permanent, revocable on product suspension, or version-scoped. Proposed default:
+  product-scoped (not release-scoped, since paid entitlements are inherently
+  product-scoped) and permanent once granted, with an unset `revokedAt` column
+  reserved for a future revocation workflow.
+
+**Full analysis:** `planning/prework/MVP-010-prework-analysis.md` — proposed entities
+(`Entitlement`, `Download`, both new tables), cardinality (one entitlement per
+user/product, many downloads per entitlement), constraint/index/RLS/migration plan,
+authorization model, repository shape (`packages/domain/entitlements` +
+`packages/adapters/entitlements`, mirroring the catalog package split), UI surface (no
+existing control found on the product page — confirmed by reading
+`apps/web/app/products/[slug]/page.tsx` directly), security and accessibility impact,
+telemetry (reusing `apps/web/lib/observability.ts`'s existing pattern, no new
+infrastructure), test plan (reserved-prefix DB-gated integration tests, mirroring the
+accessibility suite's `zz-e2e-a11y-` convention), and the exact files expected to
+change.
+
+`planning/mvp-backlog.csv`, `planning/backlog.csv` and `planning/status.md`: MVP-010
+moved from Ready to In Progress (pre-work is work, even though no code exists yet).
+
+**Stopped here, per instruction.** Waiting for review of the pre-work analysis and
+explicit answers to open questions 44 and 45 before writing any implementation code.
