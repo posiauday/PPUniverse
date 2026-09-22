@@ -218,14 +218,19 @@ export interface SignInClickDiagnostics {
  * Pushes one attempt's diagnostics onto `window.__e2eClickDiagnostics` for later
  * attachment. Self-contained: see the module comment for why.
  *
- * The local constant below is named `DIAGNOSTICS_GLOBAL_NAME`, not `KEY` (decision,
- * 2026-09-22, "Run 13 / merge authorization"): a secret scanner flagged
- * `const KEY = "__e2eClickDiagnostics";` as a generic-api-key finding — triggered by the
- * identifier keyword, not the value, since structurally identical
- * `const KEY = "..."` patterns elsewhere in this file family were unflagged. This name
- * also more accurately describes what the constant is: the name of a `window` property
- * used to carry diagnostics, not a credential of any kind. The value itself
- * (`"__e2eClickDiagnostics"`) is unchanged — this is a rename, not a behavior change.
+ * The local constant below is named `DIAGNOSTICS_GLOBAL_NAME` (decision, 2026-09-22,
+ * "Run 13 / merge authorization"; scoped-suppression follow-up, same date, "Secret
+ * scan false positive"). Its earlier name was a single all-caps word matching the
+ * generic-api-key secret-scanner rule's own trigger keyword, paired with the same
+ * entropy-eligible string value this constant still holds — the scanner treats that
+ * combination as a possible credential. The rule fires on that keyword-plus-value
+ * pattern wherever the exact text appears, including inside a comment describing it,
+ * which is why this note deliberately does not reproduce the old declaration
+ * verbatim (doing so once already regenerated the same finding in a later commit).
+ * The new name avoids the trigger keyword and more accurately describes what the
+ * constant is: the name of a `window` property used to carry diagnostics, not a
+ * credential of any kind. Only the identifier changed — the string value, and all
+ * runtime behavior, are unchanged.
  */
 export function recordSignInClickDiagnostics(entry: SignInClickDiagnostics): void {
   const DIAGNOSTICS_GLOBAL_NAME = "__e2eClickDiagnostics";
