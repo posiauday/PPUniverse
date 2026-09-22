@@ -205,6 +205,56 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/products/${seed.minimalProduct.slug}`,
   },
   {
+    // MVP-010 (FR-005): guest coverage of the free-entitlement prompt is
+    // already exercised by product-full/product-minimal above, both
+    // auth: "guest" — a signed-out visitor sees the same "Sign in to get
+    // this for free" prompt there, with no separate state needed. These
+    // three states cover the signed-in axis, which no existing state does.
+    id: "product-free-idle",
+    route: "/products/[slug]",
+    description: "product page, signed in, not yet entitled: the free-download button",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/products/${seed.minimalProduct.slug}`,
+    prepare: async (page) => {
+      // Not a no-op: proves this state actually reached "not yet entitled",
+      // rather than silently passing regardless of which branch rendered.
+      await expect(page.getByRole("button", { name: /get for free/i })).toBeVisible();
+    },
+  },
+  {
+    // Deliberately a DIFFERENT product than product-free-idle/product-free-granted
+    // (fullProduct, not minimalProduct): `seed` is worker-scoped (the same
+    // fixture user and products are reused by every test in a worker), and
+    // with fullyParallel: true, tests from different states are not
+    // guaranteed to run in declaration order or even on the same worker.
+    // Granting an entitlement here must not be able to leak into a state
+    // that specifically expects no entitlement yet.
+    id: "product-free-entitled",
+    route: "/products/[slug]",
+    description: "product page, signed in, already entitled",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/products/${seed.fullProduct.slug}`,
+    prepare: async (page, seed) => {
+      await seed.grantEntitlement(seed.fullProduct.slug);
+      await page.reload();
+      await expect(page.getByText(/you already have this/i)).toBeVisible();
+    },
+  },
+  {
+    id: "product-free-granted",
+    route: "/products/[slug]",
+    description: "product page, signed in, after granting a free entitlement",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/products/${seed.freeGrantProduct.slug}`,
+    prepare: async (page) => {
+      await page.getByRole("button", { name: /get for free/i }).click();
+      await expect(page.getByRole("status")).toHaveText(/you now have this for free/i);
+    },
+  },
+  {
     id: "search-no-query",
     route: "/search",
     description: "search with no query",

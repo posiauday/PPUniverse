@@ -43,6 +43,8 @@ export interface FixtureSet {
   emptyCategory: CategoryRef;
   fullProduct: ProductRef;
   minimalProduct: ProductRef;
+  /** Isolated for the free-entitlement flow's own click-through interaction — see createFixtures. */
+  freeGrantProduct: ProductRef;
   user: { id: string; email: string };
   /** The session the browser signs in with. */
   currentSession: SessionRef;
@@ -50,6 +52,14 @@ export interface FixtureSet {
   otherSession: SessionRef;
   /** Creates another revocable session (tracked for cleanup). */
   createExtraSession(): Promise<SessionRef>;
+  /**
+   * Grants this worker's fixture user a free entitlement to the given
+   * product (MVP-010, FR-005), for exercising the "already entitled" page
+   * state. No separate cleanup call is needed: Entitlement.userId cascades
+   * on delete (packages/db/prisma/schema/entitlements.prisma), so removing
+   * the fixture user at cleanup() removes this too.
+   */
+  grantEntitlement(productSlug: string): Promise<void>;
   cleanup(): Promise<void>;
 }
 
@@ -192,6 +202,32 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.productIds.push(minimal.id);
 
+    // MVP-010 (FR-005): dedicated to the free-entitlement flow's own
+    // click-through interaction, isolated from fullProduct and
+    // minimalProduct on purpose. seed is worker-scoped (this same fixture
+    // user and its products are reused by every test in the worker), and
+    // with fullyParallel: true, tests are not guaranteed to run in
+    // declaration order — a state that GRANTS an entitlement (product-free-
+    // entitled, product-free-granted) must never be able to leak into one
+    // that specifically requires no entitlement exists yet
+    // (product-free-idle). Three states need three mutually exclusive
+    // entitlement conditions for the same kind of page; sharing a product
+    // between any two of them is what caused a real, reproduced local
+    // failure before this was added.
+    const freeGrantSlug = `${prefix}free-grant`;
+    assertReserved("product", freeGrantSlug);
+    const freeGrant = await prisma.product.create({
+      data: {
+        slug: freeGrantSlug,
+        name: "E2E fixture: free-entitlement flow (not a real listing)",
+        summary,
+        status: "PUBLISHED",
+        publishedAt: now,
+        categoryId: populated.id,
+      },
+    });
+    created.productIds.push(freeGrant.id);
+
     const email = `${prefix}user@example.invalid`;
     assertReserved("user", email);
     const user = await prisma.user.create({
@@ -225,10 +261,17 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       emptyCategory: { slug: empty.slug, name: empty.name },
       fullProduct: { slug: full.slug, name: full.name },
       minimalProduct: { slug: minimal.slug, name: minimal.name },
+      freeGrantProduct: { slug: freeGrant.slug, name: freeGrant.name },
       user: { id: user.id, email },
       currentSession,
       otherSession,
       createExtraSession: () => makeSession(new Date(now.getTime() - (3 + extras++) * HOUR_MS)),
+      grantEntitlement: async (productSlug: string) => {
+        const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
+        await prisma.entitlement.create({
+          data: { userId: user.id, productId: product.id, source: "FREE_POLICY" },
+        });
+      },
       cleanup,
     };
   } catch (error) {

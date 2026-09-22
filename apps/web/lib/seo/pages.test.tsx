@@ -21,6 +21,13 @@ vi.mock("../catalog", () => ({ catalogRepository: repository }));
 vi.mock("@ppu/telemetry", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
+// MVP-010: ProductPage now calls getServerSession, which needs a real
+// Next.js request scope that rendering the page directly here doesn't
+// provide. These SEO tests aren't about the entitlement UI, so a guest
+// (no session) is a safe, non-behavior-changing default — it also means the
+// entitlement lookup branch never executes, so no @ppu/db mock is needed
+// either.
+vi.mock("next-auth/next", () => ({ getServerSession: vi.fn().mockResolvedValue(null) }));
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
   return {

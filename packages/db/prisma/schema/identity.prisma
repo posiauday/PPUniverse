@@ -18,9 +18,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  fileScans FileScan[]
+  accounts     Account[]
+  sessions     Session[]
+  fileScans    FileScan[]
+  entitlements Entitlement[]
 
   @@map("users")
 }

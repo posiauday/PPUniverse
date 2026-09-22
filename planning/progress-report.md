@@ -1664,3 +1664,109 @@ Direct product-owner instruction, "MVP-010 open questions 44 and 45."
 `docs/final-decisions.md`, `docs/open-questions.md` (44, 45 closed) and
 `planning/prework/MVP-010-prework-analysis.md` updated to record the decision.
 Implementation authorized on `feature/mvp-010-free-entitlement`.
+
+## MVP-010 (Free entitlement flow, FR-005) — implementation, 2026-09-22
+
+Implemented on `feature/mvp-010-free-entitlement` for exactly the scope authorized in
+`docs/final-decisions.md`, "MVP-010 open questions 44 and 45," and nothing else.
+
+**Disk protocol:** C: fluctuated between 3.47GB and 9.14GB during this round (a
+transient, external drop and recovery unrelated to this session's own footprint, per
+the same pattern established earlier in this project) — never allowed to drop below
+the 2GB threshold; `pnpm install`/build work confirmed to have zero footprint on C:
+(pnpm's store is configured at `G:\.pnpm-store`, and the repo itself lives on G:, which
+stayed at 61.92GB free throughout).
+
+**Local Postgres without Docker** (Docker is not available in this environment):
+`embedded-postgres` installed in the session scratchpad (not a project dependency),
+used to generate the migration correctly against a real database, apply it, run every
+integration test, and run a full local Playwright verification pass before ever
+pushing to CI.
+
+### Schema (`packages/db/prisma/schema/entitlements.prisma`)
+`Entitlement` (product-scoped, one row per (`userId`, `productId`) via `@@unique`,
+`revokedAt` present and enforced at read time though nothing in this story sets it) and
+`Download` (append-only, many rows per entitlement, data-minimal — only
+`entitlementId`/`userId`/`productId`/`requestedAt`, no IP, no user agent). Migration
+`20260922000000_add_entitlements` generated via `prisma migrate dev --create-only`
+against the local database (matching this repo's established generate-then-hand-edit
+convention, since Prisma's schema language cannot express RLS), then hand-edited to add
+`ENABLE ROW LEVEL SECURITY` on both new tables in the same migration — verified by
+actually applying it, not just written and assumed correct.
+
+### Domain and adapter (`@ppu/domain-entitlements`, `@ppu/adapter-entitlements`, both new)
+`isProductEligibleForFreeEntitlement` (PUBLISHED-only) and `isDownloadAllowed`
+(`revokedAt === null`) as pure, independently unit-tested functions.
+`PrismaEntitlementRepository.grantOrReuseEntitlement` is race-safe by construction —
+always attempts `create()` first and catches a real Postgres `P2002` constraint
+violation, rather than a check-then-insert an application-level race could beat — **and
+this was proven, not assumed**: an integration test issues two concurrent grant
+requests for the same (user, product) against a real database and asserts exactly one
+entitlement row exists afterward. All 5 integration tests pass against the real local
+Postgres.
+
+### Route (`apps/web/app/api/products/[slug]/entitlement/route.ts`)
+Sign-in required (401 otherwise, no guest path per Q44). The product is re-read from
+the database on every request via the existing `findPublishedProductBySlug` and
+independently re-checked through `isProductEligibleForFreeEntitlement` — never a
+client-supplied flag. `revokedAt` is checked before recording a download (403
+`ENTITLEMENT_REVOKED` if ever set, though nothing sets it yet). `@ppu/telemetry` events
+only (`entitlement.granted`, `entitlement.download_recorded`) — no product analytics.
+
+### UI (`packages/ui/src/free-download-control.tsx`, `apps/web/app/products/[slug]/page.tsx`)
+The product page decides server-side, on every request, which of three states to
+render: a sign-in prompt (no session), a static confirmation (an existing entitlement
+already found), or the interactive `FreeDownloadControl` (a plain `<button
+type="button">`, not a `<form>` — there is no field to collect, so there is no
+native-form-submission surface to reason about at all, unlike the sign-in flow).
+`aria-disabled`, not the `disabled` attribute, while submitting (BUG-005 precedent: a
+genuinely disabled button loses focus to the document body).
+
+### Accessibility gate extended (`packages/e2e/src/pages.ts`, `packages/e2e/src/seed.ts`)
+Three new `auth: "member"` states — `product-free-idle`, `product-free-entitled`,
+`product-free-granted` — covering the empty, already-entitled and granted conditions
+the decision required. Guest coverage of the sign-in prompt needed no new state: the
+existing `product-full`/`product-minimal` (`auth: "guest"`) already exercise it.
+
+**A real, reproduced bug found and fixed by local testing before ever reaching CI:** the
+first version of these three states shared `minimalProduct`/`fullProduct` with each
+other. `seed` is worker-scoped (the same fixture user and products are reused by every
+test in a worker) and `playwright.config.ts` sets `fullyParallel: true`, so tests from
+different states are not guaranteed to run in declaration order or even on the same
+worker — confirmed directly in a local run (6 workers observed for a 12-test slice).
+`product-free-entitled`'s grant leaked into `product-free-granted`, whose own `prepare`
+step timed out waiting for a button that no longer existed once the product was already
+entitled. Fixed by isolating all three states onto three distinct products (`FixtureSet`
+gained `freeGrantProduct`, dedicated to the click-through interaction) and adding an
+explicit assertion to `product-free-idle` (previously a silent pass-through that would
+not have failed even if the same contamination had hit it, which would have meant real
+accessibility coverage silently not happening while still showing green).
+
+**Verified locally before push, disk-cheap where possible:**
+- Every package's `typecheck`/`lint`/`test` — all clean (`@ppu/domain-entitlements`
+  4/4, `@ppu/adapter-entitlements` 5/5 including the concurrency test, `@ppu/ui` 56/56,
+  `@ppu/web` 200/200, `@ppu/e2e` 82/82).
+- A full production build (`pnpm build`, 19/19 tasks) — confirms no RSC server/client
+  boundary violation from importing a `"use client"` component into a Server Component,
+  and the new route registers correctly (`ƒ /api/products/[slug]/entitlement` in the
+  build's route table). Confirmed the build output contains no reference to
+  `playwright`/`axe-core`, matching the established security invariant.
+- A narrow local Playwright pass (`E2E_SERVER_MODE=dev`, explicitly documented as
+  local-iteration-only, never used in CI): all 12 `product-free-*` states pass
+  `pages.spec.ts` in chromium after the isolation fix. `keyboard.spec.ts` showed a
+  focus-indicator failure on a `nextjs-portal` element across every state — confirmed,
+  by running an unrelated, unchanged state (`home`) the same way, to be a pre-existing
+  Next.js dev-mode-only toolbar artifact, not a defect in this story's code; it does not
+  exist in the production build CI actually gates on.
+- Full-repo `prettier --check`: clean.
+
+**Not run locally, deferred to CI as authoritative:** the full three-engine,
+four-width matrix (dev-mode local runs are for fast iteration only, per this
+repository's own documented convention).
+
+`planning/requirement-traceability.csv`: FR-005 updated with the evidence above.
+`packages/domain/entitlements/README.md`: ownership corrected (recorded in the
+decision entry, not repeated here).
+
+**Not yet done:** push, open the PR, read CI's real production-mode result in full,
+complete the formal security and accessibility review sign-off, mark Done, merge.

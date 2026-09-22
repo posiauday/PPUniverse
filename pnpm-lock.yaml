@@ -208,6 +208,9 @@ importers:
       '@ppu/adapter-email':
         specifier: workspace:*
         version: link:../../packages/adapters/email
+      '@ppu/adapter-entitlements':
+        specifier: workspace:*
+        version: link:../../packages/adapters/entitlements
       '@ppu/adapter-error-monitoring':
         specifier: workspace:*
         version: link:../../packages/adapters/error-monitoring
@@ -229,6 +232,9 @@ importers:
       '@ppu/domain-catalog':
         specifier: workspace:*
         version: link:../../packages/domain/catalog
+      '@ppu/domain-entitlements':
+        specifier: workspace:*
+        version: link:../../packages/domain/entitlements
       '@ppu/domain-files':
         specifier: workspace:*
         version: link:../../packages/domain/files
@@ -329,6 +335,28 @@ importers:
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
 
   packages/adapters/email:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.3
+        version: 22.20.3
+      eslint:
+        specifier: ^10.10.0
+        version: 10.10.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
+
+  packages/adapters/entitlements:
+    dependencies:
+      '@ppu/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@ppu/domain-entitlements':
+        specifier: workspace:*
+        version: link:../../domain/entitlements
     devDependencies:
       '@types/node':
         specifier: ^22.20.3
@@ -481,6 +509,21 @@ importers:
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
 
   packages/domain/catalog:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.3
+        version: 22.20.3
+      eslint:
+        specifier: ^10.10.0
+        version: 10.10.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
+
+  packages/domain/entitlements:
     devDependencies:
       '@types/node':
         specifier: ^22.20.3

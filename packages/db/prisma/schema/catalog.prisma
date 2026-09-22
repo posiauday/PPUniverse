@@ -52,6 +52,7 @@ model Product {
   releases      Release[]
   supportPolicy SupportPolicy?
   compatibility CompatibilityRecord[]
+  entitlements  Entitlement[]
 
   @@index([categoryId])
   @@index([status])

@@ -1,0 +1,77 @@
+// Entitlements domain (docs/06-data-model.md "Commerce"; MVP-010, FR-005).
+// Only the free path is modeled here: Entitlement and Download, scoped to
+// exactly what "free downloads ... always create an entitlement/download
+// record" (FR-005) needs. Paid sources (ORDER_LINE, ADMIN_GRANT,
+// SUBSCRIPTION), EntitlementGrant and Subscription/SubscriptionItem belong to
+// MVP-007/008, which is not built yet. FR-007's signed-delivery entities
+// (ReleaseFile, SignedDownloadGrant) also do not exist yet — see
+// files.prisma's own comment — so Download here records that the free-
+// entitlement flow completed, not that a file was served.
+//
+// Decisions: docs/final-decisions.md, "MVP-010 open questions 44 and 45"
+// (2026-09-22). Sign-in is required for every free download in this story —
+// there is no per-product policy field and no guest path (Q44, deferred to a
+// future story, not built in any form here). Entitlement is product-scoped
+// (not release-scoped) and permanent-until-revoked (Q45): revokedAt exists
+// and is ENFORCED at read time (see packages/domain/entitlements), but no
+// code path in this schema or story ever sets it.
+
+enum EntitlementSource {
+  FREE_POLICY
+}
+
+/// The right to a product's downloads. One row per (user, product) — a
+/// repeat free-download request reuses this row rather than creating a
+/// second one; "always create an entitlement... record" (FR-005) means
+/// "ensure one exists," not "always insert a new one" (docs/final-
+/// decisions.md, MVP-010 pre-work). Product-scoped: covers every past and
+/// future release of the product, not one version of it (Q45).
+model Entitlement {
+  id         String            @id @default(cuid())
+  userId     String
+  productId  String
+  source     EntitlementSource
+  grantedAt  DateTime          @default(now())
+  /// Reserved and enforced at read time (a download is denied when this is
+  /// non-null) even though nothing in this story ever sets it (Q45
+  /// amendment, docs/final-decisions.md, 2026-09-22). Do not read this
+  /// column's presence as evidence any revocation workflow exists yet.
+  revokedAt  DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  downloads Download[]
+
+  @@unique([userId, productId])
+  @@index([productId])
+  @@map("entitlements")
+}
+
+/// An append-only audit record of one completed free-entitlement-flow
+/// request — not a record of bytes served (no file model exists yet to
+/// reference; see the module comment). Many rows per Entitlement: a user
+/// completing the flow again for a product they already have creates
+/// another Download row against the same, reused Entitlement.
+/// userId/productId are denormalized (matching FileScan.uploadedByUserId's
+/// existing pattern) so a query doesn't need to join through Entitlement.
+/// Deliberately minimal (data minimisation, docs/final-decisions.md,
+/// 2026-09-22): no IP address, no user agent, no field beyond what audit
+/// needs.
+model Download {
+  id            String   @id @default(cuid())
+  entitlementId String
+  userId        String
+  productId     String
+  requestedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  entitlement Entitlement @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
+
+  @@index([entitlementId])
+  @@index([userId])
+  @@index([productId])
+  @@index([requestedAt])
+  @@map("downloads")
+}

@@ -7,6 +7,7 @@ export { SearchForm, type SearchFormProps } from "./search-form.js";
 export { SortLinks, type SortLinksProps } from "./sort-links.js";
 export { Pagination, type PaginationProps } from "./pagination.js";
 export { ProductEvidence, type ProductEvidenceProps } from "./product-evidence.js";
+export { FreeDownloadControl } from "./free-download-control.js";
 export {
   JsonLd,
   serializeJsonLd,
