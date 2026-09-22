@@ -943,3 +943,51 @@ The product owner approved option A (`docs/final-decisions.md`, "Product-owner d
 Fixed sequence: push the fix; wait for CI; read both job logs in full (accessibility green on chromium, firefox and webkit; no `TooManyConnections`; database-gated suites PASSED; skip count; 0 retries); report the runtime against the 10-minute ceiling; only then create the `develop` branch-protection rule with the check names as GitHub displays them; then the security review (covering the `@ppu/db` change) and the accessibility review; then Done; then `gh pr merge`.
 
 The accessibility review is **not signed off**; sign-off is authorized only after the CI logs are read and confirmed, and it will state scope and method, not conformance. Open question 38 stays open. The local 420 of 420 result is not relied on.
+
+### CI run 5 (instrumented) and the Firefox title-defect finding (2026-09-21)
+
+**Instrumentation added** (commit `a5f44c0`, test logic only, no suite configuration
+touched): `packages/e2e/src/failure-evidence.ts` and `failure-evidence-inpage.ts`
+capture console, network, an in-page title/route-announcer trace, and the page HTML,
+attached ONLY on a failing test. `packages/e2e/src/title-trace.ts` (+ unit tests)
+applies the product owner's pre-registered criterion in code, not by eye. Proven
+locally first: a deliberately failing scratch test showed all four attachments; that
+run caught a real bug in the tracer itself (a `MutationObserver.observe()` call on a
+still-null `document.documentElement` crashed in one engine because `addInitScript`
+runs before `<html>` exists) — fixed, then re-verified against the real signin-sent
+and sessions-after-revoke scenarios in all three engines with clean traces.
+
+**Overhead:** a full local run of `tests/a11y` with the instrumentation passed
+420/420 in 6.0 minutes, no slower than an earlier equivalent run without it (7.0
+minutes) — within normal variance, not a regression. CI run 5 (5m37s whole job) was
+in fact a little faster than uninstrumented run 4 (5m56s).
+
+**CI run 5 result:** 1 of 3 run-4 failures recurred — `sessions-after-revoke @ 768px`
+(Firefox). `signin-sent @ 320px` and `sessions-after-revoke @ 1280px` did not recur
+this time, so no fresh evidence exists for them; `signin-sent`'s only evidence
+remains run 4's pre-instrumentation trace (no `/api/auth/*` request after the click,
+no console errors) and is not yet classified — it is a distinct failure class, not
+folded into the title analysis, per instruction.
+
+**The recurring failure, classified:** applying `classifyTitleTrace` to the captured
+trace gives **product-defect**: Next's own route announcer fired while
+`document.title` read `""`, and the failure-time HTML snapshot shows `<head>` with
+no `<title>` element at all (independent corroboration; the element was removed, not
+emptied, which is also why neither title-change detector caught an intermediate
+state). Recorded as **BUG-013** (P3: the core journey and its announcement — our own
+`role="status"` region from F7 — are unaffected; a duplicate, first-party announcer
+and the document/tab title are what briefly go silent).
+
+**Fix: proposed, NOT applied.** Two candidates recorded in BUG-013; recommended is a
+client-side title safety net in the already-touched `SessionsHeading` component.
+Per instruction, this stops here for approval before any product-code change.
+
+**Both CI logs read in full for run 5:** existing job green (543 tests, 0 skipped, 0
+failed, every integration suite executed); accessibility job 419/420, 0 skipped, 0
+retries, no `TooManyConnections`; whole job 5m37s, test execution 4m01s, browsers
+still a cache miss (no run has yet completed successfully to save one).
+
+**Still not done, unchanged:** the `develop` protection rule, the security review,
+the accessibility review sign-off, marking Done, and the merge. The branch is held
+at `a5f44c0` pending the product owner's decision on BUG-013's proposed fix and on
+`signin-sent`.
