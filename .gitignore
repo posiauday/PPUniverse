@@ -31,7 +31,11 @@ pnpm-debug.log*
 
 # Prisma
 packages/db/src/generated/
-# Playwright accessibility gate output (MVP-023)
+# Playwright accessibility gate output (MVP-023). Suffixed variants (test-results-*,
+# playwright-report-*) are produced when E2E_OUTPUT_SUFFIX namespaces a shard's main
+# pool and self-check runs (docs/final-decisions.md, "Accessibility suite mitigation").
 packages/e2e/test-results/
+packages/e2e/test-results-*/
 packages/e2e/playwright-report/
+packages/e2e/playwright-report-*/
 packages/e2e/results/

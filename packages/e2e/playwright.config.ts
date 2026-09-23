@@ -37,9 +37,24 @@ if (!process.env["DATABASE_URL"]) {
 process.env["EMAIL_UNSUBSCRIBE_SECRET"] =
   process.env["EMAIL_UNSUBSCRIBE_SECRET"] ?? randomBytes(32).toString("hex");
 
+// Accessibility-suite sharding (docs/final-decisions.md, "Accessibility suite
+// mitigation", 2026-09-23): a shard's CI job runs TWO separate `playwright
+// test` invocations — its slice of the main matrix, then the unconditional
+// self-check (every shard, every engine — see ci.yml). Both would otherwise
+// write to the SAME fixed output paths and the second would silently clobber
+// the first's report/results (confirmed locally, not assumed: running two
+// invocations back to back overwrote results/summary.md's content outright).
+// E2E_OUTPUT_SUFFIX namespaces every output path so the two invocations in
+// one job never collide; E2E_SUMMARY_PATH (summary-reporter.ts's own,
+// pre-existing env var) is set explicitly per invocation in ci.yml for the
+// same reason. Empty/unset in every other context (local dev, `pnpm test:a11y`,
+// the unsharded build-and-test job), so this is invisible outside CI's
+// sharded runs.
+const outputSuffix = process.env["E2E_OUTPUT_SUFFIX"] ?? "";
+
 export default defineConfig({
   testDir: "./tests",
-  outputDir: "./test-results",
+  outputDir: `./test-results${outputSuffix}`,
   fullyParallel: true,
   forbidOnly: isCi,
   retries: 0,
@@ -49,9 +64,9 @@ export default defineConfig({
   reporter: isCi
     ? [
         ["list"],
-        ["html", { outputFolder: "playwright-report", open: "never" }],
-        ["junit", { outputFile: "results/junit.xml" }],
-        ["json", { outputFile: "results/results.json" }],
+        ["html", { outputFolder: `playwright-report${outputSuffix}`, open: "never" }],
+        ["junit", { outputFile: `results/junit${outputSuffix}.xml` }],
+        ["json", { outputFile: `results/results${outputSuffix}.json` }],
         ["./src/summary-reporter.ts"],
       ]
     : [["list"], ["./src/summary-reporter.ts"]],
