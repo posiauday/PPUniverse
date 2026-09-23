@@ -16,6 +16,7 @@
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
     "@ppu/db": "workspace:*",
+    "@ppu/domain-notifications": "workspace:*",
     "@types/node": "^22.20.3",
     "axe-core": "4.13.0",
     "eslint": "^10.10.0",

@@ -519,6 +519,141 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/admin/deletion-requests",
   },
   {
+    // MVP-018 (FR-013). "empty": no token at all — a distinct code path
+    // from a token being present but rejected (below), even though both
+    // render the identical generic message on purpose (docs/final-
+    // decisions.md, "MVP-018 open question 49": never disclose which
+    // failure occurred).
+    id: "unsubscribe-empty",
+    route: "/unsubscribe",
+    description: "unsubscribe page, no token provided",
+    auth: "guest",
+    status: 200,
+    path: () => "/unsubscribe",
+    prepare: async (page) => {
+      await expect(page.getByText(/this link is no longer valid/i)).toBeVisible();
+    },
+  },
+  {
+    // "denied": a token IS present but does not verify.
+    id: "unsubscribe-denied",
+    route: "/unsubscribe",
+    description: "unsubscribe page, an invalid token",
+    auth: "guest",
+    status: 200,
+    path: () => "/unsubscribe?token=not-a-real-token",
+    prepare: async (page) => {
+      await expect(page.getByText(/this link is no longer valid/i)).toBeVisible();
+    },
+  },
+  {
+    // "unsubscribe-confirmation": a valid token, confirmed by clicking
+    // through — GET itself has no side effects (email clients prefetch
+    // links), so reaching the confirmation state requires the real POST.
+    id: "unsubscribe-confirmation",
+    route: "/unsubscribe",
+    description: "unsubscribe page, after confirming",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/unsubscribe?token=${seed.unsubscribeToken}`,
+    prepare: async (page) => {
+      await expect(
+        page.getByRole("button", { name: /unsubscribe from marketing email/i }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: /unsubscribe from marketing email/i }).click();
+      await expect(page.getByText(/you have been unsubscribed/i)).toBeVisible();
+    },
+  },
+  {
+    id: "unsubscribe-loading",
+    route: "/unsubscribe",
+    description: "unsubscribe page, confirmation in flight",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/unsubscribe?token=${seed.unsubscribeToken}`,
+    prepare: async (page) => {
+      await interceptAndHold(page, "**/api/unsubscribe");
+      await page.getByRole("button", { name: /unsubscribe from marketing email/i }).click();
+      await expect(page.getByRole("button", { name: /unsubscribing…/i })).toBeVisible();
+    },
+  },
+  {
+    id: "unsubscribe-error",
+    route: "/unsubscribe",
+    description: "unsubscribe page, confirmation failed",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/unsubscribe?token=${seed.unsubscribeToken}`,
+    prepare: async (page) => {
+      await page.route("**/api/unsubscribe", (route) =>
+        route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({
+            code: "INTERNAL",
+            message: "error",
+            correlationId: "e2e-fixture",
+          }),
+        }),
+      );
+      await page.getByRole("button", { name: /unsubscribe from marketing email/i }).click();
+      await expect(page.getByText(/something went wrong/i)).toBeVisible();
+    },
+  },
+  {
+    // Closes the "saved" required state, and backfills loading/error
+    // coverage MVP-020 left implicit for this control (found while writing
+    // this story's pre-work analysis, not a new production surface).
+    // Direction-agnostic on purpose: whichever label the button currently
+    // shows (Accept/Withdraw), clicking it produces the same outcome text.
+    id: "privacy-consent-saved",
+    route: "/account/privacy",
+    description: "account privacy page, marketing-email preference saved",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: /marketing email/i }).click();
+      await expect(page.getByText(/^saved\.$/i)).toBeVisible();
+    },
+  },
+  {
+    id: "privacy-consent-loading",
+    route: "/account/privacy",
+    description: "account privacy page, marketing-email preference save in flight",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page) => {
+      await interceptAndHold(page, "**/api/account/consent");
+      await page.getByRole("button", { name: /marketing email/i }).click();
+      await expect(page.getByRole("button", { name: /saving…/i })).toBeVisible();
+    },
+  },
+  {
+    id: "privacy-consent-error",
+    route: "/account/privacy",
+    description: "account privacy page, marketing-email preference save failed",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page) => {
+      await page.route("**/api/account/consent", (route) =>
+        route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({
+            code: "INTERNAL",
+            message: "error",
+            correlationId: "e2e-fixture",
+          }),
+        }),
+      );
+      await page.getByRole("button", { name: /marketing email/i }).click();
+      await expect(page.getByText(/something went wrong\. please try again\./i)).toBeVisible();
+    },
+  },
+  {
     id: "not-found",
     route: null,
     description: "404 for an unknown URL",

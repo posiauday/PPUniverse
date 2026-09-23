@@ -6,6 +6,7 @@ import { getCorrelationId, logger } from "@ppu/telemetry";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../../lib/auth";
+import { notificationService } from "../../../../lib/email";
 import { withObservability } from "../../../../lib/observability";
 
 /**
@@ -51,6 +52,34 @@ export const POST = withObservability(
       userId: session.user.id,
       deletionRequestId: deletionRequest.id,
     });
+
+    // Sent after the request is durably committed above, never inside that
+    // transaction. A send failure must not fail, roll back or change the
+    // request's state — the record is authoritative, the email is a
+    // courtesy (docs/final-decisions.md, "MVP-018 open question 49",
+    // constraint 3) — so it is deliberately swallowed here; the failure is
+    // already recorded via EmailSend and telemetry inside sendTransactional.
+    // Placeholder copy: states only that the request was received and will
+    // be reviewed, pending product-owner review — no claim of deletion, a
+    // timeframe, a legal right, or regulatory compliance. The verified
+    // account address is read fresh from the database, never taken from
+    // the session token or any client-supplied value.
+    try {
+      const recipient = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { email: true },
+      });
+      if (recipient) {
+        await notificationService.sendTransactional("DELETION_REQUEST_SUBMITTED", session.user.id, {
+          to: recipient.email,
+          subject: "We received your account deletion request",
+          text: "We received your request to delete your account. It will be reviewed. [Placeholder copy — pending product-owner review.]",
+          html: "<p>We received your request to delete your account. It will be reviewed.</p><p><em>[Placeholder copy — pending product-owner review.]</em></p>",
+        });
+      }
+    } catch {
+      // No retry (question 7's single-attempt model); no state change.
+    }
 
     return NextResponse.json(
       { id: deletionRequest.id, state: currentDeletionRequestState(deletionRequest) },

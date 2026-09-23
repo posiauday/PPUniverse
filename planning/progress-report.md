@@ -2023,3 +2023,238 @@ those two questions.
 
 **Recommended next story:** MVP-017 or MVP-018 (P1, dependency MVP-002 already Done,
 not gated by any open product decision).
+
+## MVP-018 — Transactional email and preferences (FR-013): pre-work analysis (2026-09-22)
+
+Story instruction: "STORY INSTRUCTION — MVP-018 (FR-013, Transactional email and
+preferences)", direct product-owner instruction, pre-work only, stop after the
+analysis.
+
+**State verified before starting:** `develop` at `d22d473` (PR #9's merge commit,
+confirmed against `gh pr list --state all` — all nine prior PRs MERGED, none open),
+no overlapping work found. `feature/mvp-018-email` created from `develop`. C: free
+space 3.36GB (`Get-PSDrive C`), above the 2GB threshold.
+
+**Read this round:** `docs/final-decisions.md` (the email-vendor row), `docs/open-
+questions.md` (all current items), `planning/mvp-backlog.csv`/`backlog.csv` (MVP-018's
+row), `planning/requirement-traceability.csv` (FR-013's row), `docs/adr/003-provider-
+abstraction.md`, `docs/13-implementation-readiness-plan.md` §§1-2, `docs/02-prd.md`
+(FR-013's literal wording), `docs/06-data-model.md`, `packages/adapters/email/src/
+email-adapter.ts` and its test, `apps/web/lib/auth.ts`, `planning/tech-debt/TD-004.md`,
+`apps/worker/src/index.ts`, `apps/web/.env.example`, `turbo.json`.
+
+**A genuinely pre-wired seam found, not designed from scratch:** `email-adapter.ts`'s
+own module comment and `auth.ts`'s own comment both already say, independently of this
+story instruction, that a real vendor `EmailAdapter` is MVP-018's job — written during
+MVP-002, before this story instruction existed. `docs/final-decisions.md` already names
+Resend as the decided vendor (open question 19, resolved 2026-09-17), not yet built.
+
+**A traceability finding recorded, not a conflict:** FR-013's PRD wording ("save
+products and manage update notifications") is split across two stories —
+`planning/requirement-traceability.csv` already lists `MVP-015;MVP-018` against it.
+MVP-015 (not started, depends on MVP-009) owns "save products"; MVP-018, per its own
+backlog framing ("Required messages send and optional messages respect preference"),
+owns a general transactional-email mechanism — the story instruction's own scope
+boundary confirms this by explicitly excluding "product updates" (no trigger exists
+yet, `SavedProduct`/`Notification` are not built).
+
+**Delivered:** `planning/prework/MVP-018-prework-analysis.md` — answers to all seven
+required questions. Key findings: (1) migrate `auth.ts` onto the new abstraction now
+(near-zero cost, avoids two parallel sending paths, matches the code's own documented
+intent) via the same `SENTRY_DSN`-absent-falls-back-to-console pattern
+`error-monitoring.ts` already proved; (2) the transactional/optional boundary is a
+rule, not a list, and **no new `NotificationPreference` table is needed** — MVP-020's
+`ConsentRecord` (`MARKETING_EMAIL`) already is the preference, so this story's job is
+enforcing it at send time and acting on it via unsubscribe, not storing it again; (3)
+production sending stays blocked on open question 1 (domain) — everything else can be
+built and tested without one; (4) synchronous sending in the request path is accepted,
+compounding the same underlying gap TD-004 already names (a new, narrower tech-debt
+record proposed, not folded into TD-004's file-scan-specific text); (5) a stateless,
+HMAC-signed unsubscribe token (no new table) with a dedicated secret, narrow scope,
+generic denial on every failure mode, and `GET` with no side effects (a real,
+known email-link prefetch pitfall — `POST` does the actual write); (6) no new fake
+adapter needed — CI never sets `RESEND_API_KEY`, so it already falls back to
+`ConsoleEmailAdapter` the same way dev does today; (7) send once, record the outcome,
+never retry (no queue to defer a retry to, no de-duplication mechanism without one).
+
+**One item recorded, not decided:** `docs/open-questions.md` item 49 — whether to
+add deletion-request-lifecycle email notifications (the story instruction's own
+worked example of a transactional message), which requires adding `send` calls inside
+MVP-020's already-completed route files, beyond what question 1 (the sign-in
+migration) authorizes touching. Safest default: **not built** in this story;
+`EmailMessageType` is proposed with only `SIGNIN_LINK`, not even a reserved-but-unused
+value for the deletion-request types.
+
+**Board updated:** MVP-018 moved Ready → In Progress in `planning/mvp-backlog.csv` and
+`planning/backlog.csv`; `planning/requirement-traceability.csv`'s FR-013 row updated;
+`planning/status.md`'s board, remaining-work summary (corrected a pre-existing points
+arithmetic error while splitting the row: MVP-011 + MVP-017 + MVP-018 was recorded as
+12, but 5 + 5 + 5 = 15 — fixed to 10 + 5 split, not silently left wrong) and next-story
+recommendation all updated (MVP-017 recommended next while MVP-018's decision is
+pending).
+
+**Not yet done, by design:** no code, no migration, no schema file, no UI. Stopped
+here per the story instruction's explicit closing line, awaiting product-owner review
+of the analysis and a decision on open question 49.
+
+## MVP-018 — Transactional email and preferences (FR-013): implementation (2026-09-22)
+
+Product-owner decision "MVP-018 open question 49" (2026-09-22) closed the one open
+question — option (a): send a deletion-request acknowledgement on `SUBMITTED` only,
+with the rest of the pre-work analysis approved without amendment. Recorded in
+`docs/final-decisions.md`, `docs/open-questions.md` (49 closed), and
+`planning/prework/MVP-018-prework-analysis.md` (marked, not silently changed).
+Implementation authorized on `feature/mvp-018-email` for exactly that scope.
+
+### Schema and migration
+
+One hand-reviewed migration, generated via `prisma migrate dev --create-only` against
+the local embedded-postgres instance: `packages/db/prisma/schema/notifications.prisma`
+— `EmailSend` (append-only audit trail; `messageType` limited to `SIGNIN_LINK` and
+`DELETION_REQUEST_SUBMITTED`, nothing else, not even reserved-but-unused for the
+declined deletion-request states). `ENABLE ROW LEVEL SECURITY` in the same migration.
+`userId` nullable (a first-time sign-in link may be sent before a `User` row exists)
+and `Restrict` (not `Cascade`) on delete — consistent with MVP-020's own deliberate
+divergence: an audit trail should not be destroyed by the event it is auditing.
+
+### Domain and adapter packages
+
+`packages/domain/notifications` (new): `EmailMessageType`/`EmailSendStatus` types,
+`isTransactionalMessageType` (both real message types are transactional — no optional
+message exists yet), and the stateless HMAC-signed unsubscribe token
+(`mintUnsubscribeToken`/`verifyUnsubscribeToken`) — every failure mode (bad signature,
+expired, malformed, wrong category) returns the identical `null`. 10 unit tests.
+
+`packages/adapters/email` (extended): `ResendEmailAdapter` — a single `fetch` POST to
+Resend's REST API, no SDK dependency, mirroring `SentryErrorMonitoringAdapter`'s
+constructor-config shape. 5 unit tests against a mocked `fetch` (success, non-2xx,
+network failure, html-vs-no-html body).
+
+`packages/adapters/notifications` (new): `PrismaNotificationService` —
+`sendTransactional` (always sends, records the outcome, **re-throws** on failure so
+each call site decides whether to propagate it — `auth.ts` needs the throw to
+preserve `next-auth`'s existing error-page behaviour and the accessibility gate's
+`signin-send-failed` state, both unchanged by this story) and `sendOptional` (checks
+`PrivacyRepository.getCurrentConsent` fresh on every call, never cached; records
+`SKIPPED_NO_CONSENT` without calling the adapter when not granted). 7 integration
+tests against a real Postgres, including a proof that a `User` row cannot be
+hard-deleted while an `EmailSend` references it.
+
+### `auth.ts` migration and the one MVP-020 change
+
+`apps/web/lib/email.ts` (new, shared): the Resend-or-console selection
+(`RESEND_API_KEY` present → `ResendEmailAdapter`, absent → `ConsoleEmailAdapter`,
+mirroring `error-monitoring.ts`'s `SENTRY_DSN` fallback exactly) and the
+`PrismaNotificationService` singleton, reused by every send site so there is never a
+second parallel sending path. `apps/web/lib/auth.ts` now calls
+`notificationService.sendTransactional("SIGNIN_LINK", ...)`, looking up whether a
+`User` row already exists for the identifier (never assumed) and passing its id or
+`null`.
+
+`apps/web/app/api/account/deletion-requests/route.ts` gains the one authorized
+change to MVP-020's code: one `sendTransactional("DELETION_REQUEST_SUBMITTED", ...)`
+call, placed after the request and its event are durably committed, wrapped in a
+`try`/`catch` that deliberately swallows a failure — the record is authoritative, the
+email is a courtesy (decision constraint 3). The recipient address is read fresh from
+`prisma.user` by id, never taken from the session token. Verified directly with a
+dedicated route test: the request still returns `201` with the correct body when the
+send throws, and no send is attempted at all when the recipient lookup finds no row.
+
+### Unsubscribe
+
+`apps/web/lib/unsubscribe.ts` wraps the domain token functions with
+`EMAIL_UNSUBSCRIBE_SECRET` (a dedicated secret, never `NEXTAUTH_SECRET`) and fails
+safe (verification always returns `null`, same as an invalid token) when unset.
+`apps/web/app/unsubscribe/page.tsx` — not session-gated by design; `GET` renders a
+confirmation prompt for a valid token or the identical generic denial for every
+invalid case, with zero side effects (email clients and security scanners prefetch
+links — a real pitfall, not hypothetical). `UnsubscribeConfirmButton.tsx` performs the
+actual write via `POST /api/unsubscribe`, which records the withdrawal through
+`PrismaPrivacyRepository.recordConsent` (MVP-020) — idempotent on replay, matching
+`ConsentRecord`'s append-only design. Verified with a dedicated route test (5/5):
+invalid token → 400 with the generic message, never writes; valid token → 204 and the
+exact `recordConsent` call.
+
+### Accessibility gate extension
+
+Five new `/unsubscribe` states (empty, denied, unsubscribe-confirmation, loading,
+error) plus three backfilling the existing `MARKETING_EMAIL` `ConsentToggle`'s own
+loading/saved/error states — a gap this story's own pre-work analysis found MVP-020
+had left implicit. `playwright.config.ts` mutates `process.env["EMAIL_UNSUBSCRIBE_SECRET"]`
+to a throwaway per-run value (mirroring the existing `NEXTAUTH_SECRET` pattern) so
+`seed.ts` (running in the test-runner process) and the spawned `next start` server
+see the identical secret; `RESEND_API_KEY` is deliberately never set, so every test
+run exercises `ConsoleEmailAdapter` only — no real vendor call from any test.
+
+**Two real bugs found and fixed locally, before any CI push:**
+1. `unsubscribe-empty`, `unsubscribe-denied` and `unsubscribe-confirmation` had **no
+   keyboard stops at all** — plain text with no link or button. Fixed by adding a
+   "Back to the home page" link, matching the established `BUG-008` pattern for every
+   other dead-end page in this codebase.
+2. That link's own clickable box (163.8px × 21px) was under the WCAG 2.5.8 24px
+   minimum target size at the surrounding line height. Fixed with `inline-block` and
+   vertical padding.
+
+Both were caught by running the real accessibility scan locally against a production
+build before pushing, exactly the verification discipline this project has followed
+since MVP-010's first CI-only failures — this time the equivalent defects were found
+*before* CI, not after.
+
+**Local verification, all three engines, before pushing:** full chromium run (all
+248 prior states plus this story's 8 new ones): 249/249. The 8 new states plus
+keyboard traversal in firefox and webkit: 96/96. Full workspace `pnpm build`,
+`pnpm lint`, `pnpm typecheck`, `pnpm test` (44/44 tasks, including the three new/
+extended packages): all green. `pnpm exec prettier --check` clean after one
+auto-fix pass.
+
+### Tech debt recorded
+
+[TD-015](tech-debt/TD-015.md) — transactional email is sent synchronously in the
+request path with no retry, the same class of gap [TD-004](tech-debt/TD-004.md)
+already names (no job-queue infrastructure exists yet). Not a new problem; explicitly
+accepted by this story's own authorization ("do not build a queue").
+
+### Not yet done
+
+Push, open the PR, read CI's real result in full (this is the first CI sample for
+this story), complete the formal security and accessibility review sign-off against
+the actual CI numbers (not the local ones above), mark Done, merge.
+
+### CI, security/accessibility review, and merge (2026-09-23)
+
+PR #10 opened against `develop`. First CI run (`35822261607`) went green on all three
+jobs on the first attempt — no second round needed:
+
+- `Secret scan`: 11s, clean.
+- `Format, lint, typecheck, test, build`: 2m40s. Read the full log directly: every
+  package's Vitest output reads "passed" with no "failed" anywhere, including
+  `@ppu/web` (213/213) and the three new/extended packages (`@ppu/domain-notifications`
+  10/10, `@ppu/adapter-email` 5/5, `@ppu/adapter-notifications` 7/7).
+- `Accessibility`: 9m47s (test execution 7.7m). **747 passed, 0 failed, 0 flaky** — the
+  Playwright summary line itself, read directly.
+
+**Budget note, recorded honestly:** 9m47s stayed under the 10-minute hard ceiling but
+with materially less headroom than MVP-020's 7m50s run. The ceiling was not exceeded,
+so the story instruction's own policy does not trigger a new decision — but the trend
+(MVP-010 ~7m, MVP-020 7m50s, MVP-018 9m47s) is recorded here so the next story's own
+accessibility additions are made with that headroom in mind, not discovered cold.
+
+Full security review (every claim re-verified against the actual committed code on
+the PR head — append-only via a direct grep for `.update(`/`.updateMany(`/`.upsert(`
+finding nothing, RLS and the `Restrict` FK read directly from the migration, the
+send-failure-never-fails-the-request property proven by a dedicated route test rather
+than just read, the unsubscribe endpoint's lack of session-gating confirmed by grep,
+no PII in any `logger.info` call site, no compliance-claim language anywhere) and full
+accessibility review recorded in `docs/final-decisions.md`, "MVP-018: security and
+accessibility review, Done, merge". No findings.
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-018 moves QA → Done.
+`planning/requirement-traceability.csv`: FR-013 marked Partially Implemented (MVP-018's
+half Done; MVP-015's "save products" half not started, depends on MVP-009).
+`planning/status.md`: board, completed-stories table and detail section, progress
+metrics (12/25 stories, 87/170 points, first P1 points landed), remaining-work
+summary, and next-story recommendation all updated. Merged via `gh pr merge --merge`
+(not locally, not squashed, not `main`).
+
+**Recommended next story:** MVP-017 (P1, dependency MVP-002 already Done, not gated
+by any open product decision).

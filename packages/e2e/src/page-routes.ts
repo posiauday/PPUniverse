@@ -15,6 +15,7 @@ export const GATED_ROUTES = [
   "/account/sessions",
   "/account/privacy",
   "/admin/deletion-requests",
+  "/unsubscribe",
 ] as const;
 
 export type GatedRoute = (typeof GATED_ROUTES)[number];

@@ -699,3 +699,90 @@ Every claim below re-verified directly against the actual committed code on the 
 ### Done and merge
 
 `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-020 moves QA → Done. Merged via `gh pr merge` (not locally, not squashed). Open questions 46 and 47 stay formally open, unaffected by this Done marking — only question 48 was closed by this story's authorization.
+
+## 2026-09-22 — MVP-018 open question 49
+
+Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — MVP-018 OPEN QUESTION 49"), resolving `docs/open-questions.md` item 49 and authorizing implementation on `feature/mvp-018-email`. Full pre-work analysis: `planning/prework/MVP-018-prework-analysis.md`.
+
+### Decision: option (a), SUBMITTED only
+
+**Approved to send: a deletion-request acknowledgement on the `SUBMITTED` state only.** Every other transition is **not** approved in this story:
+- `UNDER_REVIEW` — admin workflow churn, no user value.
+- `WITHDRAWN` — user-initiated; the UI already confirms it at the point of action.
+- `APPROVED` and `COMPLETED` — **withheld on a truthfulness ground, not a wording one.** MVP-020 executes no erasure; a message stating a deletion was approved or completed would describe an action the system does not perform. These become sendable only once a real erasure capability exists and open questions 46 and 47 (deletion-versus-append-only per data class; jurisdiction) are settled.
+- `DENIED` — **recorded as a known gap, not an omission.** A user whose request is refused currently receives no signal at all. Excluded here because the refusal copy needs product-owner authorship, not because it lacks value. A future item.
+
+### Authorization to modify MVP-020
+
+**Explicitly authorized, and the only permitted change to completed story code under this authorization:** add the acknowledgement send to `POST /api/account/deletion-requests` (MVP-020), at the point of successful submission. Binding constraints:
+1. One call at the point of successful submission — no refactoring, renaming, restructuring or tidying of adjacent code.
+2. The send occurs **after** the request and its `SUBMITTED` event row are durably committed — never inside the transaction.
+3. A send failure must not fail the request, roll it back, or change its state — the record is authoritative, the email is a courtesy. The failure is recorded via telemetry only; the route still returns success to the caller.
+4. No retry — consistent with the story's single-attempt model (question 7).
+5. No new state, column or flag on `DeletionRequest` to track send status. (Confirmed not needed: `EmailSend`, already proposed for the sign-in migration, is the send-outcome record — it does not require a `DeletionRequest` schema change.)
+6. Minimal commit, referencing MVP-018 and question 49.
+
+### Message constraints
+
+**Classification: transactional.** Not gated by `MARKETING_EMAIL` consent — it is an account-security notice about a request the user themselves made, and must send regardless of marketing preference.
+
+The copy states only that the request was received and will be reviewed. It must **not** state or imply: that data has been deleted or will be deleted, a timeframe, a legal right or entitlement, any regulatory regime, or any compliance claim. Sent only to the verified account address on record (never a client-supplied destination); no personal data beyond what identifies the request. **The copy is placeholder text for product-owner review** — generated wording is never treated as final, the same standing rule already applied to `PolicyVersion` (MVP-020).
+
+### Rest of the story: approved as analysed, without amendment
+
+- Migrate the existing sign-in email onto a real `ResendEmailAdapter` now; no second parallel sending path.
+- No new preference table; `sendOptional` enforces MVP-020's existing `ConsentRecord` at send time, server-side, never from a client-supplied flag.
+- Production sending stays blocked on the unresolved product-name/domain question (item 1); build and test without one.
+- Synchronous send in the request path; record the tech-debt item; do not build a queue.
+- Stateless, signed, single-purpose, scoped, expiring unsubscribe token; `GET` has zero side effects; cannot enumerate addresses, alter any other preference, or reveal whether an address is registered.
+- No real email from CI or tests; console fallback when no vendor key is configured.
+- Single attempt, outcome recorded, no retry.
+
+Secret handling: `RESEND_API_KEY` and `EMAIL_UNSUBSCRIBE_SECRET` are environment-only, never committed, never logged, never a real value in an example file; added to `turbo.json`'s `globalPassThroughEnv` and `apps/web/.env.example` with placeholders; production fails safely (falls back to console logging, never fails to start) when absent. Recipient addresses and message bodies never appear in logs; telemetry records outcome and message type only. Any new UI surface joins the enumerated `packages/e2e` page/state list at 320/375/768/1280 across all three engines, including empty, loading, saved, error, denied and unsubscribe-confirmation states — no exclusion-list entry for a real page.
+
+### Unchanged (restated)
+
+Do-not-implement list stands: MVP-007, 008, 009, 011, 012, 013, 017; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics (FR-016); creator and collections routes; compatibility workflow; search-behaviour changes; the deferred per-product sign-in policy field; erasure execution or retention jobs; promoting `develop` to `main`. No gate check weakened, skipped, quarantined or conditionally excluded; the accessibility self-check stays permanent and unconditional; BUG-014 stays open, monitor-only, permanently instrumented. Open questions 1, 2, 3, 7, 8, 24, 46 and 47 remain open — none resolved as a side effect. Completion rule unchanged (tests pass; all required checks green on the head being merged; DB-gated suites confirmed PASSED by reading the log; skip count 0 or explained; 0 retries; docs and traceability updated; security and accessibility reviews complete). Merge via `gh pr merge` only, never locally, never squashed.
+
+### Process
+
+Implementation authorized on `feature/mvp-018-email` for exactly the scope this entry and the pre-work analysis describe. If a new product decision surfaces mid-implementation, it is recorded with a safest reversible default and implementation stops for approval — not resolved unilaterally.
+
+## 2026-09-23 — MVP-018: security and accessibility review, Done, merge (closes FR-013)
+
+PR #10 (`feature/mvp-018-email`). First CI run (`35822261607`) is green on all three jobs on the first attempt: `Secret scan` (11s), `Format, lint, typecheck, test, build` (2m40s, 213/213 `@ppu/web` tests plus every other package's suite reading "passed" with no "failed" anywhere in the log, including the three new/extended packages), `Accessibility` (9m47s, **747 passed, 0 failed, 0 flaky**, test execution 7.7m).
+
+**Budget note, recorded honestly, not smoothed over:** the accessibility job's total time (9m47s) stayed under the 10-minute hard ceiling but with materially less headroom than MVP-020's run (7m50s) — the ceiling was not exceeded, so no new decision is triggered by the story instruction's own policy, but the trend (MVP-010: ~7m; MVP-020: 7m50s; MVP-018: 9m47s) is worth watching. If the next story's own accessibility additions push a future run over 10 minutes, that is the point at which a new decision (sharding, trimming, a scheduled full run) is required, per the standing policy — not before.
+
+### Security review
+
+Every claim below re-verified directly against the actual committed code on the PR head, not re-asserted from the implementation plan.
+
+- **Append-only, proven not assumed:** `grep -n "\.update(\|\.updateMany(\|\.upsert(" packages/adapters/notifications/src/notification-service.ts` returns nothing — zero mutation calls against `EmailSend` anywhere in the service.
+- **RLS:** confirmed by reading `20260922040000_add_notifications/migration.sql` directly — `ENABLE ROW LEVEL SECURITY` in the same migration that creates the table.
+- **`Restrict` FK, consistent with MVP-020:** confirmed in the migration SQL — `ON DELETE RESTRICT` on `email_sends.userId`.
+- **Consent checked fresh, never cached:** `sendOptional` calls `this.privacyRepository.getCurrentConsent(userId)` on every invocation — confirmed by direct read; no caching layer, no client-supplied `granted` flag accepted anywhere.
+- **No PII in logs or telemetry:** every `logger.info` call site in this story's new/changed code (`notification-service.ts`, the deletion-request route) carries only `messageType`, `status`, `userId` (an opaque id) — confirmed by grep across every file that logs; no recipient address, subject, or body anywhere.
+- **The deletion-request send failure genuinely cannot fail the request:** verified by a dedicated route test (`route.test.ts`, 5/5) that mocks `sendTransactional` to reject and asserts the response is still `201` with the correct body — not just read from the code, exercised.
+- **Recipient address is the verified account record, never the session token or a client-supplied value:** `prisma.user.findUnique({ where: { id: session.user.id }, select: { email: true } })` — confirmed by direct read; `session.user.email` (session-token-derived) is never used as the send target.
+- **The unsubscribe endpoint is deliberately not session-gated, and cannot be misused as a result:** confirmed by grep — `getServerSession` appears nowhere in `apps/web/app/api/unsubscribe/route.ts` or `apps/web/app/unsubscribe/page.tsx`. Its safety instead rests entirely on the token: `verifyUnsubscribeToken` (10 unit tests) proves every failure mode — bad signature, expired, malformed, wrong category — returns the identical `null`, and the route/page render the identical generic "this link is no longer valid" response for all of them, confirmed by a dedicated route test (`route.test.ts`, 4/4) and the page's own rendering logic (no branch on *why* verification failed).
+- **`GET` has zero side effects:** confirmed by reading `apps/web/app/unsubscribe/page.tsx` directly — it only calls `verifyUnsubscribeLinkToken` (a pure check) and renders; the only write path is `POST /api/unsubscribe`, triggered by an explicit button click, never automatically.
+- **No direct vendor SDK calls from feature code:** the only `fetch` call to `api.resend.com` is inside `ResendEmailAdapter`; confirmed by grep — no other file in `apps/web` or `packages/adapters/notifications` references Resend's API.
+- **Secret handling:** `RESEND_API_KEY` and `EMAIL_UNSUBSCRIBE_SECRET` are read only from `process.env`, added to `turbo.json`'s `globalPassThroughEnv` and `apps/web/.env.example` with placeholders (no real value); production falls back safely (`ConsoleEmailAdapter`, or `verifyUnsubscribeLinkToken` always returning `null`) when either is absent — confirmed by direct read, neither path throws or fails to start.
+- **No compliance claim:** `grep -rin "gdpr\|pipeda\|ccpa\|compliant\|compliance\|certified\|certification"` across every new/changed file in this story returns nothing.
+- No findings.
+
+### Accessibility review sign-off
+
+**Scope and method, not conformance — no claim of "WCAG compliant", "conformant", "accessible", "audited", "certified", or screen-reader support is made here or anywhere else in this story's records.**
+
+- **What:** the same automated axe-core (blocking WCAG 2/2.1/2.2 A/AA tags, advisory best-practice) plus scripted real-key-press keyboard traversal with focus-indicator contrast measurement MVP-023 established — no new method.
+- **Where, new in this story:** five `/unsubscribe` states (`unsubscribe-empty`, `unsubscribe-denied`, `unsubscribe-confirmation`, `unsubscribe-loading`, `unsubscribe-error`) plus three backfilling `/account/privacy`'s existing `MARKETING_EMAIL` toggle (`privacy-consent-saved`, `privacy-consent-loading`, `privacy-consent-error`) — each at 320/375/768/1280px, in chromium/firefox/webkit. All passed in the real CI run (`747 passed, 0 failed, 0 flaky`).
+- **Two real defects found and fixed before any CI push, not after:** (1) `unsubscribe-empty`/`unsubscribe-denied`/`unsubscribe-confirmation` had no keyboard stops at all (plain text, no link or button) — fixed with a "Back to the home page" link, the same pattern `BUG-008` already established for the 404 page. (2) That link's own clickable box (163.8px × 21px) was under the WCAG 2.5.8 24px minimum target size — fixed with `inline-block` padding. Both caught by running the real scan locally against a production build, the verification discipline this project has followed since MVP-010's first CI-only failures — this time found *before* CI, not after.
+- **Date:** 2026-09-23. Result: 747/747 automated checks passing (CI run `35822261607`, `feature/mvp-018-email`, PR #10).
+- **NOT tested:** screen readers, voice control, switch access, magnification, human manual review — unchanged from MVP-023's standing position.
+- **Known open, carried forward, unaffected by this story:** BUG-013's residual framework-timing gap; BUG-014, open, non-reproducing, monitor-only, permanently instrumented.
+
+### Done and merge
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-018 moves QA → Done. Merged via `gh pr merge` (not locally, not squashed). FR-013 is Partially Implemented (MVP-018's half only — MVP-015's "save products" half is not started, depends on MVP-009).

@@ -1,0 +1,44 @@
+// Notifications domain (docs/06-data-model.md; MVP-018, FR-013). Transactional
+// email only — no marketing campaigns, no digest scheduling, no broadcast
+// sending (all explicitly out of scope, docs/final-decisions.md, "MVP-018
+// open question 49"). Preference storage is NOT modeled here: MVP-020's
+// ConsentRecord (category MARKETING_EMAIL) already is the notification
+// preference; this domain enforces it at send time, it does not duplicate
+// it.
+//
+// EmailSend is an append-only audit trail — one row per send attempt. No
+// repository method in packages/adapters/notifications issues an UPDATE
+// against it. userId is nullable because a first-time sign-in link may be
+// sent before a User row exists for that identifier (Auth.js's
+// database-strategy flow); no raw email address is stored here or anywhere
+// in this table (data minimisation, matching Download and ConsentRecord).
+//
+// onDelete: Restrict on userId (not Cascade) — consistent with MVP-020's
+// deliberate divergence from Entitlement.userId's Cascade: an audit trail
+// should not be destroyed by the event it is auditing.
+
+enum EmailMessageType {
+  SIGNIN_LINK
+  DELETION_REQUEST_SUBMITTED
+}
+
+enum EmailSendStatus {
+  SENT
+  FAILED
+  SKIPPED_NO_CONSENT
+}
+
+model EmailSend {
+  id                String           @id @default(cuid())
+  userId            String?
+  messageType       EmailMessageType
+  status            EmailSendStatus
+  providerMessageId String?
+  createdAt         DateTime         @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([messageType, createdAt])
+  @@map("email_sends")
+}
