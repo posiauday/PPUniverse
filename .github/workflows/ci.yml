@@ -213,7 +213,7 @@ jobs:
         run: |
           start=$(date +%s)
           pnpm --filter @ppu/e2e exec playwright test tests/a11y \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/${{ strategy.job-total }} \
             --grep-invert "negative controls: the accessibility gate can fail"
           echo "PPU_SECONDS_TESTS_MAIN=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
@@ -232,6 +232,27 @@ jobs:
           start=$(date +%s)
           pnpm --filter @ppu/e2e exec playwright test tests/a11y/negative-controls.spec.ts
           echo "PPU_SECONDS_SELFCHECK=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      # Guards against a gate that silently CAN fail less: a passing self-check proves
+      # nothing if fewer of its 36 tests (12 × 3 engines) were collected than expected —
+      # e.g. a future change that breaks negative-controls.spec.ts's own discovery would
+      # still report "passed" on whatever subset survived. The JUnit root element's own
+      # `tests` count (confirmed by inspecting a real run's junit-selfcheck.xml, not
+      # assumed) is read from line 1 only, so a child <testsuite>'s own `tests=` attribute
+      # is never matched by mistake.
+      - name: Verify the self-check ran all 36 tests
+        run: |
+          file="packages/e2e/results/junit-selfcheck.xml"
+          if [ ! -f "$file" ]; then
+            echo "::error::$file was not produced — the self-check did not run at all."
+            exit 1
+          fi
+          count=$(head -1 "$file" | grep -o 'tests="[0-9]*"' | head -1 | grep -o '[0-9]*')
+          if [ "$count" != "36" ]; then
+            echo "::error::Self-check ran $count tests, expected exactly 36 (12 tests × 3 engines). A gate that silently runs fewer tests than expected cannot be trusted to fail when it should."
+            exit 1
+          fi
+          echo "Self-check ran all 36 tests, as expected."
 
       - name: Fail the shard if either run failed
         if: steps.main.outcome == 'failure' || steps.selfcheck.outcome == 'failure'
