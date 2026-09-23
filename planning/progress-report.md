@@ -2471,14 +2471,27 @@ ADMIN"), following FR-015's PRD basis and the exact deny-by-default pattern MVP-
   `admin-content-populated`/`-denied`, `admin-content-new`/`-new-denied`,
   `admin-content-edit`); `seed.ts` gets `publishedArticle`/`draftArticle` fixtures.
 
-**Two real bugs found and fixed during implementation, before this story was marked
-Done** (per `CLAUDE.md`'s bug-vs-shortcut distinction, not filed as bug records): (1)
-`seed.ts`'s cleanup deleted the ADMIN fixture user before deleting the `Article` rows it
-authored, violating the new `Restrict` FK — reordered (`ArticlePublishEvent` → `Article`
-→ `Session` → `User`); (2) Article fixture titles were not worker-prefix-unique, causing
+**Three real bugs found and fixed before this story was marked Done** (per
+`CLAUDE.md`'s bug-vs-shortcut distinction, not filed as bug records): (1) `seed.ts`'s
+cleanup deleted the ADMIN fixture user before deleting the `Article` rows it authored,
+violating the new `Restrict` FK — reordered (`ArticlePublishEvent` → `Article` →
+`Session` → `User`); (2) Article fixture titles were not worker-prefix-unique, causing
 `getByText` strict-mode violations under parallel Playwright workers on the admin
 content list — titles now embed the worker prefix, matching the existing slug
-convention.
+convention; (3) **found by the real CI run on PR #14** (`35931158213`): the public
+`/learn/[slug]` page had no keyboard-reachable control at all — `article.body` renders
+as plain text with nothing else focusable, failing the keyboard-traversal check at
+every width (WCAG 2.4.1), across three of four shards (chromium/firefox/webkit each
+caught it in whichever shard `learn-published` landed in). Fixed with the exact
+established pattern from BUG-008/the unsubscribe page: a `Back to the home page` link
+(`inline-block py-2`, satisfying both the keyboard-stop requirement and the WCAG 2.5.8
+24px minimum touch-target size). Confirmed by direct log inspection (via the Actions
+API's step-level `conclusion` field, not just the status tick) that this was the one
+and only real defect: the "destination stream closed early" and container-teardown
+duplicate-key lines that also appeared in the failing shards' raw logs were confirmed
+to be benign Next.js streaming/Postgres-container-teardown noise, not causes of any
+test failure — every other step in those shards, including the sharding-suite's own
+self-check-count guard, succeeded cleanly.
 
 **Two tech-debt records filed** (shortcuts taken to ship this story, not caught-and-fixed
 issues): [TD-016](tech-debt/TD-016.md) — `ArticlePublishEvent` is a bare action log, not

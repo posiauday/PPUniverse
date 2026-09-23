@@ -1,5 +1,6 @@
 import { JsonLd } from "@ppu/ui";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { contentRepository } from "../../../lib/content";
@@ -77,6 +78,18 @@ export default async function LearnPage({ params }: LearnPageProps) {
       {article.excerpt ? <p className="mt-4 text-muted-foreground">{article.excerpt}</p> : null}
 
       <div className="mt-6 whitespace-pre-wrap">{article.body}</div>
+
+      {/* A keyboard stop: the rendered body above is plain text with no
+          focusable control of its own (WCAG 2.4.1 — found by the
+          accessibility gate's keyboard-traversal check), matching the
+          established pattern for the 404 and unsubscribe pages (BUG-008).
+          inline-block + vertical padding keeps the link's own clickable box
+          at or above the WCAG 2.5.8 24px minimum target size. */}
+      <p className="mt-8">
+        <Link href="/" className="inline-block py-2">
+          Back to the home page
+        </Link>
+      </p>
 
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
     </main>
