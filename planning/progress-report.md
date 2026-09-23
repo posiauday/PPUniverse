@@ -2023,3 +2023,76 @@ those two questions.
 
 **Recommended next story:** MVP-017 or MVP-018 (P1, dependency MVP-002 already Done,
 not gated by any open product decision).
+
+## MVP-018 — Transactional email and preferences (FR-013): pre-work analysis (2026-09-22)
+
+Story instruction: "STORY INSTRUCTION — MVP-018 (FR-013, Transactional email and
+preferences)", direct product-owner instruction, pre-work only, stop after the
+analysis.
+
+**State verified before starting:** `develop` at `d22d473` (PR #9's merge commit,
+confirmed against `gh pr list --state all` — all nine prior PRs MERGED, none open),
+no overlapping work found. `feature/mvp-018-email` created from `develop`. C: free
+space 3.36GB (`Get-PSDrive C`), above the 2GB threshold.
+
+**Read this round:** `docs/final-decisions.md` (the email-vendor row), `docs/open-
+questions.md` (all current items), `planning/mvp-backlog.csv`/`backlog.csv` (MVP-018's
+row), `planning/requirement-traceability.csv` (FR-013's row), `docs/adr/003-provider-
+abstraction.md`, `docs/13-implementation-readiness-plan.md` §§1-2, `docs/02-prd.md`
+(FR-013's literal wording), `docs/06-data-model.md`, `packages/adapters/email/src/
+email-adapter.ts` and its test, `apps/web/lib/auth.ts`, `planning/tech-debt/TD-004.md`,
+`apps/worker/src/index.ts`, `apps/web/.env.example`, `turbo.json`.
+
+**A genuinely pre-wired seam found, not designed from scratch:** `email-adapter.ts`'s
+own module comment and `auth.ts`'s own comment both already say, independently of this
+story instruction, that a real vendor `EmailAdapter` is MVP-018's job — written during
+MVP-002, before this story instruction existed. `docs/final-decisions.md` already names
+Resend as the decided vendor (open question 19, resolved 2026-09-17), not yet built.
+
+**A traceability finding recorded, not a conflict:** FR-013's PRD wording ("save
+products and manage update notifications") is split across two stories —
+`planning/requirement-traceability.csv` already lists `MVP-015;MVP-018` against it.
+MVP-015 (not started, depends on MVP-009) owns "save products"; MVP-018, per its own
+backlog framing ("Required messages send and optional messages respect preference"),
+owns a general transactional-email mechanism — the story instruction's own scope
+boundary confirms this by explicitly excluding "product updates" (no trigger exists
+yet, `SavedProduct`/`Notification` are not built).
+
+**Delivered:** `planning/prework/MVP-018-prework-analysis.md` — answers to all seven
+required questions. Key findings: (1) migrate `auth.ts` onto the new abstraction now
+(near-zero cost, avoids two parallel sending paths, matches the code's own documented
+intent) via the same `SENTRY_DSN`-absent-falls-back-to-console pattern
+`error-monitoring.ts` already proved; (2) the transactional/optional boundary is a
+rule, not a list, and **no new `NotificationPreference` table is needed** — MVP-020's
+`ConsentRecord` (`MARKETING_EMAIL`) already is the preference, so this story's job is
+enforcing it at send time and acting on it via unsubscribe, not storing it again; (3)
+production sending stays blocked on open question 1 (domain) — everything else can be
+built and tested without one; (4) synchronous sending in the request path is accepted,
+compounding the same underlying gap TD-004 already names (a new, narrower tech-debt
+record proposed, not folded into TD-004's file-scan-specific text); (5) a stateless,
+HMAC-signed unsubscribe token (no new table) with a dedicated secret, narrow scope,
+generic denial on every failure mode, and `GET` with no side effects (a real,
+known email-link prefetch pitfall — `POST` does the actual write); (6) no new fake
+adapter needed — CI never sets `RESEND_API_KEY`, so it already falls back to
+`ConsoleEmailAdapter` the same way dev does today; (7) send once, record the outcome,
+never retry (no queue to defer a retry to, no de-duplication mechanism without one).
+
+**One item recorded, not decided:** `docs/open-questions.md` item 49 — whether to
+add deletion-request-lifecycle email notifications (the story instruction's own
+worked example of a transactional message), which requires adding `send` calls inside
+MVP-020's already-completed route files, beyond what question 1 (the sign-in
+migration) authorizes touching. Safest default: **not built** in this story;
+`EmailMessageType` is proposed with only `SIGNIN_LINK`, not even a reserved-but-unused
+value for the deletion-request types.
+
+**Board updated:** MVP-018 moved Ready → In Progress in `planning/mvp-backlog.csv` and
+`planning/backlog.csv`; `planning/requirement-traceability.csv`'s FR-013 row updated;
+`planning/status.md`'s board, remaining-work summary (corrected a pre-existing points
+arithmetic error while splitting the row: MVP-011 + MVP-017 + MVP-018 was recorded as
+12, but 5 + 5 + 5 = 15 — fixed to 10 + 5 split, not silently left wrong) and next-story
+recommendation all updated (MVP-017 recommended next while MVP-018's decision is
+pending).
+
+**Not yet done, by design:** no code, no migration, no schema file, no UI. Stopped
+here per the story instruction's explicit closing line, awaiting product-owner review
+of the analysis and a decision on open question 49.

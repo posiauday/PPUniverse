@@ -11,7 +11,7 @@ FR-009,Supply,Marketplace Ops/Data model,MVP-012,Editor field-validation tests,T
 FR-010,Quality,Marketplace Ops,MVP-013,E2E moderation,TBD
 FR-011,Trust,Data model/ADR-002,MVP-014,Publish immutability test,TBD
 FR-012,Trust/Retention,PRD/UX,MVP-016,E2E verified review,TBD
-FR-013,Retention,PRD,MVP-015;MVP-018,E2E library + notification preference,TBD
+FR-013,Retention,PRD,MVP-015;MVP-018,"MVP-015 (save products/library, not started, depends on MVP-009). MVP-018 (notification preference / transactional email mechanism): pre-work analysis complete (planning/prework/MVP-018-prework-analysis.md), one open question recorded (docs/open-questions.md item 49), no code written yet",Partially Implemented - MVP-018 pre-work done, implementation pending decision; MVP-015 not started
 FR-014,Acquisition/Retention,IA/PRD,MVP-017,E2E content publish,TBD
 FR-015,Trust/Operations,PRD/Security,MVP-019,Admin authorization/audit tests,TBD
 FR-016,Product analytics,Security/Privacy,GAP - no backlog story references FR-016,None,GAP
