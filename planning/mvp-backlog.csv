@@ -8,7 +8,7 @@ MVP-006,Files,Quarantine scan and private storage,P0,Done,FR-007,"Unscanned or r
 MVP-007,Commerce,Checkout session,P0,Ready,FR-006,"Price is server-derived and checkout is idempotent",MVP-002;MVP-005
 MVP-008,Commerce,Verified webhook fulfillment,P0,Backlog,FR-006,"Signature and duplicate event tests pass",MVP-007
 MVP-009,Entitlements,Authorized signed downloads,P0,Backlog,FR-007,"Only entitled users receive expiring URL",MVP-006;MVP-008
-MVP-010,Free assets,Free entitlement flow,P0,Ready,FR-005,"Policy creates entitlement and download record",MVP-002;MVP-006
+MVP-010,Free assets,Free entitlement flow,P0,Done,FR-005,"Policy creates entitlement and download record",MVP-002;MVP-006
 MVP-011,Creator,Creator application,P0,Ready,FR-008,"Applicant accepts agreement and enters review",MVP-002
 MVP-012,Creator,Product and release editor,P0,Backlog,FR-009,"Draft validates all mandatory submission fields",MVP-006;MVP-011
 MVP-013,Moderation,Submission review queue,P0,Backlog,FR-010,"Reviewer can approve/request changes/reject with reason",MVP-012
