@@ -30,6 +30,12 @@ export interface ProductRef {
   name: string;
 }
 
+export interface ArticleRef {
+  id: string;
+  slug: string;
+  title: string;
+}
+
 export interface SessionRef {
   id: string;
   token: string;
@@ -46,6 +52,10 @@ export interface FixtureSet {
   minimalProduct: ProductRef;
   /** Isolated for the free-entitlement flow's own click-through interaction — see createFixtures. */
   freeGrantProduct: ProductRef;
+  /** MVP-017 (FR-014): a PUBLISHED Article, visible at /learn/[slug]. */
+  publishedArticle: ArticleRef;
+  /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /learn/[slug] must 404 for it. */
+  draftArticle: ArticleRef;
   user: { id: string; email: string };
   /** The session the browser signs in with. */
   currentSession: SessionRef;
@@ -131,6 +141,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     userId: null as string | null,
     adminUserId: null as string | null,
     productIds: [] as string[],
+    articleIds: [] as string[],
   };
 
   const cleanup = async (): Promise<void> => {
@@ -165,6 +176,23 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         prisma.consentRecord.deleteMany({ where: { userId: { in: fixtureUserIds } } }),
       );
     }
+    // ArticlePublishEvent/Article use Restrict FKs on actorUserId/
+    // authorUserId (MVP-017, docs/final-decisions.md content.prisma header
+    // comment) — deleted here, BEFORE the user deleteMany below, for the
+    // identical reason the privacy rows above are: the admin user delete
+    // would otherwise fail while an Article still references it as author.
+    if (created.articleIds.length > 0) {
+      await attempt(() =>
+        prisma.articlePublishEvent.deleteMany({
+          where: { articleId: { in: created.articleIds } },
+        }),
+      );
+    }
+    await attempt(() =>
+      prisma.article.deleteMany({
+        where: { id: { in: created.articleIds }, slug: { startsWith: RESERVED_PREFIX } },
+      }),
+    );
     // Every delete is scoped by the ids this worker created AND the reserved prefix.
     await attempt(() =>
       prisma.session.deleteMany({
@@ -328,6 +356,50 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.adminUserId = admin.id;
 
+    // MVP-017 (FR-014): a PUBLISHED Article (visible at /learn/[slug]) and a
+    // DRAFT Article (must 404 there, but visible in the admin content list).
+    // Authored by the fixture admin — content-publishing authority reuses
+    // ADMIN, no EDITOR role exists (docs/final-decisions.md, "MVP-017
+    // implementation: content-publishing authorization reuses ADMIN").
+    // Titles carry the worker prefix too, not just the slug: the admin
+    // content list is a genuine cross-worker query (like
+    // listActiveDeletionRequests), so a literal, non-prefixed title would
+    // match more than one worker's fixture article under parallel
+    // execution and make getByText(title) ambiguous (found running this
+    // locally, before any CI push).
+    const publishedArticleSlug = `${prefix}published-article`;
+    assertReserved("article", publishedArticleSlug);
+    const publishedArticle = await prisma.article.create({
+      data: {
+        slug: publishedArticleSlug,
+        title: `E2E fixture: published article ${prefix}(not real content)`,
+        type: "TUTORIAL",
+        body: "Fixture body content for the accessibility harness.",
+        excerpt: "Fixture excerpt.",
+        status: "PUBLISHED",
+        publishedAt: now,
+        authorUserId: admin.id,
+      },
+    });
+    created.articleIds.push(publishedArticle.id);
+    await prisma.articlePublishEvent.create({
+      data: { articleId: publishedArticle.id, actorUserId: admin.id, action: "PUBLISHED" },
+    });
+
+    const draftArticleSlug = `${prefix}draft-article`;
+    assertReserved("article", draftArticleSlug);
+    const draftArticle = await prisma.article.create({
+      data: {
+        slug: draftArticleSlug,
+        title: `E2E fixture: draft article ${prefix}(not real content)`,
+        type: "PATTERN",
+        body: "Fixture draft body content for the accessibility harness.",
+        excerpt: null,
+        authorUserId: admin.id,
+      },
+    });
+    created.articleIds.push(draftArticle.id);
+
     const makeSession = async (
       createdAt: Date,
       forUserId: string = user.id,
@@ -367,6 +439,12 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       fullProduct: { slug: full.slug, name: full.name },
       minimalProduct: { slug: minimal.slug, name: minimal.name },
       freeGrantProduct: { slug: freeGrant.slug, name: freeGrant.name },
+      publishedArticle: {
+        id: publishedArticle.id,
+        slug: publishedArticle.slug,
+        title: publishedArticle.title,
+      },
+      draftArticle: { id: draftArticle.id, slug: draftArticle.slug, title: draftArticle.title },
       user: { id: user.id, email },
       currentSession,
       otherSession,

@@ -924,3 +924,33 @@ Section 6 of the "Accessibility suite mitigation" decision required this conflic
 **Rationale:** FR-014's text and MVP-017's own title both gesture toward collections, but open question 24 is the more specific, product-owner-facing record on this exact route, was updated as recently as 2026-09-21 for the adjacent creator-profile question, and explicitly says collections "must not be built unless approved" — nothing in this session's report or the product owner's response supersedes that standing instruction. Splitting FR-014 this way is reversible: a future story can add collections without touching anything MVP-017 builds under this scope.
 
 **Traceability:** `planning/requirement-traceability.csv`'s FR-014 row will be marked Partially Implemented once MVP-017 ships this narrowed scope (tutorials/patterns/learning-paths/comparison-pages), with a note that curated collections remain unbuilt pending open question 24. Open question 24 is updated to record this resolution without closing the question — collections themselves are still not approved for building.
+
+## 2026-09-23 — MVP-017 implementation: content-publishing authorization reuses ADMIN
+
+Engineering scoping call, made per CLAUDE.md's "safest reversible default" standard because no `EDITOR` role exists to author content and none may be invented (`packages/db/prisma/schema/identity.prisma`'s `UserRole` enum has only `MEMBER` and `ADMIN`). Recorded here, before any code that depends on it, per the Decision Validation Rule.
+
+**Decision: content-publishing authority (create/edit/publish `Article` rows) reuses the existing `ADMIN` role. No `EDITOR` role or any other new role value is introduced, and no new mechanism to grant `ADMIN` is added.** FR-015 ("Admins can manage ... content ...", `docs/02-prd.md`) is the PRD-level basis for treating content publishing as an ADMIN capability, matching the precedent already set for MVP-020's deletion-request review surface (`docs/final-decisions.md`, "MVP-020 open questions 46, 47 and 48", question 48).
+
+**Binding constraints, carried over unchanged from the ADMIN-role decision this reuses:**
+- No application code path (route, server action, seed, environment variable, or test helper) ever assigns `ADMIN` — it remains a manual, undocumented-in-tooling operator action directly against the database.
+- Every content-authoring/publishing surface is deny-by-default and server-side role-checked, giving a `MEMBER` (and an unauthenticated caller) the identical response — the same pattern `apps/web/app/admin/deletion-requests/page.tsx` and its API route already implement: no session or `role !== "ADMIN"` both render/return the same 404, never a distinguishable 401/403.
+- Role is always re-queried fresh from the database (`prisma.user.findUnique`) on every request — never read from the session.
+- `ADMIN` stays coarse-grained by design: this decision grants it no new *meaning*, only a new surface (content) that already checks for it, exactly as the original MVP-020 grant intended ("implies no capability beyond what MVP-020's own admin routes explicitly check for" — extended here to MVP-017's admin content routes by the same logic).
+
+**Why this is the safest reversible default:** a future `EDITOR` role (finer-grained than ADMIN, scoped to content only) can be introduced later — as a new enum value plus new authorization checks on these same routes — without disrupting or reversing anything MVP-017 builds under this decision. Nothing here forecloses that; it only avoids inventing a role now that no approved source has authorized.
+
+**Traceability:** cited by MVP-017's story record as the authorization basis for `apps/web/app/admin/content/*` and `apps/web/app/api/admin/content/*`.
+
+## 2026-09-23 — MVP-017 implementation: `Article` only this pass; `LearningPath` deferred as a fast-follow within FR-014
+
+Engineering scoping call, made per CLAUDE.md's "safest reversible default" standard. FR-014 (`docs/02-prd.md`) names five content types: tutorials, patterns, learning paths, comparison pages, and curated collections. Collections are already excluded from MVP-017 (see the immediately preceding 2026-09-23 entry). Of the remaining four, tutorials, patterns and comparison pages share one shape — a single authored document with a type discriminator — while a learning path is structurally different: an ordered sequence of items referencing *other* content, which needs its own data model (`LearningPath`/`LearningPathItem`), its own ordering/reordering UI, and its own referential-integrity questions (what happens to a path item when the content it references is unpublished or deleted) that a single-document model does not have.
+
+**Decision: this MVP-017 pass builds `Article` only** — a single model with a `type` discriminator (`TUTORIAL | PATTERN | COMPARISON`) covering tutorials, patterns and comparison pages, at `/learn/[slug]` per the IA doc's routing. **`LearningPath`/`LearningPathItem` are explicitly deferred, not silently dropped** — they remain named, unbuilt placeholders in `docs/06-data-model.md`, exactly as `SEORecord` and (separately) `Collection`/`CollectionItem` already are.
+
+**Consequence for traceability:** FR-014 is marked **Partially Implemented** by this story — Article-based content types only (tutorials, patterns, comparison pages); learning paths are not yet built. This mirrors the same "Partially Implemented" treatment already applied to FR-003 (`docs/final-decisions.md`, section C) for content the story's acceptance criteria doesn't yet cover.
+
+**Open question recorded:** `docs/open-questions.md` gets a new numbered item stating that `LearningPath` needs its own follow-up story (or an approved MVP-017 scope extension) — not yet decided which, and not decided by this entry.
+
+**Why this is the safest reversible default:** `Article` and `LearningPath` are additive, independent Prisma models — building `Article` now does not foreclose or complicate adding `LearningPath` later in a follow-up story or an approved scope extension of MVP-017 itself. Splitting the work this way keeps this vertical slice's blast radius (schema, migration, UI, API, e2e matrix) to one well-understood shape instead of two, consistent with CLAUDE.md's "keep the change small and complete" delivery rule.
+
+**Traceability:** `planning/requirement-traceability.csv`'s FR-014 row is marked Partially Implemented once MVP-017 ships; `docs/06-data-model.md`'s "Engagement and content" section is updated with `Article`/`ArticlePublishEvent`'s real field-level shape, and explicitly notes `LearningPath`/`LearningPathItem`/`SEORecord` remain unbuilt placeholders pending the deferred follow-up.

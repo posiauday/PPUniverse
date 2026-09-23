@@ -1,7 +1,7 @@
 import { normalizeDisplayText } from "@ppu/domain-catalog";
 import type { Metadata } from "next";
 import type { SiteUrlResult } from "../site-url";
-import { categoryUrl, homeUrl, productUrl } from "./canonical";
+import { categoryUrl, homeUrl, learnUrl, productUrl } from "./canonical";
 import type { CategoryIndexingDecision } from "./category-indexing";
 import {
   MAX_META_DESCRIPTION_LENGTH,
@@ -118,6 +118,24 @@ export function buildProductMetadata(input: {
     socialTitle: name,
     description: toMetaDescription(product.summary, `${name} on ${SITE_NAME}.`),
     url: site.ok ? productUrl(site.origin, product.slug) : undefined,
+    robots: INDEXABLE_ROBOTS,
+  });
+}
+
+/** MVP-017, FR-014: published Article pages (tutorials, patterns, comparison
+ * pages), indexable like published products. `excerpt` is the meta
+ * description source; falls back the same way buildProductMetadata does. */
+export function buildLearnMetadata(input: {
+  site: SiteUrlResult;
+  article: { slug: string; title: string; excerpt: string | null };
+}): Metadata {
+  const { site, article } = input;
+  const title = normalizeDisplayText(article.title) ?? SITE_NAME;
+  return composeMetadata({
+    title: `${title} | ${SITE_NAME}`,
+    socialTitle: title,
+    description: toMetaDescription(article.excerpt, `${title} on ${SITE_NAME}.`),
+    url: site.ok ? learnUrl(site.origin, article.slug) : undefined,
     robots: INDEXABLE_ROBOTS,
   });
 }

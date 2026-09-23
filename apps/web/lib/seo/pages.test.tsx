@@ -17,7 +17,12 @@ const repository = vi.hoisted(() => ({
   listSitemapEntries: vi.fn(),
 }));
 
+const content = vi.hoisted(() => ({
+  listPublishedArticleSlugs: vi.fn(),
+}));
+
 vi.mock("../catalog", () => ({ catalogRepository: repository }));
+vi.mock("../content", () => ({ contentRepository: content }));
 vi.mock("@ppu/telemetry", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
@@ -346,6 +351,7 @@ describe("when the site origin is unavailable in production", () => {
     expect("sitemap" in robots()).toBe(false);
     expect(await sitemap()).toEqual([]);
     expect(repository.listSitemapEntries).not.toHaveBeenCalled();
+    expect(content.listPublishedArticleSlugs).not.toHaveBeenCalled();
   });
 });
 
@@ -357,18 +363,27 @@ describe("robots.txt and sitemap.xml routes", () => {
     });
   });
 
-  it("sitemap.xml is built from PUBLISHED data only, as absolute URLs", async () => {
+  it("sitemap.xml is built from PUBLISHED data only, as absolute URLs (catalog and Article content)", async () => {
     repository.listSitemapEntries.mockResolvedValue({
       categorySlugs: ["power-apps-components"],
       productSlugs: ["sample-component"],
+      truncated: false,
+    });
+    content.listPublishedArticleSlugs.mockResolvedValue({
+      slugs: ["intro-tutorial"],
       truncated: false,
     });
     expect(await sitemap()).toEqual([
       { url: "https://example.com/" },
       { url: "https://example.com/categories/power-apps-components" },
       { url: "https://example.com/products/sample-component" },
+      { url: "https://example.com/learn/intro-tutorial" },
     ]);
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(49_999);
+    // The home page takes one of MAX_SITEMAP_URLS (50,000); the remaining
+    // 49,999 is split between the catalog and content repositories (see
+    // lib/seo/sitemap.ts's generateSitemap).
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(25_000);
+    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_999);
   });
 });
 

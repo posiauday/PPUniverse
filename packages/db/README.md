@@ -8,6 +8,7 @@ Prisma schema (multi-file, one file per domain per `docs/adr/004-technology-deci
 | `files.prisma`    | `FileScan` (upload quarantine and scan status)                     | MVP-006  |
 | `catalog.prisma`  | Categories, products                                               | MVP-003  |
 | `evidence.prisma` | License tiers, releases, support policy, compatibility records     | MVP-005  |
+| `content.prisma`  | `Article`, `ArticlePublishEvent` (tutorials, patterns, comparison pages) | MVP-017  |
 
 ## Conventions
 
