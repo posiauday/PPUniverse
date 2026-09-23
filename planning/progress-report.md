@@ -2219,3 +2219,42 @@ accepted by this story's own authorization ("do not build a queue").
 Push, open the PR, read CI's real result in full (this is the first CI sample for
 this story), complete the formal security and accessibility review sign-off against
 the actual CI numbers (not the local ones above), mark Done, merge.
+
+### CI, security/accessibility review, and merge (2026-09-23)
+
+PR #10 opened against `develop`. First CI run (`35822261607`) went green on all three
+jobs on the first attempt — no second round needed:
+
+- `Secret scan`: 11s, clean.
+- `Format, lint, typecheck, test, build`: 2m40s. Read the full log directly: every
+  package's Vitest output reads "passed" with no "failed" anywhere, including
+  `@ppu/web` (213/213) and the three new/extended packages (`@ppu/domain-notifications`
+  10/10, `@ppu/adapter-email` 5/5, `@ppu/adapter-notifications` 7/7).
+- `Accessibility`: 9m47s (test execution 7.7m). **747 passed, 0 failed, 0 flaky** — the
+  Playwright summary line itself, read directly.
+
+**Budget note, recorded honestly:** 9m47s stayed under the 10-minute hard ceiling but
+with materially less headroom than MVP-020's 7m50s run. The ceiling was not exceeded,
+so the story instruction's own policy does not trigger a new decision — but the trend
+(MVP-010 ~7m, MVP-020 7m50s, MVP-018 9m47s) is recorded here so the next story's own
+accessibility additions are made with that headroom in mind, not discovered cold.
+
+Full security review (every claim re-verified against the actual committed code on
+the PR head — append-only via a direct grep for `.update(`/`.updateMany(`/`.upsert(`
+finding nothing, RLS and the `Restrict` FK read directly from the migration, the
+send-failure-never-fails-the-request property proven by a dedicated route test rather
+than just read, the unsubscribe endpoint's lack of session-gating confirmed by grep,
+no PII in any `logger.info` call site, no compliance-claim language anywhere) and full
+accessibility review recorded in `docs/final-decisions.md`, "MVP-018: security and
+accessibility review, Done, merge". No findings.
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-018 moves QA → Done.
+`planning/requirement-traceability.csv`: FR-013 marked Partially Implemented (MVP-018's
+half Done; MVP-015's "save products" half not started, depends on MVP-009).
+`planning/status.md`: board, completed-stories table and detail section, progress
+metrics (12/25 stories, 87/170 points, first P1 points landed), remaining-work
+summary, and next-story recommendation all updated. Merged via `gh pr merge --merge`
+(not locally, not squashed, not `main`).
+
+**Recommended next story:** MVP-017 (P1, dependency MVP-002 already Done, not gated
+by any open product decision).

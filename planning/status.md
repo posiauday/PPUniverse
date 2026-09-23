@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-23 — MVP-018 (Transactional email and preferences, FR-013) is **implemented, in QA, awaiting CI and review sign-off**. Open question 49 was decided ("MVP-018 open question 49"): option (a), a deletion-request acknowledgement on `SUBMITTED` only (`UNDER_REVIEW`/`WITHDRAWN` not approved; `APPROVED`/`COMPLETED` withheld on a truthfulness ground pending questions 46/47; `DENIED` a recorded known gap pending product-owner copy). Built on `feature/mvp-018-email`: `EmailSend` (append-only audit table, RLS, `Restrict` FK), `packages/domain/notifications` + `packages/adapters/notifications` (26 unit/integration tests), `ResendEmailAdapter` (`packages/adapters/email`), `auth.ts` migrated off `ConsoleEmailAdapter` onto the shared Resend-or-console selection, the one authorized deletion-request acknowledgement send (a send failure never fails the request — verified by a dedicated route test), and a stateless signed unsubscribe token with its own page and API route. Five new accessibility-gated states for `/unsubscribe` plus three backfilled for the existing `MARKETING_EMAIL` toggle (a gap MVP-020 left implicit) — full local chromium run 249/249, new states in firefox/webkit 96/96, full workspace build/lint/typecheck/test green (44/44 tasks). Two real bugs found and fixed locally before any CI push: three `/unsubscribe` states had no keyboard stops at all (fixed with a "back to home" link, matching BUG-008's established pattern), and that link's own touch target was under the WCAG 24px minimum (fixed with padding). TD-015 recorded (email sends synchronously in the request path, no retry — the same class of gap as TD-004). Not yet Done: real CI confirmation and the formal security/accessibility review sign-off.
+Last updated: 2026-09-23 — MVP-018 (Transactional email and preferences, FR-013) is **Done and merged**. PR #10 merged via `gh pr merge` (not squashed) after CI run `35822261607` went green on all three jobs on the first attempt: 747/747 accessibility checks (5 new `/unsubscribe` states plus 3 backfilled for the existing `MARKETING_EMAIL` toggle), 0 failed, 0 flaky (test execution 7.7m; job total 9m47s — under the 10-minute ceiling but with less headroom than MVP-020's 7m50s, worth watching on the next story); 213/213 `@ppu/web` tests plus every other package's suite green. Open question 49 was decided before implementation ("MVP-018 open question 49"): option (a), a deletion-request acknowledgement on `SUBMITTED` only (`UNDER_REVIEW`/`WITHDRAWN` not approved; `APPROVED`/`COMPLETED` withheld on a truthfulness ground pending questions 46/47; `DENIED` a recorded known gap pending product-owner copy). Built: `EmailSend` (append-only audit table, RLS, `Restrict` FK), `packages/domain/notifications` + `packages/adapters/notifications` (17 unit/integration tests), `ResendEmailAdapter`, `auth.ts` migrated off `ConsoleEmailAdapter`, the one authorized deletion-request acknowledgement send (a send failure never fails the request — verified by a dedicated route test), and a stateless signed unsubscribe token with its own page and API route (deliberately not session-gated; confirmed by grep that `getServerSession` appears nowhere in it). Two real bugs found and fixed locally before any CI push: three `/unsubscribe` states had no keyboard stops at all (fixed with a "back to home" link, matching BUG-008's established pattern), and that link's own touch target was under the WCAG 24px minimum (fixed with padding). TD-015 recorded (email sends synchronously in the request path, no retry — the same class of gap as TD-004). FR-013 is Partially Implemented (MVP-018's half only; MVP-015's "save products" half is not started, depends on MVP-009).
 
 MVP-020 (Consent and legal deletion workflow, FR-004) is **Done and merged**. PR #9 merged via `gh pr merge` (not squashed) after CI run `35809637645` went green on all three jobs on the first attempt: 603/603 accessibility checks (7 new states — `privacy-empty`, `privacy-pending-request`, `privacy-denied`, `privacy-loading`, `privacy-error`, `admin-deletion-requests-populated`, `admin-deletion-requests-denied`), 0 failed, 0 flaky; 205/205 `@ppu/web` tests plus every other package's suite green; the new `Restrict` foreign-key constraint proven not just by a local test but by the real CI Postgres log itself rejecting a deliberately-invalid delete. Open questions 46, 47 and 48 were decided before implementation ("MVP-020 open questions 46, 47 and 48"): 48 closed (`ADMIN` added to `UserRole`, additive only, no application code path ever grants it); 46 and 47 approved as a *direction*, both stay formally open. Built: `PolicyVersion`/`ConsentRecord`/`DeletionRequest`/`DeletionRequestEvent` (RLS-enabled, append-only, `Restrict` FKs — a deliberate divergence from MVP-010's `Entitlement.userId` `Cascade`), `packages/domain/privacy` + `packages/adapters/privacy` (25 unit/integration tests), four API routes (self-only, deny-by-default; the admin route gives an authenticated non-admin the identical 404 an unauthenticated caller gets, verified by a dedicated route test), `/account/privacy` and `/admin/deletion-requests` UI. One real bug (an ambiguous Playwright locator) found and fixed locally before any CI push (full detail: `planning/progress-report.md`). `docs/06-data-model.md` updated with the new Privacy section. TD-014 recorded (admin queue has no pagination yet — deliberate scope narrowing). FR-004 is Implemented; NFR-010 (scheduled retention by data class) stays a gap, unaffected by this story.
 
@@ -17,9 +17,9 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 3 | MVP-007, MVP-011, MVP-017 |
 | In Progress | 0 | — |
-| QA | 1 | MVP-018 (implemented, awaiting CI confirmation and review sign-off) |
+| QA | 0 | — |
 | Blocked | 0 | — |
-| Done | 11 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-020, MVP-021, MVP-022, MVP-023 |
+| Done | 12 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-018, MVP-020, MVP-021, MVP-022, MVP-023 |
 | **Total** | **25** | |
 
 MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-023 (depends only on MVP-003, already Done) likewise has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself — its value is the accessibility harness (`packages/e2e`) every future UI story now runs against, and the branch-protection rule now enforcing it. MVP-010 (depends on MVP-002 and MVP-006, both already Done) also has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below).
@@ -35,6 +35,7 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 | MVP-005 | Catalog | FR-003 | 5 | 2026-09-21 |
 | MVP-006 | Files | FR-007 | 13 | 2026-09-18 |
 | MVP-010 | Free assets | FR-005 | 3 | 2026-09-22 |
+| MVP-018 | Notifications | FR-013 | 5 | 2026-09-23 |
 | MVP-020 | Privacy | FR-004 | 8 | 2026-09-23 |
 | MVP-021 | SEO | FR-017 | 3 | 2026-09-21 |
 | MVP-022 | Observability | NFR-007 | 8 | 2026-09-18 |
@@ -60,6 +61,14 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 - Two real test-isolation bugs were found by CI's first real production-mode run (not by local testing, which could not have reproduced them) and fixed before merge — full account in `planning/progress-report.md`.
 - Full detail, including the security and accessibility reviews: `planning/progress-report.md` and `docs/final-decisions.md`.
 
+### MVP-018 — Transactional email and preferences
+- `auth.ts`'s sign-in link migrated off `ConsoleEmailAdapter` onto a real `ResendEmailAdapter`/`ConsoleEmailAdapter` selection (Resend when `RESEND_API_KEY` is set, console logging otherwise — production never fails to start, mirroring `error-monitoring.ts`'s `SENTRY_DSN` fallback exactly). No verified sending domain exists yet (open question 1), so the real vendor is never selected today.
+- One deletion-request acknowledgement (`SUBMITTED` only — decision question 49). Every other lifecycle state was deliberately declined: `UNDER_REVIEW`/`WITHDRAWN` for no user value, `APPROVED`/`COMPLETED` because MVP-020 executes no erasure and those messages would describe an action the system doesn't perform, `DENIED` as a recorded gap pending product-owner copy.
+- No new preference table: MVP-020's `ConsentRecord` (`MARKETING_EMAIL`) already is the notification preference — this story enforces it fresh on every optional send (built and tested, though no real optional message exists yet) and acts on it via a stateless, HMAC-signed unsubscribe token (no new table; every failure mode returns the identical response, so it can't be used to enumerate addresses or reveal registration).
+- Two real bugs found and fixed locally, before any CI push: three `/unsubscribe` states had no keyboard stops at all (fixed with a "back to home" link, matching `BUG-008`'s established pattern for every dead-end page); that link's own touch target was under the WCAG 24px minimum (fixed with padding).
+- Recorded: TD-015 (email sends synchronously in the request path, no retry — the same class of gap as TD-004, pending real job-queue infrastructure).
+- Full detail, including the security and accessibility reviews: `planning/progress-report.md` and `docs/final-decisions.md`.
+
 ### MVP-020 — Consent and legal deletion workflow
 - Consent capture (`ConsentRecord`, append-only — a change of mind always inserts a new row) and a deletion **request** workflow (`DeletionRequest`/`DeletionRequestEvent`, append-only, no status column — current state is derived from the latest event) — this story records and reviews requests only; it executes no erasure, anonymisation or scheduled retention (open questions 46/47, out of scope by design).
 - `Restrict` (not `Cascade`) foreign keys on every new table's `userId`/`actorUserId` — a deliberate divergence from MVP-010's `Entitlement.userId` `Cascade`, so a future user-deletion cannot silently destroy this audit trail. Proven twice: a local integration test, and the real CI Postgres log itself rejecting the deliberately-invalid delete.
@@ -79,10 +88,10 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 11 / 25 (44%)
-- Points done: 82 / 170 (48%)
+- Stories done: 12 / 25 (48%)
+- Points done: 87 / 170 (51%)
 - P0 points done: 82 / 145 (57%)
-- P1 points done: 0 / 25 (0%)
+- P1 points done: 5 / 25 (20%)
 - Open bugs: 5 (BUG-002, BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 8 resolved (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 12 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
@@ -91,7 +100,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 
 ## Remaining work summary
 
-14 of 25 stories remain (88 of 170 points).
+13 of 25 stories remain (83 of 170 points).
 
 | Sprint | Stories | Status | Points |
 |---|---|---|---|
@@ -101,7 +110,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-023 | **Done** | 13 (done) |
 | 3 | MVP-010 | **Done** | 3 (done) |
 | 3 | MVP-011, MVP-017 | Ready | 10 |
-| 3 | MVP-018 | QA (implemented, awaiting CI and review) | 5 |
+| 3 | MVP-018 | **Done** | 5 (done) |
 | 3 | MVP-020 | **Done** | 8 (done) |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
@@ -115,7 +124,7 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-018 is in QA**, implemented on `feature/mvp-018-email`, awaiting real CI confirmation and the formal security/accessibility review before it can move to Done. Nothing further is needed from the product owner for MVP-018 itself. While it finishes QA, **MVP-017** (P1, dependency MVP-002 already Done, not gated by any open product decision) is the next candidate to start. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
+**MVP-018 is Done.** **MVP-017** (P1, dependency MVP-002 already Done, not gated by any open product decision) is the next candidate. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
 
 Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
