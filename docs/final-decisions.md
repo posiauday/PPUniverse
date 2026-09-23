@@ -786,3 +786,42 @@ Every claim below re-verified directly against the actual committed code on the 
 ### Done and merge
 
 `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-018 moves QA → Done. Merged via `gh pr merge` (not locally, not squashed). FR-013 is Partially Implemented (MVP-018's half only — MVP-015's "save products" half is not started, depends on MVP-009).
+
+## 2026-09-23 — MVP-018 merge / accessibility budget breach
+
+Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — MVP-018 MERGE / ACCESSIBILITY BUDGET BREACH").
+
+### 1. Merge authorized for this run only
+
+CI run `35823121452` (PR #10's actual head, `1c25049`) reported the `Accessibility` job at **10m7s wall-clock**, exceeding the 10-minute ceiling `docs/final-decisions.md` established for MVP-023 (Q39) by 7 seconds. **This corrects the immediately preceding entry's "the ceiling was not exceeded" line** — that entry was written against `35822261607` (head `b567ce2`, 9m47s), the intermediate head before this same-day docs-only push created the new head actually being merged. **Merge is authorized despite the breach.** Rationale, recorded: the identical suite ran 9m47s on the immediately preceding head with no functional change between the two commits (the intervening push was documentation only) — this is runner variance at the edge of an already-tight budget, not a regression. The gate itself was not weakened: 747/747 passed, 0 failed, 0 flaky, 0 skipped, all three engines, all four widths, the full rule set.
+
+**This decision applies to this one run only.** It is not a revision of the 10-minute ceiling and sets no precedent for merging over a future breach.
+
+### 2. Mitigation trigger — a standing condition, binding on every future story
+
+**A mitigation decision is required — implementation must stop and ask — before, not after, whichever of these happens first:**
+- (a) any future story adds one or more new page states to the `packages/e2e` enumerated matrix (`GATED_PAGES`); or
+- (b) any future CI run's `Accessibility` job total wall-clock exceeds 10m00s.
+
+On either trigger firing: stop before implementation (or before merging, if the trigger fires on a run already in flight), present mitigation options with the measured numbers below, and wait for a decision. **Do not merge past a second breach on the strength of this entry** — this authorization is exhausted after the one run it names.
+
+**Measurements required with the trigger report**, every time: total wall-clock and its breakdown (dependency install, browser install, cache hit/miss, migrations, build, test execution, artifact upload); whether the Playwright browser cache was warm, and if still cold, why, given that successful runs now exist to populate it; test execution time alone, against the original 5–8 minute target; page-state count and total check count, with the delta since MVP-023. Job overhead and test-execution time are measured and proposed on separately — they have different remedies and must not be conflated.
+
+**Mitigation preference, recorded, not approved:** sharding is preferred when the decision is eventually taken, because it preserves every engine, width and rule and costs only runner minutes. Trimming the matrix and a reduced required-check set with a scheduled full run are second choices — both reduce what the gate observes on a pull request. This is a recorded preference to make the eventual decision faster, **not approval to implement sharding**, and Q39 stands unchanged: dropping engines, widths or rules is never the answer.
+
+### 3. Free headroom — investigate only, do not implement
+
+Before the next story begins, determine and report only: whether the browser cache is warm on recent runs; where the roughly two minutes of non-test job time is spent. Report findings; change nothing without a separate decision — no workflow, caching configuration, worker count, timeout, or suite-setting change is authorized by this entry.
+
+### 4. Security review addendum (naming required by this decision)
+
+Restating and completing the security review above against the specific items this decision names, each re-verified directly against the code on the actual merge-candidate head, not re-asserted:
+
+- **The Resend adapter and key handling:** `ResendEmailAdapter` (`packages/adapters/email/src/resend-email-adapter.ts`) makes the only `fetch` call to `api.resend.com` anywhere in the codebase — confirmed by grep. `RESEND_API_KEY` is read once from `process.env`, passed only into that adapter's constructor, never logged, never echoed in a response (a non-2xx response body is deliberately never read into the thrown error — see `resend-email-adapter.ts`'s own comment). No verified sending domain exists (open question 1), so this adapter is never the one selected in CI or in any environment today; `ConsoleEmailAdapter` is.
+- **The stateless signed unsubscribe token:** scope — `verifyUnsubscribeToken` yields exactly one `(userId, category)` pair, hardcoded to reject any category other than `MARKETING_EMAIL` even though nothing else is ever minted; expiry — 30 days, encoded in the signed payload itself (`exp`), checked against the current time on every verification, confirmed by a dedicated test asserting a token is accepted just before its expiry and rejected just after; no enumeration — the token carries an opaque `userId`, never an email address, and no code path in the verify function or the route queries the database by address; `GET` is side-effect-free — confirmed by reading `apps/web/app/unsubscribe/page.tsx` directly, it only calls the pure verify function and renders, the only write is the explicit-click-triggered `POST`.
+- **The MVP-020 submission-path change:** post-commit — the `sendTransactional` call in `apps/web/app/api/account/deletion-requests/route.ts` is the last statement before the function's `return`, after `repository.createDeletionRequest` has already resolved and its `logger.info("deletion_request.submitted", ...)` has already run; non-failing — wrapped in a `try`/`catch` that swallows any throw, proven (not just read) by a route test asserting the response is still `201` when the send rejects; no retry — the `catch` block does nothing but discard the error, no loop, no requeue.
+- **No recipient address or message body reaches logs:** every `logger.info` call site touched or added by this story (`notification-service.ts` ×5, the deletion-request route ×1) passes only `messageType`, `status`, and `userId` (an opaque id) — confirmed by reading every call site directly; grepped separately for the literal strings `to:`, `subject`, `text:`, `html:` anywhere near a `logger.` call and found none.
+
+### Unchanged (restated)
+
+No gate check weakened, skipped, quarantined or conditionally excluded; the accessibility self-check stays permanent and unconditional; BUG-014 stays open, monitor-only, permanently instrumented. The shelved gate-policy question (item 17) stays shelved — no override, quarantine lane, flake budget or skip is added as a side effect of this decision.
