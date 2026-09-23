@@ -106,12 +106,25 @@ jobs:
         run: pnpm audit --audit-level=high
 
   accessibility:
-    name: Accessibility (axe + Playwright)
-    # A separate job, in parallel with build-and-test (MVP-023, decision Q39). It runs the
-    # accessibility suite on Playwright's pinned chromium, firefox and webkit builds at
-    # 320/375/768/1280 px. Ceiling: 10 minutes wall-clock; if it is ever exceeded the answer
-    # is a new decision (sharding, trimming, a scheduled full run), never dropping engines,
-    # widths or rules.
+    name: "Accessibility shard ${{ matrix.shard }}/${{ strategy.job-total }}"
+    # Sharded across 4 parallel jobs (docs/final-decisions.md, "Accessibility suite
+    # mitigation", 2026-09-23 — the standing mitigation trigger from MVP-023's Q39 fired
+    # when MVP-017 was about to add page states). Every engine, every width and the full
+    # rule set are preserved unchanged; only how the SAME test list is distributed across
+    # runners changed. Governing budget is now PER-SHARD TEST EXECUTION: target under 5
+    # minutes, ceiling 8 minutes. Job wall-clock is still reported but is no longer the
+    # gate — fixed per-shard overhead (~118s: deps, browser install, build) makes it a
+    # poor proxy once sharded. fail-fast: false so every shard runs to completion and
+    # reports its own full evidence even if another shard fails.
+    #
+    # Deterministic by construction: Playwright's own --shard flag partitions the fully
+    # resolved, sorted test list by index, the same way for the same commit — no time or
+    # load-based assignment (verified locally: three consecutive --list runs of the same
+    # shard index returned the identical test set and count).
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -131,7 +144,9 @@ jobs:
     env:
       DATABASE_URL: postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schema=public
       # The harness writes temporary rows (reserved prefix, deleted afterwards) to this
-      # throwaway service container only, and its guard refuses any other database.
+      # throwaway service container only, and its guard refuses any other database. Each
+      # shard job gets its own, independent service container — shards never share a
+      # database, so nothing new to isolate beyond what worker-scoping already handled.
       E2E_ALLOW_DATABASE_WRITES: "1"
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
@@ -161,7 +176,8 @@ jobs:
         run: echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
 
       # The browsers are Playwright's bundled builds, fixed by the exact pinned version, so
-      # keying the cache on that version cannot let a browser drift.
+      # keying the cache on that version cannot let a browser drift. Shared cache key across
+      # shards (no shard index in it) — every shard installs the identical pinned browsers.
       - name: Cache Playwright browsers
         id: browser-cache
         uses: actions/cache@v4
@@ -185,20 +201,71 @@ jobs:
           pnpm build
           echo "PPU_SECONDS_BUILD=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
-      - name: Run the accessibility suite
+      # This shard's slice of the main page-state/keyboard/regression matrix. The
+      # unconditional self-check (negative-controls.spec.ts) is excluded here and run in
+      # full, separately, below — every shard must independently prove the gate can still
+      # fail, not just the shard it happened to be sharded into (constraint 3 of the
+      # mitigation decision). continue-on-error so the self-check step below still runs
+      # even if this one fails; a later step fails the job if either did.
+      - name: Run this shard's slice of the accessibility suite
+        id: main
+        continue-on-error: true
         run: |
           start=$(date +%s)
-          status=0
-          pnpm test:a11y || status=$?
-          echo "PPU_SECONDS_TESTS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
-          exit "$status"
+          pnpm --filter @ppu/e2e exec playwright test tests/a11y \
+            --shard=${{ matrix.shard }}/${{ strategy.job-total }} \
+            --grep-invert "negative controls: the accessibility gate can fail"
+          echo "PPU_SECONDS_TESTS_MAIN=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      # Every shard, every engine, unconditionally (docs/final-decisions.md,
+      # "Accessibility suite mitigation": "It is not a single-shard responsibility"). A
+      # separate output-path namespace (E2E_OUTPUT_SUFFIX / E2E_SUMMARY_PATH) so this run
+      # cannot clobber the main slice's report/results above — confirmed locally that two
+      # unnamespaced invocations in the same job silently overwrite each other's summary.
+      - name: Run the unconditional self-check (all three engines, every shard)
+        id: selfcheck
+        continue-on-error: true
+        env:
+          E2E_OUTPUT_SUFFIX: "-selfcheck"
+          E2E_SUMMARY_PATH: "results/summary-selfcheck.md"
+        run: |
+          start=$(date +%s)
+          pnpm --filter @ppu/e2e exec playwright test tests/a11y/negative-controls.spec.ts
+          echo "PPU_SECONDS_SELFCHECK=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      # Guards against a gate that silently CAN fail less: a passing self-check proves
+      # nothing if fewer of its 36 tests (12 × 3 engines) were collected than expected —
+      # e.g. a future change that breaks negative-controls.spec.ts's own discovery would
+      # still report "passed" on whatever subset survived. The JUnit root element's own
+      # `tests` count (confirmed by inspecting a real run's junit-selfcheck.xml, not
+      # assumed) is read from line 1 only, so a child <testsuite>'s own `tests=` attribute
+      # is never matched by mistake.
+      - name: Verify the self-check ran all 36 tests
+        run: |
+          file="packages/e2e/results/junit-selfcheck.xml"
+          if [ ! -f "$file" ]; then
+            echo "::error::$file was not produced — the self-check did not run at all."
+            exit 1
+          fi
+          count=$(head -1 "$file" | grep -o 'tests="[0-9]*"' | head -1 | grep -o '[0-9]*')
+          if [ "$count" != "36" ]; then
+            echo "::error::Self-check ran $count tests, expected exactly 36 (12 tests × 3 engines). A gate that silently runs fewer tests than expected cannot be trusted to fail when it should."
+            exit 1
+          fi
+          echo "Self-check ran all 36 tests, as expected."
+
+      - name: Fail the shard if either run failed
+        if: steps.main.outcome == 'failure' || steps.selfcheck.outcome == 'failure'
+        run: exit 1
 
       - name: Job summary (timing and results)
         if: always()
         run: |
           now=$(date +%s)
+          main_secs="${PPU_SECONDS_TESTS_MAIN:-0}"
+          self_secs="${PPU_SECONDS_SELFCHECK:-0}"
           {
-            echo "## Accessibility gate"
+            echo "## Accessibility gate — shard ${{ matrix.shard }}/4"
             echo
             echo "### Timing, measured in this job"
             echo
@@ -207,23 +274,50 @@ jobs:
             echo "| Dependencies install (pnpm) | ${PPU_SECONDS_DEPS:-n/a} |"
             echo "| Browsers and system dependencies (browser cache: ${PPU_BROWSER_CACHE:-n/a}) | ${PPU_SECONDS_BROWSERS:-n/a} |"
             echo "| Application build | ${PPU_SECONDS_BUILD:-n/a} |"
-            echo "| Test execution (includes starting the application server) | ${PPU_SECONDS_TESTS:-n/a} |"
+            echo "| Test execution — this shard's main slice | ${PPU_SECONDS_TESTS_MAIN:-n/a} |"
+            echo "| Test execution — unconditional self-check | ${PPU_SECONDS_SELFCHECK:-n/a} |"
+            echo "| Test execution — total (main + self-check) | $(( main_secs + self_secs )) |"
             echo "| From the first step to this one (excludes runner start-up) | $(( now - ${PPU_JOB_START:-now} )) |"
             echo
+            echo "### Main slice"
             if [ -f packages/e2e/results/summary.md ]; then cat packages/e2e/results/summary.md; else echo "No test summary was produced."; fi
+            echo
+            echo "### Self-check"
+            if [ -f packages/e2e/results/summary-selfcheck.md ]; then cat packages/e2e/results/summary-selfcheck.md; else echo "No self-check summary was produced."; fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload the report and traces
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: accessibility-report
+          name: accessibility-report-shard-${{ matrix.shard }}
           path: |
             packages/e2e/playwright-report
+            packages/e2e/playwright-report-selfcheck
             packages/e2e/results
             packages/e2e/test-results
+            packages/e2e/test-results-selfcheck
           retention-days: 14
           if-no-files-found: warn
+
+  accessibility-summary:
+    name: Accessibility (axe + Playwright)
+    # The single required check — unchanged name, so branch protection's existing
+    # required-status-check configuration needs no update. Depends on every shard;
+    # needs.accessibility.result is Actions' own aggregate across the whole matrix, so
+    # this fails if ANY shard failed. A partial-pass merge is impossible: there is no way
+    # for this check to report success while a shard is still failing or pending.
+    needs: accessibility
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check every shard passed
+        run: |
+          if [ "${{ needs.accessibility.result }}" != "success" ]; then
+            echo "One or more accessibility shards did not pass (result: ${{ needs.accessibility.result }})."
+            exit 1
+          fi
+          echo "All accessibility shards passed."
 
   secret-scan:
     name: Secret scan

@@ -2302,3 +2302,109 @@ and this entry were corrected to name the true final numbers rather than leaving
 intermediate 9m47s reading uncorrected. Governance updates (`mvp-backlog.csv`,
 `backlog.csv`, `requirement-traceability.csv`, `docs/open-questions.md` item 49) were
 already accurate from the pre-merge commit and needed no further change.
+
+## CI infrastructure — Accessibility suite sharding (2026-09-23)
+
+**Not a backlog story; a CI-only change plus documentation, mandated by the standing
+mitigation trigger recorded in the immediately preceding MVP-018 merge entry.** The
+trigger fired: the most recent run's test-execution time alone reached 8.08 minutes,
+exceeding the original 5–8 minute target (the governing measure from this point
+forward — see below), corroborated by the already-recorded 10m7s job-wall-clock
+breach. Implemented on its own branch (`chore/accessibility-suite-sharding`) off
+`develop`, per direct product-owner instruction ("PRODUCT-OWNER DECISION —
+ACCESSIBILITY SUITE MITIGATION"). Full record: `docs/final-decisions.md`,
+"Accessibility suite mitigation: sharding implemented".
+
+**What changed:**
+- `.github/workflows/ci.yml`: the single `accessibility` job became a 4-way matrix
+  (`shard: [1, 2, 3, 4]`), each shard on its own independent Postgres service
+  container, running its slice of the main pool (`--shard=N/4`,
+  `--grep-invert` excluding the self-check) and then the full unconditional
+  self-check (`negative-controls.spec.ts`, all 12 tests × 3 engines) as a second,
+  separate invocation — every shard, not divided across shards. A new
+  `accessibility-summary` job `needs: accessibility` and `if: always()`, failing
+  unless every shard succeeded; it keeps the pre-sharding job's exact name
+  (**"Accessibility (axe + Playwright)"**) so the branch-protection required-check
+  configuration needed zero changes.
+- `packages/e2e/playwright.config.ts`: added `E2E_OUTPUT_SUFFIX`-driven output-path
+  namespacing (`outputDir`, HTML `outputFolder`, JUnit/JSON `outputFile`) and reuse of
+  the pre-existing `E2E_SUMMARY_PATH` env var, because each shard's job now runs two
+  `playwright test` invocations that would otherwise silently overwrite each other's
+  report/results — confirmed empirically, not assumed, by running two invocations back
+  to back locally without namespacing and observing the second overwrite the first's
+  `results/summary.md` outright. Empty/unset outside CI's sharded runs, so invisible in
+  local dev, `pnpm test:a11y`, and the unsharded `build-and-test` job.
+- `docs/03-trd.md` and `docs/14-accessibility-testing.md`: updated to name the exact
+  new check/job names and describe the shard+aggregator architecture; the historical
+  "Resolved"/"Known, open" dated notes in the accessibility doc were left untouched,
+  with a new dated note appended, not rewritten.
+- `docs/open-questions.md` items 20 and 22: additive notes recording that the CI
+  architecture evolved; neither item was reopened.
+
+**Shard-count arithmetic (stated in full in `docs/final-decisions.md`):** main pool
+711 tests at 447s measured execution; self-check a fixed ~38s paid in every shard;
+~118s fixed per-job overhead. A first-pass 3-shard estimate, once the self-check's
+per-shard cost is honestly included, lands at ≈5.08min total job time — too thin
+against the new 5-minute target given already-observed runner variance. 4 shards:
+≈2.50min test execution + ~118s overhead ≈ 4.46min per shard, with real headroom.
+Runner-minutes cost of the tradeoff, reported as required: ≈17.85 total runner-minutes
+across 4 parallel shards vs. ≈10.05 for the single pre-sharding job (≈1.78×).
+
+**Verification performed before writing any CI config:**
+- Deterministic sharding: repeated `playwright test --list --shard=N/4` runs against
+  the same commit produced identical partitions every time.
+- Total count preserved: the four shards' `--list` counts (178/178/178/177) sum to
+  exactly 711, the pre-sharding main-pool count, with no drops or duplicates.
+- Failure-evidence/BUG-014 instrumentation survives sharding: verified, not assumed,
+  via a deliberate, temporary, uncommitted forced failure in `harness-smoke.spec.ts`
+  run under `--shard=1/1`, confirming the full expected attachment sequence, then
+  immediately reverted (`git checkout --`, confirmed clean).
+- Output clobbering fix: confirmed the bug existed (unsuffixed, a second invocation
+  overwrote the first's summary) and confirmed the fix (suffixed, both
+  `results/summary.md` and `results/summary-selfcheck.md` survive independently).
+- `pnpm --filter @ppu/e2e typecheck`, `lint`, and `test` (vitest, 82/82) all clean
+  after the `playwright.config.ts` change.
+
+**Total check count, both numbers reported per constraint 6:** main-pool coverage is
+unchanged at 711 (now distributed across 4 shards instead of run in one job); the
+self-check is deliberately replicated once per shard (36 × 4 = 144 total executions,
+up from 36) to satisfy "every shard, every engine" — so total test executions rise
+from 747 pre-sharding to **855** post-sharding, entirely accounted for by the stated
+self-check replication, not a silent duplication.
+
+**New budget, replacing the old one:** governing measure is per-shard test execution
+(target under 5 minutes, ceiling 8 minutes per shard); job wall-clock is still
+reported but no longer gates. The standing mitigation-trigger condition carries over
+unchanged in kind: stop before a future story adds page states once per-shard
+execution is at or over target, or before merging a run whose per-shard execution
+exceeds the ceiling.
+
+**Remaining before this change can be marked Done:** push, open a real PR via
+`gh pr create` (never local, never squashed) targeting `develop`, and confirm on the
+actual CI run — all shards green, the aggregator green, the self-check passing in
+every shard in all three engines, total check count matching 855, DB-gated suites
+confirmed PASSED by reading the raw log text, 0 unexplained skips, 0 retries — before
+recording final per-shard timing numbers and closing this entry. This entry will be
+appended to, not overwritten, once that confirmation lands.
+
+**Per Section 6 of the same product-owner instruction:** before any MVP-017 pre-work,
+the apparent conflict between MVP-017's backlog scope, FR-014, and open question 24
+(whether `/collections/[slug]` has an owning story) is investigated and reported to
+the product owner as its own item — not resolved here. MVP-017 pre-work does not
+begin until the product owner resolves it.
+
+**CI confirmation (2026-09-23), PR #12, run `35832293062`, first push, first
+attempt:** all 6 checks green — `Secret scan`, `Format, lint, typecheck, test, build`,
+all 4 accessibility shards, and the `Accessibility (axe + Playwright)` aggregator.
+Per-shard test execution (main pool + self-check), read from the raw log: shard 1
+97.3s (≈1.62min), shard 2 165.1s (≈2.75min), shard 3 126.0s (≈2.10min), shard 4
+166.6s (≈2.78min) — every shard well under the new 5-minute target, nowhere near the
+8-minute ceiling. Main-pool count 178+178+178+177 = 711 (exact pre-sharding match,
+zero drops/duplicates); self-check 36×4 = 144; **total 855**, matching the predicted
+count exactly. Zero failures, zero skips, zero retries, confirmed by grepping the raw
+log rather than trusting the status tick — every "failed" hit is a page-state test
+name, every "retr" hit is Docker's or ClamAV's own unrelated retry mechanism.
+`@ppu/adapter-identity`'s DB-gated Prisma-Client integration tests ran (not
+self-skipped) and passed. Full table and evidence: `docs/final-decisions.md`,
+"Accessibility suite mitigation: sharding implemented", section 7. **Marked Done**;
+merged via `gh pr merge` (not locally, not squashed).
