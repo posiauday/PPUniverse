@@ -35,9 +35,13 @@ test.describe("fixture cleanup is scoped to the rows its worker created", () => 
       // (MVP-010) — isolated from each other so a state that grants a free
       // entitlement can never leak into one that expects none yet.
       expect(await prisma.product.count({ where: { slug: { startsWith: first.prefix } } })).toBe(3);
+      // 2 fixture users per worker: the ordinary member and the ADMIN fixture
+      // (MVP-020) — 3 sessions: currentSession, otherSession (both the
+      // member's) and adminSession.
+      expect(await prisma.user.count({ where: { email: { startsWith: first.prefix } } })).toBe(2);
       expect(
         await prisma.session.count({ where: { sessionToken: { startsWith: first.prefix } } }),
-      ).toBe(2);
+      ).toBe(3);
 
       await first.cleanup();
 
@@ -51,10 +55,10 @@ test.describe("fixture cleanup is scoped to the rows its worker created", () => 
       expect(await prisma.product.count({ where: { slug: { startsWith: second.prefix } } })).toBe(
         3,
       );
-      expect(await prisma.user.count({ where: { email: { startsWith: second.prefix } } })).toBe(1);
+      expect(await prisma.user.count({ where: { email: { startsWith: second.prefix } } })).toBe(2);
       expect(
         await prisma.session.count({ where: { sessionToken: { startsWith: second.prefix } } }),
-      ).toBe(2);
+      ).toBe(3);
       // ...and seeded categories and licence definitions are exactly as they were.
       expect(await seededSnapshot()).toBe(seededBefore);
     } finally {

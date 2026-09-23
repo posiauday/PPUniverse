@@ -18,7 +18,7 @@ MVP-016,Verified reviews and replies,Backlog,P1,7,5
 MVP-017,Tutorials collections learning paths,Ready,P1,3,5
 MVP-018,Transactional email and preferences,Ready,P1,3,5
 MVP-019,Operations console and audit,Backlog,P0,6,13
-MVP-020,Consent legal deletion workflow,Ready,P0,3,5
+MVP-020,Consent legal deletion workflow,Done,P0,3,5
 MVP-021,Metadata sitemap canonical structured data,Done,P0,4,3
 MVP-022,Logs traces metrics and alerts,Done,P0,2,8
 MVP-023,Manual and automated accessibility gate,Done,P0,3,13

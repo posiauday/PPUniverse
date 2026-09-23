@@ -1795,3 +1795,231 @@ pattern that broke in CI, not the narrower slice checked before run 1. Full-repo
 
 Pushed as `<pending>`. This is the second CI sample for this story — not a docs-only
 push, a genuine fix for what run 1 found.
+
+## MVP-020 — Consent and legal deletion workflow (FR-004): pre-work analysis (2026-09-22)
+
+Story instruction: "STORY INSTRUCTION — MVP-020 (FR-004, Consent and legal deletion
+workflow)", direct product-owner instruction, pre-work only, stop after the analysis.
+
+**State verified before starting:** `develop` at `de59003` (PR #8's merge commit,
+confirmed against `gh pr list --state all` — all eight prior PRs MERGED, none open),
+no overlapping work found. `feature/mvp-020-consent-deletion` created from `develop`.
+C: free space 4.25GB (`Get-PSDrive C`), above the 2GB threshold.
+
+**Read this round:** `docs/08-security-privacy-compliance.md` (full), all 62 lines of
+`docs/open-questions.md`, `planning/requirement-traceability.csv`'s FR-004 and NFR-010
+rows, `planning/mvp-backlog.csv`'s MVP-020 row, every `packages/db/prisma/schema/*.prisma`
+file, and `packages/domain/identity`/`packages/adapters/identity`'s file listings.
+Confirmed by direct grep: no `consent`/`terms` capture exists anywhere in
+`apps/web/app/signin` or `apps/web/app/account` today (empty result) — this is
+genuinely greenfield work. Also confirmed by grep: no prior consent/admin-role
+decision exists in `docs/final-decisions.md` or `planning/progress-report.md` beyond
+MVP-002's own note that `ConsentRecord` was deliberately deferred "to the stories that
+need them."
+
+**Delivered:** `planning/prework/MVP-020-prework-analysis.md` — answers to all seven
+required questions, a full proposed schema (`PolicyVersion`, `ConsentRecord`,
+`DeletionRequest`, `DeletionRequestEvent`; RLS-enabled with zero policies; append-only
+by construction, no `UPDATE` path on any of the four tables; `Restrict`/`NO ACTION` on
+every `userId`/`actorUserId` FK — a deliberate, reasoned divergence from MVP-010's own
+`Entitlement.userId` `Cascade`, flagged there as an unresolved remaining ambiguity and
+not reopened here), the domain/adapter package split, authorization model, UI surface
+(including the explicit empty/loading/error/denied/pending-request/already-requested
+states the story instruction required), security and accessibility impact, telemetry,
+test plan, and the exact files expected to change.
+
+**Two findings surfaced by this analysis, not assumed away:**
+1. Building a real deletion request's *eventual* execution needs a per-data-class
+   treatment decision (pseudonymise identity data; retain commerce/audit-adjacent data
+   under a stated lawful basis; retain the audit trail itself, unconditionally) — not
+   decided here, recorded as open question 46, because MVP-020 itself executes no
+   erasure at all (matches the story's own scope boundary).
+2. **No authorized-admin role exists.** `UserRole` (`packages/db/prisma/schema/identity.prisma`)
+   has exactly one value, `MEMBER` — there is no way to authorize an admin to action
+   another user's deletion request without either trusting an arbitrary signed-in
+   member (a deny-by-default violation) or inventing a mechanism unilaterally.
+   Extending `UserRole` touches MVP-002's completed schema, which this project's
+   standing rule requires stopping to ask about first. Recorded as open question 48 —
+   the finding most likely to affect whether MVP-020's admin half can land in one pass.
+
+Three items recorded in `docs/open-questions.md` (46, 47, 48), each with a safest
+reversible default and explicitly marked **not approved**. `docs/final-decisions.md`
+was not written to this round — nothing was decided.
+
+**Board updated:** MVP-020 moved Ready → In Progress in `planning/mvp-backlog.csv` and
+`planning/backlog.csv` (pre-work is work, matching MVP-010's own pre-work round);
+`planning/requirement-traceability.csv`'s FR-004 row updated to reflect the pre-work
+state; `planning/status.md`'s board, progress metrics, remaining-work summary and next-
+story recommendation updated accordingly (MVP-017/MVP-018 recommended next while
+MVP-020's decisions are pending).
+
+**Not yet done, by design:** no code, no migration, no schema file, no UI. Stopped
+here per the story instruction's explicit closing line, awaiting product-owner review
+of the analysis and a decision on open questions 46-48.
+
+## MVP-020 — Consent and legal deletion workflow (FR-004): implementation (2026-09-22)
+
+Product-owner decision "MVP-020 open questions 46, 47 and 48" (2026-09-22) closed
+question 48 (add `ADMIN` to `UserRole`, with binding constraints) and approved the
+proposed *direction* for questions 46/47 while keeping both formally open. Recorded in
+`docs/final-decisions.md`, `docs/open-questions.md` (46/47 updated, 48 closed), and
+`planning/prework/MVP-020-prework-analysis.md` (marked, not silently changed).
+Implementation authorized on `feature/mvp-020-consent-deletion` for exactly that scope.
+
+### Schema and migrations
+
+Two hand-reviewed migrations, generated via `prisma migrate dev --create-only` against
+a local embedded-postgres instance and then split (Prisma bundled both changes into one
+diff; separated to isolate the schema-touching enum change from the purely additive
+table creation, per the pre-work plan):
+
+- `20260922010000_add_admin_role` — one statement, `ALTER TYPE "UserRole" ADD VALUE
+  'ADMIN'`. Nothing else in `identity.prisma` changed.
+- `20260922020000_add_privacy` — `packages/db/prisma/schema/privacy.prisma`:
+  `PolicyVersion`, `ConsentRecord`, `DeletionRequest`, `DeletionRequestEvent`. All four
+  `ENABLE ROW LEVEL SECURITY` in the same migration (zero policies, the established
+  convention). `Restrict`/`NO ACTION` (not `Cascade`) on every `userId`/`actorUserId`/
+  `deletionRequestId`/`policyVersionId` foreign key — a deliberate divergence from
+  `Entitlement.userId`'s `Cascade` (MVP-010), decided 2026-09-22, so a future
+  user-deletion cannot silently destroy this audit trail.
+- `20260922030000_seed_policy_versions` — two placeholder `PolicyVersion` rows
+  (`TERMS_OF_SERVICE`, `PRIVACY_POLICY`), version string literally
+  `"placeholder-pending-product-owner-review"`. No operative legal text anywhere —
+  `PolicyVersion` has no text column at all.
+
+Verified against a real database: all three migrations applied cleanly via `prisma
+migrate deploy`; `prisma generate` and `@ppu/db build` succeeded; a real `User` row
+could not be hard-deleted while a `ConsentRecord` referenced it (proven by an
+integration test, not assumed).
+
+### Domain and adapter packages
+
+`packages/domain/privacy` (new): `ConsentCategory`, `PolicyDocumentType`,
+`DeletionRequestState` types; `transitions.ts` — the lifecycle lookup
+(`isValidDeletionRequestTransition`, `isSelfServiceTransition`, `isAdminTransition`,
+`isReasonRequired`, `isActiveDeletionRequestState`, `isConsentCategory`,
+`currentDeletionRequestState`), pure, no Prisma dependency. 16 unit tests, all passing.
+
+`packages/adapters/privacy` (new): `PrismaPrivacyRepository` — `recordConsent` (always
+inserts), `getCurrentConsent` (latest row per category via Prisma `distinct` against
+`recordedAt desc`, one query not N), `createDeletionRequest` (creates the request and
+its `SUBMITTED` event atomically in one `$transaction`), `appendDeletionRequestEvent`,
+`getLatestDeletionRequestForUser`, `getDeletionRequestById`, `listActiveDeletionRequests`
+(finds each request's latest event via `distinct`, then fetches full history only for
+the active ones). 9 integration tests against a real Postgres, including a genuine
+proof that a `User` row cannot be hard-deleted while a `ConsentRecord` references it.
+
+### API routes (all self-only, deny-by-default, server-re-derived — never trusting a
+client-supplied user id, role or state)
+
+- `POST /api/account/consent` — records a consent decision for `session.user.id`.
+  `TERMS_OF_SERVICE` resolves the current `PolicyVersion` server-side; `MARKETING_EMAIL`
+  is not tied to one.
+- `POST /api/account/deletion-requests` — submits a request; 409 if one is already
+  active (re-checked server-side on every request).
+- `DELETE /api/account/deletion-requests/[id]` — withdraws the caller's own request only
+  (404 not-found vs. 403 not-yours, matching `api/me/sessions/[id]`'s established
+  pattern); 409 if the current state cannot reach `WITHDRAWN`.
+- `POST /api/admin/deletion-requests/[id]` — the one genuinely new authorization
+  surface: role is re-queried from the database on every request
+  (`prisma.user.findUnique`), never read from the session (`auth.ts`/MVP-002's session
+  callback is untouched by this story). No session and an authenticated non-admin
+  receive the **identical** `404 NOT_FOUND` response — verified directly by a dedicated
+  route test (`route.test.ts`, 5/5), not just asserted.
+
+### UI
+
+`/account/privacy` (new) — consent section (`ConsentToggle` × 2: `TERMS_OF_SERVICE`
+display-only once accepted, `MARKETING_EMAIL` togglable) and a deletion section
+(`DeletionRequestPanel`, one component covering empty / pending / denied / withdrawn /
+completed / loading / error, all in the single-status-region-per-concern pattern
+established by `FreeDownloadControl`). `/admin/deletion-requests` (new) — lists active
+requests (denied to anyone without a database-confirmed `ADMIN` role, identical 404 as
+the API), `AdminDeletionRequestControls` for `UNDER_REVIEW`/`APPROVED`/`DENIED`
+(reason required)/`COMPLETED` transitions.
+
+### Accessibility gate extension
+
+`packages/e2e`: `GatedPage.auth` gained `"admin"`; a `signedInAsAdmin` fixture
+(`fixtures.ts`); a second fixture identity (`FixtureSet.admin`/`adminSession`) created
+**directly in the database** under the reserved prefix (the sanctioned mechanism for
+question 48's constraint 3 — test infrastructure, not application code). Seven new
+gated states, all reset-before-`prepare` (the `resetEntitlement` lesson from MVP-010's
+CI run 1, applied from the start this time, not discovered the hard way again):
+`privacy-empty`, `privacy-pending-request` (also satisfies "already-requested" — the UI
+has no separate error path for it, since the submit control isn't even rendered while a
+request is active), `privacy-denied`, `privacy-loading` (a held-open `page.route()`
+freezes the "submitting" state for a deterministic scan), `privacy-error`,
+`admin-deletion-requests-populated` (asserts only that *this worker's own* fixture
+request is visible — never a total count, since the admin queue is a genuine
+cross-worker aggregate), `admin-deletion-requests-denied`. `page-routes.ts`:
+`/account/privacy` and `/admin/deletion-requests` added to `GATED_ROUTES`.
+`fixtures-cleanup.spec.ts`: user/session counts updated (2 users, 3 sessions per
+worker, now that `admin`/`adminSession` exist) and re-verified to prove the new
+`Restrict`-FK`d tables don't break cleanup ordering.
+
+**A real bug found and fixed locally, before any CI push:** the first version of
+`privacy-error`'s assertion used the bare `page.getByRole("status")` locator, which
+resolved to three elements (two `ConsentToggle` status regions plus the deletion-request
+panel's own) — a Playwright strict-mode violation. Fixed by asserting on the specific
+error text instead. Caught by running the new states locally against a real production
+build before pushing, not by CI.
+
+**Local verification, all three engines, before pushing:** full chromium run (all
+states, old and new): 201/201. All seven new states plus keyboard traversal and the
+page-inventory checks (route coverage, distinct titles) in firefox and webkit: 84/84 —
+including the exact same repeated-width-per-state pattern that caused MVP-010's CI run 1
+failures, this time clean on the first attempt because the reset-before-prepare pattern
+was applied from the start. `fixtures-cleanup.spec.ts`: 2/2. Full workspace `pnpm build`,
+`pnpm lint`, `pnpm typecheck`, `pnpm test` (40/40 tasks, including the new packages):
+all green.
+
+### Tech debt recorded
+
+[TD-014](tech-debt/TD-014.md) — the admin deletion-request queue has no pagination,
+filtering or sorting (`listActiveDeletionRequests()` returns every active request in one
+unbounded query). Deliberate scope narrowing, not a defect at current/near-term scale.
+
+### Not yet done
+
+Push, open the PR, read CI's real result in full (this is the first CI sample for this
+story), complete the formal security and accessibility review sign-off against the
+actual CI numbers (not the local ones above), mark Done, merge.
+
+### CI, security/accessibility review, and merge (2026-09-23)
+
+PR #9 opened against `develop`. First CI run (`35809637645`) went green on all three
+jobs on the first attempt — no second round needed, unlike MVP-010:
+
+- `Secret scan`: 7s, clean.
+- `Format, lint, typecheck, test, build`: 2m11s. Read the full log directly, not the
+  status tick: every package's Vitest output reads "passed" with no "failed" anywhere,
+  including `@ppu/web` (205/205) and the two new packages (`@ppu/domain-privacy` 16/16,
+  `@ppu/adapter-privacy` 9/9). The `Stop containers` step's raw Postgres log shows the
+  new `Restrict` FK constraint actually firing under a real, deliberately-invalid
+  delete attempt (`ERROR: update or delete on table "users" violates foreign key
+  constraint "consent_records_userId_fkey"`) — the same real-database-log confirmation
+  pattern MVP-005 established for its own CHECK constraints, now proven for this
+  story's own FK choice too, not just asserted by a local test.
+- `Accessibility`: 7m50s (test execution 375s, within the 5–8 minute target, under the
+  10-minute ceiling). **603 passed, 0 failed, 0 flaky** — the Playwright summary line
+  itself, read directly. Up from MVP-010's 477, consistent with the seven new states
+  added across four widths and three engines.
+
+Full security review (re-verified against the actual committed code, every grep run
+fresh against the PR head, not re-asserted from the plan) and full accessibility
+review recorded in `docs/final-decisions.md`, "MVP-020: security and accessibility
+review, Done, merge". No findings.
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-020 moves QA → Done.
+`planning/requirement-traceability.csv`: FR-004 marked Implemented (NFR-010 stays a
+gap, unaffected — scheduled retention was never this story's scope).
+`planning/status.md`: board, completed-stories table and detail section, progress
+metrics (11/25 stories, 82/170 points), remaining-work summary, and next-story
+recommendation all updated. Merged via `gh pr merge --merge` (not locally, not
+squashed, not `main`). Open questions 46 and 47 remain formally open in
+`docs/open-questions.md` — this Done marking closes the story's own delivery, not
+those two questions.
+
+**Recommended next story:** MVP-017 or MVP-018 (P1, dependency MVP-002 already Done,
+not gated by any open product decision).
