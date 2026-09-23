@@ -870,3 +870,26 @@ Per this decision's own instruction, the apparent conflict between MVP-017's bac
 ### Unchanged (restated)
 
 No gate check weakened, skipped, quarantined, or conditionally excluded, as a result of this change. The accessibility self-check stays permanent and unconditional (and is now replicated in every shard, per constraint 3). BUG-014 stays open, monitor-only, permanently instrumented — its instrumentation is confirmed (constraint 4) to survive sharding unchanged. The shelved gate-policy question (item 17) stays shelved — no override, quarantine lane, flake budget or skip is added as a side effect of this decision. The do-not-implement list from the preceding entries is unchanged and restated: MVP-007, 008, 009, 011, 012, 013, 014, 015, 016, 017, 019, 024, 025; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001–006; pricing; Offer structured data; analytics; creator and collections routes; compatibility workflow; search behaviour changes; erasure execution or retention jobs; promoting `develop` to `main`. Open questions 1, 2, 3, 7, 8, 17, 24, 38, 46, 47 remain open.
+
+### 7. CI confirmation — Done
+
+PR #12 (`chore/accessibility-suite-sharding` → `develop`), CI run `35832293062`, first push, first attempt: all 6 checks green — `Secret scan` (8s), `Format, lint, typecheck, test, build` (2m23s), all 4 shards, and the `Accessibility (axe + Playwright)` aggregator (3s, correctly reporting success only once every shard had already reported success).
+
+**Read directly from the raw run log, not the status tick** (per this decision's own Done requirement, and this project's standing practice — ANSI colour codes render as literal `^[[..m` in the raw log, confirmed again here):
+
+| Shard | Job wall-clock | Main-pool result | Self-check result | Test execution (main + self-check) |
+|---|---|---|---|---|
+| 1/4 | 3m11s | `178 passed (1.2m)` | `36 passed (25.3s)` | 97.3s ≈ 1.62min |
+| 2/4 | 4m40s | `178 passed (1.9m)` | `36 passed (51.1s)` | 165.1s ≈ 2.75min |
+| 3/4 | 3m57s | `178 passed (1.8m)` | `36 passed (18.0s)` | 126.0s ≈ 2.10min |
+| 4/4 | 4m24s | `177 passed (2.4m)` | `36 passed (22.6s)` | 166.6s ≈ 2.78min |
+
+**All 4 shards clear the new 5-minute test-execution target with wide margin** (worst case 2.78min, well under half the ceiling); none approach the 8-minute ceiling. Per-shard overhead (job wall-clock minus test execution) ranges 93.7s–114.9s, consistent with the ~118s estimate used in the shard-count arithmetic.
+
+**Main-pool count, verified by direct sum, not assumed:** 178 + 178 + 178 + 177 = **711** — the exact pre-sharding main-pool count, confirming zero drops and zero duplicates across the shard boundary. **Self-check count:** 36 × 4 shards = **144**, present and passing in every shard. **Total test executions: 711 + 144 = 855**, matching the number predicted in constraint 6 exactly.
+
+**Zero failures, zero skips, zero retries — confirmed by grepping the full raw log**, not inferred from the green tick: every occurrence of the substring "failed" in the accessibility shards' output is a page-state test *name* (e.g. `signin-send-failed`, `unsubscribe-error @ ...: ... confirmation failed`), not a failing assertion; every occurrence of "retr" is Docker's own `--health-retries` service-container flag or ClamAV's internal startup socket-polling in the unrelated `build-and-test` job, not a Playwright retry. `retries: 0` in `playwright.config.ts` was never exercised because nothing needed retrying.
+
+**DB-gated suites confirmed PASSED by reading the raw log text:** the `Format, lint, typecheck, test, build` job's `Test (unit + integration)` step shows every package's `Test Files` line as `N passed (N)` — including `@ppu/adapter-identity`, whose Prisma-Client integration tests ran (not self-skipped, since `DATABASE_URL` is set in CI) — with no `failed` count anywhere in that step's output.
+
+**Definition-of-Done met.** This CI-infrastructure change is marked **Done**. Merged via `gh pr merge` (not locally, not squashed) once this confirmation was recorded.

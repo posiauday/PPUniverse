@@ -2392,3 +2392,19 @@ the apparent conflict between MVP-017's backlog scope, FR-014, and open question
 (whether `/collections/[slug]` has an owning story) is investigated and reported to
 the product owner as its own item — not resolved here. MVP-017 pre-work does not
 begin until the product owner resolves it.
+
+**CI confirmation (2026-09-23), PR #12, run `35832293062`, first push, first
+attempt:** all 6 checks green — `Secret scan`, `Format, lint, typecheck, test, build`,
+all 4 accessibility shards, and the `Accessibility (axe + Playwright)` aggregator.
+Per-shard test execution (main pool + self-check), read from the raw log: shard 1
+97.3s (≈1.62min), shard 2 165.1s (≈2.75min), shard 3 126.0s (≈2.10min), shard 4
+166.6s (≈2.78min) — every shard well under the new 5-minute target, nowhere near the
+8-minute ceiling. Main-pool count 178+178+178+177 = 711 (exact pre-sharding match,
+zero drops/duplicates); self-check 36×4 = 144; **total 855**, matching the predicted
+count exactly. Zero failures, zero skips, zero retries, confirmed by grepping the raw
+log rather than trusting the status tick — every "failed" hit is a page-state test
+name, every "retr" hit is Docker's or ClamAV's own unrelated retry mechanism.
+`@ppu/adapter-identity`'s DB-gated Prisma-Client integration tests ran (not
+self-skipped) and passed. Full table and evidence: `docs/final-decisions.md`,
+"Accessibility suite mitigation: sharding implemented", section 7. **Marked Done**;
+merged via `gh pr merge` (not locally, not squashed).
