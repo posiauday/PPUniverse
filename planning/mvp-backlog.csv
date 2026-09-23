@@ -15,7 +15,7 @@ MVP-013,Moderation,Submission review queue,P0,Backlog,FR-010,"Reviewer can appro
 MVP-014,Publishing,Immutable published releases,P0,Backlog,FR-011,"Published files cannot be replaced",MVP-013
 MVP-015,Account,Library orders and saved items,P1,Backlog,FR-013,"User can access entitled products and preferences",MVP-009
 MVP-016,Reviews,Verified reviews and replies,P1,Backlog,FR-012,"Only qualifying users can review; moderation exists",MVP-009
-MVP-017,Content,Tutorials collections learning paths,P1,Ready,FR-014,"Editor can publish indexable structured content",MVP-003
+MVP-017,Content,Tutorials collections learning paths,P1,QA,FR-014,"Editor can publish indexable structured content",MVP-003
 MVP-018,Notifications,Transactional email and preferences,P1,Done,FR-013,"Required messages send and optional messages respect preference",MVP-002
 MVP-019,Admin,Operations console and audit,P0,Backlog,FR-015,"Sensitive actions are authorized and auditable",MVP-013
 MVP-020,Privacy,Consent legal deletion workflow,P0,Done,FR-004,"Consent and deletion request are recorded",MVP-002
