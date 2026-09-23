@@ -2258,3 +2258,47 @@ summary, and next-story recommendation all updated. Merged via `gh pr merge --me
 
 **Recommended next story:** MVP-017 (P1, dependency MVP-002 already Done, not gated
 by any open product decision).
+
+### Correction and actual merge: the accessibility budget breach (2026-09-23)
+
+The account above was written against CI run `35822261607` (head `b567ce2`, the
+security/accessibility-review commit before it was pushed) at 9m47s, "under the
+ceiling." Pushing that commit created a new PR head, per the standing rule that any
+push — including docs-only — needs its own fresh green CI run before merging. That
+new run, `35823121452` (head `1c25049`, the commit actually merged), came back green
+on all three jobs, but **`Accessibility` reported 10m7s wall-clock — a real breach of
+the 10-minute ceiling `docs/final-decisions.md` established for MVP-023 (Q39), by 7
+seconds.** Read directly, not inferred from the status tick: `747 passed, 0 failed,
+0 flaky, 0 skipped` — the tests themselves were exactly as clean as the prior run; the
+breach was in the job's total wall-clock only, not a test failure. This was reported
+to the product owner rather than merged past silently.
+
+**Product-owner decision "MVP-018 merge / accessibility budget breach" (2026-09-23):**
+merge authorized despite the breach, for this run only — recorded rationale: the
+identical suite ran 9m47s on the immediately preceding head with no functional change
+between the two commits (the intervening push was documentation only), so this reads
+as runner variance at the edge of an already-tight budget, not a regression; the gate
+itself was not weakened (full engine/width/rule coverage, 0 skipped, 0 flaky). This is
+explicitly **not** a revision of the 10-minute ceiling and sets no precedent for a
+future breach.
+
+**A standing mitigation trigger is now recorded in `docs/final-decisions.md`, binding
+on every future story:** implementation must stop and present mitigation options —
+with a specific required measurement set (wall-clock breakdown by phase, browser-cache
+warmth, test-execution time alone against the 5–8 minute target, page-state/check
+counts with the delta since MVP-023) — before either (a) any future story adds a new
+page state to `packages/e2e`'s enumerated matrix, or (b) any future accessibility run
+exceeds 10m00s. Sharding is recorded as the preferred mitigation *direction* when a
+decision is eventually taken (preserves every engine/width/rule, costs only runner
+minutes) — explicitly **not** approval to implement it now. Before the next story
+begins, this session is also required to investigate (report only, change nothing):
+whether the Playwright browser cache is warm on recent runs, and where the roughly two
+minutes of non-test job time is spent.
+
+**Actual merge:** PR #10 merged via `gh pr merge --merge --delete-branch=false` on the
+exact head CI tested (`1c25049`, never a re-pushed or rebased commit) — merge commit
+`3623d43`. `planning/status.md`'s "Last updated" line, the MVP-018 detail subsection,
+and this entry were corrected to name the true final numbers rather than leaving the
+intermediate 9m47s reading uncorrected. Governance updates (`mvp-backlog.csv`,
+`backlog.csv`, `requirement-traceability.csv`, `docs/open-questions.md` item 49) were
+already accurate from the pre-merge commit and needed no further change.
