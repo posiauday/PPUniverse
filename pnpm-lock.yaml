@@ -220,6 +220,9 @@ importers:
       '@ppu/adapter-identity':
         specifier: workspace:*
         version: link:../../packages/adapters/identity
+      '@ppu/adapter-notifications':
+        specifier: workspace:*
+        version: link:../../packages/adapters/notifications
       '@ppu/adapter-privacy':
         specifier: workspace:*
         version: link:../../packages/adapters/privacy
@@ -244,6 +247,9 @@ importers:
       '@ppu/domain-identity':
         specifier: workspace:*
         version: link:../../packages/domain/identity
+      '@ppu/domain-notifications':
+        specifier: workspace:*
+        version: link:../../packages/domain/notifications
       '@ppu/domain-privacy':
         specifier: workspace:*
         version: link:../../packages/domain/privacy
@@ -443,6 +449,40 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
 
+  packages/adapters/notifications:
+    dependencies:
+      '@ppu/adapter-email':
+        specifier: workspace:*
+        version: link:../email
+      '@ppu/db':
+        specifier: workspace:*
+        version: link:../../db
+      '@ppu/domain-notifications':
+        specifier: workspace:*
+        version: link:../../domain/notifications
+      '@ppu/domain-privacy':
+        specifier: workspace:*
+        version: link:../../domain/privacy
+      '@ppu/telemetry':
+        specifier: workspace:*
+        version: link:../../telemetry
+    devDependencies:
+      '@ppu/adapter-privacy':
+        specifier: workspace:*
+        version: link:../privacy
+      '@types/node':
+        specifier: ^22.20.3
+        version: 22.20.3
+      eslint:
+        specifier: ^10.10.0
+        version: 10.10.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
+
   packages/adapters/privacy:
     dependencies:
       '@ppu/db':
@@ -596,6 +636,21 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
 
+  packages/domain/notifications:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.3
+        version: 22.20.3
+      eslint:
+        specifier: ^10.10.0
+        version: 10.10.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@22.20.3)(jsdom@30.1.0)(vite@8.3.0(@types/node@22.20.3)(jiti@2.7.0))
+
   packages/domain/privacy:
     devDependencies:
       '@types/node':
@@ -622,6 +677,9 @@ importers:
       '@ppu/db':
         specifier: workspace:*
         version: link:../db
+      '@ppu/domain-notifications':
+        specifier: workspace:*
+        version: link:../domain/notifications
       '@types/node':
         specifier: ^22.20.3
         version: 22.20.3

@@ -26,6 +26,17 @@ if (!process.env["DATABASE_URL"]) {
   );
 }
 
+// A throwaway per-run secret (MVP-018, FR-013), mutated onto this process's
+// own env — not just passed to the spawned webServer below — so
+// src/seed.ts (which runs later, in the same test-runner process, not the
+// server's) can mint unsubscribe tokens the running server will accept.
+// Never committed, never reused. RESEND_API_KEY is deliberately never set
+// here: the server under test always falls back to ConsoleEmailAdapter, so
+// no test ever attempts a real vendor call (question 6 of the pre-work
+// analysis).
+process.env["EMAIL_UNSUBSCRIBE_SECRET"] =
+  process.env["EMAIL_UNSUBSCRIBE_SECRET"] ?? randomBytes(32).toString("hex");
+
 export default defineConfig({
   testDir: "./tests",
   outputDir: "./test-results",

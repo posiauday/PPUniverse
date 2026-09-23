@@ -5,7 +5,8 @@
 // Organization/Team are deferred to the stories that need them (see
 // packages/domain/identity/README history / MVP-002 progress report).
 // ConsentRecord (and the rest of the consent/deletion model) is now built —
-// see privacy.prisma (MVP-020, FR-004).
+// see privacy.prisma (MVP-020, FR-004). EmailSend (the send-audit trail) is
+// now built — see notifications.prisma (MVP-018, FR-013).
 
 // ADMIN added 2026-09-22 (docs/final-decisions.md, "MVP-020 open questions 46,
 // 47 and 48", question 48) — an explicit, one-time, additive-only
@@ -38,6 +39,7 @@ model User {
   consentRecords         ConsentRecord[]
   deletionRequests       DeletionRequest[]
   deletionRequestActions DeletionRequestEvent[]
+  emailSends             EmailSend[]
 
   @@map("users")
 }

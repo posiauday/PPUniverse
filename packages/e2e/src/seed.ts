@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { Prisma, prisma } from "@ppu/db";
+import { mintUnsubscribeToken } from "@ppu/domain-notifications";
 import { assertSafeDatabaseTarget } from "./db-guard.js";
 import { RESERVED_PREFIX, assertReserved, newWorkerPrefix } from "./prefix.js";
 
@@ -62,6 +63,15 @@ export interface FixtureSet {
   admin: { id: string; email: string };
   /** The session the browser signs in with for admin-surface states. */
   adminSession: SessionRef;
+  /**
+   * A valid, unexpired unsubscribe token for the main fixture user (MVP-018,
+   * FR-013), minted with the same EMAIL_UNSUBSCRIBE_SECRET the running
+   * server verifies against (playwright.config.ts mutates process.env so
+   * both processes see the identical value). Minting is a pure, synchronous
+   * function — computed once here, not a method, since it needs no
+   * database access.
+   */
+  unsubscribeToken: string;
   /** Creates another revocable session (tracked for cleanup). */
   createExtraSession(): Promise<SessionRef>;
   /**
@@ -342,6 +352,14 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     const adminSession = await makeSession(now, admin.id);
     let extras = 0;
 
+    const unsubscribeSecret = process.env["EMAIL_UNSUBSCRIBE_SECRET"];
+    if (!unsubscribeSecret) {
+      throw new Error(
+        "EMAIL_UNSUBSCRIBE_SECRET is not set — playwright.config.ts must set it before the seed fixture is created.",
+      );
+    }
+    const unsubscribeToken = mintUnsubscribeToken(user.id, unsubscribeSecret);
+
     return {
       prefix,
       populatedCategory: { slug: populated.slug, name: populated.name },
@@ -354,6 +372,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       otherSession,
       admin: { id: admin.id, email: adminEmail },
       adminSession,
+      unsubscribeToken,
       createExtraSession: () => makeSession(new Date(now.getTime() - (3 + extras++) * HOUR_MS)),
       grantEntitlement: async (productSlug: string) => {
         const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });

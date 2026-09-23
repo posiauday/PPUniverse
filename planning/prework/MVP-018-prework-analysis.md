@@ -1,6 +1,6 @@
 # MVP-018 pre-work analysis — Transactional email and preferences (FR-013)
 
-Story instruction: "STORY INSTRUCTION — MVP-018 (FR-013, Transactional email and preferences)", 2026-09-22, direct product-owner instruction. **Pre-work only.** This document stops after the analysis, per the instruction's explicit closing line — nothing here authorizes implementation.
+Story instruction: "STORY INSTRUCTION — MVP-018 (FR-013, Transactional email and preferences)", 2026-09-22, direct product-owner instruction. Originally pre-work only; **open question 49 was decided 2026-09-22** (direct product-owner instruction, "MVP-018 open question 49", recorded in `docs/final-decisions.md`) and implementation is now authorized for exactly the scope that decision and this document describe. Updates made to this document on closing: marked below wherever a proposal became a decision; nothing here was silently changed.
 
 ## State verified before starting
 
@@ -35,7 +35,9 @@ Directly from the backlog row, nothing added: (1) required (transactional) messa
 
 **Existing triggers classified against that rule, today:**
 - **Sign-in magic link** (MVP-002) — transactional. Blocking it on consent would lock the user out of their own account.
-- **Deletion-request lifecycle events** (MVP-020: submitted, withdrawn, under review, approved, denied, completed) — transactional in category (a security/account-status notice, matching the instruction's own worked example, "deletion-request acknowledgement"), **but building this requires adding a `send` call inside MVP-020's already-completed route files** (`apps/web/app/api/account/deletion-requests/route.ts` and its siblings, `apps/web/app/api/admin/deletion-requests/[id]/route.ts`) — a change to completed-story behaviour beyond what question 1 requires (question 1 only covers `auth.ts`). Per the do-not-implement list's explicit instruction, this is **flagged, not built, and recorded as an open question below** rather than decided here.
+- **Deletion-request lifecycle events** (MVP-020: submitted, withdrawn, under review, approved, denied, completed) — transactional in category (a security/account-status notice, matching the instruction's own worked example, "deletion-request acknowledgement"), **but building this requires adding a `send` call inside MVP-020's already-completed route files** (`apps/web/app/api/account/deletion-requests/route.ts` and its siblings, `apps/web/app/api/admin/deletion-requests/[id]/route.ts`) — a change to completed-story behaviour beyond what question 1 requires (question 1 only covers `auth.ts`). Flagged, not built without confirmation — recorded as open question 49.
+
+  **DECIDED (2026-09-22, `docs/final-decisions.md`, "MVP-018 open question 49"): option (a), `SUBMITTED` only.** Approved to send: `SUBMITTED`. Not approved: `UNDER_REVIEW` (admin churn, no user value), `WITHDRAWN` (already confirmed in the UI), `APPROVED`/`COMPLETED` (withheld on a **truthfulness ground** — MVP-020 executes no erasure, so a message describing an approved/completed deletion would describe an action the system does not perform; sendable only once a real erasure capability exists and questions 46/47 settle), `DENIED` (a **recorded known gap**, not an omission — its copy needs product-owner authorship). Explicitly authorized to modify MVP-020's `POST /api/account/deletion-requests`, with binding constraints: one call at the point of successful submission, no refactoring of adjacent code; the send happens *after* the request and its `SUBMITTED` event are durably committed, never inside the transaction; a send failure never fails, rolls back, or changes the request's state — recorded via telemetry, the route still returns success; no retry; no new `DeletionRequest` column to track send status (`EmailSend` already covers the outcome record). `docs/open-questions.md` item 49 is now CLOSED.
 - No optional-message trigger exists today (no marketing campaign, no digest, nothing FR-016-adjacent) — confirmed, and explicitly OUT of scope regardless. The consent-*check* mechanism is still required to be built now (see "Required in any implementation" in the story instruction, unconditional on a real optional message existing), the same "enforce the condition now, even though nothing yet exercises it" precedent `revokedAt` (MVP-010) and the `Restrict` FK (MVP-020) already established.
 
 ### 3. Sending domain
@@ -83,7 +85,7 @@ One new table (`packages/db/prisma/schema/notifications.prisma`), matching this 
 |---|---|---|---|
 | `id` | `String @id @default(cuid())` | No | |
 | `userId` | `String?` | Yes | Nullable: a first-time sign-in link may be sent before a `User` row exists for that identifier (Auth.js's database-strategy flow). No raw email address is stored here or anywhere in this table — data minimisation, matching `Download`'s (MVP-010) and `ConsentRecord`'s (MVP-020) precedent. |
-| `messageType` | `EmailMessageType` enum | No | `SIGNIN_LINK` only, proposed for now — see "Remaining ambiguities" on the deletion-request types |
+| `messageType` | `EmailMessageType` enum | No | `SIGNIN_LINK`, `DELETION_REQUEST_SUBMITTED` — **decided 2026-09-22** (question 49): only the `SUBMITTED` deletion-request state gets a message; `UNDER_REVIEW`/`WITHDRAWN`/`APPROVED`/`COMPLETED`/`DENIED` are not added, not even reserved-but-unused |
 | `status` | `EmailSendStatus` enum | No | `SENT`, `FAILED`, `SKIPPED_NO_CONSENT` |
 | `providerMessageId` | `String?` | Yes | The vendor's own message id, when `SENT` — for support/debugging, not a secret |
 | `createdAt` | `DateTime @default(now())` | No | |
@@ -169,27 +171,27 @@ One migration, `<timestamp>_add_notifications`, generated via `prisma migrate de
 - `turbo.json` (`globalPassThroughEnv`), `apps/web/.env.example` (`RESEND_API_KEY`, `EMAIL_UNSUBSCRIBE_SECRET` placeholders)
 - `planning/requirement-traceability.csv` (FR-013 row, on completion)
 
-**Not touched without explicit confirmation:** `apps/web/app/api/account/deletion-requests/**`, `apps/web/app/api/admin/deletion-requests/**` (the deletion-request-email candidate — see open question below).
+**Touched, with explicit authorization (question 49, decided 2026-09-22):** `apps/web/app/api/account/deletion-requests/route.ts` gains one `sendTransactional(...)` call after the request commits — see the binding constraints above. **Not touched:** `apps/web/app/api/admin/deletion-requests/[id]/route.ts` and every other deletion-request state — no message is sent for any admin-driven transition in this story.
 
-**Not touched at all:** everything under "Do-not-implement list" below, and no completed MVP-001/002/003/004/005/006/010/020/021/022/023 behaviour beyond `auth.ts` (question 1).
+**Not touched at all:** everything under "Do-not-implement list" below, and no completed MVP-001/002/003/004/005/006/010/020/021/022/023 behaviour beyond `auth.ts` (question 1) and the one authorized `SUBMITTED`-acknowledgement call (question 49).
 
 ## Remaining ambiguities (not resolved here)
 
-1. **Deletion-request-triggered emails** — recorded as an open question below, not decided here.
-2. **`EmailMessageType`'s eventual full set** — only `SIGNIN_LINK` is proposed now; adding a value later is one additive migration, not a redesign (the same reversibility argument used throughout this project's enum choices).
+1. ~~Deletion-request-triggered emails~~ — **DECIDED 2026-09-22**, option (a), `SUBMITTED` only. See above.
+2. **`EmailMessageType`'s eventual full set beyond `SIGNIN_LINK`/`DELETION_REQUEST_SUBMITTED`** — adding a value later (e.g. once `DENIED` copy exists, or once erasure makes `APPROVED`/`COMPLETED` truthful) is one additive migration, not a redesign.
 3. **Unsubscribe token expiry (30 days)** — a reasonable, reversible technical default, not a product decision; can be tuned later without a schema change (it is not stored, so nothing to migrate).
 
 ## Open questions recorded
 
-One new item added to `docs/open-questions.md` this round (item 49), explicitly **not approved**, safest reversible default recorded, not decided unilaterally:
-- **49** — whether this story should add deletion-request-lifecycle email notifications, which requires modifying MVP-020's already-completed route files beyond what question 1 (the sign-in-sender migration) requires. Safest default: **not built** in this story; only the sign-in migration touches an existing route.
+One item in `docs/open-questions.md` (49), decided 2026-09-22 (`docs/final-decisions.md`, "MVP-018 open question 49"):
+- **49** — whether to add deletion-request-lifecycle email notifications. **CLOSED**: `SUBMITTED` only, approved with binding constraints (see above); `UNDER_REVIEW`/`WITHDRAWN` not approved; `APPROVED`/`COMPLETED` withheld on a truthfulness ground pending questions 46/47; `DENIED` recorded as a known gap pending product-owner copy.
 
 Open question 1 (product name/domain) already fully covers why production sending is blocked — no new item needed for that; question 3 above states the consequence, not a new decision.
 
 ## Do-not-implement list (restated, unchanged)
 
-MVP-007, 008, 009, 011, 012, 013, 017; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics (FR-016); creator and collections routes; compatibility workflow; search-behaviour changes; the deferred per-product sign-in policy field; erasure execution or retention jobs; promoting `develop` to `main`. No modification to completed MVP-001/002/003/004/005/006/010/020/021/022/023 behaviour beyond `auth.ts` (question 1) — the deletion-request-email candidate is flagged above, not built, pending open question 49. No gate check weakened, skipped, quarantined or conditionally excluded. The accessibility self-check stays permanent and unconditional. BUG-014 stays open, monitor-only, permanently instrumented — not touched. Open questions 2, 3, 7, 8, 24, 46 and 47 remain open — none resolved as a side effect of this analysis.
+MVP-007, 008, 009, 011, 012, 013, 017; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics (FR-016); creator and collections routes; compatibility workflow; search-behaviour changes; the deferred per-product sign-in policy field; erasure execution or retention jobs; promoting `develop` to `main`. No modification to completed MVP-001/002/003/004/005/006/010/020/021/022/023 behaviour beyond `auth.ts` (question 1) and the one authorized `SUBMITTED`-acknowledgement call in MVP-020's deletion-request route (question 49) — nothing else in MVP-020, and no admin-transition message of any kind. No gate check weakened, skipped, quarantined or conditionally excluded. The accessibility self-check stays permanent and unconditional. BUG-014 stays open, monitor-only, permanently instrumented — not touched. Open questions 1, 2, 3, 7, 8, 24, 46 and 47 remain open — none resolved as a side effect of this decision.
 
-## Stopping here (2026-09-22)
+## Implementation authorized (2026-09-22)
 
-Per the story instruction's explicit closing line: this document stops after the pre-work analysis. Nothing here is authorized for implementation. One item is recorded in `docs/open-questions.md` (49), explicitly not approved. Awaiting product-owner review of this analysis and a decision on item 49 (and any other question raised here) before any code is written.
+Open question 49 decided (option (a), `SUBMITTED` only, with binding constraints); implementation authorized on `feature/mvp-018-email` for exactly the scope this document and `docs/final-decisions.md`'s "MVP-018 open question 49" entry describe, and nothing else. See `planning/progress-report.md` for the implementation record as it proceeds.

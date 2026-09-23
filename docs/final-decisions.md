@@ -699,3 +699,51 @@ Every claim below re-verified directly against the actual committed code on the 
 ### Done and merge
 
 `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-020 moves QA → Done. Merged via `gh pr merge` (not locally, not squashed). Open questions 46 and 47 stay formally open, unaffected by this Done marking — only question 48 was closed by this story's authorization.
+
+## 2026-09-22 — MVP-018 open question 49
+
+Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — MVP-018 OPEN QUESTION 49"), resolving `docs/open-questions.md` item 49 and authorizing implementation on `feature/mvp-018-email`. Full pre-work analysis: `planning/prework/MVP-018-prework-analysis.md`.
+
+### Decision: option (a), SUBMITTED only
+
+**Approved to send: a deletion-request acknowledgement on the `SUBMITTED` state only.** Every other transition is **not** approved in this story:
+- `UNDER_REVIEW` — admin workflow churn, no user value.
+- `WITHDRAWN` — user-initiated; the UI already confirms it at the point of action.
+- `APPROVED` and `COMPLETED` — **withheld on a truthfulness ground, not a wording one.** MVP-020 executes no erasure; a message stating a deletion was approved or completed would describe an action the system does not perform. These become sendable only once a real erasure capability exists and open questions 46 and 47 (deletion-versus-append-only per data class; jurisdiction) are settled.
+- `DENIED` — **recorded as a known gap, not an omission.** A user whose request is refused currently receives no signal at all. Excluded here because the refusal copy needs product-owner authorship, not because it lacks value. A future item.
+
+### Authorization to modify MVP-020
+
+**Explicitly authorized, and the only permitted change to completed story code under this authorization:** add the acknowledgement send to `POST /api/account/deletion-requests` (MVP-020), at the point of successful submission. Binding constraints:
+1. One call at the point of successful submission — no refactoring, renaming, restructuring or tidying of adjacent code.
+2. The send occurs **after** the request and its `SUBMITTED` event row are durably committed — never inside the transaction.
+3. A send failure must not fail the request, roll it back, or change its state — the record is authoritative, the email is a courtesy. The failure is recorded via telemetry only; the route still returns success to the caller.
+4. No retry — consistent with the story's single-attempt model (question 7).
+5. No new state, column or flag on `DeletionRequest` to track send status. (Confirmed not needed: `EmailSend`, already proposed for the sign-in migration, is the send-outcome record — it does not require a `DeletionRequest` schema change.)
+6. Minimal commit, referencing MVP-018 and question 49.
+
+### Message constraints
+
+**Classification: transactional.** Not gated by `MARKETING_EMAIL` consent — it is an account-security notice about a request the user themselves made, and must send regardless of marketing preference.
+
+The copy states only that the request was received and will be reviewed. It must **not** state or imply: that data has been deleted or will be deleted, a timeframe, a legal right or entitlement, any regulatory regime, or any compliance claim. Sent only to the verified account address on record (never a client-supplied destination); no personal data beyond what identifies the request. **The copy is placeholder text for product-owner review** — generated wording is never treated as final, the same standing rule already applied to `PolicyVersion` (MVP-020).
+
+### Rest of the story: approved as analysed, without amendment
+
+- Migrate the existing sign-in email onto a real `ResendEmailAdapter` now; no second parallel sending path.
+- No new preference table; `sendOptional` enforces MVP-020's existing `ConsentRecord` at send time, server-side, never from a client-supplied flag.
+- Production sending stays blocked on the unresolved product-name/domain question (item 1); build and test without one.
+- Synchronous send in the request path; record the tech-debt item; do not build a queue.
+- Stateless, signed, single-purpose, scoped, expiring unsubscribe token; `GET` has zero side effects; cannot enumerate addresses, alter any other preference, or reveal whether an address is registered.
+- No real email from CI or tests; console fallback when no vendor key is configured.
+- Single attempt, outcome recorded, no retry.
+
+Secret handling: `RESEND_API_KEY` and `EMAIL_UNSUBSCRIBE_SECRET` are environment-only, never committed, never logged, never a real value in an example file; added to `turbo.json`'s `globalPassThroughEnv` and `apps/web/.env.example` with placeholders; production fails safely (falls back to console logging, never fails to start) when absent. Recipient addresses and message bodies never appear in logs; telemetry records outcome and message type only. Any new UI surface joins the enumerated `packages/e2e` page/state list at 320/375/768/1280 across all three engines, including empty, loading, saved, error, denied and unsubscribe-confirmation states — no exclusion-list entry for a real page.
+
+### Unchanged (restated)
+
+Do-not-implement list stands: MVP-007, 008, 009, 011, 012, 013, 017; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics (FR-016); creator and collections routes; compatibility workflow; search-behaviour changes; the deferred per-product sign-in policy field; erasure execution or retention jobs; promoting `develop` to `main`. No gate check weakened, skipped, quarantined or conditionally excluded; the accessibility self-check stays permanent and unconditional; BUG-014 stays open, monitor-only, permanently instrumented. Open questions 1, 2, 3, 7, 8, 24, 46 and 47 remain open — none resolved as a side effect. Completion rule unchanged (tests pass; all required checks green on the head being merged; DB-gated suites confirmed PASSED by reading the log; skip count 0 or explained; 0 retries; docs and traceability updated; security and accessibility reviews complete). Merge via `gh pr merge` only, never locally, never squashed.
+
+### Process
+
+Implementation authorized on `feature/mvp-018-email` for exactly the scope this entry and the pre-work analysis describe. If a new product decision surfaces mid-implementation, it is recorded with a safest reversible default and implementation stops for approval — not resolved unilaterally.

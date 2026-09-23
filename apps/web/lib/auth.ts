@@ -1,14 +1,13 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@ppu/db";
-import { ConsoleEmailAdapter } from "@ppu/adapter-email";
 import type { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import { EMAIL_FROM, notificationService } from "./email";
 
-/**
- * Dev/test default (ADR 004 amendment): logs the verification link instead
- * of sending it. Replaced by a real vendor EmailAdapter in MVP-018.
- */
-const emailAdapter = new ConsoleEmailAdapter();
+// Migrated onto the real vendor abstraction (MVP-018, FR-013;
+// docs/final-decisions.md, "MVP-018 open question 49") — see ./email for the
+// Resend-or-console selection, shared with every other send site so there
+// is never a second parallel sending path.
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -27,9 +26,17 @@ export const authOptions: NextAuthOptions = {
       // Unused: sendVerificationRequest below fully overrides delivery, but
       // next-auth's EmailConfig type still expects a server value.
       server: { host: "localhost", port: 1025, auth: { user: "", pass: "" } },
-      from: process.env["EMAIL_FROM"] ?? "no-reply@example.com",
+      from: EMAIL_FROM,
       sendVerificationRequest: async ({ identifier, url }) => {
-        await emailAdapter.send({
+        // A brand-new sign-up may have no User row yet at this point in the
+        // flow (the database-strategy adapter creates one on verification,
+        // not on request) — looked up, not assumed; left null rather than
+        // ever storing the raw address (data minimisation).
+        const existingUser = await prisma.user.findUnique({ where: { email: identifier } });
+        // sendTransactional re-throws on failure — preserved deliberately,
+        // so next-auth's own existing error-page behaviour (and the
+        // accessibility gate's signin-send-failed state) are unchanged.
+        await notificationService.sendTransactional("SIGNIN_LINK", existingUser?.id ?? null, {
           to: identifier,
           subject: "Sign in to Power Platform Universe",
           text: `Sign in by opening this link (expires shortly): ${url}`,

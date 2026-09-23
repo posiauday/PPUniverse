@@ -2096,3 +2096,126 @@ pending).
 **Not yet done, by design:** no code, no migration, no schema file, no UI. Stopped
 here per the story instruction's explicit closing line, awaiting product-owner review
 of the analysis and a decision on open question 49.
+
+## MVP-018 — Transactional email and preferences (FR-013): implementation (2026-09-22)
+
+Product-owner decision "MVP-018 open question 49" (2026-09-22) closed the one open
+question — option (a): send a deletion-request acknowledgement on `SUBMITTED` only,
+with the rest of the pre-work analysis approved without amendment. Recorded in
+`docs/final-decisions.md`, `docs/open-questions.md` (49 closed), and
+`planning/prework/MVP-018-prework-analysis.md` (marked, not silently changed).
+Implementation authorized on `feature/mvp-018-email` for exactly that scope.
+
+### Schema and migration
+
+One hand-reviewed migration, generated via `prisma migrate dev --create-only` against
+the local embedded-postgres instance: `packages/db/prisma/schema/notifications.prisma`
+— `EmailSend` (append-only audit trail; `messageType` limited to `SIGNIN_LINK` and
+`DELETION_REQUEST_SUBMITTED`, nothing else, not even reserved-but-unused for the
+declined deletion-request states). `ENABLE ROW LEVEL SECURITY` in the same migration.
+`userId` nullable (a first-time sign-in link may be sent before a `User` row exists)
+and `Restrict` (not `Cascade`) on delete — consistent with MVP-020's own deliberate
+divergence: an audit trail should not be destroyed by the event it is auditing.
+
+### Domain and adapter packages
+
+`packages/domain/notifications` (new): `EmailMessageType`/`EmailSendStatus` types,
+`isTransactionalMessageType` (both real message types are transactional — no optional
+message exists yet), and the stateless HMAC-signed unsubscribe token
+(`mintUnsubscribeToken`/`verifyUnsubscribeToken`) — every failure mode (bad signature,
+expired, malformed, wrong category) returns the identical `null`. 10 unit tests.
+
+`packages/adapters/email` (extended): `ResendEmailAdapter` — a single `fetch` POST to
+Resend's REST API, no SDK dependency, mirroring `SentryErrorMonitoringAdapter`'s
+constructor-config shape. 5 unit tests against a mocked `fetch` (success, non-2xx,
+network failure, html-vs-no-html body).
+
+`packages/adapters/notifications` (new): `PrismaNotificationService` —
+`sendTransactional` (always sends, records the outcome, **re-throws** on failure so
+each call site decides whether to propagate it — `auth.ts` needs the throw to
+preserve `next-auth`'s existing error-page behaviour and the accessibility gate's
+`signin-send-failed` state, both unchanged by this story) and `sendOptional` (checks
+`PrivacyRepository.getCurrentConsent` fresh on every call, never cached; records
+`SKIPPED_NO_CONSENT` without calling the adapter when not granted). 7 integration
+tests against a real Postgres, including a proof that a `User` row cannot be
+hard-deleted while an `EmailSend` references it.
+
+### `auth.ts` migration and the one MVP-020 change
+
+`apps/web/lib/email.ts` (new, shared): the Resend-or-console selection
+(`RESEND_API_KEY` present → `ResendEmailAdapter`, absent → `ConsoleEmailAdapter`,
+mirroring `error-monitoring.ts`'s `SENTRY_DSN` fallback exactly) and the
+`PrismaNotificationService` singleton, reused by every send site so there is never a
+second parallel sending path. `apps/web/lib/auth.ts` now calls
+`notificationService.sendTransactional("SIGNIN_LINK", ...)`, looking up whether a
+`User` row already exists for the identifier (never assumed) and passing its id or
+`null`.
+
+`apps/web/app/api/account/deletion-requests/route.ts` gains the one authorized
+change to MVP-020's code: one `sendTransactional("DELETION_REQUEST_SUBMITTED", ...)`
+call, placed after the request and its event are durably committed, wrapped in a
+`try`/`catch` that deliberately swallows a failure — the record is authoritative, the
+email is a courtesy (decision constraint 3). The recipient address is read fresh from
+`prisma.user` by id, never taken from the session token. Verified directly with a
+dedicated route test: the request still returns `201` with the correct body when the
+send throws, and no send is attempted at all when the recipient lookup finds no row.
+
+### Unsubscribe
+
+`apps/web/lib/unsubscribe.ts` wraps the domain token functions with
+`EMAIL_UNSUBSCRIBE_SECRET` (a dedicated secret, never `NEXTAUTH_SECRET`) and fails
+safe (verification always returns `null`, same as an invalid token) when unset.
+`apps/web/app/unsubscribe/page.tsx` — not session-gated by design; `GET` renders a
+confirmation prompt for a valid token or the identical generic denial for every
+invalid case, with zero side effects (email clients and security scanners prefetch
+links — a real pitfall, not hypothetical). `UnsubscribeConfirmButton.tsx` performs the
+actual write via `POST /api/unsubscribe`, which records the withdrawal through
+`PrismaPrivacyRepository.recordConsent` (MVP-020) — idempotent on replay, matching
+`ConsentRecord`'s append-only design. Verified with a dedicated route test (5/5):
+invalid token → 400 with the generic message, never writes; valid token → 204 and the
+exact `recordConsent` call.
+
+### Accessibility gate extension
+
+Five new `/unsubscribe` states (empty, denied, unsubscribe-confirmation, loading,
+error) plus three backfilling the existing `MARKETING_EMAIL` `ConsentToggle`'s own
+loading/saved/error states — a gap this story's own pre-work analysis found MVP-020
+had left implicit. `playwright.config.ts` mutates `process.env["EMAIL_UNSUBSCRIBE_SECRET"]`
+to a throwaway per-run value (mirroring the existing `NEXTAUTH_SECRET` pattern) so
+`seed.ts` (running in the test-runner process) and the spawned `next start` server
+see the identical secret; `RESEND_API_KEY` is deliberately never set, so every test
+run exercises `ConsoleEmailAdapter` only — no real vendor call from any test.
+
+**Two real bugs found and fixed locally, before any CI push:**
+1. `unsubscribe-empty`, `unsubscribe-denied` and `unsubscribe-confirmation` had **no
+   keyboard stops at all** — plain text with no link or button. Fixed by adding a
+   "Back to the home page" link, matching the established `BUG-008` pattern for every
+   other dead-end page in this codebase.
+2. That link's own clickable box (163.8px × 21px) was under the WCAG 2.5.8 24px
+   minimum target size at the surrounding line height. Fixed with `inline-block` and
+   vertical padding.
+
+Both were caught by running the real accessibility scan locally against a production
+build before pushing, exactly the verification discipline this project has followed
+since MVP-010's first CI-only failures — this time the equivalent defects were found
+*before* CI, not after.
+
+**Local verification, all three engines, before pushing:** full chromium run (all
+248 prior states plus this story's 8 new ones): 249/249. The 8 new states plus
+keyboard traversal in firefox and webkit: 96/96. Full workspace `pnpm build`,
+`pnpm lint`, `pnpm typecheck`, `pnpm test` (44/44 tasks, including the three new/
+extended packages): all green. `pnpm exec prettier --check` clean after one
+auto-fix pass.
+
+### Tech debt recorded
+
+[TD-015](tech-debt/TD-015.md) — transactional email is sent synchronously in the
+request path with no retry, the same class of gap [TD-004](tech-debt/TD-004.md)
+already names (no job-queue infrastructure exists yet). Not a new problem; explicitly
+accepted by this story's own authorization ("do not build a queue").
+
+### Not yet done
+
+Push, open the PR, read CI's real result in full (this is the first CI sample for
+this story), complete the formal security and accessibility review sign-off against
+the actual CI numbers (not the local ones above), mark Done, merge.

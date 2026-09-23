@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-22 — MVP-018 (Transactional email and preferences, FR-013) pre-work analysis is **complete, not yet implemented**. `planning/prework/MVP-018-prework-analysis.md` answers the seven required questions (existing sender, transactional-vs-optional boundary, sending domain, synchronous-vs-queued, unsubscribe token model, testing without real sends, failure/retry) and proposes migrating `auth.ts`'s sign-in link onto a new `ResendEmailAdapter`/`ConsoleEmailAdapter` pair (falling back the same way `SENTRY_DSN`'s absence already does), one new append-only audit table (`EmailSend`), and a stateless signed-token unsubscribe flow (no new preference table — reuses MVP-020's `ConsentRecord` directly). One item recorded in `docs/open-questions.md` (49), not approved: whether to add deletion-request-lifecycle email notifications, which would touch MVP-020's already-completed route files beyond what this story's sign-in-migration authorization covers — flagged, not built. No code written; stopped for product-owner review per the story instruction.
+Last updated: 2026-09-23 — MVP-018 (Transactional email and preferences, FR-013) is **implemented, in QA, awaiting CI and review sign-off**. Open question 49 was decided ("MVP-018 open question 49"): option (a), a deletion-request acknowledgement on `SUBMITTED` only (`UNDER_REVIEW`/`WITHDRAWN` not approved; `APPROVED`/`COMPLETED` withheld on a truthfulness ground pending questions 46/47; `DENIED` a recorded known gap pending product-owner copy). Built on `feature/mvp-018-email`: `EmailSend` (append-only audit table, RLS, `Restrict` FK), `packages/domain/notifications` + `packages/adapters/notifications` (26 unit/integration tests), `ResendEmailAdapter` (`packages/adapters/email`), `auth.ts` migrated off `ConsoleEmailAdapter` onto the shared Resend-or-console selection, the one authorized deletion-request acknowledgement send (a send failure never fails the request — verified by a dedicated route test), and a stateless signed unsubscribe token with its own page and API route. Five new accessibility-gated states for `/unsubscribe` plus three backfilled for the existing `MARKETING_EMAIL` toggle (a gap MVP-020 left implicit) — full local chromium run 249/249, new states in firefox/webkit 96/96, full workspace build/lint/typecheck/test green (44/44 tasks). Two real bugs found and fixed locally before any CI push: three `/unsubscribe` states had no keyboard stops at all (fixed with a "back to home" link, matching BUG-008's established pattern), and that link's own touch target was under the WCAG 24px minimum (fixed with padding). TD-015 recorded (email sends synchronously in the request path, no retry — the same class of gap as TD-004). Not yet Done: real CI confirmation and the formal security/accessibility review sign-off.
 
 MVP-020 (Consent and legal deletion workflow, FR-004) is **Done and merged**. PR #9 merged via `gh pr merge` (not squashed) after CI run `35809637645` went green on all three jobs on the first attempt: 603/603 accessibility checks (7 new states — `privacy-empty`, `privacy-pending-request`, `privacy-denied`, `privacy-loading`, `privacy-error`, `admin-deletion-requests-populated`, `admin-deletion-requests-denied`), 0 failed, 0 flaky; 205/205 `@ppu/web` tests plus every other package's suite green; the new `Restrict` foreign-key constraint proven not just by a local test but by the real CI Postgres log itself rejecting a deliberately-invalid delete. Open questions 46, 47 and 48 were decided before implementation ("MVP-020 open questions 46, 47 and 48"): 48 closed (`ADMIN` added to `UserRole`, additive only, no application code path ever grants it); 46 and 47 approved as a *direction*, both stay formally open. Built: `PolicyVersion`/`ConsentRecord`/`DeletionRequest`/`DeletionRequestEvent` (RLS-enabled, append-only, `Restrict` FKs — a deliberate divergence from MVP-010's `Entitlement.userId` `Cascade`), `packages/domain/privacy` + `packages/adapters/privacy` (25 unit/integration tests), four API routes (self-only, deny-by-default; the admin route gives an authenticated non-admin the identical 404 an unauthenticated caller gets, verified by a dedicated route test), `/account/privacy` and `/admin/deletion-requests` UI. One real bug (an ambiguous Playwright locator) found and fixed locally before any CI push (full detail: `planning/progress-report.md`). `docs/06-data-model.md` updated with the new Privacy section. TD-014 recorded (admin queue has no pagination yet — deliberate scope narrowing). FR-004 is Implemented; NFR-010 (scheduled retention by data class) stays a gap, unaffected by this story.
 
@@ -16,8 +16,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 3 | MVP-007, MVP-011, MVP-017 |
-| In Progress | 1 | MVP-018 (pre-work complete, awaiting decision on open question 49) |
-| QA | 0 | — |
+| In Progress | 0 | — |
+| QA | 1 | MVP-018 (implemented, awaiting CI confirmation and review sign-off) |
 | Blocked | 0 | — |
 | Done | 11 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-020, MVP-021, MVP-022, MVP-023 |
 | **Total** | **25** | |
@@ -84,7 +84,7 @@ Full detail on every story is in `planning/progress-report.md`.
 - P0 points done: 82 / 145 (57%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 5 (BUG-002, BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 8 resolved (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 11 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Open tech debt: 12 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
@@ -101,7 +101,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-023 | **Done** | 13 (done) |
 | 3 | MVP-010 | **Done** | 3 (done) |
 | 3 | MVP-011, MVP-017 | Ready | 10 |
-| 3 | MVP-018 | In Progress (pre-work done, decision pending) | 5 |
+| 3 | MVP-018 | QA (implemented, awaiting CI and review) | 5 |
 | 3 | MVP-020 | **Done** | 8 (done) |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
@@ -115,11 +115,11 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-018 is In Progress** — its pre-work analysis is complete (`planning/prework/MVP-018-prework-analysis.md`) but implementation is stopped pending a product-owner decision on open question 49 (whether to add deletion-request-triggered email notifications, which would touch MVP-020's already-completed route files). It should not resume until that is answered. **MVP-017** (P1, dependency MVP-002 already Done, not gated by any open product decision) is the next candidate to start while MVP-018's decision is pending. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
+**MVP-018 is in QA**, implemented on `feature/mvp-018-email`, awaiting real CI confirmation and the formal security/accessibility review before it can move to Done. Nothing further is needed from the product owner for MVP-018 itself. While it finishes QA, **MVP-017** (P1, dependency MVP-002 already Done, not gated by any open product decision) is the next candidate to start. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
 
 Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
-Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms); **MVP-018 (Transactional email and preferences)** — open question 49 (this round). MVP-017 remains Ready and ungated.
+Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-017 remains Ready and ungated.
 
 ## Open bugs
 
@@ -137,7 +137,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 
 ## Open tech debt
 
-11 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+12 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
@@ -150,6 +150,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-012](tech-debt/TD-012.md) — **Open** (new, 2026-09-21, Low): a root `.pnpmfile.cjs` removes Next.js's optional `@playwright/test` peer declaration so dev-only Playwright cannot be linked into the web app's production tree.
 - [TD-013](tech-debt/TD-013.md) — **Open** (new, 2026-09-21, Medium): `router.refresh()` can briefly leave `<title>` absent from `<head>`; only `/account/sessions` has a mitigation, the underlying framework gap is not understood or fixed.
 - [TD-014](tech-debt/TD-014.md) — **Open** (new, 2026-09-22, Low): the admin deletion-request queue (`/admin/deletion-requests`, MVP-020) has no pagination, filtering or sorting — a deliberate scope narrowing, not a defect at current/near-term scale.
+- [TD-015](tech-debt/TD-015.md) — **Open** (new, 2026-09-22, Medium): transactional email (MVP-018) is sent synchronously in the request path with no retry — the same class of gap as TD-004, pending real job-queue infrastructure.
 
 ## Proposed stories (not approved — not on the board, not counted above)
 [`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.
