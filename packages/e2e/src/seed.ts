@@ -50,6 +50,18 @@ export interface FixtureSet {
   currentSession: SessionRef;
   /** A second session of the same user, which the sessions page lets the user revoke. */
   otherSession: SessionRef;
+  /**
+   * MVP-020 (FR-004): a second fixture identity with `role: "ADMIN"`, created
+   * directly in the database under the reserved prefix — the sanctioned
+   * mechanism (docs/final-decisions.md, "MVP-020 open questions 46, 47 and
+   * 48", question 48, constraint 3: "Tests that need an admin create one
+   * directly in the database... No test-only bypass, no role-elevation
+   * helper shipped in application code"). This is test infrastructure, not
+   * application code, so this is not that prohibited helper.
+   */
+  admin: { id: string; email: string };
+  /** The session the browser signs in with for admin-surface states. */
+  adminSession: SessionRef;
   /** Creates another revocable session (tracked for cleanup). */
   createExtraSession(): Promise<SessionRef>;
   /**
@@ -77,6 +89,24 @@ export interface FixtureSet {
    * only ever exist before the first width's own grant).
    */
   resetEntitlement(productSlug: string): Promise<void>;
+  /**
+   * Deletes every ConsentRecord/DeletionRequest(+Event) row for the given
+   * user (defaults to the worker's main fixture user) so a state that needs
+   * a specific starting condition can establish it deterministically,
+   * regardless of what any other state (or another width of the same
+   * state) left behind — the same reset-before-prepare pattern
+   * resetEntitlement already proved (MVP-010, CI run 1).
+   */
+  resetPrivacyState(userId?: string): Promise<void>;
+  /** Directly creates a DeletionRequest + its initial SUBMITTED event, bypassing the UI/API — fixture setup, not the behavior under test. */
+  submitDeletionRequest(userId?: string): Promise<{ id: string }>;
+  /** Appends one more DeletionRequestEvent, simulating an admin's (or the requester's) review action without going through the real route. */
+  advanceDeletionRequest(
+    deletionRequestId: string,
+    toState: "UNDER_REVIEW" | "APPROVED" | "DENIED" | "COMPLETED" | "WITHDRAWN",
+    actorUserId: string,
+    reason?: string,
+  ): Promise<void>;
   cleanup(): Promise<void>;
 }
 
@@ -89,6 +119,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
   const created = {
     sessionIds: [] as string[],
     userId: null as string | null,
+    adminUserId: null as string | null,
     productIds: [] as string[],
   };
 
@@ -101,16 +132,40 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         failures.push(error);
       }
     };
+    const fixtureUserIds = [created.userId, created.adminUserId].filter(
+      (id): id is string => id !== null,
+    );
+    // ConsentRecord/DeletionRequest(+Event) use Restrict FKs on userId
+    // (MVP-020, docs/final-decisions.md, "MVP-020 open questions 46, 47 and
+    // 48", question 46) — deliberately, so a real user-deletion can never
+    // silently destroy this audit trail. That means this cleanup must
+    // delete them explicitly, in dependency order, BEFORE the user rows
+    // below, or the user deletes would fail exactly the way the schema
+    // intends them to when rows still reference them.
+    if (fixtureUserIds.length > 0) {
+      await attempt(() =>
+        prisma.deletionRequestEvent.deleteMany({
+          where: { deletionRequest: { userId: { in: fixtureUserIds } } },
+        }),
+      );
+      await attempt(() =>
+        prisma.deletionRequest.deleteMany({ where: { userId: { in: fixtureUserIds } } }),
+      );
+      await attempt(() =>
+        prisma.consentRecord.deleteMany({ where: { userId: { in: fixtureUserIds } } }),
+      );
+    }
     // Every delete is scoped by the ids this worker created AND the reserved prefix.
     await attempt(() =>
       prisma.session.deleteMany({
         where: { id: { in: created.sessionIds }, sessionToken: { startsWith: RESERVED_PREFIX } },
       }),
     );
-    if (created.userId) {
-      const userId = created.userId;
+    if (fixtureUserIds.length > 0) {
       await attempt(() =>
-        prisma.user.deleteMany({ where: { id: userId, email: { startsWith: RESERVED_PREFIX } } }),
+        prisma.user.deleteMany({
+          where: { id: { in: fixtureUserIds }, email: { startsWith: RESERVED_PREFIX } },
+        }),
       );
     }
     await attempt(() =>
@@ -252,13 +307,27 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.userId = user.id;
 
-    const makeSession = async (createdAt: Date): Promise<SessionRef> => {
+    // MVP-020 (FR-004): a second identity with role: "ADMIN", created
+    // directly here under the reserved prefix — the sanctioned mechanism
+    // for test-only admin access (see the FixtureSet.admin doc comment
+    // above). Never created by application code.
+    const adminEmail = `${prefix}admin@example.invalid`;
+    assertReserved("user", adminEmail);
+    const admin = await prisma.user.create({
+      data: { email: adminEmail, name: "E2E fixture admin", emailVerified: now, role: "ADMIN" },
+    });
+    created.adminUserId = admin.id;
+
+    const makeSession = async (
+      createdAt: Date,
+      forUserId: string = user.id,
+    ): Promise<SessionRef> => {
       const token = `${prefix}${randomBytes(24).toString("hex")}`;
       assertReserved("session token", token);
       const session = await prisma.session.create({
         data: {
           sessionToken: token,
-          userId: user.id,
+          userId: forUserId,
           expires: new Date(Date.now() + 24 * HOUR_MS),
           createdAt,
         },
@@ -270,6 +339,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     const currentSession = await makeSession(now);
     // Distinct creation times give distinct "Session started ..." labels on the page.
     const otherSession = await makeSession(new Date(now.getTime() - 90 * 60 * 1000));
+    const adminSession = await makeSession(now, admin.id);
     let extras = 0;
 
     return {
@@ -282,6 +352,8 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       user: { id: user.id, email },
       currentSession,
       otherSession,
+      admin: { id: admin.id, email: adminEmail },
+      adminSession,
       createExtraSession: () => makeSession(new Date(now.getTime() - (3 + extras++) * HOUR_MS)),
       grantEntitlement: async (productSlug: string) => {
         const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
@@ -298,6 +370,25 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       resetEntitlement: async (productSlug: string) => {
         const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
         await prisma.entitlement.deleteMany({ where: { userId: user.id, productId: product.id } });
+      },
+      resetPrivacyState: async (userId: string = user.id) => {
+        await prisma.deletionRequestEvent.deleteMany({
+          where: { deletionRequest: { userId } },
+        });
+        await prisma.deletionRequest.deleteMany({ where: { userId } });
+        await prisma.consentRecord.deleteMany({ where: { userId } });
+      },
+      submitDeletionRequest: async (userId: string = user.id) => {
+        const request = await prisma.deletionRequest.create({ data: { userId } });
+        await prisma.deletionRequestEvent.create({
+          data: { deletionRequestId: request.id, toState: "SUBMITTED", actorUserId: userId },
+        });
+        return { id: request.id };
+      },
+      advanceDeletionRequest: async (deletionRequestId, toState, actorUserId, reason) => {
+        await prisma.deletionRequestEvent.create({
+          data: { deletionRequestId, toState, actorUserId, reason: reason ?? null },
+        });
       },
       cleanup,
     };

@@ -1,7 +1,7 @@
 import type { Page, TestInfo } from "@playwright/test";
 import { expectNoBlockingViolations } from "../../src/axe.js";
 import { expectNoHorizontalOverflow } from "../../src/browser.js";
-import { expect, test } from "../../src/fixtures.js";
+import { expect, SESSION_COOKIE, test } from "../../src/fixtures.js";
 import { VIEWPORT_HEIGHT, VIEWPORT_WIDTHS } from "../../src/matrix.js";
 import { GATED_ROUTES } from "../../src/page-routes.js";
 import { GATED_PAGES, type GatedPage } from "../../src/pages.js";
@@ -68,6 +68,19 @@ test.describe("page matrix: axe blocking rules, overflow and titles", () => {
       });
     }
   }
+
+  for (const state of GATED_PAGES.filter((candidate) => candidate.auth === "admin")) {
+    for (const width of VIEWPORT_WIDTHS) {
+      test(`${state.id} @ ${width}px: ${state.description}`, async ({
+        page,
+        seed,
+        signedInAsAdmin,
+      }, testInfo) => {
+        void signedInAsAdmin; // requested for its side effect: it adds the session cookie
+        await scan(page, seed, testInfo, state, width);
+      });
+    }
+  }
 });
 
 test.describe("page inventory", () => {
@@ -88,9 +101,9 @@ test.describe("page inventory", () => {
   test("page titles are descriptive and distinct across the gated pages", async ({
     page,
     seed,
-    signedIn,
+    context,
+    baseURL,
   }) => {
-    void signedIn;
     // One representative state per distinct page: the first state seen for each route,
     // plus the 404, so a copy-pasted title is caught.
     const representatives = GATED_PAGES.filter(
@@ -101,6 +114,23 @@ test.describe("page inventory", () => {
     );
     const titles = new Map<string, string>();
     for (const state of representatives) {
+      // Sign in as whichever identity this specific representative needs —
+      // unlike the scan loops above, this single test visits guest, member
+      // AND admin states in turn, so the cookie has to switch per state
+      // rather than being set once for the whole test via a fixture.
+      await context.clearCookies();
+      if (state.auth !== "guest") {
+        const token = state.auth === "admin" ? seed.adminSession.token : seed.currentSession.token;
+        await context.addCookies([
+          {
+            name: SESSION_COOKIE,
+            value: token,
+            url: baseURL ?? "http://localhost:3100",
+            httpOnly: true,
+            sameSite: "Lax",
+          },
+        ]);
+      }
       await page.goto(state.path(seed));
       titles.set(state.id, await page.title());
     }

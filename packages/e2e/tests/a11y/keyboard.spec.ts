@@ -67,4 +67,13 @@ test.describe("keyboard traversal: reachable controls with a visible focus indic
       });
     }
   }
+
+  for (const state of GATED_PAGES.filter((candidate) => candidate.auth === "admin")) {
+    for (const width of KEYBOARD_WIDTHS) {
+      test(`${state.id} @ ${width}px`, async ({ page, seed, signedInAsAdmin }, testInfo) => {
+        void signedInAsAdmin; // requested for its side effect: it adds the session cookie
+        await traverse(page, seed, testInfo, state, width);
+      });
+    }
+  }
 });

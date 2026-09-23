@@ -1,6 +1,6 @@
 # MVP-020 pre-work analysis — Consent and legal deletion workflow (FR-004)
 
-Story instruction: "STORY INSTRUCTION — MVP-020 (FR-004, Consent and legal deletion workflow)", 2026-09-22, direct product-owner instruction. **Pre-work only.** This document stops after the analysis, per the instruction's explicit closing line — nothing here authorizes implementation.
+Story instruction: "STORY INSTRUCTION — MVP-020 (FR-004, Consent and legal deletion workflow)", 2026-09-22, direct product-owner instruction. Originally pre-work only; **open questions 46, 47 and 48 were decided 2026-09-22** (direct product-owner instruction, "MVP-020 open questions 46, 47 and 48", recorded in `docs/final-decisions.md`) and implementation is now authorized for exactly the scope that decision and this document describe. Question 46 and 47 remain formally OPEN (a direction/interim default was approved, not a final answer); question 48 is CLOSED. Updates made to this document on closing: marked below wherever a proposal became a decision; nothing here was silently changed.
 
 ## State verified before starting
 
@@ -37,7 +37,7 @@ That said, the question asks for a proposed model per data class, to record now 
 
 **Consequence for today's schema:** the new tables this story adds (`ConsentRecord`, `DeletionRequest`, `DeletionRequestEvent`) should **not** cascade-delete on `userId` the way `Entitlement.userId` does — they should use `Restrict` (Postgres default `NO ACTION`), so a user row cannot be hard-deleted while these records reference it. This is a deliberate divergence from MVP-010's own precedent, not an inconsistency: MVP-010 built a commerce table before this question had been examined; MVP-020 is the story that examines it. MVP-010's own choice is not reopened here (out of scope, already flagged as its own remaining ambiguity) — only the new tables added by this story adopt the stricter default, with the divergence recorded so a future erasure-engine story does not need to rediscover it.
 
-**Not deciding:** which exact treatment (pseudonymise/anonymise/retain, and the precise mechanics of each) applies to each data class when erasure is eventually built. Recorded as `docs/open-questions.md` item 46, safest default as above, explicitly not approved.
+**DECIDED (2026-09-22, `docs/final-decisions.md`, "MVP-020 open questions 46, 47 and 48"):** the per-data-class model above is approved as the *recorded direction* for the future erasure story, not as a binding implementation decision — question 46 stays formally OPEN, blocked on question 47 (a jurisdiction decision may require erasure where pseudonymisation is proposed). The `Restrict`/`NO ACTION` FK choice on this story's own new tables **is** decided now, since it is schema being written in this story (see "Constraint and index plan" below).
 
 ### 2. Jurisdiction
 
@@ -45,7 +45,7 @@ Open questions 3 (countries/currencies/tax/refunds) and 5 (hosting region/data r
 
 **Proposed design:** timelines are **data, not hardcoded per-regime logic**. `DeletionRequest` carries no hardcoded "must complete by" constant tied to any named regime. If a target/operational timeline is wanted for internal tracking, it is a single configurable value (not a regime-specific rule engine), defaulting to a conservative, non-regime-attributed interval, described only as an internal operational target — never presented as a compliance deadline. Consent *categories* are modelled as an extensible enum (see question 3) rather than a jurisdiction-specific fixed list, so a jurisdiction decision later adds or removes categories without a schema rewrite.
 
-**Not deciding:** which regime(s) apply, or any specific timeline number. Recorded as `docs/open-questions.md` item 47, referencing items 3 and 5, explicitly not approved.
+**DECIDED (2026-09-22, `docs/final-decisions.md`, "MVP-020 open questions 46, 47 and 48"):** the interim default above (a single configurable operational-target value, no regime named or claimed anywhere) is approved; question 47 stays formally OPEN, blocked on items 3 and 5. The `TERMS_OF_SERVICE`/`MARKETING_EMAIL` consent-category proposal from question 3 below is also approved as the MVP set as part of this same decision.
 
 ### 3. Consent granularity
 
@@ -77,7 +77,9 @@ Confirmed and applied, not decided: no operative policy text is authored or gene
 
 **What is recorded at each transition:** actor (`userId` of whoever caused it — the requester for self-service transitions, the admin for review transitions), the resulting state, a timestamp, and a reason where applicable (required for `DENIED`, optional elsewhere). Recorded as an **append-only event per transition** (`DeletionRequestEvent`), not a mutated status column — see "Proposed entities" below for why.
 
-**A gap found while answering this, not assumed away:** the "admin surface needed to see and action requests" (explicitly in scope) requires *some* notion of an authorized admin. **No such role exists today** — `packages/db/prisma/schema/identity.prisma`'s `UserRole` enum has exactly one value, `MEMBER` (confirmed by direct read this round). Extending it is a change to MVP-002's completed schema, which the do-not-implement list says needs explicit sign-off before touching ("stop and ask first"). This is flagged, not resolved, as `docs/open-questions.md` item 48 below — it is the one finding in this analysis most likely to affect whether the full story (including its admin half) can proceed in a single pass.
+**A gap found while answering this, not assumed away:** the "admin surface needed to see and action requests" (explicitly in scope) requires *some* notion of an authorized admin. **No such role exists today** — `packages/db/prisma/schema/identity.prisma`'s `UserRole` enum has exactly one value, `MEMBER` (confirmed by direct read this round). Extending it is a change to MVP-002's completed schema, which the do-not-implement list says needs explicit sign-off before touching ("stop and ask first").
+
+**DECIDED (2026-09-22, `docs/final-decisions.md`, "MVP-020 open questions 46, 47 and 48"):** add `ADMIN` to the existing `UserRole` enum — approved, limited to that one additive value, nothing else in MVP-002's schema touched. An allowlist/interim mechanism was explicitly rejected; deferring the admin surface entirely was also explicitly rejected. Binding constraints carried into implementation: no application code path ever grants `ADMIN` (a manual, documented, un-tooled operator action against the database only); tests create an admin directly under the reserved-prefix pattern; every admin surface is deny-by-default and server-role-checked, giving a `MEMBER` the same response as an unauthenticated request; every admin transition records actor/timestamp/reason; `ADMIN` is coarse-grained by design and implies no other admin capability elsewhere in the product. `docs/open-questions.md` item 48 is now CLOSED.
 
 ### 7. Authentication of the requester
 
@@ -163,7 +165,7 @@ One migration, `<timestamp>_add_privacy`, generated via `prisma migrate dev --cr
 
 - Every consent/deletion-request action requires a real, database-backed session (`getServerSession(authOptions)`) — no session, `401`. Matches MVP-002/MVP-010 exactly.
 - **Self-service actions are server-enforced as self-only**: a user can create/withdraw only their own `DeletionRequest`, and can only ever write `ConsentRecord` rows with `userId = session.user.id`. No route or server action accepts a target user ID as a parameter for these actions (question 7).
-- **Admin actions are blocked pending the role-gap decision (open question 48).** No `UNDER_REVIEW`/`APPROVED`/`DENIED`/`COMPLETED` transition route is authorized to any caller today, because there is no authorized-admin concept to check against. Building it now would mean either (a) trusting an arbitrary signed-in `MEMBER` to action any user's deletion request — a deny-by-default violation — or (b) inventing an authorization mechanism unilaterally. Neither is acceptable without a decision. The user-facing half of this story (consent capture/withdrawal, request submission/withdrawal, the audit trail) does not depend on this and can proceed; the admin-facing half is the one part of this story's scope that may need to land as a fast-follow once open question 48 is answered, or be built with whichever mechanism the product owner approves.
+- **Admin actions (DECIDED 2026-09-22, open question 48 CLOSED):** `UNDER_REVIEW`/`APPROVED`/`DENIED`/`COMPLETED` transition routes require `session.user.role === "ADMIN"`, checked server-side on every request. `ADMIN` is a new `UserRole` enum value (additive only — see "Repository and query changes" and the migration plan); no application code path ever assigns it — it is granted only by a documented, manual, un-tooled operator action directly against the database. A `MEMBER` (or unauthenticated) caller receives the identical response an admin route would give a non-existent resource — no information about the surface's existence is disclosed to a non-admin. Every admin transition records `actorUserId`, `occurredAt` and, for `DENIED`, a required `reason` (see "Proposed entities").
 - Reason, actor and timestamp are recorded on every state-changing event (`DeletionRequestEvent`), satisfying "record reason/actor/timestamp" for admin actions once they exist.
 
 ## Repository and query changes
@@ -180,12 +182,12 @@ None exists today — confirmed by grep: no `consent`/`Consent`/`terms` text any
 - **Deletion section:** a "Request account deletion" control when the user has no active request; once submitted, a status display reflecting the latest event (`SUBMITTED`/`UNDER_REVIEW`/`DENIED` with its reason/`COMPLETED`) and a "Withdraw request" control while withdrawable.
 - Required states for the accessibility gate (explicit in the story instruction, restated so none is missed): empty (no consent/request history yet), loading, error, denied (signed-out visitor redirected to sign-in, matching the existing pattern), pending-request, already-requested (a second submission attempt while one is pending is rejected, not silently duplicated).
 - Accessible-by-default controls matching this codebase's established pattern (MVP-010's `FreeDownloadControl`): a plain `<button type="button">` (no field to collect for withdrawal/deletion-request actions, so no native-form-submission surface), `aria-disabled` not `disabled` while submitting, `role="status"` outcome regions.
-- **Admin surface:** not designed in detail here — blocked on open question 48. Once unblocked, it follows the same server-enforced, accessible pattern as every other authenticated surface in this codebase; no separate design principle is needed for it.
+- **Admin surface (DECIDED 2026-09-22):** a new `/admin/deletion-requests` page, visible and functional only to `session.user.role === "ADMIN"` (server-checked); anyone else gets the same treatment as a non-existent route. Lists pending requests (latest event per request), with controls to move a request `SUBMITTED → UNDER_REVIEW`, and `UNDER_REVIEW → APPROVED`/`DENIED` (a required reason field for `DENIED`) and `APPROVED → COMPLETED`. Follows the same server-enforced, accessible pattern as every other authenticated surface in this codebase (plain accessible controls, `aria-disabled` while submitting, `role="status"` outcome regions) — no separate design principle needed for it.
 
 ## Security impact
 
 - No new secret, credential or connection-string surface.
-- Deny-by-default, server-enforced authorization on every action (self-only for users; admin actions blocked entirely until open question 48 is answered — see "Authorization model").
+- Deny-by-default, server-enforced authorization on every action (self-only for users; admin actions require `session.user.role === "ADMIN"`, checked server-side, never inferred from the client — see "Authorization model"). No application code path ever grants `ADMIN`; it is a manual, documented, un-tooled operator action against the database only.
 - **Data minimisation:** the schema above captures only `userId`, category/state, timestamps, an optional `reason` string, and a reference to a policy-version identifier — no IP address, user agent or device data anywhere, matching the story instruction's explicit prohibition and the same minimisation stance MVP-010 already established for `Download`.
 - RLS enabled on all four new tables from their first migration, zero policies, matching every table in this schema.
 - Immutability enforced at the application layer (no `UPDATE` statement is ever issued against `ConsentRecord`, `DeletionRequest`, or `DeletionRequestEvent` rows by this story's repository code) and reinforced by the `Restrict` FK choice, which prevents the one operation (`User` hard-deletion) that could otherwise silently destroy this trail.
@@ -217,34 +219,33 @@ Following the established `@ppu/telemetry` pattern (`withObservability` for requ
 - `packages/domain/privacy/package.json`, `src/index.ts`, `src/transitions.ts`, `src/transitions.test.ts`, `src/types.ts`
 - `packages/adapters/privacy/package.json`, `src/index.ts`, `src/privacy-repository.ts`, `src/privacy-repository.integration.test.ts`
 - `apps/web/app/account/privacy/page.tsx` and its route handlers/server actions under `apps/web/app/api/account/consent/route.ts` and `apps/web/app/api/account/deletion-requests/route.ts` (exact shape to be confirmed at implementation time, matching whichever this repo's existing convention favours — not decided here)
-- `packages/ui/src/consent-control.tsx`, `packages/ui/src/deletion-request-control.tsx` (or equivalent names)
-- New states in `packages/e2e/src/pages.ts`, plus fixture helpers in `packages/e2e/src/seed.ts`
+- `apps/web/app/admin/deletion-requests/page.tsx` and `apps/web/app/api/admin/deletion-requests/[id]/route.ts` (or equivalent) — the admin surface, now decided (question 48)
+- `packages/ui/src/consent-control.tsx`, `packages/ui/src/deletion-request-control.tsx`, `packages/ui/src/admin-deletion-request-control.tsx` (or equivalent names)
+- New states in `packages/e2e/src/pages.ts`, plus fixture helpers in `packages/e2e/src/seed.ts` (including a database-created `ADMIN` fixture user, reserved-prefix, matching decision 48's constraint 3)
 
 **Modified:**
 - `planning/requirement-traceability.csv` (FR-004 row, on completion)
-- `docs/open-questions.md` (items 46-48, added this round)
-- Admin route/page — **not listed above**, deferred pending open question 48.
-
-**Not touched:** everything under "Do-not-implement list" below, and no completed MVP-001/002/003/004/005/006/010/021/022/023 behaviour, **including `packages/db/prisma/schema/identity.prisma`'s `UserRole` enum**, unless and until open question 48 is answered.
+- `docs/open-questions.md` (items 46-48, added this round; 46/47 updated with the approved direction/interim default and left open, 48 closed)
+- `packages/db/prisma/schema/identity.prisma` — one additive `UserRole` enum value, `ADMIN` (decision 48, limited to exactly this change, in its own migration separate from the additive `privacy.prisma` tables).
 
 ## Remaining ambiguities (not resolved here)
 
 1. **How is the first `TERMS_OF_SERVICE` acceptance record created?** MVP-002's sign-in flow captures no terms checkbox today (confirmed by grep — empty result), and this story is not authorized to modify MVP-002's completed behaviour without a decision. Two non-exclusive options, neither decided here: (a) the `/account/privacy` page becomes where a signed-in user's *first* acceptance is captured, lazily, the first time they visit it (no MVP-002 change needed — proposed as the safer default since it touches nothing completed); (b) a future story adds a checkbox to sign-in itself (a genuine MVP-002 change, needing its own approval). Flagged, not decided.
-2. **Consent-category list** (question 3) — proposed as `TERMS_OF_SERVICE` + `MARKETING_EMAIL` only; not formally escalated to `docs/open-questions.md` since it is reversible and low-stakes, but the product owner may want to confirm or add categories.
+2. ~~Consent-category list~~ (question 3) — **APPROVED 2026-09-22** as `TERMS_OF_SERVICE` + `MARKETING_EMAIL` (part of the question 47 decision), see above.
 3. **Exact route/action shape** (dedicated route handlers vs. server actions) — an implementation choice, not a product decision; this repo has precedent for both, and the choice is deferred to implementation time, matching how MVP-010 left the same question open in its own pre-work.
 4. **Real policy text** — needed from the product owner before `/account/privacy` can show anything beyond a placeholder (question 5); not something this story can supply.
 
 ## Open questions recorded
 
-Three new items added to `docs/open-questions.md` this round (46-48), all explicitly **not approved**, safest reversible default recorded for each, none decided unilaterally:
-- **46** — deletion-versus-append-only per-data-class treatment model (question 1).
-- **47** — jurisdiction-dependent consent categories/timelines, blocked on already-open items 3 and 5 (question 2).
-- **48** — the admin-role gap: no authorized-admin concept exists in `UserRole` today, and the story's own "admin surface" requirement needs one. This is the finding most likely to require a follow-up decision before the full story (including its admin half) can be marked Done in one pass.
+Three items in `docs/open-questions.md` (46-48), decided 2026-09-22 (`docs/final-decisions.md`, "MVP-020 open questions 46, 47 and 48"):
+- **46** — deletion-versus-append-only per-data-class treatment model (question 1). Direction approved (pseudonymise identity data, retain commerce/audit data, always retain the audit trail); **stays formally OPEN**, blocked on 47. The `Restrict` FK consequence for this story's schema is decided.
+- **47** — jurisdiction-dependent consent categories/timelines, blocked on already-open items 3 and 5 (question 2). Interim default approved (configurable operational-target value, no regime named); **stays formally OPEN**, blocked on 3 and 5. Consent categories (`TERMS_OF_SERVICE`/`MARKETING_EMAIL`) approved as the MVP set.
+- **48** — the admin-role gap. **CLOSED**: `ADMIN` added to `UserRole`, limited to the one additive value, with the binding constraints recorded above and in `docs/final-decisions.md`.
 
 ## Do-not-implement list (restated, unchanged)
 
 MVP-007, 008, 009, 011, 012, 013, 017, 018; TD-004, 005, 006, 008, 009, 010; BUG-002; PROP-001 to PROP-006; pricing; Offer structured data; analytics (FR-016); creator and collections routes; compatibility workflow; search-behaviour changes; the per-product sign-in policy field deferred in MVP-010; promoting `develop` to `main`. No modification to completed MVP-001/002/003/004/005/006/010/021/022/023 behaviour beyond what an approved decision in question 1 requires — flagged above as not required by anything decided so far. No gate check weakened, skipped, quarantined or conditionally excluded; the accessibility self-check stays permanent and unconditional. BUG-014 stays open, monitor-only, permanently instrumented — not touched. **No claim of GDPR, PIPEDA, CCPA or any regulatory compliance anywhere — code, docs, UI, metadata or commit messages. Describe what the system records and does, nothing more.**
 
-## Stopping here (2026-09-22)
+## Implementation authorized (2026-09-22)
 
-Per the story instruction's explicit closing line: this document stops after the pre-work analysis. Nothing here is authorized for implementation. Three items are recorded in `docs/open-questions.md` (46, 47, 48), all explicitly not approved. Awaiting product-owner review of this analysis and a decision on items 46-48 (and any other question raised here) before any code is written, exactly mirroring how MVP-010's pre-work phase concluded.
+Open questions 46, 47 and 48 decided (46 and 47 partially — direction/interim default approved, both remain formally open; 48 fully closed); implementation authorized on `feature/mvp-020-consent-deletion` for exactly the scope this document and `docs/final-decisions.md`'s "MVP-020 open questions 46, 47 and 48" entry describe, and nothing else. See `planning/progress-report.md` for the implementation record as it proceeds.

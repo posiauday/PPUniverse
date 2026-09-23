@@ -13,6 +13,8 @@ export const GATED_ROUTES = [
   "/search",
   "/signin",
   "/account/sessions",
+  "/account/privacy",
+  "/admin/deletion-requests",
 ] as const;
 
 export type GatedRoute = (typeof GATED_ROUTES)[number];

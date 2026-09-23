@@ -9,11 +9,13 @@ import { createFixtures, type FixtureSet } from "./seed.js";
  * session. There is no test-only route, flag or relaxed check in the application
  * (decision Q40).
  */
-const SESSION_COOKIE = "next-auth.session-token";
+export const SESSION_COOKIE = "next-auth.session-token";
 
 interface TestFixtures {
   /** Signs the default browser context in as the worker's fixture user. */
   signedIn: void;
+  /** Signs the default browser context in as the worker's ADMIN fixture user (MVP-020). */
+  signedInAsAdmin: void;
   /**
    * Auto-attached (decision, 2026-09-21: MVP-023 run 4 Firefox failures): records
    * console, network and title/route-announcer evidence for every test, but only
@@ -59,6 +61,23 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         {
           name: SESSION_COOKIE,
           value: seed.currentSession.token,
+          url: baseURL ?? "http://localhost:3100",
+          httpOnly: true,
+          sameSite: "Lax",
+        },
+      ]);
+      await use();
+      await context.clearCookies();
+    },
+    { auto: false },
+  ],
+
+  signedInAsAdmin: [
+    async ({ context, seed, baseURL }, use) => {
+      await context.addCookies([
+        {
+          name: SESSION_COOKIE,
+          value: seed.adminSession.token,
           url: baseURL ?? "http://localhost:3100",
           httpOnly: true,
           sameSite: "Lax",

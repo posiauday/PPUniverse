@@ -18,7 +18,7 @@ MVP-016,Reviews,Verified reviews and replies,P1,Backlog,FR-012,"Only qualifying 
 MVP-017,Content,Tutorials collections learning paths,P1,Ready,FR-014,"Editor can publish indexable structured content",MVP-003
 MVP-018,Notifications,Transactional email and preferences,P1,Ready,FR-013,"Required messages send and optional messages respect preference",MVP-002
 MVP-019,Admin,Operations console and audit,P0,Backlog,FR-015,"Sensitive actions are authorized and auditable",MVP-013
-MVP-020,Privacy,Consent legal deletion workflow,P0,In Progress,FR-004,"Consent and deletion request are recorded",MVP-002
+MVP-020,Privacy,Consent legal deletion workflow,P0,QA,FR-004,"Consent and deletion request are recorded",MVP-002
 MVP-021,SEO,Metadata sitemap canonical structured data,P0,Done,FR-017,"Indexable pages emit valid metadata and sitemap",MVP-005
 MVP-022,Observability,Logs traces metrics and alerts,P0,Done,NFR-007,"Critical journeys have correlation and runbooks",MVP-001
 MVP-023,Accessibility,Manual and automated accessibility gate,P0,Done,NFR-001;NFR-008,"Core journeys meet defined WCAG gate",MVP-003

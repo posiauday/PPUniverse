@@ -622,3 +622,45 @@ Every claim below re-verified directly against the actual committed code on the 
 ### Done and merge
 
 `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-010 moves In Progress → Done. Merged via `gh pr merge` (not locally, not squashed).
+
+## 2026-09-22 — MVP-020 open questions 46, 47 and 48
+
+Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — MVP-020 OPEN QUESTIONS 46, 47, 48"), resolving `docs/open-questions.md` items 46-48 and authorizing implementation on `feature/mvp-020-consent-deletion`. Full pre-work analysis: `planning/prework/MVP-020-prework-analysis.md`.
+
+### Question 46 — deletion versus append-only: direction approved, question stays open
+
+The pre-work analysis's proposed per-data-class model is **approved as the recorded direction for the future erasure story, not as a binding implementation decision**: identity data (`User`, `Account`, `Session`) → **pseudonymise**; commerce/audit-adjacent data (`Entitlement`, `Download`) → **retain** under a stated lawful basis; the consent/deletion audit trail itself → **always retain**. **Question 46 stays OPEN** — it cannot be finalized before question 47, because a jurisdiction decision may require erasure where pseudonymisation is currently proposed. This dependency is recorded explicitly so the direction is never mistaken for a settled decision by a future reader.
+
+**Decided now, because it is schema in this story:** `Restrict`/`NO ACTION` on the `userId` (and `actorUserId`) foreign keys of `PolicyVersion`, `ConsentRecord`, `DeletionRequest` and `DeletionRequestEvent` is **approved**. The divergence from `Entitlement.userId`'s existing `Cascade` (MVP-010) is deliberate and correct: a cascade would let a future user-deletion destroy the very records that prove what was consented to and what was requested. The divergence and its reason are recorded in the migration comment and here — it must not later be "corrected" for consistency with MVP-010's table. Consequence, not a task: a future erasure implementation will have to handle these FKs explicitly rather than relying on cascade; that is the intended outcome.
+
+### Question 47 — jurisdiction: interim default approved
+
+**Approved:** a single configurable operational-target value, stored as data, not tied to any named regime. **Question 47 stays OPEN**, blocked on open question 3 (initial countries/currencies/tax/refunds) and open question 5 (hosting region/data residency).
+
+Constraints, binding on the implementation: no regime name (GDPR, PIPEDA, CCPA or any other) appears anywhere — code, schema, enum values, column names, comments, UI, docs, metadata or commit messages; no timeline is hardcoded; the value is described only as an operational target, never as a legal or statutory deadline; nothing in the UI states or implies a legal entitlement, right, or guaranteed timeframe.
+
+**Consent categories `TERMS_OF_SERVICE` and `MARKETING_EMAIL` are approved as the MVP set.** Excluding an analytics category is correct — the feature does not exist, and a consent record for a capability that cannot run would be meaningless. The pre-work analysis's note on the cost of adding a category later (one enum value plus new rows, no redesign) stands.
+
+### Question 48 — admin role: option (a), with constraints
+
+**Approved: add `ADMIN` to the existing `UserRole` enum.** This is an explicit, one-time authorization to modify MVP-002's schema, **limited to adding the enum value and nothing else** — no change to existing role semantics, existing rows, defaults, or any other part of that story's schema.
+
+**Rejected: option (b), an allowlist or any other interim authorization mechanism.** A second authorization path would need its own storage, checks and audit trail, and every future admin surface would have to choose between two sources of truth — a larger and more permanent change than one additive enum value.
+
+**Not chosen, for the record: deferring the admin surface and shipping only the user-facing half.** Rejected because a deletion request nobody can action is a workflow with no exit, and the operator would have no view of pending requests at all.
+
+**Required constraints on the implementation:**
+1. **No application path grants `ADMIN`.** No endpoint, form, admin action, seed, environment variable, or code path — in application or test code — assigns it. Granting is a manual operational act performed directly against the database by the operator.
+2. The grant mechanism is stated plainly in documentation (what the operator runs, and that it is recorded) — no tooling for it is built in this story.
+3. Tests needing an admin create one directly in the database under the reserved-prefix pattern, cleaned up as their own rows only. No test-only bypass, no role-elevation helper shipped in application code.
+4. Every admin surface is deny-by-default, checking the role server-side; a `MEMBER` receives the same response as an unauthenticated request, with no information disclosed about the surface's existence.
+5. Every admin transition on a deletion request records actor, timestamp and a reason, per `CLAUDE.md`.
+6. `ADMIN` is coarse-grained by design at MVP. Finer-grained permissions are deferred; adding `ADMIN` implies no other admin capability elsewhere in the product.
+
+### Unchanged (restated)
+
+Scope boundary holds: no erasure execution, no retention jobs, no data export, no cookie/analytics consent, no legal copy authored by the agent — placeholders only, clearly marked. All new tables: hand-written reversible migration, `ENABLE ROW LEVEL SECURITY` with statements in the migration, append-only, no `UPDATE` path. New UI surfaces — user-facing and admin — join the enumerated page/state list in `packages/e2e` at 320/375/768/1280 across all three engines, including empty, loading, error, denied, pending and already-requested states; the route-coverage spec is never satisfied with an exclusion entry for a real page. Do-not-implement list stands (restated in the pre-work analysis and below). No gate check weakened, skipped, quarantined or conditionally excluded; the accessibility self-check stays permanent and unconditional; BUG-014 stays open, monitor-only, permanently instrumented. No compliance claim of any kind, anywhere. Completion rule unchanged (tests pass; all required checks green on the head being merged; DB-gated suites confirmed PASSED by reading the log; skip count 0 or explained; 0 retries; docs and traceability updated; security and accessibility reviews complete). Merge via `gh pr merge` only, never locally, never squashed.
+
+### Process
+
+Implementation authorized on `feature/mvp-020-consent-deletion` for exactly the scope this entry and the pre-work analysis describe. If a new product decision surfaces mid-implementation, it is recorded with a safest reversible default and implementation stops for approval — not resolved unilaterally.

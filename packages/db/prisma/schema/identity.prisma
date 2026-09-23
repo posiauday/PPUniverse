@@ -2,11 +2,24 @@
 // Account/Session/VerificationToken follow the shape @next-auth/prisma-adapter
 // requires (docs/adr/004-technology-decision-record.md). Only the subset
 // MVP-002 needs is modeled here — UserProfile, Role/Permission tables,
-// Organization/Team, and ConsentRecord are deferred to the stories that need
-// them (see packages/domain/identity/README history / MVP-002 progress report).
+// Organization/Team are deferred to the stories that need them (see
+// packages/domain/identity/README history / MVP-002 progress report).
+// ConsentRecord (and the rest of the consent/deletion model) is now built —
+// see privacy.prisma (MVP-020, FR-004).
 
+// ADMIN added 2026-09-22 (docs/final-decisions.md, "MVP-020 open questions 46,
+// 47 and 48", question 48) — an explicit, one-time, additive-only
+// authorization to extend this MVP-002 enum for MVP-020's admin surface.
+// Nothing else about this enum, or the rest of this schema, changed as part
+// of that decision. Binding constraint: no application code path (route,
+// server action, seed, environment variable, or test helper) ever assigns
+// ADMIN — it is granted only by a manual operator action directly against the
+// database (see docs/final-decisions.md for the full constraint list).
+// Coarse-grained by design: ADMIN implies no capability beyond what MVP-020's
+// own admin routes explicitly check for.
 enum UserRole {
   MEMBER
+  ADMIN
 }
 
 model User {
@@ -18,10 +31,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts     Account[]
-  sessions     Session[]
-  fileScans    FileScan[]
-  entitlements Entitlement[]
+  accounts               Account[]
+  sessions               Session[]
+  fileScans              FileScan[]
+  entitlements           Entitlement[]
+  consentRecords         ConsentRecord[]
+  deletionRequests       DeletionRequest[]
+  deletionRequestActions DeletionRequestEvent[]
 
   @@map("users")
 }

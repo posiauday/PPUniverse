@@ -2,7 +2,7 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-22 — MVP-020 (Consent and legal deletion workflow, FR-004) pre-work analysis is **complete, not yet implemented**. `planning/prework/MVP-020-prework-analysis.md` answers the seven required questions (data-class deletion treatment, jurisdiction dependence, consent granularity, policy versioning, legal-copy ownership, request lifecycle, requester authentication) and proposes a full schema (`PolicyVersion`, `ConsentRecord`, `DeletionRequest`, `DeletionRequestEvent`, all RLS-enabled, append-only, `Restrict` FKs on `userId` — a deliberate divergence from MVP-010's `Entitlement.userId` `Cascade`, reasoned in the analysis). Three items recorded in `docs/open-questions.md` (46-48), none approved: per-data-class deletion treatment (46), jurisdiction-dependent categories/timelines blocked on already-open items 3 and 5 (47), and a blocking gap — **no admin role exists** (`UserRole` has only `MEMBER`) for the admin surface the story requires (48). No code written; stopped for product-owner review per the story instruction.
+Last updated: 2026-09-22 — MVP-020 (Consent and legal deletion workflow, FR-004) is **implemented, in QA, awaiting CI and review sign-off**. Open questions 46, 47 and 48 were decided ("MVP-020 open questions 46, 47 and 48"): 48 closed (`ADMIN` added to `UserRole`, additive only, no application code path ever grants it); 46 and 47 approved as a *direction*, both stay formally open. Built on `feature/mvp-020-consent-deletion`: `PolicyVersion`/`ConsentRecord`/`DeletionRequest`/`DeletionRequestEvent` (RLS-enabled, append-only, `Restrict` FKs — a deliberate divergence from MVP-010's `Entitlement.userId` `Cascade`), `packages/domain/privacy` + `packages/adapters/privacy` (25 new unit/integration tests), four new API routes (self-only, deny-by-default; the admin route gives an authenticated non-admin the identical 404 an unauthenticated caller gets, verified by a dedicated route test), `/account/privacy` and `/admin/deletion-requests` UI, and 7 new accessibility-gated states (empty/pending/denied/loading/error/admin-populated/admin-denied) — 201/201 chromium plus 84/84 firefox+webkit locally, full workspace build/lint/typecheck/test green (40/40 tasks). One real bug (an ambiguous Playwright locator) found and fixed locally before any CI push. `docs/06-data-model.md` updated with the new Privacy section. TD-014 recorded (admin queue has no pagination yet — deliberate scope narrowing). Not yet Done: real CI confirmation and the formal security/accessibility review sign-off.
 
 MVP-010 (Free entitlement flow, FR-005) is **Done and merged**. PR #8 merged via `gh pr merge` (not squashed) after CI run 2 (`e1d5dcf`, the merged head) went green on all three jobs: 477/477 accessibility checks (three new states — `product-free-idle`, `product-free-entitled`, `product-free-granted` — across all widths and engines), self-check passing in all three engines, the new `@ppu/adapter-entitlements` integration suite (5/5, including a genuine concurrent-request race-safety test against a real database) confirmed passing for real, Secret scan clean. Open questions 44 (universal sign-in, per-product policy deferred) and 45 (product-scoped, permanent-until-revoked, `revokedAt` enforced at read time) were decided and closed before implementation. Run 1 (`77abff0`) failed on two real test-isolation bugs the local dev-mode checks could not have surfaced — found, root-caused and fixed before run 2 (full detail: `planning/progress-report.md`). FR-005 is Implemented; FR-007 (signed delivery) stays explicitly out of scope, blocked by the absent `ReleaseFile` model, owned by MVP-009.
 
@@ -14,8 +14,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
 | Ready | 4 | MVP-007, MVP-011, MVP-017, MVP-018 |
-| In Progress | 1 | MVP-020 (pre-work complete, awaiting decisions on open questions 46-48) |
-| QA | 0 | — |
+| In Progress | 0 | — |
+| QA | 1 | MVP-020 (implemented, awaiting CI confirmation and review sign-off) |
 | Blocked | 0 | — |
 | Done | 10 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-021, MVP-022, MVP-023 |
 | **Total** | **25** | |
@@ -73,7 +73,7 @@ Full detail on every story is in `planning/progress-report.md`.
 - P0 points done: 74 / 145 (51%)
 - P1 points done: 0 / 25 (0%)
 - Open bugs: 5 (BUG-002, BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 8 resolved (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 9 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Open tech debt: 11 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
@@ -90,7 +90,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-023 | **Done** | 13 (done) |
 | 3 | MVP-010 | **Done** | 3 (done) |
 | 3 | MVP-011, MVP-017, MVP-018 | Ready | 12 |
-| 3 | MVP-020 | In Progress (pre-work done, decisions pending) | 8 |
+| 3 | MVP-020 | QA (implemented, awaiting CI and review) | 8 |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
 | 4 | MVP-012 | Backlog | 8 |
@@ -103,13 +103,13 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-020 is In Progress, not Ready** — its pre-work analysis is complete (`planning/prework/MVP-020-prework-analysis.md`) but implementation is stopped pending product-owner decisions on open questions 46-48 (per-data-class deletion treatment, jurisdiction-dependent categories/timelines, and a blocking gap: no admin role exists for the admin surface the story requires). It should not resume until those are answered.
+**MVP-020 is in QA**, implemented on `feature/mvp-020-consent-deletion`, awaiting real CI confirmation and the formal security/accessibility review before it can move to Done. Nothing further is needed from the product owner for MVP-020 itself.
 
-Of the remaining Ready stories, **MVP-017 or MVP-018** (P1, dependency MVP-002 already Done, not gated by any open product decision) are the next candidates while MVP-020's decisions are pending. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
+While MVP-020 finishes QA, **MVP-017 or MVP-018** (P1, dependency MVP-002 already Done, not gated by any open product decision) are the next candidates to start. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
 
 Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
-Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms); **MVP-020 (Consent, legal deletion workflow)** — open questions 46-48 (this round). MVP-017 and MVP-018 remain Ready and ungated.
+Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-017 and MVP-018 remain Ready and ungated.
 
 ## Open bugs
 
@@ -127,7 +127,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 
 ## Open tech debt
 
-9 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+11 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
@@ -138,6 +138,8 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-010](tech-debt/TD-010.md) — **Open** (new, 2026-09-21, Low): the sitemap is one file capped at 50,000 URLs (no sitemap index, no `lastmod`).
 - [TD-011](tech-debt/TD-011.md) — **Open** (new, 2026-09-21): `main` is unprotected and no reviewer or approval rules exist; `develop` protection is decided for MVP-023 but the rest of open question 17 is not (Medium).
 - [TD-012](tech-debt/TD-012.md) — **Open** (new, 2026-09-21, Low): a root `.pnpmfile.cjs` removes Next.js's optional `@playwright/test` peer declaration so dev-only Playwright cannot be linked into the web app's production tree.
+- [TD-013](tech-debt/TD-013.md) — **Open** (new, 2026-09-21, Medium): `router.refresh()` can briefly leave `<title>` absent from `<head>`; only `/account/sessions` has a mitigation, the underlying framework gap is not understood or fixed.
+- [TD-014](tech-debt/TD-014.md) — **Open** (new, 2026-09-22, Low): the admin deletion-request queue (`/admin/deletion-requests`, MVP-020) has no pagination, filtering or sorting — a deliberate scope narrowing, not a defect at current/near-term scale.
 
 ## Proposed stories (not approved — not on the board, not counted above)
 [`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.

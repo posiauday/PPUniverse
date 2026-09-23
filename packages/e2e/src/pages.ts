@@ -34,7 +34,8 @@ export interface GatedPage {
   /** The Next.js route pattern this state renders, or null when it is a 404 response. */
   route: GatedRoute | null;
   description: string;
-  auth: "guest" | "member";
+  /** "admin" signs in as the worker's ADMIN fixture user (MVP-020) instead of the ordinary member. */
+  auth: "guest" | "member" | "admin";
   status: number;
   path: (seed: FixtureSet) => string;
   /** Drives the page into the state (interaction, network interception) after navigation. */
@@ -160,6 +161,19 @@ async function submitSignIn(
     rectDelta,
     events,
     nativeSubmitLog,
+  });
+}
+
+/**
+ * Registers a route handler that never resolves — freezes an in-flight
+ * request so the client's "submitting" UI state (aria-disabled, "…" label)
+ * can be scanned deterministically, rather than trying to catch a
+ * genuinely transient state mid-flight. Playwright tears down open routes
+ * when the test ends; nothing needs to release this.
+ */
+async function interceptAndHold(page: Page, urlGlob: string): Promise<void> {
+  await page.route(urlGlob, () => {
+    // Deliberately never calls fulfill/continue/abort.
   });
 }
 
@@ -355,6 +369,154 @@ export const GATED_PAGES: readonly GatedPage[] = [
         .click();
       await expect(page.getByRole("status")).toHaveText(/session revoked/i);
     },
+  },
+  {
+    // MVP-020 (FR-004). Six states cover the required list (empty, loading,
+    // error, denied, pending-request, already-requested): "denied" and one
+    // positive admin state are covered separately below, by the admin
+    // surface itself — a signed-in member is denied that page outright, a
+    // different kind of "denied" than anything on this account page.
+    id: "privacy-empty",
+    route: "/account/privacy",
+    description: "account privacy page, no consent recorded and no deletion request made",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page, seed) => {
+      // Reset first: this state must never see another state's leftover
+      // consent/request rows for the same worker-scoped fixture user,
+      // regardless of run order (the exact lesson MVP-010's resetEntitlement
+      // already proved for this same class of problem).
+      await seed.resetPrivacyState();
+      await page.reload();
+      await expect(
+        page.getByRole("button", { name: /accept: the terms of service/i }),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: /request account deletion/i })).toBeVisible();
+    },
+  },
+  {
+    // Also satisfies "already-requested": in this UI, a user who already has
+    // an active request sees exactly this pending view, not a separate
+    // error — the submit control is not even rendered while one is active
+    // (see DeletionRequestPanel), so there is no distinct client-visible
+    // "you already requested" moment beyond this one.
+    id: "privacy-pending-request",
+    route: "/account/privacy",
+    description: "account privacy page, a deletion request already submitted and pending",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page, seed) => {
+      await seed.resetPrivacyState();
+      await seed.submitDeletionRequest();
+      await page.reload();
+      await expect(page.getByText(/currently: submitted/i)).toBeVisible();
+      await expect(page.getByRole("button", { name: /withdraw request/i })).toBeVisible();
+    },
+  },
+  {
+    id: "privacy-denied",
+    route: "/account/privacy",
+    description: "account privacy page, a previous deletion request was denied",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page, seed) => {
+      await seed.resetPrivacyState();
+      const request = await seed.submitDeletionRequest();
+      await seed.advanceDeletionRequest(request.id, "UNDER_REVIEW", seed.admin.id);
+      await seed.advanceDeletionRequest(
+        request.id,
+        "DENIED",
+        seed.admin.id,
+        "E2E fixture denial reason.",
+      );
+      await page.reload();
+      await expect(page.getByText(/previous request was denied/i)).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: /request account deletion again/i }),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "privacy-loading",
+    route: "/account/privacy",
+    description: "account privacy page, deletion-request submission in flight",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page, seed) => {
+      await seed.resetPrivacyState();
+      await page.reload();
+      await interceptAndHold(page, "**/api/account/deletion-requests");
+      await page.getByRole("button", { name: /^request account deletion$/i }).click();
+      await expect(page.getByRole("button", { name: /requesting…/i })).toBeVisible();
+    },
+  },
+  {
+    id: "privacy-error",
+    route: "/account/privacy",
+    description: "account privacy page, deletion-request submission failed",
+    auth: "member",
+    status: 200,
+    path: () => "/account/privacy",
+    prepare: async (page, seed) => {
+      await seed.resetPrivacyState();
+      await page.reload();
+      await page.route("**/api/account/deletion-requests", (route) =>
+        route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({
+            code: "INTERNAL",
+            message: "error",
+            correlationId: "e2e-fixture",
+          }),
+        }),
+      );
+      await page.getByRole("button", { name: /^request account deletion$/i }).click();
+      // Not page.getByRole("status") alone: this page has three status
+      // regions at once (two ConsentToggle controls plus the deletion-
+      // request panel), so the generic role locator is ambiguous — found
+      // running this locally, before any CI push. The message text itself
+      // is specific enough.
+      await expect(page.getByText(/something went wrong\. please try again/i)).toBeVisible();
+    },
+  },
+  {
+    // The positive admin state: proves the surface actually renders a real
+    // pending request, not just that it denies a non-admin (below). Asserts
+    // only that THIS worker's own fixture request is visible — never a
+    // total count — since listActiveDeletionRequests is a genuine
+    // cross-user admin query and other workers' own fixture requests may
+    // legitimately also be present at the same instant.
+    id: "admin-deletion-requests-populated",
+    route: "/admin/deletion-requests",
+    description: "admin deletion-requests queue, signed in as ADMIN, with a pending request",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/deletion-requests",
+    prepare: async (page, seed) => {
+      await seed.resetPrivacyState();
+      await seed.submitDeletionRequest();
+      await page.reload();
+      await expect(page.getByText(seed.user.email)).toBeVisible();
+    },
+  },
+  {
+    // "denied": a signed-in MEMBER is refused this page outright — the
+    // identical Next.js not-found response an unauthenticated visitor gets
+    // (docs/final-decisions.md, "MVP-020 open questions 46, 47 and 48",
+    // question 48, constraint 4). route: null, matching the established
+    // convention for every 404-outcome state (not-found, not-found-account)
+    // — the real page route is already exercised by the populated state above.
+    id: "admin-deletion-requests-denied",
+    route: null,
+    description: "admin deletion-requests page, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/deletion-requests",
   },
   {
     id: "not-found",
