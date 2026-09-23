@@ -1795,3 +1795,64 @@ pattern that broke in CI, not the narrower slice checked before run 1. Full-repo
 
 Pushed as `<pending>`. This is the second CI sample for this story — not a docs-only
 push, a genuine fix for what run 1 found.
+
+## MVP-020 — Consent and legal deletion workflow (FR-004): pre-work analysis (2026-09-22)
+
+Story instruction: "STORY INSTRUCTION — MVP-020 (FR-004, Consent and legal deletion
+workflow)", direct product-owner instruction, pre-work only, stop after the analysis.
+
+**State verified before starting:** `develop` at `de59003` (PR #8's merge commit,
+confirmed against `gh pr list --state all` — all eight prior PRs MERGED, none open),
+no overlapping work found. `feature/mvp-020-consent-deletion` created from `develop`.
+C: free space 4.25GB (`Get-PSDrive C`), above the 2GB threshold.
+
+**Read this round:** `docs/08-security-privacy-compliance.md` (full), all 62 lines of
+`docs/open-questions.md`, `planning/requirement-traceability.csv`'s FR-004 and NFR-010
+rows, `planning/mvp-backlog.csv`'s MVP-020 row, every `packages/db/prisma/schema/*.prisma`
+file, and `packages/domain/identity`/`packages/adapters/identity`'s file listings.
+Confirmed by direct grep: no `consent`/`terms` capture exists anywhere in
+`apps/web/app/signin` or `apps/web/app/account` today (empty result) — this is
+genuinely greenfield work. Also confirmed by grep: no prior consent/admin-role
+decision exists in `docs/final-decisions.md` or `planning/progress-report.md` beyond
+MVP-002's own note that `ConsentRecord` was deliberately deferred "to the stories that
+need them."
+
+**Delivered:** `planning/prework/MVP-020-prework-analysis.md` — answers to all seven
+required questions, a full proposed schema (`PolicyVersion`, `ConsentRecord`,
+`DeletionRequest`, `DeletionRequestEvent`; RLS-enabled with zero policies; append-only
+by construction, no `UPDATE` path on any of the four tables; `Restrict`/`NO ACTION` on
+every `userId`/`actorUserId` FK — a deliberate, reasoned divergence from MVP-010's own
+`Entitlement.userId` `Cascade`, flagged there as an unresolved remaining ambiguity and
+not reopened here), the domain/adapter package split, authorization model, UI surface
+(including the explicit empty/loading/error/denied/pending-request/already-requested
+states the story instruction required), security and accessibility impact, telemetry,
+test plan, and the exact files expected to change.
+
+**Two findings surfaced by this analysis, not assumed away:**
+1. Building a real deletion request's *eventual* execution needs a per-data-class
+   treatment decision (pseudonymise identity data; retain commerce/audit-adjacent data
+   under a stated lawful basis; retain the audit trail itself, unconditionally) — not
+   decided here, recorded as open question 46, because MVP-020 itself executes no
+   erasure at all (matches the story's own scope boundary).
+2. **No authorized-admin role exists.** `UserRole` (`packages/db/prisma/schema/identity.prisma`)
+   has exactly one value, `MEMBER` — there is no way to authorize an admin to action
+   another user's deletion request without either trusting an arbitrary signed-in
+   member (a deny-by-default violation) or inventing a mechanism unilaterally.
+   Extending `UserRole` touches MVP-002's completed schema, which this project's
+   standing rule requires stopping to ask about first. Recorded as open question 48 —
+   the finding most likely to affect whether MVP-020's admin half can land in one pass.
+
+Three items recorded in `docs/open-questions.md` (46, 47, 48), each with a safest
+reversible default and explicitly marked **not approved**. `docs/final-decisions.md`
+was not written to this round — nothing was decided.
+
+**Board updated:** MVP-020 moved Ready → In Progress in `planning/mvp-backlog.csv` and
+`planning/backlog.csv` (pre-work is work, matching MVP-010's own pre-work round);
+`planning/requirement-traceability.csv`'s FR-004 row updated to reflect the pre-work
+state; `planning/status.md`'s board, progress metrics, remaining-work summary and next-
+story recommendation updated accordingly (MVP-017/MVP-018 recommended next while
+MVP-020's decisions are pending).
+
+**Not yet done, by design:** no code, no migration, no schema file, no UI. Stopped
+here per the story instruction's explicit closing line, awaiting product-owner review
+of the analysis and a decision on open questions 46-48.
