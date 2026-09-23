@@ -1985,3 +1985,41 @@ unbounded query). Deliberate scope narrowing, not a defect at current/near-term 
 Push, open the PR, read CI's real result in full (this is the first CI sample for this
 story), complete the formal security and accessibility review sign-off against the
 actual CI numbers (not the local ones above), mark Done, merge.
+
+### CI, security/accessibility review, and merge (2026-09-23)
+
+PR #9 opened against `develop`. First CI run (`35809637645`) went green on all three
+jobs on the first attempt — no second round needed, unlike MVP-010:
+
+- `Secret scan`: 7s, clean.
+- `Format, lint, typecheck, test, build`: 2m11s. Read the full log directly, not the
+  status tick: every package's Vitest output reads "passed" with no "failed" anywhere,
+  including `@ppu/web` (205/205) and the two new packages (`@ppu/domain-privacy` 16/16,
+  `@ppu/adapter-privacy` 9/9). The `Stop containers` step's raw Postgres log shows the
+  new `Restrict` FK constraint actually firing under a real, deliberately-invalid
+  delete attempt (`ERROR: update or delete on table "users" violates foreign key
+  constraint "consent_records_userId_fkey"`) — the same real-database-log confirmation
+  pattern MVP-005 established for its own CHECK constraints, now proven for this
+  story's own FK choice too, not just asserted by a local test.
+- `Accessibility`: 7m50s (test execution 375s, within the 5–8 minute target, under the
+  10-minute ceiling). **603 passed, 0 failed, 0 flaky** — the Playwright summary line
+  itself, read directly. Up from MVP-010's 477, consistent with the seven new states
+  added across four widths and three engines.
+
+Full security review (re-verified against the actual committed code, every grep run
+fresh against the PR head, not re-asserted from the plan) and full accessibility
+review recorded in `docs/final-decisions.md`, "MVP-020: security and accessibility
+review, Done, merge". No findings.
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-020 moves QA → Done.
+`planning/requirement-traceability.csv`: FR-004 marked Implemented (NFR-010 stays a
+gap, unaffected — scheduled retention was never this story's scope).
+`planning/status.md`: board, completed-stories table and detail section, progress
+metrics (11/25 stories, 82/170 points), remaining-work summary, and next-story
+recommendation all updated. Merged via `gh pr merge --merge` (not locally, not
+squashed, not `main`). Open questions 46 and 47 remain formally open in
+`docs/open-questions.md` — this Done marking closes the story's own delivery, not
+those two questions.
+
+**Recommended next story:** MVP-017 or MVP-018 (P1, dependency MVP-002 already Done,
+not gated by any open product decision).

@@ -664,3 +664,38 @@ Scope boundary holds: no erasure execution, no retention jobs, no data export, n
 ### Process
 
 Implementation authorized on `feature/mvp-020-consent-deletion` for exactly the scope this entry and the pre-work analysis describe. If a new product decision surfaces mid-implementation, it is recorded with a safest reversible default and implementation stops for approval — not resolved unilaterally.
+
+## 2026-09-23 — MVP-020: security and accessibility review, Done, merge (closes FR-004)
+
+PR #9 (`feature/mvp-020-consent-deletion`). First CI run (`35809637645`) is green on all three jobs on the first attempt: `Secret scan` (7s), `Format, lint, typecheck, test, build` (2m11s, 205/205 `@ppu/web` tests plus every other package's suite reading "passed" with no "failed" anywhere in the log — read directly, not inferred from the status tick), `Accessibility` (7m50s, **603 passed, 0 failed, 0 flaky**, test execution 375s — within the 5–8 minute target, under the 10-minute ceiling).
+
+### Security review
+
+Every claim below re-verified directly against the actual committed code on the PR head, not re-asserted from the implementation plan.
+
+- **Deny-by-default, server-enforced authorization on every route:** `POST /api/account/consent`, `POST /api/account/deletion-requests` and `DELETE /api/account/deletion-requests/[id]` all check `session?.user?.id` first and return `401` otherwise — confirmed by direct inspection. None of the three ever reads a target user id from the request body; every write uses `session.user.id` exclusively — confirmed: `grep`ping each route file for `userId` shows only `session.user.id` assignments, never a body-sourced value.
+- **The admin route is the one genuinely new authorization surface, and it is deny-by-default with no information disclosure:** `POST /api/admin/deletion-requests/[id]` re-queries `role` from the database via `prisma.user.findUnique` on every request — confirmed directly; it never reads `session.user.role` (which does not exist — `auth.ts`'s session callback is unmodified by this story, confirmed by `git diff` showing no changes to that file). No session and an authenticated non-admin both hit the same `deny()` closure, returning the byte-identical `{ code: "NOT_FOUND", message: "Not found." }` body at `404` — proven, not just asserted, by a dedicated route test (`route.test.ts`, 5/5 passing) that exercises both paths and checks the response bodies independently.
+- **No application code path grants `ADMIN`:** confirmed by `grep -rn "role.*ADMIN\|ADMIN.*role" apps/web` finding only read-side checks (`actor?.role !== "ADMIN"`) and the one test-infrastructure creation of an admin fixture user in `packages/e2e/src/seed.ts` (explicitly sanctioned by decision 48, constraint 3, and not application code). No seed script, migration, or route ever writes `role: "ADMIN"` in `apps/web` or `packages/adapters`.
+- **Append-only, proven not assumed:** `grep -n "\.update(\|\.updateMany(\|\.upsert(" packages/adapters/privacy/src/privacy-repository.ts` returns nothing — zero mutation calls against `ConsentRecord`, `DeletionRequest` or `DeletionRequestEvent` anywhere in the repository. `createDeletionRequest` writes the request and its `SUBMITTED` event atomically inside one `$transaction`, so a request can never exist without at least one event.
+- **RLS on all four new tables:** confirmed by reading `20260922020000_add_privacy/migration.sql` directly — four `ENABLE ROW LEVEL SECURITY` statements, one per table, in the same migration that creates them.
+- **`Restrict` FKs, proven against a real database:** confirmed in the migration SQL (`ON DELETE RESTRICT` on every `userId`/`actorUserId`/`deletionRequestId`/`policyVersionId` reference) and proven twice over — once by a local integration test, and independently by the real CI Postgres log itself, which shows the deliberately-triggered violation firing exactly as designed: `ERROR: update or delete on table "users" violates foreign key constraint "consent_records_userId_fkey"` (CI run `35809637645`, `Format, lint, typecheck, test, build` job, `Stop containers` step) — the database's own enforcement, not just the application's expectation of it.
+- **Data minimisation:** `ConsentRecord` stores `userId`, `category`, `granted`, `policyVersionId`, `recordedAt` — no IP address, no user agent. `DeletionRequestEvent` stores `actorUserId`, `toState`, `reason`, `occurredAt` — confirmed against the schema directly.
+- **No PII beyond an opaque user id in telemetry:** `logger.info` calls in the four routes pass `userId`, `category`, `granted`, `policyVersionId`, `deletionRequestId`, `toState`, `actorUserId` — never `reason` (the one free-text field in this story), never an email address. Confirmed by reading every `logger.info` call site directly.
+- **No operative legal text anywhere:** `PolicyVersion` has no text column (confirmed against the schema); the seed migration's `version` value is literally `"placeholder-pending-product-owner-review"`, and the UI (`page.tsx`) renders only the version identifier and date, never document content.
+- **No compliance claim of any kind:** `grep -rin "gdpr\|pipeda\|ccpa\|compliant\|compliance\|certified\|certification" apps/web/app/account/privacy apps/web/app/admin packages/domain/privacy packages/adapters/privacy packages/db/prisma/schema/privacy.prisma` returns exactly one match — `privacy.prisma`'s own module comment stating that no such regime name appears anywhere in that file, i.e. a negation, not a claim. No code, UI copy, or schema anywhere in this story names or claims any regulatory regime.
+- No findings.
+
+### Accessibility review sign-off
+
+**Scope and method, not conformance — no claim of "WCAG compliant", "conformant", "accessible", "audited", "certified", or screen-reader support is made here or anywhere else in this story's records.**
+
+- **What:** the same automated axe-core (blocking WCAG 2/2.1/2.2 A/AA tags, advisory best-practice) plus scripted real-key-press keyboard traversal with focus-indicator contrast measurement MVP-023 established — no new method.
+- **Where, new in this story:** seven states — `privacy-empty`, `privacy-pending-request` (also covers "already-requested" — the UI has no separate error path for it), `privacy-denied`, `privacy-loading`, `privacy-error`, `admin-deletion-requests-populated`, `admin-deletion-requests-denied` — each at 320/375/768/1280px, in chromium/firefox/webkit. All passed in the real CI run (`603 passed, 0 failed, 0 flaky`).
+- **A new authenticated identity, proven, not assumed:** `admin-deletion-requests-populated` required a second, database-created `ADMIN` fixture identity and a `signedInAsAdmin` fixture; the "page titles are descriptive and distinct" and route-coverage checks were extended to sign in as that identity for admin-auth states, and both passed in CI.
+- **Date:** 2026-09-23. Result: 603/603 automated checks passing (CI run `35809637645`, `feature/mvp-020-consent-deletion`, PR #9).
+- **NOT tested:** screen readers, voice control, switch access, magnification, human manual review — unchanged from MVP-023's standing position.
+- **Known open, carried forward, unaffected by this story:** BUG-013's residual framework-timing gap; BUG-014, open, non-reproducing, monitor-only, permanently instrumented.
+
+### Done and merge
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-020 moves QA → Done. Merged via `gh pr merge` (not locally, not squashed). Open questions 46 and 47 stay formally open, unaffected by this Done marking — only question 48 was closed by this story's authorization.
