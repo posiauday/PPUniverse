@@ -2408,3 +2408,161 @@ name, every "retr" hit is Docker's or ClamAV's own unrelated retry mechanism.
 self-skipped) and passed. Full table and evidence: `docs/final-decisions.md`,
 "Accessibility suite mitigation: sharding implemented", section 7. **Marked Done**;
 merged via `gh pr merge` (not locally, not squashed).
+
+## MVP-017 — Content publishing: tutorials, patterns and comparison pages (FR-014), implementation (2026-09-23)
+
+**Scope, decided before implementation, both recorded in `docs/final-decisions.md`:**
+collections are excluded from MVP-017 entirely (resolved by direct product-owner
+instruction after this session investigated and reported the MVP-017/`/collections/[slug]`
+conflict — see the immediately preceding "MVP-017 / `/collections/[slug]` scope conflict"
+decision). Of FR-014's remaining four content types, this story builds `Article`
+(tutorials, patterns, comparison pages, via a `type` discriminator) only —
+`LearningPath`/`LearningPathItem` are explicitly deferred as a fast-follow (`docs/final-decisions.md`,
+"`Article` only this pass"; `docs/open-questions.md` item 50), not silently dropped.
+Content-publishing authority reuses the existing `ADMIN` role — no `EDITOR` role exists
+or is invented (`docs/final-decisions.md`, "content-publishing authorization reuses
+ADMIN"), following FR-015's PRD basis and the exact deny-by-default pattern MVP-020's
+`/admin/deletion-requests` already established.
+
+**Built:**
+- `packages/db/prisma/schema/content.prisma`: `Article` (slug/title/type/body/excerpt/
+  status/publishedAt/authorUserId) and `ArticlePublishEvent` (append-only publish audit
+  log — no repository method ever issues an `UPDATE` against it, matching
+  `DeletionRequestEvent`/`EmailSend`'s convention). `Restrict` (not `Cascade`) on both
+  `authorUserId` and `actorUserId`, the same audit-trail rationale `privacy.prisma`
+  documents. RLS enabled with zero policies on both tables, matching every other table
+  in the schema. `status`/`publishedAt` mirror `catalog.prisma`'s `ProductStatus`/
+  `evidence.prisma`'s `Release.publishedAt` precedent exactly; `DRAFT -> PUBLISHED` is
+  the only allowed transition (one-way, no unpublish/republish path yet — nothing in
+  FR-014 or FR-011 calls for one in this story).
+- `packages/domain/content` (`@ppu/domain-content`) and `packages/adapters/content`
+  (`@ppu/adapter-content`), replacing the prior placeholder README/empty directory,
+  built to the exact structural pattern `packages/domain/privacy`/`packages/adapters/privacy`
+  established: a pure-TS domain package (types, a `ContentRepository` interface, pure
+  publish-state-transition/validation functions, 15 unit tests) and a Prisma-backed
+  adapter (`PrismaContentRepository`, 7 DB-gated integration tests, `describe.skipIf`
+  when `DATABASE_URL` is unset). `publishArticle` is fully transactional — the `Article`
+  status update and the `ArticlePublishEvent` insert happen inside one `$transaction`,
+  with the transition re-validated inside it (never trusting a pre-check made outside
+  the transaction boundary).
+- `apps/web/app/learn/[slug]/page.tsx`: the public read path, following the exact
+  `products`/`categories` page pattern (`force-dynamic`, a `cache()`-shared fetch
+  between `generateMetadata` and the page body, `notFound()` for missing/unpublished
+  slugs). **`Article.body` is Markdown source but is rendered as plain, escaped,
+  preformatted text — never `dangerouslySetInnerHTML`, no Markdown-to-HTML conversion**,
+  a deliberate security-first choice (closes a real stored-XSS surface without adding a
+  new sanitizer/renderer dependency in this pass); tracked as [TD-017](tech-debt/TD-017.md).
+  SEO/indexability treatment matches FR-017's established pattern exactly: `learnUrl()`
+  added to `apps/web/lib/seo/canonical.ts`, `buildLearnMetadata` added to `metadata.ts`,
+  a `TechArticle` JSON-LD builder added to `json-ld.ts` (omits `author` entirely — no
+  approved way to expose identity, mirroring the Product JSON-LD precedent), and
+  published Article slugs added to `generateSitemap()` in `sitemap.ts`.
+- `apps/web/app/admin/content/*` and `apps/web/app/api/admin/content/*`: a minimal
+  editorial surface (list, create, edit, publish) using the identical authorization
+  pattern as `/admin/deletion-requests` — no session or `role !== "ADMIN"` both render/
+  return the byte-identical 404, role always re-queried fresh from the database, never
+  read from the session. `PATCH .../[id]` structurally excludes `status`/`publishedAt`
+  from its input type (not just validated away — the fields do not exist in
+  `ArticleUpdateInput` at all), so a malicious or accidental payload cannot reach the
+  database with them; publishing is a dedicated `POST .../[id]/publish` route only,
+  rejecting (409) an already-published Article rather than silently no-op'ing.
+- `packages/e2e`: `/learn/[slug]` and the three `/admin/content*` routes added to
+  `GATED_ROUTES`; 7 new `GATED_PAGES` states (`learn-published`, `learn-draft-not-found`,
+  `admin-content-populated`/`-denied`, `admin-content-new`/`-new-denied`,
+  `admin-content-edit`); `seed.ts` gets `publishedArticle`/`draftArticle` fixtures.
+
+**Three real bugs found and fixed before this story was marked Done** (per
+`CLAUDE.md`'s bug-vs-shortcut distinction, not filed as bug records): (1) `seed.ts`'s
+cleanup deleted the ADMIN fixture user before deleting the `Article` rows it authored,
+violating the new `Restrict` FK — reordered (`ArticlePublishEvent` → `Article` →
+`Session` → `User`); (2) Article fixture titles were not worker-prefix-unique, causing
+`getByText` strict-mode violations under parallel Playwright workers on the admin
+content list — titles now embed the worker prefix, matching the existing slug
+convention; (3) **found by the real CI run on PR #14** (`35931158213`): the public
+`/learn/[slug]` page had no keyboard-reachable control at all — `article.body` renders
+as plain text with nothing else focusable, failing the keyboard-traversal check at
+every width (WCAG 2.4.1), across three of four shards (chromium/firefox/webkit each
+caught it in whichever shard `learn-published` landed in). Fixed with the exact
+established pattern from BUG-008/the unsubscribe page: a `Back to the home page` link
+(`inline-block py-2`, satisfying both the keyboard-stop requirement and the WCAG 2.5.8
+24px minimum touch-target size). Confirmed by direct log inspection (via the Actions
+API's step-level `conclusion` field, not just the status tick) that this was the one
+and only real defect: the "destination stream closed early" and container-teardown
+duplicate-key lines that also appeared in the failing shards' raw logs were confirmed
+to be benign Next.js streaming/Postgres-container-teardown noise, not causes of any
+test failure — every other step in those shards, including the sharding-suite's own
+self-check-count guard, succeeded cleanly.
+
+**Two tech-debt records filed** (shortcuts taken to ship this story, not caught-and-fixed
+issues): [TD-016](tech-debt/TD-016.md) — `ArticlePublishEvent` is a bare action log, not
+full content-version snapshotting (nothing to snapshot yet, since there is no
+correction/republish path in this pass either); [TD-017](tech-debt/TD-017.md) — Markdown
+body is rendered as plain text, not converted to HTML (the security-first choice noted
+above).
+
+**Verification performed:** `pnpm --filter @ppu/domain-content test` 15/15,
+`pnpm --filter @ppu/e2e test` 82/82 (route-coverage guard included), `pnpm lint` 25/25
+packages clean, `pnpm typecheck` 48/48 tasks clean, `pnpm test` 48/48 tasks (including
+`@ppu/web` 241/241), `pnpm build` 25/25 tasks succeeded with every new route appearing
+in the Next.js route manifest — all re-run and confirmed directly in this session, not
+taken on the implementing agent's word alone. `@ppu/adapter-content`'s 7 DB-gated
+integration tests and the full `pnpm test:a11y` run were verified by the implementing
+agent against a local embedded Postgres (84/84 targeted accessibility states across all
+three engines, plus a full unsharded chromium run at 167/167) but not independently
+re-run in this review pass; **the authoritative confirmation is the real CI run this
+story's pull request will produce**, read from the raw log directly before this story is
+marked Done, per this project's standing practice for every prior story.
+
+**Status: QA, not yet Done.** Security review (authorization pattern, RLS, `Restrict`
+FKs, XSS-prevention rendering choice, transactional publish write) was performed
+directly against the code in this review pass and found no issues. Accessibility review
+and the final Done/merge decision are pending the real CI run's confirmed results.
+FR-014 is Partially Implemented (Article-based content types only; `LearningPath`
+remains an open question, item 50).
+
+## MVP-017 — CI confirmation, security/accessibility review, Done, merge (2026-09-23)
+
+PR #14 (`feature/mvp-017-learn-content`). **First push** (CI run `35931158213`) failed 3
+of 4 accessibility shards — a real, single-cause defect, not flakiness: the public
+`/learn/[slug]` page had no keyboard-reachable control at all (`article.body` renders as
+plain text with nothing else focusable), failing the keyboard-traversal check (WCAG
+2.4.1) at every width. Diagnosed by reading each failing shard's step-level `conclusion`
+via the GitHub Actions API directly (`gh api .../jobs -q '.jobs[]...steps[]...'`), not the
+status tick or a surface grep of the log text — this confirmed two other alarming-looking
+log lines ("the destination stream closed early"; a Postgres duplicate-key line) were
+benign Next.js streaming-response noise and container-teardown output respectively, not
+causes of any failure; every other step in those shards, including the sharding suite's
+own "Verify the self-check ran all 36 tests" guard added in the prior CI-infrastructure
+story, succeeded cleanly (confirmed `"conclusion":"success"` via the same API call).
+
+**Fixed** with the exact established pattern from BUG-008 and the unsubscribe page: a
+"Back to the home page" link (`inline-block py-2`, satisfying WCAG 2.4.1 and the WCAG
+2.5.8 24px minimum touch target) added to `apps/web/app/learn/[slug]/page.tsx`.
+
+**Second push, the actual merge candidate (CI run `35932897213`): all 6 checks green.**
+Read directly from the raw log, not the status tick: the exact test that failed before
+(`learn-published @ 320px`/`@ 1280px`, keyboard traversal) now passes cleanly in
+chromium, firefox and webkit. `@ppu/adapter-content`'s DB-gated integration suite
+(`content-repository.integration.test.ts`, 7 tests) passed for real against CI's own
+throwaway Postgres — confirmed by the literal `✓ ... (7 tests)` line in the
+`Test (unit + integration)` step's output, not self-skipped. `@ppu/domain-content`'s
+`transitions.test.ts` (15 tests) passed in the same step. Zero skips, zero retries across
+all four accessibility shards, confirmed by grepping the full raw log (every
+"skipped"/"retr" hit is pnpm's own lockfile-resolution message or Docker's
+`--health-retries` flag, not a Playwright skip or retry).
+
+Full security and accessibility review recorded in `docs/final-decisions.md`, "MVP-017:
+security and accessibility review, Done, merge" — no findings.
+
+**Third real bug found and fixed** (in addition to the two recorded above, all before
+this story was marked Done, none filed as bug records per `CLAUDE.md`'s bug-vs-shortcut
+distinction): the keyboard-stop defect described above, found by the real CI run itself
+rather than local verification — a reminder that this project's standing practice of
+treating the real CI run as authoritative (not local claims, however thorough) caught a
+genuine defect the local review pass did not.
+
+**Done and merge:** `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-017 moves
+QA → Done. Merged via `gh pr merge` (not locally, not squashed). FR-014 is Partially
+Implemented (`Article` — tutorials, patterns, comparison pages — done this story;
+`LearningPath`/`LearningPathItem` deferred, `docs/open-questions.md` item 50;
+collections excluded entirely, item 24).

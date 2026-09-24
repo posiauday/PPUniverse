@@ -92,3 +92,39 @@ export function buildProductJsonLd(input: ProductJsonLdInput): JsonLdObject | nu
   }
   return document;
 }
+
+export interface ArticleJsonLdInput {
+  /** The canonical absolute /learn/[slug] URL. */
+  url: string;
+  title: string;
+  excerpt: string | null;
+  /** Never null in practice (only called for published Articles), but typed
+   * this way so a caller cannot pass a draft's data by mistake. */
+  publishedAt: Date | null;
+  updatedAt: Date;
+}
+
+/**
+ * Published Article pages (MVP-017, FR-014). `TechArticle` fits tutorials,
+ * patterns and comparison pages about Power Platform assets. No `author` —
+ * this codebase has no approved way to expose a user's identity in public
+ * structured data (the same restriction buildProductJsonLd's doc comment
+ * states for creator identity), and every Article's author today is an
+ * internal ADMIN, not a public byline.
+ */
+export function buildArticleJsonLd(input: ArticleJsonLdInput): JsonLdObject | null {
+  const headline = normalizeDisplayText(input.title);
+  if (!headline || !input.publishedAt) return null;
+
+  const document: Record<string, JsonLdValue> = {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "TechArticle",
+    headline,
+  };
+  const description = normalizeDisplayText(input.excerpt);
+  if (description) document["description"] = description;
+  document["url"] = input.url;
+  document["datePublished"] = input.publishedAt.toISOString();
+  document["dateModified"] = input.updatedAt.toISOString();
+  return document;
+}

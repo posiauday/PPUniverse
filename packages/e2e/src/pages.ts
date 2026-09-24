@@ -654,6 +654,78 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // MVP-017 (FR-014). "published": the public /learn/[slug] read path.
+    id: "learn-published",
+    route: "/learn/[slug]",
+    description: "published article (tutorial/pattern/comparison) content page",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+  },
+  {
+    // "draft": a DRAFT article's slug is never publicly reachable — the
+    // identical 404 an unknown slug gets, matching the same
+    // publicly-visible-only rule the product/category pages already enforce.
+    id: "learn-draft-not-found",
+    route: null,
+    description: "a draft article's slug 404s on the public /learn/[slug] route",
+    auth: "guest",
+    status: 404,
+    path: (seed) => `/learn/${seed.draftArticle.slug}`,
+  },
+  {
+    // The positive admin state: proves the surface actually lists real
+    // Articles (one DRAFT, one PUBLISHED), not just that it denies a
+    // non-admin (below) — mirrors admin-deletion-requests-populated.
+    id: "admin-content-populated",
+    route: "/admin/content",
+    description: "admin content list, signed in as ADMIN, with draft and published articles",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/content",
+    prepare: async (page, seed) => {
+      await expect(page.getByText(seed.draftArticle.title)).toBeVisible();
+      await expect(page.getByText(seed.publishedArticle.title)).toBeVisible();
+    },
+  },
+  {
+    // "denied": a signed-in MEMBER is refused this page outright — the
+    // identical Next.js not-found response an unauthenticated visitor gets
+    // (docs/final-decisions.md, "MVP-017 implementation: content-publishing
+    // authorization reuses ADMIN"). route: null, matching the established
+    // convention for every 404-outcome state.
+    id: "admin-content-denied",
+    route: null,
+    description: "admin content list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/content",
+  },
+  {
+    id: "admin-content-new",
+    route: "/admin/content/new",
+    description: "admin new-article form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/content/new",
+  },
+  {
+    id: "admin-content-new-denied",
+    route: null,
+    description: "admin new-article form, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/content/new",
+  },
+  {
+    id: "admin-content-edit",
+    route: "/admin/content/[id]/edit",
+    description: "admin edit-article form, signed in as ADMIN, pre-filled with an existing draft",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/content/${seed.draftArticle.id}/edit`,
+  },
+  {
     id: "not-found",
     route: null,
     description: "404 for an unknown URL",

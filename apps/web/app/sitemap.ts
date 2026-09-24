@@ -1,6 +1,7 @@
 import { logger } from "@ppu/telemetry";
 import type { MetadataRoute } from "next";
 import { catalogRepository } from "../lib/catalog";
+import { contentRepository } from "../lib/content";
 import { generateSitemap } from "../lib/seo/sitemap";
 import { getSiteUrl } from "../lib/site-url";
 
@@ -12,6 +13,7 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
   return generateSitemap({
     getSite: getSiteUrl,
     repository: catalogRepository,
+    contentRepository,
     warn: (event, fields) => logger.warn(event, fields),
   });
 }

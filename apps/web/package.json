@@ -12,6 +12,7 @@
   "dependencies": {
     "@next-auth/prisma-adapter": "1.0.7",
     "@ppu/adapter-catalog": "workspace:*",
+    "@ppu/adapter-content": "workspace:*",
     "@ppu/adapter-email": "workspace:*",
     "@ppu/adapter-entitlements": "workspace:*",
     "@ppu/adapter-error-monitoring": "workspace:*",
@@ -23,6 +24,7 @@
     "@ppu/adapter-storage": "workspace:*",
     "@ppu/db": "workspace:*",
     "@ppu/domain-catalog": "workspace:*",
+    "@ppu/domain-content": "workspace:*",
     "@ppu/domain-entitlements": "workspace:*",
     "@ppu/domain-files": "workspace:*",
     "@ppu/domain-identity": "workspace:*",

@@ -24,3 +24,8 @@ export function categoryUrl(origin: string, slug: string, page?: number | null):
 export function productUrl(origin: string, slug: string): string {
   return `${origin}/products/${encodeURIComponent(slug)}`;
 }
+
+/** MVP-017, FR-014: tutorials, patterns and comparison pages. */
+export function learnUrl(origin: string, slug: string): string {
+  return `${origin}/learn/${encodeURIComponent(slug)}`;
+}

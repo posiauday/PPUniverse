@@ -21,7 +21,24 @@ PolicyVersion, ConsentRecord, DeletionRequest, DeletionRequestEvent (MVP-020, FR
 CreatorProfile, CreatorApplication, AgreementAcceptance, ProductSubmission, ModerationReview, ModerationComment, TakedownCase, SupportPolicy.
 
 ## Engagement and content
-SavedProduct, Review, ReviewVote, CreatorResponse, NotificationPreference, Notification, Article, LearningPath, LearningPathItem, SEORecord.
+SavedProduct, Review, ReviewVote, CreatorResponse, NotificationPreference, Notification, Article, ArticlePublishEvent, LearningPath, LearningPathItem, SEORecord.
+
+`Article` and `ArticlePublishEvent` are built (MVP-017, FR-014; `docs/final-decisions.md`, "MVP-017 implementation: `Article` only this pass..."). `LearningPath`, `LearningPathItem` and `SEORecord` remain unbuilt placeholders — named here, not yet modeled — pending a deferred follow-up story or an approved MVP-017 scope extension (`docs/open-questions.md` item 50). `/collections/[slug]` and `Collection`/`CollectionItem` (listed under "Catalog" above) are separately out of scope of MVP-017 entirely (`docs/final-decisions.md`, "MVP-017 / `/collections/[slug]` scope conflict...").
+
+**`Article`** — tutorials, patterns and comparison pages, discriminated by `type`:
+- `id`, `slug` (unique), `title`.
+- `type`: enum `TUTORIAL | PATTERN | COMPARISON`.
+- `body`: Markdown source (`TEXT`). Never rendered as raw HTML — the public `/learn/[slug]` page renders it as escaped, preformatted text (no Markdown-to-HTML conversion in this first pass); defense in depth against stored XSS even though only `ADMIN` may author content today.
+- `excerpt`: nullable, used for the page's meta description.
+- `status`: enum `DRAFT | PUBLISHED`, mirroring `packages/domain/catalog/src/visibility.ts`'s `ProductStatus` pattern — only `PUBLISHED` is ever publicly visible.
+- `publishedAt`: nullable `DateTime`; null means draft. Set once, on publish, and never rewritten — the same precedent as `Release.publishedAt` (FR-011: a correction after publication is a new `ArticlePublishEvent`, not a rewritten timestamp; full content versioning/snapshotting is out of scope for this first pass).
+- `authorUserId`: FK to `User`, `Restrict` (not `Cascade`) — the same audit-trail-adjacent rationale as `privacy.prisma`: a cascade would let a future user-deletion destroy the record of who authored content.
+- `createdAt`, `updatedAt`.
+
+**`ArticlePublishEvent`** — append-only audit trail of publish actions, exactly like `DeletionRequestEvent`/`EmailSend` (no `UPDATE` is ever issued against it):
+- `id`, `articleId` (FK to `Article`, `Restrict`), `actorUserId` (FK to `User`, `Restrict`), `action` (enum, currently only `PUBLISHED`), `createdAt`.
+
+Authorization: content-publishing authority (create/edit/publish an `Article`) reuses the existing `ADMIN` role — no `EDITOR` role exists or is introduced (`docs/final-decisions.md`, "MVP-017 implementation: content-publishing authorization reuses ADMIN").
 
 ## Operations
 SupportCase, AuditEvent, FeatureFlag, JobRecord, WebhookReceipt, AnalyticsEvent.

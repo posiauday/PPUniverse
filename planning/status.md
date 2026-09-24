@@ -2,7 +2,9 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-23 — **CI infrastructure (not a backlog story): the accessibility suite is now sharded.** PR #12 (`chore/accessibility-suite-sharding`) merged into `develop` via `gh pr merge` (merge commit `9b1c77a7`, not squashed) after the standing mitigation trigger recorded below fired (test execution reached 8.08m, past the 5–8m target). The single accessibility job became a 4-way Playwright `--shard` matrix plus a same-named aggregator required check, so branch protection needed no reconfiguration; every engine/width/rule is preserved unchanged in every shard, and the unconditional self-check now runs a second time in every shard, all three engines. **New governing budget: per-shard test execution, target under 5 minutes, ceiling 8 minutes — the old 10-minute job-wall-clock ceiling below is superseded by this.** Final confirmed run (`35913171170`): all 6 checks green, 178+178+178+177=711 main-pool tests (exact pre-sharding count, zero drops), self-check 36×4=144, total 855, 0 skips, 0 retries. An external code review (GitHub Copilot) was requested before merge; two findings were fixed (a hardcoded shard denominator now derives from `strategy.job-total`; a new step asserts the self-check ran exactly 36 tests, guarding against a silently-shrinking gate) and the rest documented (`docs/final-decisions.md`, "Accessibility suite mitigation: sharding implemented" and "External review requested and addressed, before merge"). Also found and recorded, not fixed here (out of this PR's CI-only scope): BUG-015, a pre-existing, confirmed-flaky test-isolation race in `catalog-repository.integration.test.ts` caused by `@ppu/adapter-catalog` and `@ppu/adapter-entitlements`'s integration suites sharing one CI Postgres container with no cross-package isolation.
+Last updated: 2026-09-23 — **MVP-017 (Content publishing: tutorials, patterns and comparison pages, FR-014) is Done and merged.** PR #14 merged into `develop` via `gh pr merge` (not squashed) after CI run `35932897213` went green on all 6 checks. A first push found a real defect (the public `/learn/[slug]` page had no keyboard-reachable control at all, WCAG 2.4.1), fixed with the established BUG-008 "back to home" link pattern; the second push's run confirmed the fix directly from the raw log — `@ppu/adapter-content`'s 7 DB-gated integration tests passed for real, zero skips/retries across all four accessibility shards. Built `Article`/`ArticlePublishEvent` (RLS, `Restrict` FKs, `DRAFT`→`PUBLISHED` one-way transition), `@ppu/domain-content` + `@ppu/adapter-content` (replacing the prior placeholder, following the `privacy` package pair's exact structure), the public `/learn/[slug]` page (FR-017 SEO treatment: canonical, metadata, `TechArticle` JSON-LD, sitemap inclusion), and a minimal `ADMIN`-gated editorial surface (`/admin/content/*`) reusing the exact deny-by-default authorization pattern `/admin/deletion-requests` established — no `EDITOR` role exists or was invented (`docs/final-decisions.md`, "content-publishing authorization reuses ADMIN"). Collections are excluded from MVP-017 entirely, resolved by direct product-owner instruction after this session investigated and reported the MVP-017/`/collections/[slug]` scope conflict (`docs/final-decisions.md`). `LearningPath`/`LearningPathItem` are deferred as a fast-follow within FR-014, not silently dropped (`docs/open-questions.md` item 50); FR-014 is Partially Implemented. `Article.body` (Markdown) renders as plain escaped text, not HTML — a deliberate security-first choice closing a stored-XSS surface without a new sanitizer dependency ([TD-017](tech-debt/TD-017.md)); `ArticlePublishEvent` is a bare action log, not full version snapshotting ([TD-016](tech-debt/TD-016.md)). Verified directly in this session (re-run, not taken on trust): `@ppu/domain-content` 15/15, `@ppu/e2e` 82/82 (route-coverage guard included), `pnpm lint` 25/25 clean, `pnpm typecheck` 48/48 clean, `pnpm test` 48/48 tasks (`@ppu/web` 241/241), `pnpm build` 25/25 with every new route in the manifest. **Not yet Done** — pending the real CI run's confirmed results (`planning/progress-report.md`, "MVP-017 — Content publishing... implementation").
+
+Last updated (previous): 2026-09-23 — **CI infrastructure (not a backlog story): the accessibility suite is now sharded.** PR #12 (`chore/accessibility-suite-sharding`) merged into `develop` via `gh pr merge` (merge commit `9b1c77a7`, not squashed) after the standing mitigation trigger recorded below fired (test execution reached 8.08m, past the 5–8m target). The single accessibility job became a 4-way Playwright `--shard` matrix plus a same-named aggregator required check, so branch protection needed no reconfiguration; every engine/width/rule is preserved unchanged in every shard, and the unconditional self-check now runs a second time in every shard, all three engines. **New governing budget: per-shard test execution, target under 5 minutes, ceiling 8 minutes — the old 10-minute job-wall-clock ceiling below is superseded by this.** Final confirmed run (`35913171170`): all 6 checks green, 178+178+178+177=711 main-pool tests (exact pre-sharding count, zero drops), self-check 36×4=144, total 855, 0 skips, 0 retries. An external code review (GitHub Copilot) was requested before merge; two findings were fixed (a hardcoded shard denominator now derives from `strategy.job-total`; a new step asserts the self-check ran exactly 36 tests, guarding against a silently-shrinking gate) and the rest documented (`docs/final-decisions.md`, "Accessibility suite mitigation: sharding implemented" and "External review requested and addressed, before merge"). Also found and recorded, not fixed here (out of this PR's CI-only scope): BUG-015, a pre-existing, confirmed-flaky test-isolation race in `catalog-repository.integration.test.ts` caused by `@ppu/adapter-catalog` and `@ppu/adapter-entitlements`'s integration suites sharing one CI Postgres container with no cross-package isolation.
 
 MVP-018 (Transactional email and preferences, FR-013) is **Done and merged**. PR #10 merged via `gh pr merge` (not squashed, merge commit `3623d43`) after CI run `35823121452` (head `1c25049`, the actual merged commit) went green on all three jobs on the first attempt: 747/747 accessibility checks (5 new `/unsubscribe` states plus 3 backfilled for the existing `MARKETING_EMAIL` toggle), 0 failed, 0 flaky, 0 skipped; 213/213 `@ppu/web` tests plus every other package's suite green. **The accessibility job's wall-clock was 10m7s — a real breach of the 10-minute ceiling `docs/final-decisions.md` established for MVP-023 (Q39), by 7 seconds.** Product-owner decision "MVP-018 merge / accessibility budget breach" (2026-09-23) authorized merging anyway (the identical suite ran 9m47s on the immediately preceding head with no functional change between them — runner variance at an already-tight budget, not a regression; the gate itself was not weakened), **for this one run only** — not a revision of the ceiling. A standing mitigation trigger is now recorded in `docs/final-decisions.md`: implementation must stop and present options, with a specific measurement set, before either any future story adds new `packages/e2e` page states, or any future accessibility run exceeds 10m00s. Sharding is the recorded (not approved) mitigation preference. Open question 49 was decided before implementation: option (a), a deletion-request acknowledgement on `SUBMITTED` only (`UNDER_REVIEW`/`WITHDRAWN` not approved; `APPROVED`/`COMPLETED` withheld on a truthfulness ground pending questions 46/47; `DENIED` a recorded known gap pending product-owner copy). Built: `EmailSend` (append-only audit table, RLS, `Restrict` FK), `packages/domain/notifications` + `packages/adapters/notifications` (17 unit/integration tests), `ResendEmailAdapter`, `auth.ts` migrated off `ConsoleEmailAdapter`, the one authorized deletion-request acknowledgement send (a send failure never fails the request — verified by a dedicated route test), and a stateless signed unsubscribe token with its own page and API route (deliberately not session-gated; confirmed by grep that `getServerSession` appears nowhere in it). Two real bugs found and fixed locally before any CI push: three `/unsubscribe` states had no keyboard stops at all (fixed with a "back to home" link, matching BUG-008's established pattern), and that link's own touch target was under the WCAG 24px minimum (fixed with padding). TD-015 recorded (email sends synchronously in the request path, no retry — the same class of gap as TD-004). FR-013 is Partially Implemented (MVP-018's half only; MVP-015's "save products" half is not started, depends on MVP-009).
 
@@ -17,11 +19,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Column | Count | Stories |
 |---|---|---|
 | Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
-| Ready | 3 | MVP-007, MVP-011, MVP-017 |
+| Ready | 2 | MVP-007, MVP-011 |
 | In Progress | 0 | — |
 | QA | 0 | — |
 | Blocked | 0 | — |
-| Done | 12 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-018, MVP-020, MVP-021, MVP-022, MVP-023 |
+| Done | 13 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-017, MVP-018, MVP-020, MVP-021, MVP-022, MVP-023 |
 | **Total** | **25** | |
 
 MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-023 (depends only on MVP-003, already Done) likewise has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself — its value is the accessibility harness (`packages/e2e`) every future UI story now runs against, and the branch-protection rule now enforcing it. MVP-010 (depends on MVP-002 and MVP-006, both already Done) also has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below).
@@ -41,6 +43,7 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 | MVP-020 | Privacy | FR-004 | 8 | 2026-09-23 |
 | MVP-021 | SEO | FR-017 | 3 | 2026-09-21 |
 | MVP-022 | Observability | NFR-007 | 8 | 2026-09-18 |
+| MVP-017 | Content | FR-014 | 5 | 2026-09-23 |
 
 ### MVP-004 — Catalog filtering and search
 - Keyword search (real PostgreSQL full-text search, `to_tsvector`/`plainto_tsquery`/`ts_rank`), category filter, sort (relevance/recent/alphabetical), pagination, clear-all — all via shareable URLs, no client JavaScript required for the core interactions (plain forms/links, fully keyboard/screen-reader accessible by default).
@@ -80,6 +83,16 @@ MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-
 - An external code review (GitHub Copilot) fixed two real gaps before merge (a hardcoded shard denominator, no assertion on the self-check's own test count) and surfaced BUG-015 (a pre-existing, unrelated test-isolation flake), recorded but not fixed here.
 - Full detail: `docs/final-decisions.md`, "Accessibility suite mitigation: sharding implemented" and "External review requested and addressed, before merge"; `planning/progress-report.md`.
 
+### MVP-017 — Content publishing: tutorials, patterns and comparison pages (Done)
+- `Article`/`ArticlePublishEvent` (RLS enabled, `Restrict` FKs on `authorUserId`/`actorUserId`, `DRAFT`→`PUBLISHED` the only allowed transition, `publishArticle` fully transactional with the article update and the event insert in one `$transaction`).
+- `@ppu/domain-content` + `@ppu/adapter-content` replace the prior placeholder, built to the exact structural pattern `privacy`'s domain/adapter package pair established.
+- Public `/learn/[slug]` page with the same FR-017 SEO treatment already established for products/categories (canonical, metadata, `TechArticle` JSON-LD, sitemap inclusion); a minimal `ADMIN`-gated editorial surface (`/admin/content/*`) reusing `/admin/deletion-requests`' exact deny-by-default authorization pattern (no `EDITOR` role exists or was invented).
+- Collections excluded from MVP-017 entirely (product-owner decision, after this session investigated and reported the scope conflict); `LearningPath`/`LearningPathItem` deferred as a fast-follow, not dropped (`docs/open-questions.md` item 50). FR-014 is Partially Implemented.
+- `Article.body` (Markdown) renders as plain escaped text, not HTML — closes a stored-XSS surface without a new dependency ([TD-017](tech-debt/TD-017.md)); `ArticlePublishEvent` is a bare action log, not full version snapshotting ([TD-016](tech-debt/TD-016.md)).
+- Three real bugs found and fixed before Done (not filed as bug records, per `CLAUDE.md`'s bug-vs-shortcut distinction): a fixture-cleanup FK-ordering bug, non-worker-unique fixture titles causing a Playwright strict-mode violation under parallel workers, and — found by the real CI run on PR #14 — the public `/learn/[slug]` page had no keyboard-reachable control at all (WCAG 2.4.1), fixed with the established BUG-008 "back to home" link pattern.
+- CI run `35932897213`: all 6 checks green, confirmed by reading the raw log directly — `@ppu/adapter-content`'s DB-gated integration suite (7 tests) passed for real against CI's throwaway Postgres, `@ppu/domain-content`'s 15 unit tests passed, zero skips, zero retries across all four accessibility shards, and the exact keyboard test that failed on the first push now passes cleanly in all three engines.
+- Full detail, including the security and accessibility reviews: `docs/final-decisions.md` ("MVP-017 implementation" entries and "MVP-017: security and accessibility review, Done, merge"), `planning/progress-report.md`.
+
 ### MVP-020 — Consent and legal deletion workflow
 - Consent capture (`ConsentRecord`, append-only — a change of mind always inserts a new row) and a deletion **request** workflow (`DeletionRequest`/`DeletionRequestEvent`, append-only, no status column — current state is derived from the latest event) — this story records and reviews requests only; it executes no erasure, anonymisation or scheduled retention (open questions 46/47, out of scope by design).
 - `Restrict` (not `Cascade`) foreign keys on every new table's `userId`/`actorUserId` — a deliberate divergence from MVP-010's `Entitlement.userId` `Cascade`, so a future user-deletion cannot silently destroy this audit trail. Proven twice: a local integration test, and the real CI Postgres log itself rejecting the deliberately-invalid delete.
@@ -99,19 +112,19 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 12 / 25 (48%)
-- Points done: 87 / 170 (51%)
+- Stories done: 13 / 25 (52%)
+- Points done: 92 / 170 (54%)
 - P0 points done: 82 / 145 (57%)
-- P1 points done: 5 / 25 (20%)
+- P1 points done: 10 / 25 (40%)
 - Open bugs: 5 (BUG-002, BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 8 resolved (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 12 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
+- Open tech debt: 14 (see `planning/tech-debt.csv` and `planning/tech-debt/`)
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
 
 ## Remaining work summary
 
-13 of 25 stories remain (83 of 170 points).
+12 of 25 stories remain (78 of 170 points).
 
 | Sprint | Stories | Status | Points |
 |---|---|---|---|
@@ -120,7 +133,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
 | 3 | MVP-023 | **Done** | 13 (done) |
 | 3 | MVP-010 | **Done** | 3 (done) |
-| 3 | MVP-011, MVP-017 | Ready | 10 |
+| 3 | MVP-011 | Ready | 5 |
+| 3 | MVP-017 | **Done** | 5 (done) |
 | 3 | MVP-018 | **Done** | 5 (done) |
 | 3 | MVP-020 | **Done** | 8 (done) |
 | 4 | MVP-021 | **Done** | 3 (done) |
@@ -135,11 +149,11 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-018 is Done.** **MVP-017** (P1, dependency MVP-002 already Done, not gated by any open product decision) is the next candidate. **MVP-011 (Creator application)**, though listed Ready (its only dependency, MVP-002, is Done), is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
+**MVP-017 is Done and merged** (`docs/final-decisions.md`, "MVP-017: security and accessibility review, Done, merge"). **MVP-011 (Creator application)** is the next Ready candidate, but is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
 
 Two things need the product owner rather than a story: **TD-008** (the compatibility-evidence vocabulary correction) is a separate small change that must land before MVP-012, and **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
 
-Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms). MVP-017 remains Ready and ungated.
+Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms).
 
 ## Open bugs
 
@@ -158,7 +172,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 
 ## Open tech debt
 
-12 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+14 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
@@ -172,6 +186,8 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-013](tech-debt/TD-013.md) — **Open** (new, 2026-09-21, Medium): `router.refresh()` can briefly leave `<title>` absent from `<head>`; only `/account/sessions` has a mitigation, the underlying framework gap is not understood or fixed.
 - [TD-014](tech-debt/TD-014.md) — **Open** (new, 2026-09-22, Low): the admin deletion-request queue (`/admin/deletion-requests`, MVP-020) has no pagination, filtering or sorting — a deliberate scope narrowing, not a defect at current/near-term scale.
 - [TD-015](tech-debt/TD-015.md) — **Open** (new, 2026-09-22, Medium): transactional email (MVP-018) is sent synchronously in the request path with no retry — the same class of gap as TD-004, pending real job-queue infrastructure.
+- [TD-016](tech-debt/TD-016.md) — **Open** (new, 2026-09-23, Low): `ArticlePublishEvent` (MVP-017) is a bare publish-action log, not full content-version snapshotting — nothing to snapshot yet, since no correction/republish path exists either.
+- [TD-017](tech-debt/TD-017.md) — **Open** (new, 2026-09-23, Low): `Article.body` (MVP-017) is stored as Markdown but rendered as plain, preformatted text, not converted to HTML — a deliberate security-first choice to avoid a new sanitizer/renderer dependency.
 
 ## Proposed stories (not approved — not on the board, not counted above)
 [`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.
