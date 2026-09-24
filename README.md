@@ -1,4 +1,4 @@
-# Power Platform Universe: Claude Code Build Pack
+# LowCodeStacks: Claude Code Build Pack
 
 This repository is the execution package for building a production-grade Power Platform community, learning platform, asset marketplace, and SaaS tool suite.
 

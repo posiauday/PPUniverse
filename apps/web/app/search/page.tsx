@@ -10,6 +10,7 @@ import { logger } from "@ppu/telemetry";
 import type { Metadata } from "next";
 import { buildCatalogUrl } from "../../lib/catalog-url";
 import { catalogRepository } from "../../lib/catalog";
+import { SITE_NAME } from "../../lib/seo/site";
 
 interface SearchPageProps {
   searchParams: Promise<Record<string, string | undefined>>;
@@ -23,7 +24,7 @@ interface SearchPageProps {
 export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Metadata {
-  return { title: "Search | Power Platform Universe", robots: { index: false, follow: true } };
+  return { title: `Search | ${SITE_NAME}`, robots: { index: false, follow: true } };
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {

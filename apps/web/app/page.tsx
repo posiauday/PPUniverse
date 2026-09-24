@@ -5,6 +5,7 @@ import { formatBuildLabel } from "../lib/build-info";
 import { catalogRepository } from "../lib/catalog";
 import { buildWebSiteJsonLd } from "../lib/seo/json-ld";
 import { buildHomeMetadata } from "../lib/seo/metadata";
+import { SITE_NAME } from "../lib/seo/site";
 import { getSiteUrl } from "../lib/site-url";
 
 // Rendered per-request, not statically at build time: the category list
@@ -25,7 +26,7 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Power Platform Universe</h1>
+      <h1 className="text-2xl font-semibold">{SITE_NAME}</h1>
       <p className="mt-2 text-muted-foreground">
         A trusted Power Platform ecosystem for reusable assets and technical learning.
       </p>
