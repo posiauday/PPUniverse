@@ -85,3 +85,25 @@ Claude must not silently resolve these as facts. Use reversible defaults and rec
 54. **CLOSED (2026-09-24, direct product-owner instruction — see `docs/final-decisions.md`, "TD-004 architecture and sequencing", section 4).** Retry policy, decided as a starting default, **explicitly revisable once real failure-rate data exists**: 3 attempts, exponential backoff starting at 30s, then dead-letter. Applied uniformly across job types until per-type data justifies tuning. *Original question:* retry/backoff parameters for any job type.
 55. **CLOSED (2026-09-24, direct product-owner instruction — see `docs/final-decisions.md`, "TD-004 architecture and sequencing", section 4).** Dead-letter visibility: a dead-lettered job is an `ERROR`-level structured log line through the existing telemetry stack (OpenTelemetry/Sentry per ADR-004) — no bespoke UI is built ahead of MVP-019. **MVP-019's own scope should pick up dead-letter inspection once MVP-019 itself is specified** — recorded here so that inspection surface is not forgotten when MVP-019 is scoped. *Original question:* who inspects a permanently-failed job, and through what surface, before MVP-019 exists?
 56. **OPEN — blocked on open question 5, not unanswered.** Worker process model (a long-running process vs. a scheduled/serverless invocation) is genuinely downstream of the unresolved hosting-region decision (open question 5) and is not separably answerable before it. Recorded as blocked, not as its own independent open item.
+
+## Raised 2026-09-24 (BUG-015 pre-work) — test isolation; questions only, nothing here is decided
+
+Full pre-work: `planning/prework/BUG-015-prework-analysis.md`. The isolation strategy
+itself (per-package database/schema isolation) is already decided and is not one of
+these questions.
+
+57. **NOT APPROVED.** Local/CI `DATABASE_URL` shape once each package has its own
+    schema: does each package derive its own `?schema=pkg_x` automatically from one
+    shared base `DATABASE_URL`, or does each package carry its own full
+    `DATABASE_URL` entry in `.env.example` and CI env? (pre-work §5)
+58. **NOT APPROVED.** If/when PROP-007's job-queue foundation is built, is it one
+    cross-package job-queue table (as currently pre-work'd in
+    `planning/prework/TD-004-prework-analysis.md`) or a per-package queue, given
+    this story's per-package schema isolation? A single cross-package queue table
+    that multiple packages' tests write to concurrently is the same class of
+    shared-mutable-state risk this story removes elsewhere. (pre-work §7)
+59. **NOT APPROVED.** What CI runtime ceiling is acceptable for this story's added
+    per-schema migration cost, and is running the 7 packages' `migrate deploy`
+    invocations in parallel (rather than sequentially) an acceptable approach —
+    pending a real measurement during implementation, not the ~61s estimate this
+    pre-work offers? (pre-work §8)
