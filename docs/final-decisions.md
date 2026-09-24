@@ -988,3 +988,31 @@ Every claim re-verified directly against the code on the PR head, not re-asserte
 ### Done and merge
 
 `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-017 moves QA → Done. Merged via `gh pr merge` (not locally, not squashed). FR-014 is Partially Implemented (`Article` — tutorials, patterns, comparison pages — done this story; `LearningPath`/`LearningPathItem` deferred, `docs/open-questions.md` item 50; collections excluded entirely, item 24).
+
+## 2026-09-23 — Open question 2: invited and vetted third-party creators
+
+Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — OPEN QUESTION 2").
+
+**Decision: invited and vetted third-party creators. Not an open self-serve marketplace at MVP.** Flow: apply → moderator review → approved to publish. A creator cannot publish without an approved application.
+
+**Rationale, as instructed to record:** matches what FR-008 and FR-010 already assume; caps quality and IP risk while the platform is unproven; loosening to open self-serve later is a policy change, not a re-architecture.
+
+**Binding constraints:**
+1. The creator application captures identity, public profile, support commitment and agreement acceptance, per FR-008.
+2. **Payout details are captured as intent only. No live payment-provider onboarding in this story** — see open question 8, which stays open, and its own dated entry below recording that automated payouts were considered and set aside.
+3. No self-serve publish path exists. Approval is a server-enforced precondition, checked at publish time, not a UI affordance.
+4. Rejection, suspension and revocation of creator status are recorded as immutable audit events with actor, reason and timestamp.
+
+**Closes:** `docs/open-questions.md` item 2. **Stays open:** items 3, 7, 8, the commission rate, and the new item 51 (MVP-011's legal-entity/conflict-of-interest dependency, recorded without being answered).
+
+**Explicitly not decided by this entry, per direct instruction:** no commercial term, price, tier price, commission rate, payout mechanism, currency, tax position or refund policy. `docs/open-questions.md` items 3, 7 and 8 are updated with narrowed safest defaults only, each marked **NOT APPROVED** — see that file directly for the exact wording; it is not duplicated here.
+
+## 2026-09-23 — Automated split payouts considered and set aside (open question 8 stays open)
+
+Issued directly by the product owner in chat, as part of "PRODUCT-OWNER DECISION — OPEN QUESTION 2." Recorded as its own entry because it reverses a recommendation this session made in conversation (not in any file) before verifying it against existing scope.
+
+An earlier recommendation in this session proposed building Stripe Connect Express (automated split payouts) now, as the payout mechanism for MVP-011. That recommendation directly contradicted an already-documented MVP boundary, confirmed by direct read of `docs/09-marketplace-operations.md`, "Multi-vendor payouts": *"Defer automated split payments until seller volume, tax/legal setup, identity verification and support operations justify the complexity. MVP may sell first-party products and manually onboard a limited creator cohort under approved commercial terms."*
+
+**The standing position is unchanged: manual payouts for a founding cohort.** The creator application (open question 2's decision, constraint 2) captures payout intent only — no live Connect-style onboarding is built in that story. Automated split payouts remain a future, additive swap once seller volume justifies the complexity, per the existing `docs/09-marketplace-operations.md` boundary.
+
+**Not to be re-proposed without an explicit reversal decision.** A future recommendation to build automated payouts must be presented as an explicit reversal of this entry and of `docs/09-marketplace-operations.md`, not slipped in as an implementation detail.
