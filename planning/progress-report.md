@@ -2519,3 +2519,50 @@ directly against the code in this review pass and found no issues. Accessibility
 and the final Done/merge decision are pending the real CI run's confirmed results.
 FR-014 is Partially Implemented (Article-based content types only; `LearningPath`
 remains an open question, item 50).
+
+## MVP-017 — CI confirmation, security/accessibility review, Done, merge (2026-09-23)
+
+PR #14 (`feature/mvp-017-learn-content`). **First push** (CI run `35931158213`) failed 3
+of 4 accessibility shards — a real, single-cause defect, not flakiness: the public
+`/learn/[slug]` page had no keyboard-reachable control at all (`article.body` renders as
+plain text with nothing else focusable), failing the keyboard-traversal check (WCAG
+2.4.1) at every width. Diagnosed by reading each failing shard's step-level `conclusion`
+via the GitHub Actions API directly (`gh api .../jobs -q '.jobs[]...steps[]...'`), not the
+status tick or a surface grep of the log text — this confirmed two other alarming-looking
+log lines ("the destination stream closed early"; a Postgres duplicate-key line) were
+benign Next.js streaming-response noise and container-teardown output respectively, not
+causes of any failure; every other step in those shards, including the sharding suite's
+own "Verify the self-check ran all 36 tests" guard added in the prior CI-infrastructure
+story, succeeded cleanly (confirmed `"conclusion":"success"` via the same API call).
+
+**Fixed** with the exact established pattern from BUG-008 and the unsubscribe page: a
+"Back to the home page" link (`inline-block py-2`, satisfying WCAG 2.4.1 and the WCAG
+2.5.8 24px minimum touch target) added to `apps/web/app/learn/[slug]/page.tsx`.
+
+**Second push, the actual merge candidate (CI run `35932897213`): all 6 checks green.**
+Read directly from the raw log, not the status tick: the exact test that failed before
+(`learn-published @ 320px`/`@ 1280px`, keyboard traversal) now passes cleanly in
+chromium, firefox and webkit. `@ppu/adapter-content`'s DB-gated integration suite
+(`content-repository.integration.test.ts`, 7 tests) passed for real against CI's own
+throwaway Postgres — confirmed by the literal `✓ ... (7 tests)` line in the
+`Test (unit + integration)` step's output, not self-skipped. `@ppu/domain-content`'s
+`transitions.test.ts` (15 tests) passed in the same step. Zero skips, zero retries across
+all four accessibility shards, confirmed by grepping the full raw log (every
+"skipped"/"retr" hit is pnpm's own lockfile-resolution message or Docker's
+`--health-retries` flag, not a Playwright skip or retry).
+
+Full security and accessibility review recorded in `docs/final-decisions.md`, "MVP-017:
+security and accessibility review, Done, merge" — no findings.
+
+**Third real bug found and fixed** (in addition to the two recorded above, all before
+this story was marked Done, none filed as bug records per `CLAUDE.md`'s bug-vs-shortcut
+distinction): the keyboard-stop defect described above, found by the real CI run itself
+rather than local verification — a reminder that this project's standing practice of
+treating the real CI run as authoritative (not local claims, however thorough) caught a
+genuine defect the local review pass did not.
+
+**Done and merge:** `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-017 moves
+QA → Done. Merged via `gh pr merge` (not locally, not squashed). FR-014 is Partially
+Implemented (`Article` — tutorials, patterns, comparison pages — done this story;
+`LearningPath`/`LearningPathItem` deferred, `docs/open-questions.md` item 50;
+collections excluded entirely, item 24).
