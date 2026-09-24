@@ -6,7 +6,7 @@ User, UserProfile, Session, Role, Permission, Organization, OrganizationMember, 
 ## Catalog
 Product, ProductSlug, Category, Tag, ProductCategory, ProductTag, CompatibilityRecord, Prerequisite, LicenseDefinition, ProductLicense, ProductMedia, ProductDocument, Collection, CollectionItem.
 
-`CompatibilityRecord` fields are defined by the approved compatibility model in `docs/final-decisions.md` (2026-09-21): platform area, structured minimum release wave (year + wave number), notes, evidence status, evidence summary, last verified date. `LicenseDefinition` holds the three locked license tiers (Personal, Team, Enterprise; `docs/final-decisions.md` 2026-09-18).
+`CompatibilityRecord` fields are defined by the approved compatibility model in `docs/final-decisions.md` (2026-09-21): platform area, structured minimum release wave (year + wave number), notes, evidence status, evidence summary, last verified date, and (TD-008, 2026-09-24) a nullable `reviewedAt` timestamp — null except when evidence status is Marketplace Reviewed, set only by the server-side moderation workflow. Evidence status is one of four enum values, but only Creator Declared and Marketplace Reviewed are assignable; Tested is reserved and Not Verified is legacy, neither ever assignable, inferred, or migrated to. `LicenseDefinition` holds the three locked license tiers (Personal, Team, Enterprise; `docs/final-decisions.md` 2026-09-18).
 
 ## Versioning and files
 Release, ReleaseFile, FileScan, ChangelogEntry, Download, SignedDownloadGrant. Published releases are immutable. File scan transitions: uploaded, quarantined, scanning, clean, rejected, overridden.

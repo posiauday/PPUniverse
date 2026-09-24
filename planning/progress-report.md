@@ -2566,3 +2566,135 @@ QA → Done. Merged via `gh pr merge` (not locally, not squashed). FR-014 is Par
 Implemented (`Article` — tutorials, patterns, comparison pages — done this story;
 `LearningPath`/`LearningPathItem` deferred, `docs/open-questions.md` item 50;
 collections excluded entirely, item 24).
+
+## Record reconciliation: BUG-012 and BUG-014, then TD-008 (2026-09-24)
+
+Direct product-owner instruction ("INSTRUCTION — RECORD RECONCILIATION, THEN TD-008").
+Two-part authorization: reconcile stale bug records using merge history and CI evidence
+(not the records themselves) as the source of truth, report the full sweep before
+correcting anything beyond BUG-012, then implement TD-008's schema/validator/
+presentation correction only (write path explicitly excluded — MVP-012/013's scope).
+
+### Part 1 — reconciliation
+
+**BUG-012.** `planning/bugs.csv` said Open, citing open question 43 as unanswered.
+`planning/bugs/BUG-012.md`'s body and `planning/status.md` both said Resolved by
+MVP-023. Verified from git/CI, not the records: fix commit `e43e1aa` ("cache the shared
+Prisma client in every environment") is an ancestor of `develop`, and
+`packages/db/src/index.ts` currently shows the unconditional cache live. CI evidence
+for the actual merged commit (`7e10c4a`, PR #6, run `35702619219`): all 3 checks
+`"conclusion":"success"`, and the full raw log contains zero occurrences of
+`TooManyConnections`/`P2037`/"too many clients". `docs/open-questions.md` item 43 was
+already correctly marked DECIDED. **Verdict: `bugs.csv` was wrong.** It was written in
+commit `9cd68c5`, genuinely open at that time, and never updated after the fix merged
+(2026-09-22) despite the file being touched three more times since (BUG-013, BUG-014,
+BUG-015 additions). `BUG-012.md`'s own frontmatter `status:` field was also slightly
+stale ("...pending CI" — the body's own "Decision" section already said applied/
+decided) and was corrected for consistency.
+
+**Sweep of every other BUG-\*/TD-\*** (frontmatter status compared directly against
+its `bugs.csv`/`tech-debt.csv` row): only one further disagreement found — **BUG-014**,
+where `bugs.csv` said "two occurrences" and the record said "three." The record is
+correct: the third occurrence (run 15) was added to `BUG-014.md` in MVP-023's final
+Done commit (`7e10c4a`, confirmed via `git show --stat`), which touched `BUG-014.md`
+but never touched `bugs.csv`. Every TD-001 through TD-017 row matched its record file
+exactly — no disagreements. Related but out of the requested scope (index and record
+agree with *each other*, but both are stale relative to reality): BUG-003 through
+BUG-008 all still read "Fixed (PR #6, pending merge)" in both places, though PR #6
+merged 2026-09-22 — flagged, not corrected, since it isn't the class of error asked
+for (an index-vs-record disagreement).
+
+**Corrections applied:** `bugs.csv`'s BUG-012 row (status Open → Resolved, description
+updated with the fix commit and CI-run evidence) and BUG-014 row (description updated
+to name the third occurrence and the round-2 instrumentation, status wording aligned
+with the record); `BUG-012.md`'s frontmatter status field.
+
+### Part 2 — TD-008 implementation
+
+Scope, per direct instruction: schema + validator + presentation correction only. No
+new product decision required (the vocabulary was decided 2026-09-21); no write path
+(TD-006/MVP-012's scope); no destructive enum removal; no fabricated `reviewedAt`
+values. Own branch (`tech-debt/td-008-evidence-vocabulary`), own PR, same completion
+rule as every story.
+
+**Schema** (`packages/db/prisma/schema/evidence.prisma`): `MARKETPLACE_REVIEWED` added
+to `CompatibilityEvidenceStatus` (additive, `TESTED`/`NOT_VERIFIED` untouched); nullable
+`reviewedAt DateTime?` added to `CompatibilityRecord`. Two migrations, in the required
+order: `20260924000000_add_marketplace_reviewed_status` (the enum value alone — Postgres
+will not let a newly added enum value be referenced in the same transaction that adds
+it) and `20260924010000_add_compatibility_reviewed_at` (the column plus
+`CHECK (("evidenceStatus" = 'MARKETPLACE_REVIEWED') = ("reviewedAt" IS NOT NULL))`).
+Both applied cleanly via `prisma migrate deploy` against a real local Postgres.
+
+**Domain** (`@ppu/domain-catalog`): `ASSIGNABLE_EVIDENCE_STATUSES` (`CREATOR_DECLARED`,
+`MARKETPLACE_REVIEWED`) added alongside the existing `EVIDENCE_STATUSES` (all four,
+kept for labels/legacy reference). `EVIDENCE_STATUS_DEFINITIONS` updated to the
+2026-09-21 approved wording verbatim (not paraphrased) for Creator Declared and
+Marketplace Reviewed; Tested/Not Verified relabelled as reserved/legacy in their own
+definitions. `validateCompatibilityEntry` now rejects `TESTED`/`NOT_VERIFIED` with a new
+`EVIDENCE_STATUS_RESERVED_OR_LEGACY` code, distinct from ordinary invalid input,
+regardless of what evidence summary or verified date accompanies them — the old
+"Tested requires an evidence summary and a last-verified date" special case is now
+unreachable application-side and was removed (the database CHECK still enforces it
+directly for the reserved value; the existing rejection tests for it were kept
+unchanged and still pass). `reviewedAt` was never an accepted input field on
+`CompatibilityEntryInput`/`ValidCompatibilityEntry` and stays that way.
+
+**Presentation** (`present-evidence.ts`): `EVIDENCE_LEGEND` now built from
+`ASSIGNABLE_EVIDENCE_STATUSES` only — Tested and Not Verified never appear in the
+public legend. `presentProductEvidence` filters any `TESTED`/`NOT_VERIFIED`
+compatibility row out of the public matrix entirely before mapping (fail closed, per
+the record's own "not shown unless provenance is documented" instruction) — a
+dedicated regression test proves this directly.
+
+**Adapter** (`@ppu/adapter-catalog`): `toCompatibilityEntry` maps `reviewedAt` the same
+way `lastVerifiedAt` already was (ISO string or null); no `select` clause exists on the
+compatibility read, so the new column is returned automatically once the Prisma client
+regenerated.
+
+**A genuine tension found and resolved, not glossed over:** the approved Marketplace
+Reviewed definition's own disclaimer clause ("does not mean independently tested,
+certified, guaranteed, Microsoft approved, Microsoft certified, officially supported or
+verified compatible") necessarily contains the exact words two pre-existing safety-net
+tests forbid anywhere in the rendered output (`present-evidence.test.ts` and
+`product-evidence.test.tsx`, both titled around "never produces a certification-style
+label"). Fixed by scoping both tests to the *per-product* content (table rows,
+licenses, support — the parts that could carry a false claim about a specific product)
+and excluding the static, pre-approved legend, which is legitimately allowed to name
+what it explicitly disclaims. The approved wording was kept verbatim; the tests were
+narrowed to keep catching what they were actually meant to catch.
+
+**Tests updated or added:** `compatibility.test.ts` (vocabulary/definitions, TESTED/
+NOT_VERIFIED rejection with the new code, including when fully evidenced — reserved is
+reserved regardless), `present-evidence.test.ts` (legend now two items, fail-closed
+filtering, the certification-label test scoped as above), `product-evidence.test.tsx`
+(fixture rebuilt around the real vocabulary, legend assertion updated, an explicit
+"never shows Tested or Not Verified" check added, the certification-label test scoped
+the same way), `catalog-repository.integration.test.ts` (three new DB-gated cases: the
+`reviewedAt` ↔ status CHECK rejects both mismatch directions, and accepts a correctly
+paired Marketplace Reviewed record — each confirmed individually passing against a
+real database, not just the aggregate count).
+
+**Docs updated:** `docs/06-data-model.md` (the `CompatibilityRecord` field list, now
+naming `reviewedAt` and the assignable-vs-reserved/legacy distinction);
+`packages/domain/catalog/README.md` (the `compatibility.ts` description, now accurate
+to four enum values with two assignable).
+
+**Verification, all re-run directly, not taken on the first pass alone:** rebuilt
+`@ppu/db` and `@ppu/domain-catalog` after the schema/type changes (their compiled
+`dist/` output, not just source, is what dependents actually import — a stale-dist
+typecheck failure was hit and fixed this way before proceeding). Full workspace
+`pnpm build`/`pnpm typecheck`/`pnpm lint`: all clean. `pnpm test`: 48/48 tasks, then
+specifically re-verified fresh (not cache-replayed) against a real local Postgres —
+`@ppu/domain-catalog` 66/66, `@ppu/ui` 57/57, `@ppu/adapter-catalog` 40/40 including
+the three new DB-gated CHECK-constraint tests confirmed individually by name via a
+verbose reporter run. `prisma migrate deploy` applied all migrations including the two
+new ones cleanly against a fresh embedded Postgres instance. One real test failure was
+hit and fixed during this pass (the certification-label test collision described
+above) — caught by running the suite, not assumed clean.
+
+**Status:** TD-008 moves Open → Partially Resolved. `planning/tech-debt.csv` and
+`planning/tech-debt/TD-008.md` updated with what landed and what deliberately did not
+(write path, moderation workflow, `ModerationReview`/`AuditEvent`, role enforcement —
+MVP-012/013's scope, per explicit instruction). MVP-012's hard gate (TD-008 section 9)
+is satisfied ahead of MVP-012 itself starting.

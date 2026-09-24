@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ASSIGNABLE_EVIDENCE_STATUSES,
   EVIDENCE_STATUSES,
   EVIDENCE_STATUS_DEFINITIONS,
   EVIDENCE_STATUS_LABELS,
@@ -43,21 +44,23 @@ describe("approved vocabulary", () => {
     expect(joined).not.toContain("governance");
   });
 
-  it("offers exactly the three approved evidence states, with the approved definitions", () => {
-    expect(EVIDENCE_STATUSES.map((status) => EVIDENCE_STATUS_LABELS[status])).toEqual([
-      "Tested",
-      "Creator Declared",
-      "Not Verified",
-    ]);
-    expect(EVIDENCE_STATUS_DEFINITIONS.TESTED).toBe(
-      "Compatibility was tested using a documented environment or repeatable verification process.",
-    );
+  it("offers exactly two assignable evidence statuses, in display order (TD-008)", () => {
+    expect(ASSIGNABLE_EVIDENCE_STATUSES).toEqual(["CREATOR_DECLARED", "MARKETPLACE_REVIEWED"]);
     expect(EVIDENCE_STATUS_DEFINITIONS.CREATOR_DECLARED).toBe(
-      "The creator supplied the compatibility claim, but the marketplace has not independently verified it.",
+      "The compatibility information was supplied by the creator and has not been independently certified by the marketplace.",
     );
-    expect(EVIDENCE_STATUS_DEFINITIONS.NOT_VERIFIED).toBe(
-      "No sufficient verification evidence is available.",
+    expect(EVIDENCE_STATUS_DEFINITIONS.MARKETPLACE_REVIEWED).toBe(
+      "A moderator reviewed the submitted compatibility statement for completeness, plausibility, prohibited claims and publication readiness. This does not mean independently tested, certified, guaranteed, Microsoft approved, Microsoft certified, officially supported or verified compatible.",
     );
+  });
+
+  it("keeps TESTED and NOT_VERIFIED as known enum values, but never as assignable ones (TD-008)", () => {
+    expect(EVIDENCE_STATUSES).toContain("TESTED");
+    expect(EVIDENCE_STATUSES).toContain("NOT_VERIFIED");
+    expect(ASSIGNABLE_EVIDENCE_STATUSES).not.toContain("TESTED");
+    expect(ASSIGNABLE_EVIDENCE_STATUSES).not.toContain("NOT_VERIFIED");
+    expect(EVIDENCE_STATUS_LABELS.TESTED).toBe("Tested");
+    expect(EVIDENCE_STATUS_LABELS.NOT_VERIFIED).toBe("Not Verified");
   });
 });
 
@@ -102,7 +105,7 @@ describe("validateCompatibilityEntry", () => {
 
   it("rejects a release wave with no platform area", () => {
     const result = validateCompatibilityEntry(
-      { minReleaseYear: 2025, minReleaseWave: 2, evidenceStatus: "NOT_VERIFIED" },
+      { minReleaseYear: 2025, minReleaseWave: 2, evidenceStatus: "CREATOR_DECLARED" },
       NOW,
     );
     expect(codes(result)).toContain("PLATFORM_AREA_REQUIRED");
@@ -119,7 +122,7 @@ describe("validateCompatibilityEntry", () => {
 
   it("requires both the release year and the release wave", () => {
     const result = validateCompatibilityEntry(
-      { platformArea: "POWER_BI", evidenceStatus: "NOT_VERIFIED" },
+      { platformArea: "POWER_BI", evidenceStatus: "CREATOR_DECLARED" },
       NOW,
     );
     expect(codes(result)).toEqual(["RELEASE_YEAR_REQUIRED", "RELEASE_WAVE_REQUIRED"]);
@@ -157,19 +160,36 @@ describe("validateCompatibilityEntry", () => {
     ).toEqual(["EVIDENCE_STATUS_INVALID"]);
   });
 
-  it("requires an evidence summary and last verified date when status is Tested", () => {
-    const result = validateCompatibilityEntry({ ...valid, evidenceStatus: "TESTED" }, NOW);
-    expect(codes(result)).toEqual([
-      "EVIDENCE_SUMMARY_REQUIRED_FOR_TESTED",
-      "LAST_VERIFIED_REQUIRED_FOR_TESTED",
+  it("rejects TESTED as reserved, with its own error code, distinct from ordinary invalid input (TD-008)", () => {
+    expect(codes(validateCompatibilityEntry({ ...valid, evidenceStatus: "TESTED" }, NOW))).toEqual([
+      "EVIDENCE_STATUS_RESERVED_OR_LEGACY",
     ]);
   });
 
-  it("accepts a fully evidenced Tested entry", () => {
+  it("rejects NOT_VERIFIED as legacy, with the same error code as TESTED (TD-008)", () => {
+    expect(
+      codes(validateCompatibilityEntry({ ...valid, evidenceStatus: "NOT_VERIFIED" }, NOW)),
+    ).toEqual(["EVIDENCE_STATUS_RESERVED_OR_LEGACY"]);
+  });
+
+  it("rejects TESTED even when a full evidence summary and verified date are supplied — reserved is reserved regardless (TD-008)", () => {
     const result = validateCompatibilityEntry(
       {
         ...valid,
         evidenceStatus: "TESTED",
+        evidenceSummary: "Repeatable regression pass.",
+        lastVerifiedAt: "2026-03-12",
+      },
+      NOW,
+    );
+    expect(codes(result)).toEqual(["EVIDENCE_STATUS_RESERVED_OR_LEGACY"]);
+  });
+
+  it("accepts a fully evidenced Marketplace Reviewed entry", () => {
+    const result = validateCompatibilityEntry(
+      {
+        ...valid,
+        evidenceStatus: "MARKETPLACE_REVIEWED",
         evidenceSummary: "Repeatable regression pass.",
         lastVerifiedAt: "2026-03-12",
       },

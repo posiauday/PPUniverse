@@ -55,7 +55,8 @@ export type PlatformArea =
   | "COPILOT_STUDIO"
   | "MICROSOFT_FABRIC";
 
-export type CompatibilityEvidenceStatus = "TESTED" | "CREATOR_DECLARED" | "NOT_VERIFIED";
+export type CompatibilityEvidenceStatus =
+  "TESTED" | "CREATOR_DECLARED" | "NOT_VERIFIED" | "MARKETPLACE_REVIEWED";
 
 export type SupportStatus =
   "CREATOR_SUPPORTED" | "PLATFORM_SUPPORTED" | "COMMUNITY_SUPPORTED" | "UNSUPPORTED";
@@ -73,7 +74,12 @@ export interface SupportPolicyRecord {
   channel: string | null;
 }
 
-/** `lastVerifiedAt` is a calendar date as `YYYY-MM-DD` (a DATE column, so no time-of-day/timezone to get wrong). */
+/**
+ * `lastVerifiedAt` is a calendar date as `YYYY-MM-DD` (a DATE column, so no
+ * time-of-day/timezone to get wrong). `reviewedAt` is a full ISO timestamp,
+ * null for every status except MARKETPLACE_REVIEWED, set only by the
+ * server-side moderation workflow (TD-008; not built yet -- MVP-013).
+ */
 export interface CompatibilityEntry {
   id: string;
   platformArea: PlatformArea;
@@ -83,6 +89,7 @@ export interface CompatibilityEntry {
   evidenceStatus: CompatibilityEvidenceStatus;
   evidenceSummary: string | null;
   lastVerifiedAt: string | null;
+  reviewedAt: string | null;
 }
 
 /**

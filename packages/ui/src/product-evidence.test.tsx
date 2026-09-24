@@ -14,6 +14,7 @@ const entry = (overrides: Partial<CompatibilityEntry> = {}): CompatibilityEntry 
   evidenceStatus: "CREATOR_DECLARED",
   evidenceSummary: null,
   lastVerifiedAt: null,
+  reviewedAt: null,
   ...overrides,
 });
 
@@ -41,9 +42,10 @@ const populated = presentProductEvidence({
       id: "c1",
       platformArea: "POWER_APPS",
       notes: "Requires Dataverse and premium connectors.",
-      evidenceStatus: "TESTED",
+      evidenceStatus: "MARKETPLACE_REVIEWED",
       evidenceSummary: "Repeatable regression pass.",
       lastVerifiedAt: "2026-03-12",
+      reviewedAt: "2026-03-13T00:00:00.000Z",
     }),
     entry({ id: "c2", platformArea: "POWER_AUTOMATE", evidenceStatus: "CREATOR_DECLARED" }),
     entry({
@@ -51,7 +53,7 @@ const populated = presentProductEvidence({
       platformArea: "MICROSOFT_FABRIC",
       minReleaseYear: 2026,
       minReleaseWave: 1,
-      evidenceStatus: "NOT_VERIFIED",
+      evidenceStatus: "CREATOR_DECLARED",
     }),
   ],
 });
@@ -132,12 +134,12 @@ describe("ProductEvidence — compatibility matrix", () => {
     const table = screen.getByRole("table");
     const rows = within(table).getAllByRole("row").slice(1);
 
-    expect(within(rows[0]!).getByText("Tested")).toBeDefined();
+    expect(within(rows[0]!).getByText("Marketplace Reviewed")).toBeDefined();
     expect(within(rows[1]!).getByText("Creator Declared")).toBeDefined();
-    expect(within(rows[2]!).getByText("Not Verified")).toBeDefined();
+    expect(within(rows[2]!).getByText("Creator Declared")).toBeDefined();
   });
 
-  it("shows the evidence summary and a machine-readable verified date for a Tested row", () => {
+  it("shows the evidence summary and a machine-readable verified date for a Marketplace Reviewed row", () => {
     render(<ProductEvidence evidence={populated} />);
     expect(screen.getByText("Repeatable regression pass.")).toBeDefined();
     const time = screen.getByText("12 March 2026");
@@ -177,12 +179,22 @@ describe("ProductEvidence — accessibility of the scroll region and legend", ()
     expect(within(region).getByRole("table")).toBeDefined();
   });
 
-  it("shows the three status definitions as visible text, in a definition list", () => {
+  it("shows only the two assignable status definitions as visible text, in a definition list (TD-008)", () => {
     const { container } = render(<ProductEvidence evidence={populated} />);
     const terms = Array.from(container.querySelectorAll("dl dt")).map((term) => term.textContent);
-    expect(terms).toEqual(["Tested", "Creator Declared", "Not Verified"]);
-    expect(container.querySelectorAll("dl dd")).toHaveLength(3);
-    expect(screen.getByText("No sufficient verification evidence is available.")).toBeDefined();
+    expect(terms).toEqual(["Creator Declared", "Marketplace Reviewed"]);
+    expect(container.querySelectorAll("dl dd")).toHaveLength(2);
+    expect(
+      screen.getByText(
+        "A moderator reviewed the submitted compatibility statement for completeness, plausibility, prohibited claims and publication readiness. This does not mean independently tested, certified, guaranteed, Microsoft approved, Microsoft certified, officially supported or verified compatible.",
+      ),
+    ).toBeDefined();
+  });
+
+  it("never shows 'Tested' or 'Not Verified' anywhere, even as legend text (TD-008)", () => {
+    const { container } = render(<ProductEvidence evidence={populated} />);
+    expect(container.textContent).not.toContain("Tested");
+    expect(container.textContent).not.toContain("Not Verified");
   });
 
   it("puts nothing in hover-only title tooltips", () => {
@@ -227,9 +239,17 @@ describe("ProductEvidence — safety", () => {
     expect(screen.getByText(/<script>alert\(1\)<\/script>/)).toBeDefined();
   });
 
-  it("never renders a certification-style label anywhere on the page", () => {
+  it("never renders a certification-style label outside the legend's own approved disclaimer text", () => {
+    // Scoped to exclude the <dl> legend: the approved Marketplace Reviewed
+    // definition itself legitimately says "does not mean ... certified ...
+    // approved ... officially supported" (docs/final-decisions.md,
+    // 2026-09-21) -- a disclaimer, not a claim. This test's job is to catch
+    // an affirmative claim in the per-product content (table, licenses,
+    // support), which is a different thing from the legend's own negation.
     const { container } = render(<ProductEvidence evidence={populated} />);
-    expect(container.textContent).not.toMatch(
+    const clone = container.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll("dl").forEach((legend) => legend.remove());
+    expect(clone.textContent).not.toMatch(
       /certified|approved|officially supported|marketplace verified/i,
     );
   });
