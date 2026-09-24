@@ -135,3 +135,18 @@ these questions.
     available as a fallback if CI-specific contention ever appears that this local
     measurement didn't surface. *Original question:* CI runtime ceiling and
     parallel-vs-sequential, pending real measurement. (pre-work §8)
+
+## Raised 2026-09-24 (PROP-008, Power Apps Component Generator/Library) — question only, nothing here is decided
+
+60. **NOT APPROVED.** Whether to build anything at all under PROP-008
+    (`planning/proposed-stories.md`) — a generator, a curated component library, or
+    neither — and if so, what shape. This session's informal research into a
+    scaffolding/generator tool found weak differentiation against Microsoft's own
+    free `pac pcf init`. A deeper research pass (competitor analysis of
+    powerappsui.com, and what a genuinely top-tier/modern component bar requires)
+    is queued as an external prompt, not yet run. No shape, scope, or requirement ID
+    is approved. Recommended sequencing, offered not decided: after the current
+    MVP's core marketplace scope (creator onboarding, licensing, entitlements) is
+    further along, not alongside it — there is no live creator pipeline yet for
+    either shape to serve. *Original question:* should PROP-008 be pursued, in what
+    shape, and when?
