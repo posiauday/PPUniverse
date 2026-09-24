@@ -5,6 +5,8 @@ Accepted (2026-09-21), for the testing-stack rows only.
 
 Approval source: the product owner's direct instruction of 2026-09-21 on MVP-023 (`docs/final-decisions.md`, "Product-owner decisions for MVP-023" Q41, and "Product-owner response to the MVP-023 stop-gate confirmation" item 4). This status change records the approval of the testing stack — Playwright, axe-core and @axe-core/playwright, at the pinned versions in the 2026-09-21 amendment below — and does not approve or change any other row of this ADR. The status of the other rows is as recorded in `docs/final-decisions.md`; any row that is not approved there needs its own decision.
 
+**Correction (2026-09-24):** the "Background jobs" row below (`BullMQ + Redis`) was read, in a TD-004 pre-work analysis, as though it were an approved choice. It was not, and this Status section already said so — the correction is recorded here anyway, not silently, because the row itself invited the misreading. **That row is DRAFT, NOT APPROVED.** The actual architecture decision is recorded in `docs/final-decisions.md`, "TD-004 architecture and sequencing" (2026-09-24): a Postgres-backed job queue, not BullMQ + Redis. The row is left in the table below, marked, rather than deleted — the correction is more useful to a future reader than a clean table would be.
+
 ## Context
 `CLAUDE.md` lists a suggested implementation baseline and states architecture defaults require an ADR to change. No application code exists yet. This ADR confirms the baseline as final for MVP-001 onward, adds the specific choices the baseline left open, and marks which specifics remain vendor/business decisions rather than technical ones (tracked in `docs/open-questions.md`).
 
@@ -21,7 +23,7 @@ Confirm, as final for MVP:
 | Identity | Auth.js (NextAuth) with a generic OIDC provider adapter | Satisfies "standards-based OIDC provider abstraction"; actual IdP vendor is **open** (open question 4) |
 | Payments | Stripe Checkout + Billing Portal + webhooks | Explicitly named in CLAUDE.md baseline; tax-capable via Stripe Tax when jurisdictions are decided (open question 3) |
 | Object storage | S3-compatible storage behind a `StorageAdapter` interface | Vendor (AWS S3, Azure Blob, R2, etc.) is **open**, tied to hosting region (open question 5) |
-| Background jobs | BullMQ + Redis | Durable queue for webhooks, email, indexing, scans, media processing per TRD |
+| Background jobs | ~~BullMQ + Redis~~ — **DRAFT, NOT APPROVED** (see Status correction, 2026-09-24). Actual decision: a Postgres-backed job queue (`docs/final-decisions.md`, "TD-004 architecture and sequencing") | Durable queue for webhooks, email, indexing, scans, media processing per TRD |
 | Search | PostgreSQL full-text (`tsvector`/`tsquery`) behind a `SearchAdapter` interface | Matches TRD "adapter boundary for future dedicated search"; no separate search service for MVP |
 | Email | Transactional email behind an `EmailAdapter` interface | Vendor is **open**; interface lets CI run against a fake adapter |
 | Malware scanning | Scan behind a `ScanAdapter` interface (e.g., ClamAV self-hosted or a vendor API) | Vendor/cost model is **open** (open question 9); interface unblocks upload pipeline development |

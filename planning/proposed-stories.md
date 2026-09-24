@@ -12,6 +12,7 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 | PROP-004 | Product Releases and Changelog | changelog, version history | P1 | 5 | Proposed |
 | PROP-005 | Related Assets | related assets | P2 | 3 | Proposed — **deferred** |
 | PROP-006 | Repeated Query Parameter Handling (BUG-002 corrective) | — (FR-002; not an FR-003 item) | P3 | not estimated (expected small) | Proposed — approved in principle, not scheduled |
+| PROP-007 | Job Queue Foundation | — (cross-cutting infrastructure; TD-004, TD-015; not an FR-003 item) | not assigned | ~13 (anchor: comparable to MVP-006) | Proposed — blocked on BUG-015 and its own approval |
 
 ## Items assigned to existing approved stories (not proposals)
 - **Creator** → MVP-011 (Creator applications): creator identity and creator-profile *ownership* only. The public creator page/route stays unresolved under open question 24 and must not be built unless approved.
@@ -76,3 +77,21 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 - **Accessibility impact:** none expected.
 - **Suggested priority / estimate:** P3 / not estimated.
 - **Status:** Proposed. The product owner approved the story in principle (Q32); it is not scheduled and not started.
+
+## PROP-007 — Job Queue Foundation
+
+- **Origin:** `planning/prework/TD-004-prework-analysis.md` (2026-09-24), and the product-owner decision "TD-004 architecture and sequencing" (`docs/final-decisions.md`, 2026-09-24) that followed it. Not an FR-003 proposal; cross-cutting infrastructure named directly by TD-004 and TD-015.
+- **Proposed scope (unchanged from the pre-work analysis §7):** a minimal, generic job-enqueue/claim/complete/retry mechanism — a Postgres-backed queue (`SELECT ... FOR UPDATE SKIP LOCKED`, decided architecture, `docs/final-decisions.md`) — plus the `apps/worker` runtime to consume it, with **no specific job handler migrated onto it as part of this story**. TD-004's file scan and TD-015's email sends migrate afterward, each as its own small follow-up, so this foundation story's own surface area stays small and reviewable.
+- **Proposed acceptance criteria (unchanged from the pre-work analysis §7):**
+  - A job can be enqueued with a typed payload, claimed by exactly one worker at a time, marked complete or failed, and a failed job is retried per a defined backoff policy up to a defined attempt limit, then dead-lettered.
+  - A crashed worker's claimed-but-incomplete job becomes reclaimable after a defined lease timeout (no job is lost to a worker crash).
+  - The correlation ID present at enqueue time is present in every log line the worker emits while processing that job.
+  - Local and CI test suites exercise the queue mechanics without any real external vendor call.
+  - New table(s) carry a reversible migration and RLS per the standing convention.
+  - Documentation states, explicitly, which of TD-004/TD-015/MVP-012's needs this foundation does *not* yet solve (the actual migration of those handlers onto it), so a reader doesn't assume this story silently fixes those tech-debt records.
+- **Requirement relationship:** cross-cutting; supports TD-004 (FR-007-adjacent, file scanning), TD-015 (FR-013, transactional email), and MVP-012's release-file submission path (FR-009). MVP-009 and MVP-019 are recorded as **under-specified** consumers — no requirement is invented for either.
+- **Dependencies:** **BUG-015 must be resolved and merged first** (`docs/final-decisions.md`, "TD-004 architecture and sequencing", section 3) — a job table is exactly the shared, mutable, cross-package CI state BUG-015 is about, and landing this before BUG-015's isolation strategy is settled creates a second surface for the identical flake. A new ADR is also required before implementation (architecture is decided in principle — Postgres-backed — but not yet written up as its own ADR).
+- **Security impact:** a new table (RLS + reversible migration, standing convention); job payloads must carry identifiers and minimal re-derivation parameters only, never secrets, file contents, or rendered message bodies with PII; a worker runs with a fixed, narrowly-scoped service identity, not the app's full request-time authorization surface; a malformed/poisoned job must fail fast and not block other queued jobs. Full detail: pre-work analysis §5.
+- **Testing impact:** job handler logic is plain-function unit-testable (no real queue involved); queue mechanics themselves (claim/lock/complete/retry) are DB-gated integration tests following this repo's existing `describe.skipIf(!process.env.DATABASE_URL)` convention; worker timing (poll interval, lease expiry, retry delay) needs to be injectable/fake-clock-driven, not tested by waiting out real delays. Full detail: pre-work analysis §6.
+- **Suggested priority / estimate:** not assigned / **~13 points**, an anchor (comparable to MVP-006, the largest single-story estimate on the current board), offered because no existing partial implementation exists to build on (`apps/worker` is genuinely empty), real queue-mechanics testing requirements apply, and the architecture choice — while now decided — still needs its own ADR before implementation.
+- **Status:** Proposed. **Not added to `planning/mvp-backlog.csv`. Not started.** Blocked on BUG-015 (its own separate authorization, not yet given) and on this proposal's own approval as a scheduled story.

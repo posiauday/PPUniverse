@@ -1032,3 +1032,52 @@ Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — PRODUC
 **Open question 1 stays OPEN, narrowed to trademark clearance only.** The domain purchase does not settle clearance. Recorded assessment: "LowCodeStacks" is a descriptive name — "low-code" is generic industry vocabulary and "stacks" is common in software naming — which cuts both ways: low conflict risk against existing marks, but correspondingly weak as a registrable, enforceable mark of its own. For a marketplace whose durable advantage is inventory and trust rather than brand recognition, this trade is accepted, not treated as a defect to fix. **Close condition for this remainder of the question: a CIPO search and a clearance opinion** — neither performed yet, neither urgent before a production deployment exists.
 
 **Constraints, restated, unchanged by this decision:** never use "Power" as a leading element of the product name, a subdomain, or a package name; any reference to Microsoft or the Power Platform ecosystem appears only as plain descriptive text; no "certified", "official", "approved", or endorsement phrasing anywhere.
+
+## 2026-09-24 — TD-004 architecture and sequencing
+
+Issued directly by the product owner in chat ("PRODUCT-OWNER DECISION — TD-004 ARCHITECTURE AND SEQUENCING"), following the pre-work analysis at `planning/prework/TD-004-prework-analysis.md`.
+
+### 1. ADR-004 correction
+
+The "Background jobs: BullMQ + Redis" row in `docs/adr/004-technology-decision-record.md` was never approved. The pre-work analysis's reading of that ADR's own Status line was correct: formal acceptance was limited to the testing-stack rows only, and `docs/final-decisions.md` never separately ratified the background-jobs row. **The ADR is amended** — the row is marked `~~BullMQ + Redis~~ — DRAFT, NOT APPROVED` and left in the table (not deleted), with a pointer to this decision, per direct instruction that the correction is more useful than a clean table.
+
+**This is the third recorded instance of a table row, index entry, or summary being read as an approved decision when it was not one:** the marketplace license-tier structure (a relayed document presented it as already-locked; resolved 2026-09-18 by direct confirmation), `planning/bugs.csv`'s BUG-012/BUG-014 rows (the index disagreed with the records' own bodies and with git/CI evidence; resolved 2026-09-24), and this ADR row. A standing note recording this pattern is added to `CLAUDE.md`'s Decision validation rule section.
+
+### 2. Architecture: Option A — Postgres-backed queue
+
+**Decision: a Postgres-backed job queue in the existing database, workers claiming rows via `SELECT ... FOR UPDATE SKIP LOCKED`.**
+
+**Rationale:** no new stateful service to provision, secure or back up; no new secret per environment; hosting-region-agnostic, so it does not front-run open question 5 (hosting region); and the DB-gated integration-test pattern this repo already uses (`describe.skipIf(!process.env.DATABASE_URL)`, an embedded/service-container Postgres in CI) extends to it directly, rather than adding a fourth CI service container alongside Postgres, MinIO and ClamAV.
+
+**Rejected, with reasons recorded so they are not re-proposed** (full trade-off detail: `planning/prework/TD-004-prework-analysis.md`, §3):
+- **Option B1 (BullMQ + Redis):** a second system of record for "did this job run" (Redis's own persistence-mode trade-offs create a reconciliation problem this project does not otherwise have); a new vendor/region choice coupled to the unresolved hosting decision; a fourth CI service container — for two known consumers with no stated throughput problem.
+- **Option B2 (a managed queue platform):** vendor lock-in; for several candidates, a webhook-invocation model that contradicts `apps/worker`'s own shape (a long-running consumer process); several are hard to exercise offline, against this repo's consistent discipline of never depending on live vendor calls in CI.
+- **Option C (outbox + scheduled retry):** solves durability but not request-blocking, which is the actual complaint both TD-004 and TD-015 record.
+
+**Not decided here, left to the eventual story's own pre-work:** whether to use a library (`pg-boss`, `graphile-worker`) or hand-roll the claim/complete/retry mechanics. Either way, it is reached through the adapter pattern, exactly as `ResendEmailAdapter` and `S3StorageAdapter` already are.
+
+**A new ADR is required before implementation** — this decision authorizes the architecture direction, not a completed ADR; `CLAUDE.md`'s "architecture defaults, not immutable vendor commitments... any change requires an ADR" still applies before code is written.
+
+### 3. Sequencing: BUG-015 first
+
+**BUG-015 must be resolved and merged before any job-queue implementation begins.** A job table is exactly the shared, mutable, cross-package state BUG-015 is about (`planning/bugs/BUG-015.md`) — landing queue infrastructure before the isolation strategy is settled creates a second surface for the identical flake, on a table every future integration suite will touch.
+
+**BUG-015's isolation strategy is decided: per-package database isolation** — a distinct database or schema per test package, provisioned and torn down by the harness. This matches the recommendation already on record in `planning/bugs/BUG-015.md` from the external review conducted during the accessibility-sharding work. **Constraints, binding on that future implementation:**
+1. Provisioning must apply the same migrations as production, including `ENABLE ROW LEVEL SECURITY` — a test schema that diverges from production is worse than the flake it replaces.
+2. No production code change. `catalog-repository.ts`'s unscoped `PUBLISHED` scan is correct for a real sitemap and is not touched.
+3. No sequencing of package test tasks as a substitute for isolation — it trades correctness for permanent serialisation and stops working the moment a third package touches the same tables.
+4. CI runtime is reported before and after, the same discipline this project has used for every prior CI-shape change.
+
+**This decision does not itself authorize starting BUG-015's fix** — per explicit instruction, that work gets its own separate authorization once this decision lands.
+
+### 4. Open questions 52–56 recorded
+
+See `docs/open-questions.md` for the full text of each. Summary: Q52 (job-queue architecture) closed by section 2 above; Q53 (sign-in email semantics once queued) closed — the sign-in send is not migrated, its blocking-and-failing behavior is deliberate and correct for a magic-link flow; Q54 (retry policy) closed as a revisable starting default (3 attempts, exponential backoff from 30s, then dead-letter); Q55 (dead-letter visibility) closed — an `ERROR`-level structured log line through the existing telemetry stack, no bespoke UI ahead of MVP-019; Q56 (worker process model) stays open, recorded as blocked on open question 5 (hosting), not as unanswered.
+
+### 5. The queue foundation story — proposed, not approved
+
+Added to `planning/proposed-stories.md` as **PROP-007, status Proposed**, using the scope, acceptance criteria and estimate anchor from the pre-work analysis's §7, unchanged. **Not added to the backlog. Not started.** Blocked on both BUG-015 (section 3 above) and its own approval. TD-004, TD-015, and MVP-012's release-file submission path are recorded as its three concrete, spec-grounded consumers; **MVP-009 and MVP-019 are recorded as under-specified consumers** — no requirement is invented for either, per the pre-work analysis's own finding.
+
+### Unchanged (restated)
+
+No queue, table, package, or worker is implemented by this decision. The file-scan and email paths are not modified. TD-006, MVP-007 and MVP-011 are not started under this authorization. Open question 5 and every other question not listed in section 4 remain exactly as they were. No gate check is weakened, skipped, quarantined or conditionally excluded; the accessibility self-check stays permanent and unconditional; BUG-014 stays open, monitor-only, permanently instrumented.

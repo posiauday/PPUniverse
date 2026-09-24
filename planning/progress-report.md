@@ -2698,3 +2698,65 @@ above) — caught by running the suite, not assumed clean.
 (write path, moderation workflow, `ModerationReview`/`AuditEvent`, role enforcement —
 MVP-012/013's scope, per explicit instruction). MVP-012's hard gate (TD-008 section 9)
 is satisfied ahead of MVP-012 itself starting.
+
+## TD-004 pre-work, then architecture and sequencing decisions (2026-09-24)
+
+Two-part, both direct product-owner instruction. First a pre-work-only analysis
+(`planning/prework/TD-004-prework-analysis.md`, branch `feature/td-004-job-queue-prework`,
+no code/schema/package changes), then a decision instruction responding to it. Both
+land in one docs-only PR (`docs/adr/004-technology-decision-record.md`, `CLAUDE.md`,
+`docs/final-decisions.md`, `docs/open-questions.md`, `planning/proposed-stories.md`,
+`planning/tech-debt/TD-004.md` and `TD-015.md`).
+
+**Pre-work findings, verified by reading the code, not guessed:** exactly two real
+synchronous-in-request consumers exist in shipped code today — the file-scan pipeline
+(`apps/web/lib/complete-file-upload.ts`, four S3 round-trips plus an untimeouted
+full-file ClamAV TCP scan plus DB writes in one request, with a stuck-row risk on
+client disconnect) and three email-send call sites (`apps/web/lib/auth.ts`,
+`packages/adapters/notifications/src/notification-service.ts`,
+`apps/web/app/api/account/deletion-requests/route.ts`). A full sweep of all 17 API
+routes and every adapter found nothing else. `apps/worker` is confirmed genuinely
+empty — no runtime dependencies at all. MVP-009 and MVP-019 were found to be
+under-specified as consumers against their actual FR text; no requirement was
+invented for either. A finding surfaced before the analysis proper: ADR-004's
+"Background jobs: BullMQ + Redis" table row reads as decided but was never ratified
+— its own Status line limits formal acceptance to the testing-stack rows only, and
+`docs/final-decisions.md` never separately approved it.
+
+**Decision, following the pre-work:**
+- **ADR-004 corrected**, not deleted — the BullMQ+Redis row is marked `DRAFT, NOT
+  APPROVED` with a pointer to the real decision, and its Status section records the
+  correction. This is recorded as the **third instance** of a table row, index entry,
+  or summary line being read as an approved decision when it was not one (after the
+  license-tier relayed-document discrepancy and the BUG-012/BUG-014 stale-index
+  reconciliation). A standing note is added to `CLAUDE.md`'s Decision validation rule
+  section naming this pattern explicitly, so a future session checks the actual
+  approval source rather than trusting a table row.
+- **Architecture decided: a Postgres-backed job queue** (`SELECT ... FOR UPDATE SKIP
+  LOCKED`), not BullMQ+Redis, a managed platform, or an outbox-and-retry pattern — full
+  rejection rationale for each recorded in `docs/final-decisions.md` so they are not
+  re-proposed. A new ADR is still required before implementation.
+- **Sequencing: BUG-015 must be resolved and merged before any queue implementation
+  begins**, with the isolation strategy decided (per-package database isolation) and
+  four binding constraints recorded (migrations including RLS must match production;
+  no production code change to `catalog-repository.ts`; no test-task sequencing as a
+  substitute for isolation; CI runtime reported before/after). This decision does not
+  itself authorize starting BUG-015's fix.
+- **Five open questions added** (`docs/open-questions.md` 52–56): architecture (closed
+  by this decision), sign-in email semantics (closed — sign-in stays synchronous by
+  design, only the deletion-request acknowledgement migrates), retry policy (closed as
+  a revisable default: 3 attempts, exponential backoff from 30s, then dead-letter),
+  dead-letter visibility (closed — a structured `ERROR` log line, no bespoke UI ahead
+  of MVP-019), worker process model (stays open, recorded as blocked on open question
+  5/hosting, not as unanswered).
+- **PROP-007 (Job Queue Foundation) added** to `planning/proposed-stories.md`, status
+  Proposed, using the pre-work's own scope/acceptance-criteria/estimate-anchor
+  unchanged. **Not added to the backlog. Not started.** Blocked on BUG-015 and on its
+  own approval.
+
+**Unchanged, explicitly:** no queue, table, package, or worker was implemented; the
+file-scan and email paths were not modified; TD-006, MVP-007 and MVP-011 were not
+started; open question 5 and every other question not listed above remain exactly as
+they were; no gate check was weakened, skipped, quarantined or conditionally excluded.
+BUG-015's own fix is not started under this authorization — it gets its own
+instruction once this lands.
