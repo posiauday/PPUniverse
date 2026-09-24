@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SITE_NAME } from "./site.js";
 import {
   checkAnnouncerMoments,
   classifyTitleTrace,
@@ -8,7 +9,7 @@ import {
 
 type TitleEvent = Extract<TitleTraceEvent, { kind: "title" }>;
 
-const SITE = "Power Platform Universe";
+const SITE = SITE_NAME;
 const title = (
   atMs: number,
   t: string,

@@ -6,6 +6,7 @@ import {
   buildWebSiteJsonLd,
   type ProductJsonLdInput,
 } from "./json-ld.js";
+import { SITE_NAME } from "./site.js";
 
 const PRODUCT: ProductJsonLdInput = {
   url: "https://example.com/products/sample-component",
@@ -169,7 +170,7 @@ describe("buildWebSiteJsonLd", () => {
     expect(buildWebSiteJsonLd("https://example.com")).toEqual({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "Power Platform Universe",
+      name: SITE_NAME,
       url: "https://example.com/",
     });
   });

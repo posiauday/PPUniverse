@@ -3,6 +3,7 @@ import { prisma } from "@ppu/db";
 import type { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { EMAIL_FROM, notificationService } from "./email";
+import { SITE_NAME } from "./seo/site";
 
 // Migrated onto the real vendor abstraction (MVP-018, FR-013;
 // docs/final-decisions.md, "MVP-018 open question 49") — see ./email for the
@@ -38,7 +39,7 @@ export const authOptions: NextAuthOptions = {
         // accessibility gate's signin-send-failed state) are unchanged.
         await notificationService.sendTransactional("SIGNIN_LINK", existingUser?.id ?? null, {
           to: identifier,
-          subject: "Sign in to Power Platform Universe",
+          subject: `Sign in to ${SITE_NAME}`,
           text: `Sign in by opening this link (expires shortly): ${url}`,
           html: `<p>Sign in by opening this link (expires shortly): <a href="${url}">${url}</a></p>`,
         });

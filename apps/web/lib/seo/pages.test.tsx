@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SITE_NAME } from "./site.js";
 
 /**
  * Wiring tests (MVP-021): call the REAL page, layout, robots, sitemap and
@@ -136,7 +137,7 @@ describe("home page", () => {
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "Power Platform Universe",
+        name: SITE_NAME,
         url: "https://example.com/",
       },
     ]);

@@ -23,7 +23,7 @@ import { computeTitleFallback } from "./SessionsHeading";
  * would have missed entirely (there is nothing to assign to).
  */
 describe("computeTitleFallback (BUG-013 mitigation logic)", () => {
-  const EXPECTED = "Active sessions | Power Platform Universe";
+  const EXPECTED = "Active sessions | LowCodeStacks";
 
   it("creates a title when none exists — the absent case the CI failure actually showed", () => {
     expect(computeTitleFallback(null, EXPECTED)).toEqual({ action: "create", text: EXPECTED });
@@ -37,7 +37,7 @@ describe("computeTitleFallback (BUG-013 mitigation logic)", () => {
   });
 
   it("updates an existing title when its text belongs to a different page", () => {
-    expect(computeTitleFallback({ text: "Search | Power Platform Universe" }, EXPECTED)).toEqual({
+    expect(computeTitleFallback({ text: "Search | LowCodeStacks" }, EXPECTED)).toEqual({
       action: "update",
       text: EXPECTED,
     });
