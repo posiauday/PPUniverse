@@ -27,24 +27,44 @@ export const PLATFORM_AREA_LABELS: Record<PlatformArea, string> = {
   MICROSOFT_FABRIC: "Microsoft Fabric",
 };
 
+/**
+ * Vocabulary corrected 2026-09-24 (TD-008; docs/final-decisions.md, 2026-09-21
+ * "Product-owner responses to MVP-005 open items" section B). Only
+ * CREATOR_DECLARED and MARKETPLACE_REVIEWED are assignable -- see
+ * ASSIGNABLE_EVIDENCE_STATUSES below, used by the validator. TESTED and
+ * NOT_VERIFIED are reserved/legacy: kept here only so existing/legacy rows
+ * still have a label if ever read directly, never offered as a choice and
+ * never shown in the public legend (present-evidence.ts filters both out).
+ */
 export const EVIDENCE_STATUSES: readonly CompatibilityEvidenceStatus[] = [
   "TESTED",
   "CREATOR_DECLARED",
   "NOT_VERIFIED",
+  "MARKETPLACE_REVIEWED",
+];
+
+/** The only statuses a caller may assign (TD-008). Order is display order. */
+export const ASSIGNABLE_EVIDENCE_STATUSES: readonly CompatibilityEvidenceStatus[] = [
+  "CREATOR_DECLARED",
+  "MARKETPLACE_REVIEWED",
 ];
 
 export const EVIDENCE_STATUS_LABELS: Record<CompatibilityEvidenceStatus, string> = {
   TESTED: "Tested",
   CREATOR_DECLARED: "Creator Declared",
   NOT_VERIFIED: "Not Verified",
+  MARKETPLACE_REVIEWED: "Marketplace Reviewed",
 };
 
+/** Approved wording only (docs/final-decisions.md, 2026-09-21, section B) -- do not paraphrase. */
 export const EVIDENCE_STATUS_DEFINITIONS: Record<CompatibilityEvidenceStatus, string> = {
   TESTED:
-    "Compatibility was tested using a documented environment or repeatable verification process.",
+    "Reserved. Not assignable, not inferred from other data, and not migrated to from any other status.",
   CREATOR_DECLARED:
-    "The creator supplied the compatibility claim, but the marketplace has not independently verified it.",
-  NOT_VERIFIED: "No sufficient verification evidence is available.",
+    "The compatibility information was supplied by the creator and has not been independently certified by the marketplace.",
+  NOT_VERIFIED: "Legacy. Not assignable. Unreviewed information is Creator Declared, not this.",
+  MARKETPLACE_REVIEWED:
+    "A moderator reviewed the submitted compatibility statement for completeness, plausibility, prohibited claims and publication readiness. This does not mean independently tested, certified, guaranteed, Microsoft approved, Microsoft certified, officially supported or verified compatible.",
 };
 
 /** 2019 is the earliest Microsoft release-wave year. The database check is wider (to 2100) so a new year never needs a migration. */
@@ -117,12 +137,11 @@ export type CompatibilityErrorCode =
   | "RELEASE_WAVE_INVALID"
   | "EVIDENCE_STATUS_REQUIRED"
   | "EVIDENCE_STATUS_INVALID"
+  | "EVIDENCE_STATUS_RESERVED_OR_LEGACY"
   | "NOTES_TOO_LONG"
   | "EVIDENCE_SUMMARY_TOO_LONG"
-  | "EVIDENCE_SUMMARY_REQUIRED_FOR_TESTED"
   | "LAST_VERIFIED_INVALID"
-  | "LAST_VERIFIED_IN_FUTURE"
-  | "LAST_VERIFIED_REQUIRED_FOR_TESTED";
+  | "LAST_VERIFIED_IN_FUTURE";
 
 export interface CompatibilityEntryInput {
   platformArea?: string | null;
@@ -188,10 +207,17 @@ export function validateCompatibilityEntry(
     errors.push({ field: "minReleaseWave", code: "RELEASE_WAVE_INVALID" });
   }
 
+  // TD-008: only CREATOR_DECLARED and MARKETPLACE_REVIEWED may ever be
+  // assigned through this function. TESTED and NOT_VERIFIED are reserved/
+  // legacy and are rejected with their own code, distinct from ordinary
+  // garbage input, so a caller can tell "you tried a real but forbidden
+  // status" from "that isn't a status at all".
   const rawStatus = input.evidenceStatus?.trim();
   if (!rawStatus) {
     errors.push({ field: "evidenceStatus", code: "EVIDENCE_STATUS_REQUIRED" });
-  } else if (!EVIDENCE_STATUSES.includes(rawStatus as CompatibilityEvidenceStatus)) {
+  } else if (rawStatus === "TESTED" || rawStatus === "NOT_VERIFIED") {
+    errors.push({ field: "evidenceStatus", code: "EVIDENCE_STATUS_RESERVED_OR_LEGACY" });
+  } else if (!ASSIGNABLE_EVIDENCE_STATUSES.includes(rawStatus as CompatibilityEvidenceStatus)) {
     errors.push({ field: "evidenceStatus", code: "EVIDENCE_STATUS_INVALID" });
   }
 
@@ -213,15 +239,6 @@ export function validateCompatibilityEntry(
       errors.push({ field: "lastVerifiedAt", code: "LAST_VERIFIED_INVALID" });
     } else if (verifiedTime > today) {
       errors.push({ field: "lastVerifiedAt", code: "LAST_VERIFIED_IN_FUTURE" });
-    }
-  }
-
-  if (rawStatus === "TESTED") {
-    if (evidenceSummary === null) {
-      errors.push({ field: "evidenceSummary", code: "EVIDENCE_SUMMARY_REQUIRED_FOR_TESTED" });
-    }
-    if (rawVerified === null) {
-      errors.push({ field: "lastVerifiedAt", code: "LAST_VERIFIED_REQUIRED_FOR_TESTED" });
     }
   }
 

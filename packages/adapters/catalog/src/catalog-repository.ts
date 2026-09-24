@@ -247,7 +247,7 @@ function toLicenseDefinitionRecord(row: {
   };
 }
 
-/** `lastVerifiedAt` is a DATE column; Prisma hands back UTC midnight, so the ISO date prefix is the stored calendar date. */
+/** `lastVerifiedAt` is a DATE column; Prisma hands back UTC midnight, so the ISO date prefix is the stored calendar date. `reviewedAt` (TD-008) is a full timestamp, kept as ISO. */
 function toCompatibilityEntry(row: {
   id: string;
   platformArea: PlatformArea;
@@ -257,6 +257,7 @@ function toCompatibilityEntry(row: {
   evidenceStatus: CompatibilityEvidenceStatus;
   evidenceSummary: string | null;
   lastVerifiedAt: Date | null;
+  reviewedAt: Date | null;
 }): CompatibilityEntry {
   return {
     id: row.id,
@@ -267,6 +268,7 @@ function toCompatibilityEntry(row: {
     evidenceStatus: row.evidenceStatus,
     evidenceSummary: row.evidenceSummary,
     lastVerifiedAt: row.lastVerifiedAt ? row.lastVerifiedAt.toISOString().slice(0, 10) : null,
+    reviewedAt: row.reviewedAt ? row.reviewedAt.toISOString() : null,
   };
 }
 

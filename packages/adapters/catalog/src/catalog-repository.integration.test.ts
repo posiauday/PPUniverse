@@ -337,6 +337,22 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         "Tested status with a summary but no verified date",
         { platformArea: "POWER_BI", evidenceStatus: "TESTED", evidenceSummary: "Repeatable pass." },
       ],
+      [
+        // TD-008: the reviewedAt <-> status CHECK, direction 1 -- Marketplace
+        // Reviewed without a reviewedAt.
+        "Marketplace Reviewed status without a reviewedAt",
+        { platformArea: "POWER_BI", evidenceStatus: "MARKETPLACE_REVIEWED" },
+      ],
+      [
+        // TD-008: direction 2 -- a reviewedAt on a status that isn't
+        // Marketplace Reviewed. The two must never drift apart either way.
+        "a reviewedAt set on a Creator Declared record",
+        {
+          platformArea: "POWER_BI",
+          evidenceStatus: "CREATOR_DECLARED",
+          reviewedAt: new Date("2026-09-24T00:00:00Z"),
+        },
+      ],
     ];
 
     it.each(rejectedRecords)("rejects %s", async (_label, overrides) => {
@@ -344,6 +360,18 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       expect(
         await db.compatibilityRecord.count({ where: { productId, platformArea: "POWER_BI" } }),
       ).toBe(0);
+    });
+
+    it("accepts a Marketplace Reviewed record with a reviewedAt set (TD-008)", async () => {
+      await expect(
+        db.compatibilityRecord.create({
+          data: record({
+            platformArea: "POWER_BI",
+            evidenceStatus: "MARKETPLACE_REVIEWED",
+            reviewedAt: new Date("2026-09-24T00:00:00Z"),
+          }),
+        }),
+      ).resolves.toBeDefined();
     });
 
     it("rejects a duplicate release version for the same product, and a blank version", async () => {

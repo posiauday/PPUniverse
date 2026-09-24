@@ -13,6 +13,7 @@ const entry = (overrides: Partial<CompatibilityEntry> = {}): CompatibilityEntry 
   evidenceStatus: "CREATOR_DECLARED",
   evidenceSummary: null,
   lastVerifiedAt: null,
+  reviewedAt: null,
   ...overrides,
 });
 
@@ -50,21 +51,34 @@ describe("presentProductEvidence", () => {
     expect(view.messages.lastVerifiedUnavailable).toBe("Not independently verified");
   });
 
-  it("carries the evidence summary and a formatted verified date for a Tested entry", () => {
+  it("carries the evidence summary and a formatted verified date for a Marketplace Reviewed entry", () => {
     const view = presentProductEvidence({
       ...empty,
       compatibility: [
         entry({
-          evidenceStatus: "TESTED",
+          evidenceStatus: "MARKETPLACE_REVIEWED",
           evidenceSummary: "Repeatable regression pass.",
           lastVerifiedAt: "2026-03-12",
+          reviewedAt: "2026-03-13T00:00:00.000Z",
         }),
       ],
     });
     const row = view.compatibility[0];
-    expect(row?.evidenceStatusLabel).toBe("Tested");
+    expect(row?.evidenceStatusLabel).toBe("Marketplace Reviewed");
     expect(row?.evidenceSummary).toBe("Repeatable regression pass.");
     expect(row?.lastVerified).toEqual({ iso: "2026-03-12", label: "12 March 2026" });
+  });
+
+  it("filters out TESTED and NOT_VERIFIED rows entirely — fail closed (TD-008)", () => {
+    const view = presentProductEvidence({
+      ...empty,
+      compatibility: [
+        entry({ id: "reserved", evidenceStatus: "TESTED" }),
+        entry({ id: "legacy", evidenceStatus: "NOT_VERIFIED" }),
+        entry({ id: "visible", evidenceStatus: "CREATOR_DECLARED" }),
+      ],
+    });
+    expect(view.compatibility.map((row) => row.id)).toEqual(["visible"]);
   });
 
   it("sanitizes creator-supplied text before it reaches the page", () => {
@@ -151,13 +165,14 @@ describe("presentProductEvidence", () => {
 });
 
 describe("evidence legend and wording", () => {
-  it("lists the three approved statuses in order with their definitions", () => {
+  it("lists only the two assignable statuses in order with their definitions (TD-008)", () => {
     expect(EVIDENCE_LEGEND.map((item) => item.label)).toEqual([
-      "Tested",
       "Creator Declared",
-      "Not Verified",
+      "Marketplace Reviewed",
     ]);
     expect(EVIDENCE_LEGEND.every((item) => item.definition.length > 0)).toBe(true);
+    expect(EVIDENCE_LEGEND.some((item) => item.label === "Tested")).toBe(false);
+    expect(EVIDENCE_LEGEND.some((item) => item.label === "Not Verified")).toBe(false);
   });
 
   it("states that the minimum release wave is a claim, not a guarantee", () => {
@@ -165,7 +180,13 @@ describe("evidence legend and wording", () => {
     expect(EVIDENCE_MESSAGES.minimumReleaseWaveNote).toContain("not proof");
   });
 
-  it("never produces a certification-style label (Certified / Approved / Officially Supported / Marketplace Verified)", () => {
+  it("never produces a certification-style label in per-product content (Certified / Approved / Officially Supported / Marketplace Verified)", () => {
+    // Scoped to the per-product parts of the view, not the static legend:
+    // the approved Marketplace Reviewed definition itself legitimately says
+    // "does not mean ... certified ... approved ... officially supported"
+    // (docs/final-decisions.md, 2026-09-21) -- a disclaimer, not a claim.
+    // This test's job is to catch an affirmative claim about a specific
+    // product, which is a different thing from the legend's own negation.
     const view = presentProductEvidence({
       licenses: [
         {
@@ -180,14 +201,26 @@ describe("evidence legend and wording", () => {
       support: { status: "PLATFORM_SUPPORTED", channel: "https://example.test/help" },
       compatibility: [
         entry({
-          evidenceStatus: "TESTED",
+          evidenceStatus: "MARKETPLACE_REVIEWED",
           evidenceSummary: "Repeatable pass.",
           lastVerifiedAt: "2026-01-05",
+          reviewedAt: "2026-01-06T00:00:00.000Z",
         }),
-        entry({ id: "c2", platformArea: "POWER_BI", evidenceStatus: "NOT_VERIFIED" }),
+        entry({ id: "c2", platformArea: "POWER_BI", evidenceStatus: "CREATOR_DECLARED" }),
         entry({ id: "c3", platformArea: "COPILOT_STUDIO", evidenceStatus: "CREATOR_DECLARED" }),
       ],
     });
-    expect(JSON.stringify(view)).not.toMatch(FORBIDDEN);
+    const perProductContent = JSON.stringify({
+      licenses: view.licenses,
+      version: view.version,
+      support: view.support,
+      compatibility: view.compatibility,
+    });
+    expect(perProductContent).not.toMatch(FORBIDDEN);
+  });
+
+  it("the legend's own approved disclaimer wording is allowed to name what Marketplace Reviewed does not mean", () => {
+    const reviewed = EVIDENCE_LEGEND.find((item) => item.label === "Marketplace Reviewed");
+    expect(reviewed?.definition).toContain("does not mean");
   });
 });

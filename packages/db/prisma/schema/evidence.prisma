@@ -20,10 +20,17 @@ enum PlatformArea {
   MICROSOFT_FABRIC
 }
 
+// Vocabulary corrected 2026-09-24 (TD-008; docs/final-decisions.md, 2026-09-21
+// "Product-owner responses to MVP-005 open items" section B). Only
+// CREATOR_DECLARED and MARKETPLACE_REVIEWED are assignable. TESTED and
+// NOT_VERIFIED are reserved/legacy: never assignable, never migrated to,
+// never removed (Postgres cannot drop an enum value without a table
+// rebuild, and no destructive removal was approved regardless).
 enum CompatibilityEvidenceStatus {
   TESTED
   CREATOR_DECLARED
   NOT_VERIFIED
+  MARKETPLACE_REVIEWED
 }
 
 enum SupportStatus {
@@ -110,6 +117,13 @@ model CompatibilityRecord {
   evidenceStatus  CompatibilityEvidenceStatus
   evidenceSummary String?
   lastVerifiedAt  DateTime?                   @db.Date
+  /// Set only when evidenceStatus transitions to MARKETPLACE_REVIEWED, only by
+  /// the trusted server-side moderation workflow (not built yet - MVP-013),
+  /// using the server clock. Null for every other status, including
+  /// CREATOR_DECLARED. Never accepted from a client. A CHECK constraint
+  /// (migration 20260924010000) keeps the two in lockstep so they cannot
+  /// drift apart (TD-008).
+  reviewedAt      DateTime?
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
 

@@ -1,5 +1,5 @@
 import {
-  EVIDENCE_STATUSES,
+  ASSIGNABLE_EVIDENCE_STATUSES,
   EVIDENCE_STATUS_DEFINITIONS,
   EVIDENCE_STATUS_LABELS,
   PLATFORM_AREA_LABELS,
@@ -54,11 +54,20 @@ export const EVIDENCE_MESSAGES: ProductEvidenceView["messages"] = {
     "The minimum release wave is the earliest release wave for which the product claims compatibility. It is not proof that the product works with every later release.",
 };
 
-export const EVIDENCE_LEGEND: readonly EvidenceLegendItem[] = EVIDENCE_STATUSES.map((status) => ({
-  status,
-  label: EVIDENCE_STATUS_LABELS[status],
-  definition: EVIDENCE_STATUS_DEFINITIONS[status],
-}));
+/**
+ * The public legend lists only the two assignable statuses (TD-008;
+ * docs/final-decisions.md, 2026-09-21). TESTED never appears here even
+ * though the enum value exists -- displaying it would tell buyers "Tested"
+ * is meaningful when no product can be assigned it yet. NOT_VERIFIED is
+ * legacy and never displayed either.
+ */
+export const EVIDENCE_LEGEND: readonly EvidenceLegendItem[] = ASSIGNABLE_EVIDENCE_STATUSES.map(
+  (status) => ({
+    status,
+    label: EVIDENCE_STATUS_LABELS[status],
+    definition: EVIDENCE_STATUS_DEFINITIONS[status],
+  }),
+);
 
 export function presentProductEvidence(
   detail: Pick<ProductDetail, "licenses" | "currentVersion" | "support" | "compatibility">,
@@ -77,22 +86,36 @@ export function presentProductEvidence(
           channelHref: safeSupportChannelHref(detail.support.channel),
         }
       : null,
-    compatibility: detail.compatibility.map((entry) => {
-      const verifiedLabel = entry.lastVerifiedAt ? formatVerifiedDate(entry.lastVerifiedAt) : null;
-      return {
-        id: entry.id,
-        platformAreaLabel: PLATFORM_AREA_LABELS[entry.platformArea],
-        minimumReleaseWaveLabel: formatReleaseWave(entry.minReleaseYear, entry.minReleaseWave),
-        evidenceStatus: entry.evidenceStatus,
-        evidenceStatusLabel: EVIDENCE_STATUS_LABELS[entry.evidenceStatus],
-        evidenceSummary: normalizeDisplayText(entry.evidenceSummary),
-        lastVerified:
-          entry.lastVerifiedAt && verifiedLabel
-            ? { iso: entry.lastVerifiedAt, label: verifiedLabel }
-            : null,
-        notes: normalizeDisplayText(entry.notes),
-      };
-    }),
+    // TD-008, "fail closed": a TESTED or NOT_VERIFIED row is reserved/legacy
+    // and must never render in the public matrix, even if one exists in the
+    // database from before this vocabulary was corrected. Nothing can write
+    // either status going forward (validateCompatibilityEntry rejects both),
+    // so this filter only ever matters for pre-existing data, if any -- none
+    // is known to exist (verified empty at MVP-005; see TD-008.md section 5).
+    compatibility: detail.compatibility
+      .filter((entry) =>
+        (ASSIGNABLE_EVIDENCE_STATUSES as readonly CompatibilityEvidenceStatus[]).includes(
+          entry.evidenceStatus,
+        ),
+      )
+      .map((entry) => {
+        const verifiedLabel = entry.lastVerifiedAt
+          ? formatVerifiedDate(entry.lastVerifiedAt)
+          : null;
+        return {
+          id: entry.id,
+          platformAreaLabel: PLATFORM_AREA_LABELS[entry.platformArea],
+          minimumReleaseWaveLabel: formatReleaseWave(entry.minReleaseYear, entry.minReleaseWave),
+          evidenceStatus: entry.evidenceStatus,
+          evidenceStatusLabel: EVIDENCE_STATUS_LABELS[entry.evidenceStatus],
+          evidenceSummary: normalizeDisplayText(entry.evidenceSummary),
+          lastVerified:
+            entry.lastVerifiedAt && verifiedLabel
+              ? { iso: entry.lastVerifiedAt, label: verifiedLabel }
+              : null,
+          notes: normalizeDisplayText(entry.notes),
+        };
+      }),
     evidenceLegend: [...EVIDENCE_LEGEND],
     messages: EVIDENCE_MESSAGES,
   };
