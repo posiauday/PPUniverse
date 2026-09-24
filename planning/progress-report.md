@@ -2760,3 +2760,78 @@ started; open question 5 and every other question not listed above remain exactl
 they were; no gate check was weakened, skipped, quarantined or conditionally excluded.
 BUG-015's own fix is not started under this authorization — it gets its own
 instruction once this lands.
+
+## BUG-015 — pre-work, then implementation: per-package test-database isolation (2026-09-24)
+
+Two-part, both direct product-owner instruction, branch `feature/bug-015-test-isolation`.
+First a pre-work-only analysis (`planning/prework/BUG-015-prework-analysis.md`, no
+production code/schema/package changes), then an implementation instruction responding
+to it, approving schema-per-package isolation and requiring measured (not assumed)
+runtime numbers.
+
+**Pre-work findings, verified by reading all 9 integration-test files, not assumed to
+be only catalog/entitlements:** 7 of 9 packages (catalog, content, entitlements,
+files, identity, notifications, privacy) write to the shared CI Postgres; all 7 write
+to the shared `user`/`users` table but only catalog has any *unscoped* read that
+compares against another snapshot — the actual flaky-read surface is narrower than the
+write surface. A second, previously-undocumented race in the same file as the
+original report was found: `catalog-repository.integration.test.ts:463-475`
+("lists a category if and only if it currently has a PUBLISHED product"), concretely
+triggerable because catalog's and entitlements' fixtures both write `PUBLISHED`
+products into the same shared seeded category (`power-apps-components`). scanning and
+storage confirmed to have zero Postgres access (no `db.`/`prisma.` reference at all).
+
+**Implementation:**
+- **Schema-per-package isolation**, not database-per-package: Prisma's own
+  `?schema=` connection-string parameter (already used for `public` everywhere in this
+  repo), one schema per adapter package (`pkg_catalog`, `pkg_content`, etc.), derived
+  automatically from `npm_package_name` at test-setup time
+  (`packages/db/src/test-schema-isolation.ts`, wired via a `vitest.setup.ts` in each
+  of the 7 packages) — no schema name is ever hand-typed per package.
+- **Provisioning**: `packages/db/scripts/provision-test-schemas.mjs` creates the 7
+  schemas and runs `prisma migrate deploy` against each (RLS included, verified against
+  a real provisioned schema by direct `pg_class.relrowsecurity` query, not inferred
+  from the migration files) — replaces the CI `build-and-test` job's single
+  "Apply migrations" step. Guarded by an independent copy of the existing
+  loopback-plus-explicit-opt-in safety check (`packages/db/src/db-target-guard.ts`,
+  tested; the operational script duplicates the check inline since it must run before
+  `@ppu/db` is built — documented in the script's own header) — same pattern as
+  `packages/e2e/src/db-guard.ts` (left untouched).
+- **Sequential vs. parallel, measured, not assumed** (against a real local Postgres):
+  sequential 29.2s total for 7 schemas (one clean run, after discarding a one-time
+  cold-start outlier); parallel 10.3s and 10.4s across two independent from-scratch
+  runs (~2.8x faster), both fully successful, no lock contention (Prisma's advisory
+  lock is scoped per-schema's own `_prisma_migrations` table), no nondeterminism
+  across the two parallel runs. Parallel adopted as the CI default per the
+  instruction's own criteria; `--sequential` remains available in the script. An
+  earlier version of the parallel path was itself a bug — wrapping the blocking
+  `execFileSync` call in a `Promise` executor doesn't yield control and is sequential
+  in disguise; caught while measuring, fixed to use async `execFile`, documented in
+  the script so it isn't quietly reintroduced.
+- **Both races reproduced deterministically before the fix and confirmed absent
+  after**, against a real local Postgres. Natural concurrent full-suite runs (15
+  attempts) did not hit the narrow race window within available time, so the
+  concurrent insert's timing was orchestrated directly against the real repository
+  queries (documented as such, not hidden) rather than relying on scheduling luck —
+  before: both races reproduce every time; after: catalog's own schema is unaffected
+  by an insert into entitlements' schema, for both races, confirmed. The real vitest
+  suites for catalog+entitlements were also run 5 additional times after the fix
+  through the actual `pnpm test` path (not the raw-SQL repro) with zero failures.
+- **Total test count unchanged**: 691 before, 691 after, identical per-package
+  breakdown (`pnpm exec turbo run test --force`, forced/uncached, both states).
+- **Local parity preserved**: `describe.skipIf(!DATABASE_URL)` still skips cleanly
+  with no `DATABASE_URL` set — `applyTestSchemaIsolation()` is a no-op in that case,
+  confirmed by running the suite with `DATABASE_URL` unset.
+- **Open questions 57 and 59 closed** with the recommended default that was
+  implemented (auto-derived schema name from one shared `DATABASE_URL`; parallel
+  provisioning as the CI default, per the measurement above). **Open question 58 stays
+  open** — not implicated by this story, since no job-queue code exists yet.
+- **BUG-015.md updated**: status changed to Fixed, the second race recorded as its own
+  distinct finding (not folded into the original report), a "Resolution" section added.
+  `planning/bugs.csv`'s row updated to Resolved.
+
+**Unchanged, explicitly:** no production code changed — `catalog-repository.ts`
+untouched. No change to the accessibility job, its sharding, worker count, timeouts,
+retries, engines, widths or rules (a separate CI job with its own migration step, not
+touched). TD-006, PROP-007, MVP-007, MVP-011 not started. Open question 5 and 56 not
+resolved. No gate check weakened, skipped, quarantined, or conditionally excluded.

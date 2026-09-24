@@ -92,18 +92,39 @@ Full pre-work: `planning/prework/BUG-015-prework-analysis.md`. The isolation str
 itself (per-package database/schema isolation) is already decided and is not one of
 these questions.
 
-57. **NOT APPROVED.** Local/CI `DATABASE_URL` shape once each package has its own
-    schema: does each package derive its own `?schema=pkg_x` automatically from one
-    shared base `DATABASE_URL`, or does each package carry its own full
-    `DATABASE_URL` entry in `.env.example` and CI env? (pre-work §5)
-58. **NOT APPROVED.** If/when PROP-007's job-queue foundation is built, is it one
-    cross-package job-queue table (as currently pre-work'd in
-    `planning/prework/TD-004-prework-analysis.md`) or a per-package queue, given
-    this story's per-package schema isolation? A single cross-package queue table
-    that multiple packages' tests write to concurrently is the same class of
-    shared-mutable-state risk this story removes elsewhere. (pre-work §7)
-59. **NOT APPROVED.** What CI runtime ceiling is acceptable for this story's added
-    per-schema migration cost, and is running the 7 packages' `migrate deploy`
-    invocations in parallel (rather than sequentially) an acceptable approach —
-    pending a real measurement during implementation, not the ~61s estimate this
-    pre-work offers? (pre-work §8)
+57. **CLOSED (2026-09-24, recommended default reported and implemented under the
+    direct product-owner "BUG-015 IMPLEMENTATION" instruction, which approved
+    schema-per-package isolation without further gating this specific mechanism).**
+    Each package derives its own `?schema=pkg_x` automatically from the one shared
+    base `DATABASE_URL` already in every `.env.example`/CI env — no new
+    `DATABASE_URL` entries added per package. Implemented as
+    `packages/db/src/test-schema-isolation.ts`'s `applyTestSchemaIsolation()`,
+    reading `npm_package_name` (which pnpm sets on every script it runs) so no
+    schema name is ever hand-typed per package. *Original question, from the
+    BUG-015 pre-work:* one shared `DATABASE_URL` vs. one per package. (pre-work §5)
+58. **NOT APPROVED — still open, not implicated by this story.** If/when PROP-007's
+    job-queue foundation is built, is it one cross-package job-queue table (as
+    currently pre-work'd in `planning/prework/TD-004-prework-analysis.md`) or a
+    per-package queue, given this story's per-package schema isolation? A single
+    cross-package queue table that multiple packages' tests write to concurrently
+    is the same class of shared-mutable-state risk this story removes elsewhere.
+    No job-queue code exists yet, so this remains genuinely open. (pre-work §7)
+59. **CLOSED (2026-09-24, recommended default reported and implemented under the
+    direct product-owner "BUG-015 IMPLEMENTATION" instruction, which required a real
+    measurement rather than an estimate before deciding).** Parallel provisioning of
+    the 7 schemas' `migrate deploy` calls is adopted as the CI default. Measured
+    locally against a real Postgres instance (not CI's own runners, but the same
+    single-process-per-package invocation shape): sequential 29.2s total (7 × ~4s,
+    one clean run after discarding an outlier caused by a one-time cold-start cost);
+    parallel 10.3s and 10.4s total across two independent from-scratch runs (~2.8x
+    faster), both fully successful with no lock contention or errors — Prisma's
+    advisory lock is scoped to each schema's own `_prisma_migrations` tracking
+    table, so 7 concurrent `migrate deploy` invocations against 7 different schemas
+    do not contend with each other. Two consecutive parallel runs produced
+    consistent, successful results (no nondeterminism observed). Per the
+    instruction's own criteria ("if parallel is contended, flaky, or only marginally
+    faster: take sequential") parallel qualifies as the right choice on all three
+    counts. `packages/db/scripts/provision-test-schemas.mjs --sequential` remains
+    available as a fallback if CI-specific contention ever appears that this local
+    measurement didn't surface. *Original question:* CI runtime ceiling and
+    parallel-vs-sequential, pending real measurement. (pre-work §8)

@@ -48,3 +48,11 @@ export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
 });
 
 export * from "./generated/client/client.js";
+export { applyTestSchemaIsolation, deriveTestSchemaName } from "./test-schema-isolation.js";
+export {
+  assertSafeDatabaseTarget,
+  DatabaseGuardError,
+  evaluateDatabaseTarget,
+  type DatabaseTarget,
+  type DatabaseTargetEnv,
+} from "./db-target-guard.js";
