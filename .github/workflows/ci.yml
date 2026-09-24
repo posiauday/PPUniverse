@@ -93,8 +93,17 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Apply migrations (integration test database)
-        run: pnpm --filter @ppu/db exec prisma migrate deploy
+      - name: Provision per-package test schemas (BUG-015 isolation)
+        # One Postgres schema per adapter package that writes to this shared
+        # service container (planning/prework/BUG-015-prework-analysis.md),
+        # each fully migrated (RLS included) so no two packages' concurrent
+        # `pnpm test` tasks (below) can see each other's rows. --parallel is
+        # measured faster and not lock-contended against --sequential (see
+        # planning/bugs/BUG-015.md's implementation note) so it is the CI
+        # default; --sequential remains available if that ever regresses.
+        run: node packages/db/scripts/provision-test-schemas.mjs --parallel
+        env:
+          DB_MIGRATIONS_ALLOW_DESTRUCTIVE_SETUP: "1"
 
       - name: Test (unit + integration)
         run: pnpm test

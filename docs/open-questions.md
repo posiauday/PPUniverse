@@ -85,3 +85,53 @@ Claude must not silently resolve these as facts. Use reversible defaults and rec
 54. **CLOSED (2026-09-24, direct product-owner instruction — see `docs/final-decisions.md`, "TD-004 architecture and sequencing", section 4).** Retry policy, decided as a starting default, **explicitly revisable once real failure-rate data exists**: 3 attempts, exponential backoff starting at 30s, then dead-letter. Applied uniformly across job types until per-type data justifies tuning. *Original question:* retry/backoff parameters for any job type.
 55. **CLOSED (2026-09-24, direct product-owner instruction — see `docs/final-decisions.md`, "TD-004 architecture and sequencing", section 4).** Dead-letter visibility: a dead-lettered job is an `ERROR`-level structured log line through the existing telemetry stack (OpenTelemetry/Sentry per ADR-004) — no bespoke UI is built ahead of MVP-019. **MVP-019's own scope should pick up dead-letter inspection once MVP-019 itself is specified** — recorded here so that inspection surface is not forgotten when MVP-019 is scoped. *Original question:* who inspects a permanently-failed job, and through what surface, before MVP-019 exists?
 56. **OPEN — blocked on open question 5, not unanswered.** Worker process model (a long-running process vs. a scheduled/serverless invocation) is genuinely downstream of the unresolved hosting-region decision (open question 5) and is not separably answerable before it. Recorded as blocked, not as its own independent open item.
+
+## Raised 2026-09-24 (BUG-015 pre-work) — test isolation; questions only, nothing here is decided
+
+Full pre-work: `planning/prework/BUG-015-prework-analysis.md`. The isolation strategy
+itself (per-package database/schema isolation) is already decided and is not one of
+these questions.
+
+57. **CLOSED (2026-09-24, recommended default reported and implemented under the
+    direct product-owner "BUG-015 IMPLEMENTATION" instruction, which approved
+    schema-per-package isolation without further gating this specific mechanism;
+    revised once during implementation after a real CI failure — see below).** Each
+    package derives its own `?schema=pkg_x` from the one shared base `DATABASE_URL`
+    already in every `.env.example`/CI env — no new `DATABASE_URL` entries added per
+    package. First implemented by auto-deriving the schema name from
+    `npm_package_name`; a real CI run showed that variable is not reliably set under
+    Turborepo's actual task invocation (it worked under a direct
+    `pnpm --filter x run test` locally, which is how the original approach was
+    verified, but not through `turbo run test`'s own invocation path in CI), silently
+    leaving every package on the shared `public` schema instead of throwing. Revised
+    to an explicit per-package literal passed by each package's own
+    `vitest.setup.ts` (`applyTestSchemaIsolation("catalog")`, etc.) — no environment
+    inference at all, so there is no environment-shape assumption left to be wrong
+    about. *Original question, from the BUG-015 pre-work:* one shared `DATABASE_URL`
+    vs. one per package. (pre-work §5)
+58. **NOT APPROVED — still open, not implicated by this story.** If/when PROP-007's
+    job-queue foundation is built, is it one cross-package job-queue table (as
+    currently pre-work'd in `planning/prework/TD-004-prework-analysis.md`) or a
+    per-package queue, given this story's per-package schema isolation? A single
+    cross-package queue table that multiple packages' tests write to concurrently
+    is the same class of shared-mutable-state risk this story removes elsewhere.
+    No job-queue code exists yet, so this remains genuinely open. (pre-work §7)
+59. **CLOSED (2026-09-24, recommended default reported and implemented under the
+    direct product-owner "BUG-015 IMPLEMENTATION" instruction, which required a real
+    measurement rather than an estimate before deciding).** Parallel provisioning of
+    the 7 schemas' `migrate deploy` calls is adopted as the CI default. Measured
+    locally against a real Postgres instance (not CI's own runners, but the same
+    single-process-per-package invocation shape): sequential 29.2s total (7 × ~4s,
+    one clean run after discarding an outlier caused by a one-time cold-start cost);
+    parallel 10.3s and 10.4s total across two independent from-scratch runs (~2.8x
+    faster), both fully successful with no lock contention or errors — Prisma's
+    advisory lock is scoped to each schema's own `_prisma_migrations` tracking
+    table, so 7 concurrent `migrate deploy` invocations against 7 different schemas
+    do not contend with each other. Two consecutive parallel runs produced
+    consistent, successful results (no nondeterminism observed). Per the
+    instruction's own criteria ("if parallel is contended, flaky, or only marginally
+    faster: take sequential") parallel qualifies as the right choice on all three
+    counts. `packages/db/scripts/provision-test-schemas.mjs --sequential` remains
+    available as a fallback if CI-specific contention ever appears that this local
+    measurement didn't surface. *Original question:* CI runtime ceiling and
+    parallel-vs-sequential, pending real measurement. (pre-work §8)
