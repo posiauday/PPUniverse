@@ -2817,21 +2817,55 @@ storage confirmed to have zero Postgres access (no `db.`/`prisma.` reference at 
   by an insert into entitlements' schema, for both races, confirmed. The real vitest
   suites for catalog+entitlements were also run 5 additional times after the fix
   through the actual `pnpm test` path (not the raw-SQL repro) with zero failures.
-- **Total test count unchanged**: 691 before, 691 after, identical per-package
-  breakdown (`pnpm exec turbo run test --force`, forced/uncached, both states).
+- **A real CI run on this PR caught a genuine implementation bug local testing had
+  missed**: the first pushed version passed every local check (691/691, zero races,
+  5 repeated clean runs) but failed CI's `Test (unit + integration)` step with
+  `TableDoesNotExist` on `public.*` tables across multiple packages — not a race, an
+  isolation no-op. Root cause, traced by temporary debug instrumentation then
+  confirmed against `@prisma/adapter-pg`'s own source: `@prisma/adapter-pg` does not
+  read a `?schema=` query parameter from the connection string the way Prisma's
+  migration CLI does; it hands the string straight to `pg`, which ignores the
+  unrecognized parameter and defaults to `search_path=public`. Every schema's
+  `migrate deploy` had genuinely succeeded — the queries themselves were just still
+  landing in `public`, which the fix had stopped migrating. Two corrections were
+  required in `packages/db/src/index.ts`'s `createPrismaClient()`: `PrismaPg`'s own
+  second constructor argument (`{ schema }`) for its ORM-generated queries, and the
+  underlying `pg` Pool's `options` (a libpq `-c search_path=...` startup parameter)
+  for raw SQL — `catalog-repository.ts`'s `searchProducts()` issues `Prisma.sql` with
+  unqualified table names, which resolve against the connection's actual session
+  `search_path`, not PrismaPg's `schema` option (ORM-layer only). A secondary finding
+  during the same investigation: the original schema-name derivation read
+  `npm_package_name`, which is not reliably set under Turborepo's actual task
+  invocation (unlike a direct `pnpm --filter x run test`, where it is) — switched to
+  an explicit literal passed by each package's own `vitest.setup.ts`, removing the
+  environment-variable dependency entirely rather than trying to make it more
+  reliable. Both corrections are behaviorally identical for the single-schema
+  production deployment this project currently has (parsing "public" out of the URL
+  and passing it explicitly is a no-op there) — re-verified end-to-end after the fix:
+  all 7 packages pass individually, 5 repeated catalog+entitlements concurrent runs
+  show zero flakiness, local parity holds.
+- **Total test count: 691 before this story's work began, 690 after** — a net -1 in
+  `@ppu/db`'s own unit tests only, fully explained by the schema-name-derivation
+  refactor above (one edge-case test for the old npm_package_name approach replaced
+  by a different one for the new explicit-literal signature, net one fewer case for
+  that module). Every other package's count is unchanged; no existing test was
+  silently dropped (`pnpm exec turbo run test --force`, forced/uncached, both states).
 - **Local parity preserved**: `describe.skipIf(!DATABASE_URL)` still skips cleanly
   with no `DATABASE_URL` set — `applyTestSchemaIsolation()` is a no-op in that case,
   confirmed by running the suite with `DATABASE_URL` unset.
 - **Open questions 57 and 59 closed** with the recommended default that was
-  implemented (auto-derived schema name from one shared `DATABASE_URL`; parallel
+  implemented (explicit per-package schema-name literal, not environment-derived —
+  revised from the original recommendation after the CI failure above; parallel
   provisioning as the CI default, per the measurement above). **Open question 58 stays
   open** — not implicated by this story, since no job-queue code exists yet.
 - **BUG-015.md updated**: status changed to Fixed, the second race recorded as its own
-  distinct finding (not folded into the original report), a "Resolution" section added.
-  `planning/bugs.csv`'s row updated to Resolved.
+  distinct finding (not folded into the original report), a "Resolution" section added
+  including the CI-failure/root-cause account above. `planning/bugs.csv`'s row updated
+  to Resolved.
 
-**Unchanged, explicitly:** no production code changed — `catalog-repository.ts`
-untouched. No change to the accessibility job, its sharding, worker count, timeouts,
+**Unchanged, explicitly:** no production business logic changed — `catalog-repository.ts`
+itself untouched (its `searchProducts()` raw SQL is exercised, not modified, by the
+`search_path` fix). No change to the accessibility job, its sharding, worker count, timeouts,
 retries, engines, widths or rules (a separate CI job with its own migration step, not
 touched). TD-006, PROP-007, MVP-007, MVP-011 not started. Open question 5 and 56 not
 resolved. No gate check weakened, skipped, quarantined, or conditionally excluded.

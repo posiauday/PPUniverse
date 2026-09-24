@@ -6,24 +6,35 @@
  * other's rows. See `planning/prework/BUG-015-prework-analysis.md` §1-2 for why
  * schema-per-package was chosen over database-per-package.
  *
- * `deriveTestSchemaName` reads the package name from `npm_package_name`, which
- * pnpm sets on every script it runs from that package's own `package.json` — no
- * schema name is ever hand-typed per package, removing the chance of a typo
- * silently aliasing two packages onto the same schema.
+ * `packageName` is passed explicitly by each package's own `vitest.setup.ts`
+ * (a one-line literal, e.g. `applyTestSchemaIsolation("catalog")`) rather than
+ * inferred from an environment variable such as `npm_package_name`. An earlier
+ * version of this module read `npm_package_name`, which pnpm sets when it runs
+ * a script directly but which is not reliably present when Turborepo invokes
+ * the task — that silently fell back to no isolation at all in CI (both
+ * packages ending up on the shared `public` schema, exactly the state this fix
+ * removes), caught by a real CI run rather than local testing alone. An
+ * explicit literal has no such environment dependency to get wrong.
  */
 
-const ADAPTER_PACKAGE_PREFIX = "@ppu/adapter-";
+const ADAPTER_PACKAGE_NAMES = new Set([
+  "catalog",
+  "content",
+  "entitlements",
+  "files",
+  "identity",
+  "notifications",
+  "privacy",
+]);
 
-export function deriveTestSchemaName(packageName: string | undefined): string {
-  if (!packageName || !packageName.startsWith(ADAPTER_PACKAGE_PREFIX)) {
+export function deriveTestSchemaName(packageName: string): string {
+  if (!ADAPTER_PACKAGE_NAMES.has(packageName)) {
     throw new Error(
-      `deriveTestSchemaName: cannot derive a test schema from package name "${packageName}" ` +
-        `(expected it to start with "${ADAPTER_PACKAGE_PREFIX}", read from the npm_package_name ` +
-        "environment variable pnpm sets for the running script).",
+      `deriveTestSchemaName: "${packageName}" is not one of the 7 adapter packages this ` +
+        `story isolates (${[...ADAPTER_PACKAGE_NAMES].join(", ")}).`,
     );
   }
-  const suffix = packageName.slice(ADAPTER_PACKAGE_PREFIX.length);
-  return `pkg_${suffix}`;
+  return `pkg_${packageName}`;
 }
 
 /**
@@ -36,11 +47,14 @@ export function deriveTestSchemaName(packageName: string | undefined): string {
  * property access is what reads DATABASE_URL) — call this from a Vitest
  * `setupFiles` entry, which runs before any test file's own `beforeAll`.
  */
-export function applyTestSchemaIsolation(env: NodeJS.ProcessEnv = process.env): void {
+export function applyTestSchemaIsolation(
+  packageName: string,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
   const databaseUrl = env["DATABASE_URL"];
   if (!databaseUrl) return;
 
-  const schema = deriveTestSchemaName(env["npm_package_name"]);
+  const schema = deriveTestSchemaName(packageName);
   const url = new URL(databaseUrl);
   url.searchParams.set("schema", schema);
   env["DATABASE_URL"] = url.toString();

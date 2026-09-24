@@ -94,14 +94,21 @@ these questions.
 
 57. **CLOSED (2026-09-24, recommended default reported and implemented under the
     direct product-owner "BUG-015 IMPLEMENTATION" instruction, which approved
-    schema-per-package isolation without further gating this specific mechanism).**
-    Each package derives its own `?schema=pkg_x` automatically from the one shared
-    base `DATABASE_URL` already in every `.env.example`/CI env — no new
-    `DATABASE_URL` entries added per package. Implemented as
-    `packages/db/src/test-schema-isolation.ts`'s `applyTestSchemaIsolation()`,
-    reading `npm_package_name` (which pnpm sets on every script it runs) so no
-    schema name is ever hand-typed per package. *Original question, from the
-    BUG-015 pre-work:* one shared `DATABASE_URL` vs. one per package. (pre-work §5)
+    schema-per-package isolation without further gating this specific mechanism;
+    revised once during implementation after a real CI failure — see below).** Each
+    package derives its own `?schema=pkg_x` from the one shared base `DATABASE_URL`
+    already in every `.env.example`/CI env — no new `DATABASE_URL` entries added per
+    package. First implemented by auto-deriving the schema name from
+    `npm_package_name`; a real CI run showed that variable is not reliably set under
+    Turborepo's actual task invocation (it worked under a direct
+    `pnpm --filter x run test` locally, which is how the original approach was
+    verified, but not through `turbo run test`'s own invocation path in CI), silently
+    leaving every package on the shared `public` schema instead of throwing. Revised
+    to an explicit per-package literal passed by each package's own
+    `vitest.setup.ts` (`applyTestSchemaIsolation("catalog")`, etc.) — no environment
+    inference at all, so there is no environment-shape assumption left to be wrong
+    about. *Original question, from the BUG-015 pre-work:* one shared `DATABASE_URL`
+    vs. one per package. (pre-work §5)
 58. **NOT APPROVED — still open, not implicated by this story.** If/when PROP-007's
     job-queue foundation is built, is it one cross-package job-queue table (as
     currently pre-work'd in `planning/prework/TD-004-prework-analysis.md`) or a
