@@ -2869,3 +2869,61 @@ itself untouched (its `searchProducts()` raw SQL is exercised, not modified, by 
 retries, engines, widths or rules (a separate CI job with its own migration step, not
 touched). TD-006, PROP-007, MVP-007, MVP-011 not started. Open question 5 and 56 not
 resolved. No gate check weakened, skipped, quarantined, or conditionally excluded.
+
+## PROP-008 — research, then decision: not pursued (2026-09-24)
+
+Direct product-owner instruction throughout: first a request to evaluate a Power Apps
+component generator/library (parked as PROP-008, pre-research, on its own small branch
+`docs/prop-008-power-apps-component-park`, PR #20, merged), then a request for deep
+research (`docs/research/power-apps-components/`, branch
+`research/power-apps-component-landscape`), then "You decide and let's finish this" —
+explicit delegation of the build-or-not call.
+
+**Research package**: `docs/research/power-apps-components/` — a README, 11 numbered
+files, `sources.md`, and a 38-row `claims-register.csv` with every claim classified
+(`OfficialDocumentation`/`VendorClaim`/`RepositoryEvidence`/`IndependentEvidence`/
+`ResearchInference`/`Unknown`), sourced, and dated. Covers: market landscape (Canvas vs.
+PCF vs. app templates, kept strictly separate throughout); itemized competitor evidence
+for PowerAppsUI (free, MIT, 35 catalogue entries, "no PCF required" marketing, its one
+PCF entry unreleased) and PowerLibs (paid, proprietary, 180+/182 claimed vs. 170 counted
+from the vendor's own category breakdown — a real internal inconsistency found by direct
+arithmetic, not alleged); a draft (unapproved) component quality matrix; a three-layer
+accessibility-verification model (automated/manual/real-host — no source checked, not
+even Microsoft's own Creator Kit, publicly documents Layer C); performance and testing
+strategy frameworks; a full licensing/trademark table (the `pac` CLI's real license,
+Microsoft Software License Terms, verified by following the actual license link, not
+assumed — a materially different license than Microsoft's own MIT sample repos);
+pricing/adoption findings with explicit non-conversions (employer logos are not
+procurement evidence); and pain points with counterevidence and a valid "no
+opportunity" reading included, not omitted. A companion skill,
+`.claude/skills/component-opportunity-research/` (manual-invoke only,
+`disable-model-invocation: true`), extends the package under the same evidence rules.
+
+**Follow-up finding**: after the first research pass, "do research if needed" prompted
+a second check that surfaced `pcf.gallery` — a multi-year (active since at least 2019,
+independently corroborated), MVP-operated (Guido Preite) community directory of PCF
+controls with an existing commercial "Store" channel already soliciting paid ISV
+listings. This materially changed the PCF-side picture (previously characterized as
+thin, based only on abandoned scaffolding tools) and was added to the package
+(`claims-register.csv` CLM-034–036) before the decision was finalized.
+
+**Decision: PROP-008 is not pursued at this time.** Full reasoning recorded in
+`docs/final-decisions.md`, "PROP-008 (Power Apps component generator/library): not
+pursued" — summary: both Canvas and PCF sides of the market already have real, ongoing
+competitors/infrastructure; the one differentiation angle the research consistently
+found (verified accessibility/performance/compatibility evidence, since no source
+checked publishes any) is unproven as an actual demand driver, not just undelivered;
+every credible precedent in this space is a single-operator effort, including one
+(PCF Builder, 24,687 installs) abandoned despite real traction; no live creator
+pipeline exists yet to consume anything built here; and it would compete for effort
+against this project's still-incomplete core marketplace scope. Not closed off
+permanently — the research stays in the repository for a future re-evaluation if
+conditions change.
+
+**Governance updates**: `planning/proposed-stories.md`'s PROP-008 entry updated to
+"Declined for now," not deleted. `docs/open-questions.md` item 60 closed. No
+requirement ID was ever created; `docs/02-prd.md` untouched.
+
+**Unchanged, explicitly**: no component, package, or UI was built at any point in this
+arc. No pricing, licensing, or architecture was decided for a component product. No
+existing backlog story, MVP-*, or unrelated open question was touched.

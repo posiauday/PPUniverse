@@ -138,15 +138,16 @@ these questions.
 
 ## Raised 2026-09-24 (PROP-008, Power Apps Component Generator/Library) — question only, nothing here is decided
 
-60. **NOT APPROVED.** Whether to build anything at all under PROP-008
-    (`planning/proposed-stories.md`) — a generator, a curated component library, or
-    neither — and if so, what shape. This session's informal research into a
-    scaffolding/generator tool found weak differentiation against Microsoft's own
-    free `pac pcf init`. A deeper research pass (competitor analysis of
-    powerappsui.com, and what a genuinely top-tier/modern component bar requires)
-    is queued as an external prompt, not yet run. No shape, scope, or requirement ID
-    is approved. Recommended sequencing, offered not decided: after the current
-    MVP's core marketplace scope (creator onboarding, licensing, entitlements) is
-    further along, not alongside it — there is no live creator pipeline yet for
-    either shape to serve. *Original question:* should PROP-008 be pursued, in what
-    shape, and when?
+60. **CLOSED (2026-09-24, direct product-owner instruction — "You decide and let's
+    finish this," delegating the call — see `docs/final-decisions.md`, "PROP-008
+    (Power Apps component generator/library): not pursued").** PROP-008 is not
+    pursued at this time. Full research: `docs/research/power-apps-components/`
+    (competitor evidence for PowerAppsUI, PowerLibs, and `pcf.gallery`; licensing,
+    pricing, adoption, and quality-bar findings). Decided not a "shape" question —
+    neither a generator nor a curated library is being built now, on the evidence
+    that both the Canvas and PCF sides of this market already have real
+    competitors/infrastructure, the one differentiation angle found is unproven as
+    a demand driver, and no live creator pipeline exists yet to consume it. Not
+    closed off permanently — revisit if conditions change; the research stays in
+    the repository for that purpose. *Original question:* should PROP-008 be
+    pursued, in what shape, and when?

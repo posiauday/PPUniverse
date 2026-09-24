@@ -58,6 +58,16 @@ Apps component" as an undifferentiated generic term.
   infrastructure (four pricing tiers, a team plan, a promotional pricing
   cycle) and a license that explicitly prohibits both raw component
   redistribution and building a competing component library.
+- **The PCF side of the market is more established than it first appeared.**
+  A follow-up pass found `pcf.gallery` — a multi-year-old (confirmed active
+  since at least 2019), MVP-operated community directory with at least 63
+  pages of listed PCF controls and an existing commercial "Store" channel
+  already inviting paid ISV listings (CLM-034 through CLM-036,
+  `01-market-landscape.md`). The earlier finding that the community-tool side
+  of PCF was thin (`generator-pcf`, `PCF Builder`, both abandoned) was about
+  *scaffolding tools*, not about the *component ecosystem itself* — which
+  turns out to have real, long-running, credible infrastructure a new
+  entrant would be competing against.
 - **The strongest possible differentiation appears narrower than "modern
   components."** Both existing competitors already out-catalogue what a new
   entrant could plausibly ship on day one. Neither publishes any

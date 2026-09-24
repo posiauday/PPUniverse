@@ -111,6 +111,12 @@ than manufacturing a case for building something.
   page found via search). Neither is a dead or failed market entry — a new
   entrant would be competing against two live, functioning products, not an
   empty market.
+- **The PCF side isn't empty either, on closer look.** `pcf.gallery`
+  (CLM-034 through CLM-036) is a multi-year, MVP-operated community directory
+  with hundreds of listed controls and an existing commercial "Store" channel
+  already soliciting paid ISV listings. Any PCF-focused differentiation would
+  be competing against established reach and community trust here too, not
+  filling an obviously empty PCF-ecosystem gap.
 - **The "verified quality" differentiation angle is unproven, not just
   undelivered.** No evidence in this research shows that Power Apps
   makers/buyers actually demand or would pay for accessibility/performance

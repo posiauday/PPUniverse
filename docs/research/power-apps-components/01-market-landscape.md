@@ -73,6 +73,44 @@ template are not interchangeable.
 
 ## PCF control libraries
 
+### PCF Gallery (pcf.gallery)
+
+Found in a follow-up research pass (2026-09-24), not the original draft — a
+material addition that changes the PCF-ecosystem picture from earlier in this
+document.
+
+- **Asset type:** a directory/index of community-built PCF controls, not a
+  hosting platform — it links to controls maintained elsewhere (CLM-034).
+- **Scale:** pagination shows at least 63 pages of listed entries (exact total
+  not directly stated); independently confirmed to have passed its 100th
+  listed control by October 2019 (CLM-036) — this is a multi-year-old,
+  substantially larger index than any single competitor's own catalogue
+  surveyed in `02-competitor-evidence.md`.
+- **Commercial channel:** a "Store" section explicitly invites companies/ISVs
+  to list commercial PCF components (CLM-035) — **an existing paid-PCF-listing
+  channel already exists**, independent of anything LowCodeStacks would need
+  to build from nothing.
+- **Operator:** Guido Preite, a recognized Microsoft MVP, per independent
+  (non-vendor-site) sources (CLM-036) — a materially more established
+  operator profile than either PowerAppsUI's or PowerLibs's solo-founder
+  origin.
+- **Maintenance signals:** LinkedIn posts found via search show recent
+  control additions, consistent with ongoing, multi-year active curation, not
+  an abandoned project (CLM-036).
+- **Limitations / not verified:** exact current total control count; whether
+  any commercial listing has actually transacted through the Store section
+  (the page itself shows no live products); overall component quality across
+  the index, which spans many independent community authors and is not
+  uniformly vetted by nature of being a directory.
+
+**This finding matters directly to any future PROP-008 evaluation**: it means
+the PCF side of the market, which the original research pass characterized as
+thinner and more dormant than the Canvas side (`generator-pcf` and `PCF
+Builder` both abandoned), in fact has a long-running, actively-curated,
+MVP-operated community hub with hundreds of entries and an existing
+commercial-listing pathway. A new entrant would be competing against this
+directory's reach and reputation, not an empty PCF ecosystem.
+
 ### Microsoft Power CAT code components (`microsoft/powercat-code-components`)
 - **Asset type:** PCF code components exclusively.
 - **Delivery mechanism:** GitHub source + built managed solutions via GitHub
