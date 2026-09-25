@@ -14,10 +14,12 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 | PROP-006 | Repeated Query Parameter Handling (BUG-002 corrective) | — (FR-002; not an FR-003 item) | P3 | not estimated (expected small) | Proposed — approved in principle, not scheduled |
 | PROP-007 | Job Queue Foundation | — (cross-cutting infrastructure; TD-004, TD-015; not an FR-003 item) | not assigned | ~13 (anchor: comparable to MVP-006) | Proposed — blocked on BUG-015 and its own approval |
 | PROP-008 | Power Apps Component Generator / Library | — (new product scope; not in BRD/PRD/backlog) | not assigned | not estimated | **Declined for now (2026-09-24)** — see `docs/final-decisions.md` |
+| PROP-009 | Asset and Content Suggestions | — (new product scope; not in BRD/PRD/backlog; not MVP-013 continued under a new name) | not assigned | not estimated (research level only) | Proposed — not approved, not scheduled, not an MVP-012 dependency |
 
 ## Items assigned to existing approved stories (not proposals)
-- **Creator** → MVP-011 (Creator applications): creator identity and creator-profile *ownership* only. The public creator page/route stays unresolved under open question 24 and must not be built unless approved.
-- **Price** → MVP-007 (Checkout): together with the pricing, currency, tax and refund decisions required first (open questions 3, 7, 8). No `offers`, `price` or `priceCurrency` in structured data until price is modeled and approved.
+- **Price** → MVP-007 (Checkout): together with the pricing, currency, tax and refund decisions required first (open questions 3, 7). No `offers`, `price` or `priceCurrency` in structured data until price is modeled and approved.
+
+**Note (2026-09-24):** the earlier "Creator → MVP-011" assignment above is removed. MVP-011 is Superseded (`docs/final-decisions.md`, "First-party-only publishing model") — there is no third-party creator identity or creator-profile ownership to assign. A product's publisher is LowCodeStacks itself.
 
 ---
 
@@ -105,3 +107,16 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 - **Not closed off permanently.** The full evidence trail stays in the repository (`docs/research/power-apps-components/`) so a future re-evaluation, if conditions change, doesn't start from nothing.
 - **Requirement relationship:** none — no requirement was ever added to `docs/02-prd.md`, and none is added now.
 - **Status:** **Declined for now.** Not added to `planning/mvp-backlog.csv`. Not started. `docs/open-questions.md` item 60 closed accordingly.
+
+## PROP-009 — Asset and Content Suggestions
+
+- **Origin:** `docs/final-decisions.md`, "First-party-only publishing model", section 10, itself following the product-owner's reversal of the earlier third-party-creator decision (2026-09-24). A visitor suggestion inbox is the named successor concept for external contribution under the first-party-only model — **a separate capability with its own requirements, data, risks, and acceptance criteria, explicitly not MVP-013 (Submission review queue) continued under a new name.**
+- **Proposed scope (research level only — no field, status, or schema is approved by this entry):** visitors may submit a suggestion for a product, component, template, tool, tutorial, article, fix, or improvement. A suggestion creates no ownership right, no creator or seller relationship, no entitlement to payment or commission, no promise of implementation, and no permission to submit confidential or third-party-owned material.
+- **Candidate categories to evaluate** (research candidates, not approved): Canvas component, PCF control, app template, Power Automate toolkit, Power BI asset, architecture/governance pack, tutorial, troubleshooting article, existing-product improvement, compatibility request, accessibility improvement, bug report, integration request.
+- **Candidate minimum fields to evaluate** (research candidates, not approved schema): title, category, problem to solve, description, example use case, optional reference URL, optional contact email, consent to be contacted.
+- **Safest initial boundary, recorded as a real constraint to preserve into any future approval:** text and optional URLs only; no file uploads; no source-code submissions; no confidential information; no client or employer materials; no ownership transfer; no compensation promise. This boundary means a future approved version would not need the MVP-006 quarantine/scan pipeline at all, since no file ever enters the system through this path.
+- **Candidate lifecycle to evaluate** (research candidates, not approved enum values): SUBMITTED, UNDER_REVIEW, PLANNED, DECLINED, DUPLICATE, COMPLETED.
+- **Architectural observation (not a design decision):** this session's separate monetization architecture audit (`docs/research/monetization/10-current-architecture-inventory.md`) found the notification/consent architecture (`ConsentRecord`, `EmailSend`, both real, working, append-only) to be the most-ready piece of infrastructure in the platform for exactly this kind of "capture an optional contact and a consent-to-be-contacted flag" pattern — worth a future scoping pass to consider reusing the existing `ConsentCategory` pattern rather than building new consent infrastructure, if this capability is ever approved.
+- **Requirement relationship:** none yet — new product scope, not a gap in an existing FR. If pursued, a requirement ID would need to be added to `docs/02-prd.md` through the normal process, not invented here.
+- **Dependencies:** none — explicitly **not an MVP-012 dependency**, and not built on top of the superseded MVP-013.
+- **Status:** Proposed. Not approved. Not scheduled. Not added to `planning/mvp-backlog.csv`. Not started.

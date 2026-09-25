@@ -42,16 +42,16 @@ Format: `EPIC-<NN> — <Name>`
 **Features:** MVP-009, MVP-010
 **Priority:** P0
 
-### EPIC-07 — Creator
-**Business objective:** Build supply-side trust and onboarding (BRD §3, §4 stakeholders).
-**Description:** Creator application/agreement flow and the product/release editor creators use to submit inventory.
-**Features:** MVP-011, MVP-012
+### EPIC-07 — ~~Creator~~ First-Party Publishing (reworded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model")
+**Business objective:** ~~Build supply-side trust and onboarding (BRD §3, §4 stakeholders).~~ Enable an authorized administrator to author and publish first-party products.
+**Description:** ~~Creator application/agreement flow and the product/release editor creators use to submit inventory.~~ The product/release editor (MVP-012) an administrator uses to author and publish inventory directly. FEAT-011 (Creator application) is superseded — see below.
+**Features:** ~~MVP-011,~~ MVP-012
 **Priority:** P0
 
-### EPIC-08 — Moderation
-**Business objective:** Ensure quality and safety before anything publishes (PRD journey 4).
-**Description:** Submission review queue with evidence, decisions, and reasons.
-**Features:** MVP-013
+### EPIC-08 — Moderation (superseded in its third-party form, same decision)
+**Business objective:** ~~Ensure quality and safety before anything publishes (PRD journey 4).~~ Superseded — quality/safety gates are redistributed to their existing owning mechanisms (MVP-006 file scan, TD-006/TD-008 compatibility/licence checks, MVP-014 release immutability), not this epic.
+**Description:** ~~Submission review queue with evidence, decisions, and reasons.~~ Superseded — presumed a third-party submitter distinct from the reviewer, which does not exist under first-party-only.
+**Features:** ~~MVP-013~~ (Superseded)
 **Priority:** P0
 
 ### EPIC-09 — Publishing

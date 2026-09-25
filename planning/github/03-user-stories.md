@@ -1,6 +1,6 @@
 # GitHub User Stories
 
-Persona-based breakdown of each Feature, using the PRD personas (Maker, Architect, Team buyer, Creator, Moderator) and journeys. Each story is created as a GitHub issue labeled `type:story`, `epic:<name>`, `priority:<Pn>`, `requirement:<id>`, linked to its parent Feature ("Part of: #FEAT-xxx"). Acceptance criteria use Given/When/Then and never exceed what the source requirement states.
+Persona-based breakdown of each Feature, using the PRD personas (Maker, Architect, Team buyer, ~~Creator, Moderator~~ — superseded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model") and journeys. Each story is created as a GitHub issue labeled `type:story`, `epic:<name>`, `priority:<Pn>`, `requirement:<id>`, linked to its parent Feature ("Part of: #FEAT-xxx"). Acceptance criteria use Given/When/Then and never exceed what the source requirement states.
 
 ---
 
@@ -35,7 +35,7 @@ Feature: FEAT-004 · Requirement: FR-002
 
 ### STORY-005a — As an Architect, I want full compatibility, license, and support evidence on a product page so I can assess enterprise suitability
 Feature: FEAT-005 · Requirement: FR-003
-- Given a published product, when its detail page renders, then title, summary, creator, screenshots/demo, price, license, compatibility, prerequisites, setup, accessibility statement, support status, changelog, version history, and related assets are all present.
+- Given a published product, when its detail page renders, then title, summary, ~~creator~~ publisher (reworded 2026-09-24, `docs/final-decisions.md`), screenshots/demo, price, license, compatibility, prerequisites, setup, accessibility statement, support status, changelog, version history, and related assets are all present.
 
 ## EPIC-04 Files
 
@@ -67,27 +67,29 @@ Feature: FEAT-009 · Requirement: FR-007
 Feature: FEAT-010 · Requirement: FR-005
 - Given a free product with a sign-in-required policy, when an anonymous user attempts download, then they are prompted to sign in first; when a signed-in user downloads, then an entitlement and download record are created.
 
-## EPIC-07 Creator
+## EPIC-07 ~~Creator~~ First-Party Publishing (reworded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model")
 
-### STORY-011a — As a Creator, I want to apply and accept the marketplace agreement so I can start submitting products
-Feature: FEAT-011 · Requirement: FR-008
-- Given a signed-in user, when they submit a creator application with identity, public profile, payout readiness, and support commitment, then the agreement acceptance is recorded and the application enters review.
+### ~~STORY-011a — As a Creator, I want to apply and accept the marketplace agreement so I can start submitting products~~ (Superseded)
+~~Feature: FEAT-011 · Requirement: FR-008~~
+~~- Given a signed-in user, when they submit a creator application with identity, public profile, payout readiness, and support commitment, then the agreement acceptance is recorded and the application enters review.~~
+**Superseded 2026-09-24** — no third-party creator applies under first-party-only. See PROP-009 (`planning/proposed-stories.md`) for the separate, not-yet-approved suggestion-inbox concept.
 
-### STORY-012a — As a Creator, I want the editor to block submission until every required field is present so I don't get rejected for missing metadata
+### STORY-012a — As an administrator, I want the editor to block publishing until every required field is present so a product never ships incomplete
 Feature: FEAT-012 · Requirement: FR-009
-- Given a draft product/release, when required fields (license, version, compatibility, support status, documentation, media) are incomplete, then submission is blocked with field-level errors.
+- Given a draft product/release, when required fields (license, version, compatibility, support status, documentation, media) are incomplete, then publishing is blocked with field-level errors.
 
-## EPIC-08 Moderation
+## EPIC-08 Moderation (superseded in its third-party form, same decision)
 
-### STORY-013a — As a Moderator, I want a queue with evidence and a documented decision so approvals are defensible
-Feature: FEAT-013 · Requirement: FR-010
-- Given a submitted product, when a moderator reviews it, then they can see metadata, files, scan status, and documentation, and record approve / request changes / reject with a reason code and narrative.
+### ~~STORY-013a — As a Moderator, I want a queue with evidence and a documented decision so approvals are defensible~~ (Superseded)
+~~Feature: FEAT-013 · Requirement: FR-010~~
+~~- Given a submitted product, when a moderator reviews it, then they can see metadata, files, scan status, and documentation, and record approve / request changes / reject with a reason code and narrative.~~
+**Superseded 2026-09-24** — presumed a submitter distinct from the reviewer, which does not exist under first-party-only. The evidence this story protected (metadata, files, scan status, documentation) is still checked — by the existing automated gates (MVP-006, TD-006, TD-008), not a moderation queue.
 
 ## EPIC-09 Publishing
 
 ### STORY-014a — As a buyer, I want a version I purchased to never silently change so I can trust what I paid for
 Feature: FEAT-014 · Requirement: FR-011
-- Given a published release, when a creator wants to change its files, then the system rejects in-place replacement and requires a new release version.
+- Given a published release, when ~~a creator~~ an administrator (reworded 2026-09-24, `docs/final-decisions.md`) wants to change its files, then the system rejects in-place replacement and requires a new release version.
 
 ## EPIC-10 Account (P1)
 
@@ -100,7 +102,7 @@ Feature: FEAT-015 · Requirement: FR-013
 ### STORY-016a — As a buyer, I want to trust reviews came from real users of the product
 Feature: FEAT-016 · Requirement: FR-012
 - Given a user without a qualifying purchase/download, when they attempt to review a product, then the action is blocked.
-- Given a qualifying user's review, when a creator responds, then the response is attached; when staff moderate a review, then the moderation action is audited.
+- Given a qualifying user's review, when ~~a creator~~ LowCodeStacks (reworded 2026-09-24, `docs/final-decisions.md` — the publisher, not a third-party creator) responds, then the response is attached; when staff moderate a review, then the moderation action is audited.
 
 ## EPIC-12 Content (P1)
 
@@ -131,7 +133,7 @@ Feature: FEAT-020 · Requirement: FR-004
 
 ### STORY-021a — As the business, I want every indexable page to carry correct metadata so organic search can find it
 Feature: FEAT-021 · Requirement: FR-017
-- Given an indexable page (product, category, collection, creator, learn), when it renders, then it emits a canonical URL, metadata, social preview tags, sitemap inclusion, and valid structured data where applicable.
+- Given an indexable page (product, category, collection, ~~creator~~, learn — creator page superseded 2026-09-24, `docs/final-decisions.md`), when it renders, then it emits a canonical URL, metadata, social preview tags, sitemap inclusion, and valid structured data where applicable.
 
 ## EPIC-17 Observability
 
@@ -143,7 +145,7 @@ Feature: FEAT-022 · Requirement: NFR-007
 
 ### STORY-023a — As a screen-reader or keyboard-only user, I want every core journey fully operable without a mouse
 Feature: FEAT-023 · Requirement: NFR-001
-- Given a core journey (browse, checkout, creator submission, moderation), when tested with keyboard-only navigation and a screen reader, then it passes the defined WCAG 2.2 AA gate with zero critical defects.
+- Given a core journey (browse, checkout, ~~creator submission, moderation~~ first-party product authoring — reworded 2026-09-24, `docs/final-decisions.md`), when tested with keyboard-only navigation and a screen reader, then it passes the defined WCAG 2.2 AA gate with zero critical defects.
 
 ## EPIC-19 Support (P1)
 

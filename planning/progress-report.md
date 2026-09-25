@@ -2927,3 +2927,94 @@ requirement ID was ever created; `docs/02-prd.md` untouched.
 **Unchanged, explicitly**: no component, package, or UI was built at any point in this
 arc. No pricing, licensing, or architecture was decided for a component product. No
 existing backlog story, MVP-*, or unrelated open question was touched.
+
+## First-party-only publishing model — impact analysis, then documentation and planning update (2026-09-24)
+
+Three-part, all direct product-owner instruction. First a read-only impact analysis
+(`planning/prework/first-party-only-impact-analysis.md`, branch
+`docs/first-party-only-impact-analysis`, no backlog/decision change), then the
+authorizing decision ("PRODUCT-OWNER DECISION — FIRST-PARTY-ONLY PUBLISHING MODEL")
+and its detailed follow-up ("PRODUCT-OWNER DECISION — FIRST-PARTY-ONLY FOLLOW-UP")
+implementing the documentation and planning update this entry records. **Documentation
+and planning only — no product code, schema, UI, route, API, test, or CI changed.**
+
+**Business model**: LowCodeStacks is first-party-only. Only an authorized administrator
+(`ADMIN` role, already built) may create, publish, and sell products. Reverses the
+2026-09-23 invited/vetted third-party creator decision — that decision is preserved
+verbatim in `docs/final-decisions.md`, not erased, alongside the new entry explaining
+why the model changed.
+
+**MVP-011 (Creator application)** marked **Superseded** (`planning/mvp-backlog.csv`,
+`planning/backlog.csv`) — implements a third-party creator-onboarding model no longer
+approved. **Not renamed into a suggestion story**, per explicit instruction: a visitor
+suggestion inbox is a separate capability with its own requirements, recorded instead
+as **PROP-009, "Asset and Content Suggestions"** in `planning/proposed-stories.md`
+(Proposed, not approved, not scheduled, not an MVP-012 dependency).
+
+**MVP-013 (Submission review queue)** marked **Superseded** — its acceptance criterion
+("Reviewer can approve/request changes/reject with reason") presumes a submitter
+distinct from the reviewer, which first-party-only does not have, and is not
+force-fitted anywhere. Quality requirements redistributed explicitly, not discarded:
+draft authoring/pre-publication validation → MVP-012; immutable release/version rules
+→ MVP-014 (unaffected); automated security/file-scan/compatibility/licence/release
+checks → their existing owning gates (MVP-006 Done, TD-006 Open, TD-008 Partially
+Resolved); administrative audit visibility → MVP-019 (unaffected in substance).
+
+**MVP-012 (Product and release editor)** becomes the recommended next story — its
+dependency changes from `MVP-006;MVP-011` to **`MVP-006` alone** (already Done). No
+`CREATOR`/`SELLER`/`EDITOR`/`PUBLISHER` role is created; the existing `ADMIN`
+authorization pattern (MVP-017, MVP-020) is the approved authoring authority. Pricing
+fields specifically stay unimplemented until open question 7 is answered; checkout
+stays unimplemented until open question 3 is answered — neither is resolved by this
+pass.
+
+**Open questions**: item 2 closed (superseded by the new decision, old text preserved
+with strikethrough); item 8 closed as obsolete (creator payout terms don't apply, no
+third-party sellers); item 51 narrowed — the MVP-011/employment-conflict wording
+removed, replaced with a general "legal entity and commercial readiness before real
+payments/customer contracts/production commercial operations" flag that does **not**
+block MVP-012 pre-work or first-party authoring, and does **not** claim a legal entity
+currently exists; items 3 and 7 stay open, unresolved, narrowed only in framing (7 to
+first-party pricing, not creator/commission language).
+
+**Compatibility-evidence display wording**: `CompatibilityEvidenceStatus.CREATOR_DECLARED`
+and `SupportStatus.CREATOR_SUPPORTED` are real, shipped enum values (confirmed
+directly against `packages/db/prisma/schema/evidence.prisma`), displayed verbatim as
+"Creator Declared"/"Creator-supported" on live product pages today
+(`packages/domain/catalog/src/compatibility.ts`, `support.ts`). **No enum, validator,
+or production code changed in this pass** — `CREATOR_DECLARED`'s replacement wording
+("Publisher declared") is decided as a follow-up presentation decision; `CREATOR_SUPPORTED`'s
+needs its own separate review. Recorded as **TD-018** (`planning/tech-debt/TD-018.md`,
+Open, Low impact), added to `planning/tech-debt.csv`.
+
+**Documentation updated** (full list and per-file reasoning in the PR): `docs/final-decisions.md`
+(new decision entry, historical entries preserved), `docs/open-questions.md` (items 2, 7,
+8, 51), `docs/02-prd.md` (FR-008 superseded verbatim not rewritten, FR-009/FR-003/FR-015
+reworded, Creator persona and journey 3 superseded verbatim, MVP release-acceptance line
+reworded), `docs/03-trd.md` (Creator domain boundary superseded, Moderation flagged under
+review), `docs/06-data-model.md` ("Creator and marketplace" section superseded, unique
+constraint reworded), `docs/09-marketplace-operations.md` (substantially rewritten — every
+section reworded, retained, or marked superseded), `docs/13-implementation-readiness-plan.md`
+(role list, wave-sequencing table, milestone naming, folder/schema references),
+`planning/mvp-backlog.csv`/`planning/backlog.csv` (MVP-011/013 Superseded, MVP-012/014/019
+dependencies changed), `planning/requirement-traceability.csv` (FR-008/FR-010 superseded
+rows, FR-003's creator-ownership reference removed), `planning/proposed-stories.md`
+(PROP-009 added, stale "Creator → MVP-011" assignment removed), `planning/status.md`
+(board, remaining-work summary, next-story recommendation, TD-007/TD-018 references).
+
+**Validation performed before committing**: searched the repository for every one of
+"Creator Application," "creator application," "invited creator," "vetted creator,"
+"third-party creator," "seller," "payout readiness," "creator payout," "commission,"
+"Stripe Connect," "MVP-011," "MVP-013," and "FR-008"; classified every remaining match
+(historical-and-retained, superseded-and-marked, first-party wording, unrelated-and-valid,
+or missed); confirmed no active requirement still suggests third-party publishing;
+confirmed MVP-012 no longer depends on MVP-011; confirmed no story depends on superseded
+MVP-013 without an explicit first-party reassignment; confirmed open questions 3 and 7
+remain open; confirmed open question 8 is obsolete and open question 51 no longer blocks
+engineering; confirmed no schema, production code, test, CI, or package file changed
+(`git diff --stat` covers only `docs/`, `planning/`, and this progress-report entry).
+
+**Unchanged, explicitly**: no product code, schema, UI, route, or API changed. No test
+or CI changed. No enum value changed or removed. No role created. Questions 3 and 7 not
+resolved. MVP-007 not started. No security or accessibility gate weakened. No historical
+decision record erased or rewritten.

@@ -1101,3 +1101,78 @@ Direct product-owner instruction ("You decide and let's finish this," following 
 ### Unchanged (restated)
 
 No component, package, or UI was built. No requirement ID was created. No pricing, licensing, or architecture was decided for PROP-008. `docs/research/power-apps-components/`'s own findings are unchanged by this decision — this section only records what the product owner decided to do with those findings, not a revision of the research itself.
+
+## 2026-09-24 — First-party-only publishing model (supersedes open question 2's earlier decision)
+
+Direct product-owner instruction ("PRODUCT-OWNER DECISION — FIRST-PARTY-ONLY PUBLISHING MODEL"), following the read-only impact analysis this session produced on request (`planning/prework/first-party-only-impact-analysis.md`), then a second direct instruction ("PRODUCT-OWNER DECISION — FIRST-PARTY-ONLY FOLLOW-UP") authorizing the documentation and planning update this entry, and the rest of this pass, implements. **Documentation and planning only — no product code, schema, UI, route, API, or test changed by this decision or by the pass that follows it.**
+
+### 1. Final business model
+
+**LowCodeStacks is first-party-only.** Only an authorized LowCodeStacks administrator (the existing `ADMIN` role, already built — MVP-017, MVP-020) may create, publish, and sell products. No third-party creator or seller program exists in the approved scope. Visitors and customers cannot become creators or sellers, cannot publish products, cannot submit commercial products for sale, cannot receive commission, royalties, or payouts, and cannot create seller profiles or hold product-authoring/publishing permissions.
+
+External users **may eventually submit suggestions** (a separate, not-yet-approved capability — see `planning/proposed-stories.md`, "Asset and Content Suggestions"). A suggestion creates no ownership right, no creator or seller relationship, no entitlement to payment or commission, no promise that LowCodeStacks will implement it, and no permission to submit confidential or third-party-owned material.
+
+### 2. This explicitly supersedes, and does not erase, the earlier decision
+
+**This entry supersedes "2026-09-23 — Open question 2: invited and vetted third-party creators" and its companion "2026-09-23 — Automated split payouts considered and set aside" entry, above.** Both historical entries are preserved exactly as written — not deleted, not rewritten — because they are an accurate record of what was decided and why at the time. This entry records that the business model has since changed, and why, not that the earlier decision was a mistake when it was made.
+
+**Rationale, as instructed to record:** the product owner does not want third-party sellers; external users should provide suggestions only; seller onboarding, creator agreements, commission, payout, tax, and creator moderation are unnecessary for the approved model; first-party-only publishing materially reduces commercial, legal, operational, security, and support complexity.
+
+### 3. MVP-011 — Superseded
+
+`planning/mvp-backlog.csv`'s MVP-011 row (Creator application, FR-008) is marked **Superseded** — not Cancelled, not Removed, and explicitly **not renamed into a suggestion story**. The product-owner instruction is direct on this last point: *"A visitor suggestion inbox is a separate possible capability with different requirements, data, risks and acceptance criteria."* Reason for supersession: the story implements a third-party creator-onboarding model that is no longer part of the approved business model. See `planning/mvp-backlog.csv` and `planning/backlog.csv` for the updated row, and `planning/requirement-traceability.csv` for FR-008's updated traceability.
+
+### 4. FR-008 — Superseded, not rewritten
+
+FR-008 (*"Creator application captures identity, public profile, payout readiness, support commitment and agreement acceptance"*) is marked superseded in `docs/02-prd.md`, with the original text preserved and an explicit note of why it no longer applies — **not rewritten as though it always described suggestions.** Historical traceability in `planning/requirement-traceability.csv` is preserved alongside the supersession note.
+
+### 5. MVP-013 — Superseded in its current form; quality requirements redistributed, not discarded
+
+MVP-013 (Submission review queue, FR-010) is marked **Superseded** in its current creator/product-submission-moderation form. Per direct instruction, it is **not** converted into creator-application review, a suggestion inbox, a third-party product queue, or a nominal self-review workflow where the product owner approves their own submission. Its acceptance criterion, *"Reviewer can approve/request changes/reject with reason,"* has no first-party equivalent as written — reviewing someone else's submission presumes a submitter distinct from the reviewer, which first-party-only does not have — and is not force-fitted anywhere. The quality requirements MVP-013 was meant to protect are redistributed explicitly:
+
+- **Product draft authoring and pre-publication validation** → MVP-012 (Product and release editor), which already owns the authoring surface these checks run inside.
+- **Immutable release/version rules** → MVP-014 (Immutable published releases), already its own story, unaffected in substance.
+- **Automated security, file scanning, compatibility validation, licence checks, and release checks** → remain with their existing owning gates: MVP-006 (file-scan pipeline, Done), TD-006/TD-008 (compatibility-evidence write-time validation and vocabulary, TD-006 Open, TD-008 Partially Resolved), and MVP-014's own release-immutability enforcement. None of these depended on a third-party creator role to begin with — they were always server-side, always going to run regardless of who authored the product.
+- **Administrative operations and audit visibility** → MVP-019 (Operations console and audit), where still applicable — a first-party-authored product still needs an audit trail of who published/unpublished/retired it.
+
+No quality, security, accessibility, licence, or audit requirement is discarded by this redistribution — each one moves to a story that already existed and already owned the underlying mechanism, independent of the creator/seller question.
+
+### 6. MVP-012 — the next first-party authoring story; dependency changed
+
+MVP-012 (Product and release editor, FR-009) becomes the next first-party authoring story. Its dependency changes from `MVP-006;MVP-011` to **`MVP-006`** (already Done), with TD-006 and TD-008 noted as the compatibility-evidence write-path prerequisites where applicable (TD-006 Open, TD-008 Partially Resolved — neither blocks MVP-012's own start, both are relevant to what MVP-012 must correctly call). **MVP-011 no longer gates MVP-012 in any form.**
+
+The existing `ADMIN` authorization pattern (deny-by-default, re-queried server-side per request, no application code path grants it automatically — the same pattern MVP-017 and MVP-020 already established) is the approved authoring authority. **No `CREATOR`, `SELLER`, `EDITOR`, or `PUBLISHER` role is created.**
+
+MVP-012 remains responsible for a first-party administrator's ability to: create and edit product drafts; manage product descriptions and documentation; upload files through the existing secure upload/scanning path (MVP-006); manage screenshots or media only where already approved (PROP-001, still Proposed); set licence offerings; record compatibility information and evidence; create releases and versions within the approved release workflow; submit the product to the applicable automated quality gates; publish only when server-side conditions pass; unpublish or retire where approved; and maintain changelogs and support information.
+
+**Pricing is not implemented until open question 7 is answered. Checkout is not implemented until open question 3 is answered.** Neither is answered by this entry.
+
+### 7. MVP-014, MVP-019, MVP-024, MVP-025 — dependencies and wording re-evaluated
+
+Third-party creator, seller, commission, and payout assumptions are removed from these four stories' framing. What remains meaningful and is retained: immutable release history (MVP-014); product lifecycle, orders, refunds, entitlements, administrative controls, content management, product retirement, and audit events (MVP-019); customer support (MVP-024); launch readiness (MVP-025). No acceptance criterion in MVP-014, MVP-024, or MVP-025 depended on a third-party creator/seller concept to begin with (confirmed directly against each story's own acceptance-summary text in `planning/mvp-backlog.csv`), so none become obsolete or need a new owner. MVP-019's acceptance criterion (*"Sensitive actions are authorized and auditable"*) is unaffected in substance; the "creators" entry in FR-015's underlying admin-manageable-entity list (`docs/02-prd.md`) becomes moot without changing MVP-019's own scope.
+
+### 8. Open questions updated
+
+- **Item 2**: **CLOSED** by this decision. The earlier invited/vetted third-party creator decision is recorded as superseded, not erased.
+- **Item 8**: **CLOSED AS OBSOLETE.** Creator commercial terms and creator payout models do not apply — LowCodeStacks has no third-party sellers.
+- **Item 51**: narrowed. The MVP-011-specific and employment-conflict-of-interest wording is removed (MVP-011 no longer exists to be gated by it). What remains, recorded separately and narrowly: *"Legal entity and commercial readiness before LowCodeStacks accepts real payments, enters customer contracts, or begins production commercial operations."* **This does not currently exist and is not claimed to exist.** It does not block MVP-012 pre-work or first-party-authoring implementation — those don't involve real payments, customer contracts, or production commercial operations.
+- **Item 7**: **stays open**, narrowed to first-party product pricing, licence-tier price relationships, and any future support/update pricing. Not resolved by this entry.
+- **Item 3**: **stays open**, unchanged in substance — first-party checkout jurisdictions, currencies, tax, refunds, and consumer obligations. Not resolved by this entry.
+
+Full updated text for each: `docs/open-questions.md`.
+
+### 9. Compatibility-evidence display wording — a follow-up decision, not a schema change
+
+The stored `CompatibilityEvidenceStatus.CREATOR_DECLARED` and `SupportStatus.CREATOR_SUPPORTED` enum values (`packages/db/prisma/schema/evidence.prisma`) are **not renamed, and no enum value is destructively changed, in this pass.** Recorded as a follow-up presentation decision only: **`CREATOR_DECLARED` should display as "Publisher declared."** `CREATOR_SUPPORTED` needs its own, separate wording review, since the exact intended evidence meaning (who is making the support commitment, and what it means under first-party-only) must be preserved, not assumed. No schema, validator, production presentation code, snapshot, or test is changed by this entry — see TD-018 (`planning/tech-debt/TD-018.md`) for the scoped follow-up record.
+
+### 10. Suggestion capability — proposed, not approved
+
+Recorded in `planning/proposed-stories.md` as **PROP-009, "Asset and Content Suggestions," status Proposed — not approved, not scheduled, not an MVP-012 dependency.** Full detail there. **Not built. Not scheduled. Explicitly not MVP-013 continued under a new name** — a visitor suggestion inbox is a separate capability with its own requirements, data, risks, and acceptance criteria, per direct instruction.
+
+### 11. Third-party commercial surfaces marked out of scope
+
+Creator applications, creator public profiles, seller onboarding, seller roles, creator publishing permission, seller agreements, creator support commitments, creator payout readiness, creator bank/payment/tax details, marketplace commissions, creator earnings/balances, payout schedules/thresholds, Stripe Connect (for creators), creator suspension/revocation, multi-seller disputes, and creator-product ownership relationships are all marked out of scope, unless needed for historical documentation (which the preserved, superseded decision entries above already satisfy). **Customer, order, licence, entitlement, refund, support, and first-party publishing concepts are unaffected and remain valid** — none of them depended on a third-party creator/seller concept.
+
+### Unchanged (restated)
+
+No product code, schema, UI, route, or API changed. No test changed. No CI change. No enum value changed or removed. No role created. Questions 3 and 7 are not resolved. MVP-007 is not started. No security or accessibility gate is weakened. No historical decision record is erased or rewritten.

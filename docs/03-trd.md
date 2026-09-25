@@ -1,7 +1,7 @@
 # Technical Requirements Document
 
 ## Architecture style
-Modular monolith for MVP with explicit domain boundaries: Identity, Catalog, Content, Commerce, Entitlements, Creator, Moderation, Reviews, Search, Notifications, Analytics and Administration. Use asynchronous jobs for external webhooks, email, indexing, scanning and media processing. Preserve interfaces needed to extract high-scale services later.
+Modular monolith for MVP with explicit domain boundaries: Identity, Catalog, Content, Commerce, Entitlements, ~~Creator~~, Moderation, Reviews, Search, Notifications, Analytics and Administration. **The Creator domain boundary is superseded (2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model") — first-party product authoring is Catalog/Publishing-domain work (MVP-012), not a separate bounded context for a third-party role that no longer exists.** The Moderation domain's scope is under review in the same decision (whether it becomes a first-party self-review gate, is retired, or becomes the review surface for the separately-proposed suggestion capability — not yet resolved). Use asynchronous jobs for external webhooks, email, indexing, scanning and media processing. Preserve interfaces needed to extract high-scale services later.
 
 ## Logical components
 - Web application and server API

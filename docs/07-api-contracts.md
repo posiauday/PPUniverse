@@ -1,7 +1,7 @@
 # API Contract Outline
 
 ## Public
-`GET /api/products`, `GET /api/products/{slug}`, `GET /api/categories`, `GET /api/collections/{slug}`, `GET /api/creators/{handle}`, `GET /api/search`.
+`GET /api/products`, `GET /api/products/{slug}`, `GET /api/categories`, `GET /api/collections/{slug}`, ~~`GET /api/creators/{handle}`~~ (superseded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model" — never built, no public creator page), `GET /api/search`.
 
 ## Account
 `GET/PATCH /api/me`, `GET /api/me/library`, `GET /api/me/orders`, `POST/DELETE /api/me/saved/{productId}`, `POST /api/me/delete-request`.
@@ -13,8 +13,8 @@ Authentication itself (registration, email verification, sign-in/out) runs throu
 ## Commerce and delivery
 `POST /api/checkout`, `POST /api/webhooks/payments`, `POST /api/products/{id}/download`, `POST /api/orders/{id}/refund-request`.
 
-## Creator
-`POST /api/creator/applications`, `GET/POST /api/creator/products`, `PATCH /api/creator/products/{id}`, `POST /api/creator/products/{id}/releases`, `POST /api/creator/products/{id}/submit`.
+## ~~Creator~~ First-party authoring (reworded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model")
+~~`POST /api/creator/applications`, `GET/POST /api/creator/products`, `PATCH /api/creator/products/{id}`, `POST /api/creator/products/{id}/releases`, `POST /api/creator/products/{id}/submit`.~~ **Superseded** — `POST /api/creator/applications` no longer applies (no creator application). The authoring endpoints are reassigned to an ADMIN-authorized surface, exact routes not yet fixed pending MVP-012's own implementation — likely `GET/POST /api/admin/products`, `PATCH /api/admin/products/{id}`, `POST /api/admin/products/{id}/releases`, and a publish endpoint replacing `.../submit` (server-side quality-gate check, not a third-party submission). Not implemented by this entry — MVP-012 is not started.
 
 ## Moderation/admin
 `GET /api/admin/submissions`, `POST /api/admin/submissions/{id}/decision`, `POST /api/admin/products/{id}/suspend`, `POST /api/admin/entitlements/grant`, `GET /api/admin/audit`.

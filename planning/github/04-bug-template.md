@@ -18,7 +18,7 @@ One or two sentences describing the defect.
 Select one, using the incident priorities in `docs/12-devops-runbook.md`:
 - [ ] P0 — security, payment, or data exposure
 - [ ] P1 — checkout or download outage
-- [ ] P2 — degraded search, notifications, or creator workflow
+- [ ] P2 — degraded search, notifications, or first-party publishing workflow (reworded 2026-09-24, `docs/final-decisions.md`)
 - [ ] P3 — minor content or admin issue
 
 ## Affected requirement / feature
@@ -28,7 +28,7 @@ Select one, using the incident priorities in `docs/12-devops-runbook.md`:
 ## Environment
 - Environment: local / preview / staging / production
 - Browser/OS (if UI):
-- User role (guest / member / creator / moderator / admin):
+- User role (guest / member / admin) — ~~creator / moderator~~ removed 2026-09-24, `docs/final-decisions.md` (first-party-only publishing; no creator role, moderator scope under review):
 
 ## Steps to reproduce
 1.
