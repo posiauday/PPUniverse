@@ -3304,3 +3304,151 @@ explicit product-owner decision to accept the recorded gap and mark
 MVP-012 Done regardless) is the literal next action. Of the two, MVP-014
 is the more natural immediate follow-on: it directly extends the
 `Release`/`ReleaseFile` model MVP-012 just built.
+
+## MVP-012 — Independent review corrections and completion (2026-09-24)
+
+Follow-up to the entry immediately above. A direct product-owner instruction
+authorized an independent, read-only review of PR #23 before merge ("FINAL
+INDEPENDENT REVIEW -- PR #23"), then a "PR #23 blocker corrections"
+instruction to fix what it found and close TD-019 properly rather than carry
+it as post-merge debt.
+
+**Review findings, all confirmed by direct code tracing (not taken on the
+implementing agent's word):**
+1. **BLOCKER** -- `apps/web/app/api/admin/products/[id]/releases/route.ts`
+   and `.../releases/[releaseId]/files/route.ts` performed zero check on
+   `Product.status`; an ADMIN could create a new release and attach files to
+   it on an already-published product, with no distinction from pre-publish
+   authoring, and no test exercised this at all.
+2. **BLOCKER** -- `publishProduct(id)` only ever wrote `Product.status`/
+   `publishedAt`; no code path anywhere set `Release.publishedAt`, so a
+   product published through MVP-012 would show `currentVersion: null` on
+   its own public product page (MVP-005's `findPublishedProductDetailBySlug`
+   filters releases by `publishedAt IS NOT NULL`).
+3. **BLOCKER** -- zero Playwright accessibility coverage for all 3 new admin
+   pages; only the (much weaker) Vitest route-coverage guard was updated.
+   TD-019 framed this as post-merge debt; the review rejected that framing
+   given the prior authorization's explicit "any new page/state must join
+   the matrix" rule.
+4. **HIGH** (already found and fixed in the review pass itself) -- the
+   `release_files` migration shipped without `ENABLE ROW LEVEL SECURITY`,
+   the only table in the schema's entire migration history missing it.
+5. **HIGH** -- no route/method existed to detach a `ReleaseFile`, only
+   attach.
+6. **MEDIUM** -- 9 orphaned local `postgres.exe` processes from the
+   implementing agent's embedded-Postgres verification runs, contradicting
+   its own "confirmed clean" self-report.
+
+Everything else in the review (authorization, compatibility-evidence
+enforcement, commercial-scope exclusion, migration additivity, CLEAN-file
+terminality) came back **VERIFIED CLEAN**.
+
+**Direct product-owner decision recorded for the correction pass** ("PR #23
+blocker corrections" A2): a published Product is not permanently frozen --
+an ADMIN may create further draft releases for future versions -- but a
+published *Release* is immutable. This is the release-lifecycle model
+actually built:
+
+- `packages/domain/catalog/src/product.ts` -- `isReleaseMutable`, and 9 new
+  typed errors (`ProductNotFoundError`, `ProductNotDraftError`,
+  `ReleaseNotFoundForProductError`, `ReleaseAlreadyPublishedError`,
+  `ReleaseNotReadyError`, `ProductNotReadyError`, `ReleaseNotFoundError`,
+  `FileScanNotFoundError`, `FileScanNotCleanError`) so callers map each
+  failure precisely instead of parsing error strings.
+- `packages/adapters/catalog/src/catalog-repository.ts` --
+  `publishProduct(id)` replaced by `publishProductWithRelease(productId,
+  releaseId)`: one transaction that re-reads and re-validates the Product
+  (exists, still DRAFT), the explicitly-selected Release (belongs to this
+  product, not already published, has a CLEAN attached file re-verified
+  fresh), and every Product-level mandatory field (license/support/
+  compatibility), all fresh from the database -- then publishes both rows
+  with the same timestamp, or neither at all if any check fails.
+  `attachReleaseFile`/new `detachReleaseFile` now take `productId` and
+  reject a release that doesn't belong to it or is already published;
+  `detachReleaseFile` removes only the `ReleaseFile` join row, never the
+  underlying `FileScan`, and is idempotent.
+- `apps/web/app/api/admin/products/[id]/publish/route.ts` -- now requires
+  `releaseId` in the request body (publishing is never implicit about which
+  release it applies to) and maps each typed error to a precise HTTP
+  response.
+- `.../releases/[releaseId]/files/route.ts` -- adds a `DELETE` handler
+  alongside the existing `POST`, both scoped to `productId`, both returning
+  409 for an already-published release.
+- `apps/web/app/admin/products/[id]/edit/ProductPublishControl.tsx` -- the
+  admin now explicitly selects which eligible draft release becomes the
+  initial published release from a server-computed `<select>`.
+- `apps/web/app/admin/products/[id]/edit/ReleasesEditor.tsx` -- distinguishes
+  Draft/Published per release, hides the attach-file form and shows a
+  "files are immutable" note for a published release, adds a Remove control
+  per file on a still-draft release. The server enforces every rule
+  independently either way -- hiding a control is a UI convenience, not the
+  authorization.
+
+**RLS**: `packages/db/prisma/migrations/20260925040837_add_release_files/
+migration.sql` now includes `ALTER TABLE "release_files" ENABLE ROW LEVEL
+SECURITY;`, verified against a real local Postgres (`relrowsecurity = true`
+by direct query) and re-applied from a fresh database end to end.
+
+**TD-019 closed for real, not deferred again.** Added `draftAdminProduct`/
+`publishedAdminProduct` fixtures (`packages/e2e/src/seed.ts`, the latter
+with a license, support policy, compatibility entry, and one CLEAN file
+attached to an already-published release, built by direct Prisma writes --
+fixture setup, not the behavior under test) and 7 new `GATED_PAGES` states
+(`packages/e2e/src/pages.ts`): `admin-products-populated`,
+`admin-products-denied`, `admin-products-new`, `admin-products-new-denied`,
+`admin-products-edit-draft` (missing every mandatory field -- the richest
+dynamic-content state), `admin-products-edit-published` (the new immutable-
+release state), `admin-products-edit-denied` -- mirroring `admin-content-*`'s
+established convention exactly, including its per-surface "denied" state.
+Verified locally first (chromium, 195/195 including the existing page-
+inventory tests), then on **real CI** (PR #23, run `36099983635`): all 4
+accessibility shards passed -- 963 main-pool tests + 144 self-check (36 x 4,
+unchanged) = 1107 total, 0 skipped, 0 retries, 0 flaky, Playwright browser
+cache hit on all 4 shards.
+
+**Two real bugs found and fixed while building the fixtures, both before
+any CI push mattered:** a support-policy fixture violated a real CHECK
+constraint (`support_policies_channel_required_check` -- a channel is
+required unless status is `UNSUPPORTED`); and the fixture cleanup order
+deleted the fixture admin user (whose `FileScan.uploadedByUserId` cascades)
+before the product/release rows that still referenced those FileScans via
+the `Restrict` FK on `ReleaseFile.fileScanId` -- reordered to delete
+products (cascading away Release/ReleaseFile) and their FileScans before
+user deletion, mirroring the file's existing Article/privacy-row ordering
+rationale.
+
+**Caught by real CI, not locally:** 3 files needed an actual Prettier
+reformat (not the known Windows-CRLF false positive -- this was a genuine
+gap against the LF-based CI check), and `fixtures-cleanup.spec.ts`
+hardcoded "3 fixture products per worker," which broke the instant the two
+new admin-product fixtures brought the real count to 5 -- failed
+identically on all three engines (chromium/firefox/webkit) in the first CI
+run, fixed in a follow-up commit.
+
+**New tech-debt record**: [TD-020](tech-debt/TD-020.md) (Low, Open) -- the 9
+orphaned `postgres.exe` processes are a local tooling-hygiene gap (Windows
+doesn't always propagate `SIGTERM` to an `embedded-postgres`-launched
+`postgres.exe`, which runs as its own console process), not a
+tracked-repository code defect; no `packages/db/` file needed to change.
+
+**Verified directly in this pass** (not assumed): `pnpm build` 25/25,
+`pnpm lint` 25/25, `pnpm typecheck` 48/48, `pnpm test` 48/48 tasks
+(including `@ppu/domain-catalog` 86/86, `@ppu/adapter-catalog` 70/70
+against a real Postgres, `@ppu/web` 316/316), all against a fresh local
+database re-applied from scratch. Final PR #23 CI run (`36099983635`): all
+6 required checks green.
+
+**MVP-012 is Done.** `planning/mvp-backlog.csv`/`planning/backlog.csv`
+updated (QA to Done); `planning/requirement-traceability.csv` FR-009
+updated to remove the "known gap" caveat; `planning/status.md` board counts
+updated (QA 1 to 0, Done 13 to 14). Per CLAUDE.md's "recommend the next
+unblocked story" rule, `MVP-014` (Immutable published releases) and
+`MVP-019` (Operations console and audit) both now genuinely qualify (both
+depend on `MVP-012` alone). **MVP-014 is recommended**: it directly extends
+the `Release`/`ReleaseFile` model this pass just built, and the
+release-lifecycle correction above already establishes the exact
+application-layer boundary MVP-014's deeper release-promotion/history
+policy needs to build on.
+
+PR #23 pushed with all corrections; **not merged**, per the authorizing
+instruction -- awaiting product-owner review.
