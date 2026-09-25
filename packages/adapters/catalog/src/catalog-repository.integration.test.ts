@@ -32,34 +32,25 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
   });
 
   afterAll(async () => {
-    // Deleting a product cascades to its licenses, releases, support policy
-    // and compatibility records. The seeded license tiers and categories are
-    // permanent reference data and are never deleted here — only the
-    // throwaway tier this file creates itself.
-    await db.product.deleteMany({
-      where: {
-        slug: {
-          in: [
-            "catalog-repo-published",
-            "catalog-repo-draft",
-            "catalog-repo-draft-lookup",
-            "catalog-repo-search-alpha",
-            "catalog-repo-search-beta",
-            "catalog-repo-search-draft",
-            "catalog-repo-detail-full",
-            "catalog-repo-detail-legacy",
-            "catalog-repo-detail-draft",
-            "catalog-repo-detail-unreleased",
-            "catalog-repo-evidence-constraints",
-            "catalog-repo-sitemap-a",
-            "catalog-repo-sitemap-b",
-            "catalog-repo-sitemap-draft",
-            "catalog-repo-sitemap-draft-only",
-          ],
-        },
-      },
-    });
+    // Deleting a product cascades to its licenses, releases (and each
+    // release's ReleaseFile join rows), support policy and compatibility
+    // records. The seeded license tiers and categories are permanent
+    // reference data and are never deleted here — only the throwaway tier
+    // this file creates itself. Every product slug this file creates shares
+    // the reserved "catalog-repo-" prefix (matches the reserved
+    // non-production prefix convention, docs/final-decisions.md, "MVP-023"
+    // Q36), so a prefix match replaces what used to be a hand-maintained
+    // exact slug list — every test below only ever needs to add its own
+    // "catalog-repo-..." slug, never touch this cleanup block.
+    await db.product.deleteMany({ where: { slug: { startsWith: "catalog-repo-" } } });
     await db.licenseDefinition.deleteMany({ where: { slug: "catalog-repo-test-tier" } });
+    // FileScan rows the admin-authoring-surface tests below create for
+    // ReleaseFile attachment (their ReleaseFile join rows are already gone
+    // via the product/release cascade above; FileScan itself has no FK to a
+    // product, so it needs its own cleanup, scoped to the admin test user
+    // this file creates).
+    await db.fileScan.deleteMany({ where: { storageKey: { startsWith: "catalog-repo-" } } });
+    await db.user.deleteMany({ where: { email: { startsWith: "catalog-repo-" } } });
     await db.$disconnect();
   });
 
@@ -596,6 +587,406 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       });
       expect(result.total).toBe(2);
       expect(result.items.every((p) => p.category.slug === categorySlug)).toBe(true);
+    });
+  });
+
+  describe("Admin authoring surface (MVP-012)", () => {
+    let adminUserId: string;
+    let personalTierId: string;
+    let enterpriseTierId: string;
+
+    beforeAll(async () => {
+      const user = await db.user.create({
+        data: { email: "catalog-repo-admin@example.test", role: "ADMIN" },
+      });
+      adminUserId = user.id;
+      const personal = await db.licenseDefinition.findUniqueOrThrow({
+        where: { slug: "personal" },
+      });
+      const enterprise = await db.licenseDefinition.findUniqueOrThrow({
+        where: { slug: "enterprise" },
+      });
+      personalTierId = personal.id;
+      enterpriseTierId = enterprise.id;
+    });
+
+    it("createProductDraft always starts DRAFT", async () => {
+      const product = await repo.createProductDraft({
+        name: "Admin Draft Product",
+        slug: "catalog-repo-admin-draft",
+        summary: "A draft created via the admin authoring surface.",
+        categoryId,
+      });
+      expect(product.status).toBe("DRAFT");
+      expect(product.name).toBe("Admin Draft Product");
+    });
+
+    it("updateProductDraft changes core fields but never status", async () => {
+      const created = await repo.createProductDraft({
+        name: "Original name",
+        slug: "catalog-repo-admin-update",
+        summary: "Original summary.",
+        categoryId,
+      });
+      const updated = await repo.updateProductDraft(created.id, {
+        name: "Updated name",
+        slug: "catalog-repo-admin-update",
+        summary: "Updated summary.",
+        categoryId,
+      });
+      expect(updated.name).toBe("Updated name");
+      expect(updated.summary).toBe("Updated summary.");
+      expect(updated.status).toBe("DRAFT");
+    });
+
+    it("findProductByIdForAdmin finds a DRAFT product; findPublishedProductBySlug does not", async () => {
+      const created = await repo.createProductDraft({
+        name: "Admin Lookup",
+        slug: "catalog-repo-admin-lookup",
+        summary: "Summary.",
+        categoryId,
+      });
+      const found = await repo.findProductByIdForAdmin(created.id);
+      expect(found?.id).toBe(created.id);
+      expect(found?.category.slug).toBe(categorySlug);
+      expect(await repo.findPublishedProductBySlug("catalog-repo-admin-lookup")).toBeNull();
+    });
+
+    it("findProductByIdForAdmin returns null for an unknown id", async () => {
+      expect(await repo.findProductByIdForAdmin("does-not-exist")).toBeNull();
+    });
+
+    it("listProductsForAdmin lists every status", async () => {
+      const created = await repo.createProductDraft({
+        name: "Admin List",
+        slug: "catalog-repo-admin-list",
+        summary: "Summary.",
+        categoryId,
+      });
+      const all = await repo.listProductsForAdmin();
+      expect(all.map((p) => p.id)).toContain(created.id);
+    });
+
+    describe("publishProduct and the readiness gate", () => {
+      it("getProductPublishSnapshot reports zero counts for a bare draft", async () => {
+        const created = await repo.createProductDraft({
+          name: "Readiness Check",
+          slug: "catalog-repo-readiness",
+          summary: "Summary.",
+          categoryId,
+        });
+        const snapshot = await repo.getProductPublishSnapshot(created.id);
+        expect(snapshot).toEqual({
+          licenseCount: 0,
+          hasSupportPolicy: false,
+          compatibilityCount: 0,
+          releasesWithCleanFileCount: 0,
+        });
+      });
+
+      it("publishProduct enforces the status transition and rejects double-publish", async () => {
+        // publishProduct itself only enforces the DRAFT -> PUBLISHED schema
+        // transition; the mandatory-field readiness gate
+        // (checkProductPublishReadiness) is the API route's own
+        // responsibility, checked before this is ever called.
+        const created = await repo.createProductDraft({
+          name: "Not Ready",
+          slug: "catalog-repo-not-ready",
+          summary: "Summary.",
+          categoryId,
+        });
+        const published = await repo.publishProduct(created.id);
+        expect(published.status).toBe("PUBLISHED");
+        const row = await db.product.findUniqueOrThrow({ where: { id: created.id } });
+        expect(row.publishedAt).not.toBeNull();
+        await expect(repo.publishProduct(created.id)).rejects.toThrow();
+      });
+
+      it("a fully-evidenced product's snapshot reports ready, and publishProduct sets publishedAt", async () => {
+        const created = await repo.createProductDraft({
+          name: "Fully Ready",
+          slug: "catalog-repo-fully-ready",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        await repo.upsertSupportPolicy(created.id, { status: "UNSUPPORTED", channel: null });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_APPS",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const fileScan = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-release-file-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 1024,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(release.id, fileScan.id);
+
+        const snapshot = await repo.getProductPublishSnapshot(created.id);
+        expect(snapshot).toEqual({
+          licenseCount: 1,
+          hasSupportPolicy: true,
+          compatibilityCount: 1,
+          releasesWithCleanFileCount: 1,
+        });
+
+        const published = await repo.publishProduct(created.id);
+        expect(published.status).toBe("PUBLISHED");
+      });
+
+      it("a release with only a non-CLEAN attachment does not count toward readiness", async () => {
+        const created = await repo.createProductDraft({
+          name: "Dirty Release Only",
+          slug: "catalog-repo-dirty-release-only",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-quarantined-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 1024,
+            status: "QUARANTINED",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        const snapshot = await repo.getProductPublishSnapshot(created.id);
+        expect(snapshot.releasesWithCleanFileCount).toBe(0);
+      });
+    });
+
+    describe("setProductLicenses", () => {
+      it("replaces the full assigned set rather than adding incrementally", async () => {
+        const created = await repo.createProductDraft({
+          name: "License Replace",
+          slug: "catalog-repo-license-replace",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [personalTierId, enterpriseTierId]);
+        expect(await db.productLicense.count({ where: { productId: created.id } })).toBe(2);
+
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        const remaining = await db.productLicense.findMany({ where: { productId: created.id } });
+        expect(remaining.map((l) => l.licenseDefinitionId)).toEqual([personalTierId]);
+
+        await repo.setProductLicenses(created.id, []);
+        expect(await db.productLicense.count({ where: { productId: created.id } })).toBe(0);
+      });
+    });
+
+    describe("listLicenseDefinitions", () => {
+      it("lists the seeded license tiers in sortOrder, including Personal and Enterprise", async () => {
+        const definitions = await repo.listLicenseDefinitions();
+        const sorted = [...definitions].sort((a, b) => a.sortOrder - b.sortOrder);
+        expect(definitions).toEqual(sorted);
+        expect(definitions.map((d) => d.slug)).toContain("personal");
+        expect(definitions.map((d) => d.slug)).toContain("enterprise");
+      });
+    });
+
+    describe("upsertSupportPolicy", () => {
+      it("creates then updates the same policy (upsert, not insert-only)", async () => {
+        const created = await repo.createProductDraft({
+          name: "Support Upsert",
+          slug: "catalog-repo-support-upsert",
+          summary: "Summary.",
+          categoryId,
+        });
+        const first = await repo.upsertSupportPolicy(created.id, {
+          status: "COMMUNITY_SUPPORTED",
+          channel: "https://example.test/support",
+        });
+        expect(first.status).toBe("COMMUNITY_SUPPORTED");
+
+        const second = await repo.upsertSupportPolicy(created.id, {
+          status: "UNSUPPORTED",
+          channel: null,
+        });
+        expect(second.status).toBe("UNSUPPORTED");
+        expect(second.channel).toBeNull();
+        expect(await db.supportPolicy.count({ where: { productId: created.id } })).toBe(1);
+      });
+    });
+
+    describe("upsertCompatibilityEntry", () => {
+      it("upserts keyed on (productId, platformArea)", async () => {
+        const created = await repo.createProductDraft({
+          name: "Compatibility Upsert",
+          slug: "catalog-repo-compat-upsert",
+          summary: "Summary.",
+          categoryId,
+        });
+        const first = await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_BI",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: "Initial notes.",
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        expect(first.notes).toBe("Initial notes.");
+
+        const second = await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_BI",
+          minReleaseYear: 2025,
+          minReleaseWave: 2,
+          notes: "Updated notes.",
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        expect(second.id).toBe(first.id);
+        expect(second.minReleaseWave).toBe(2);
+        expect(second.notes).toBe("Updated notes.");
+        expect(
+          await db.compatibilityRecord.count({
+            where: { productId: created.id, platformArea: "POWER_BI" },
+          }),
+        ).toBe(1);
+      });
+
+      it("refuses to persist MARKETPLACE_REVIEWED even though the type allows it (defense in depth, TD-008 section 9)", async () => {
+        const created = await repo.createProductDraft({
+          name: "Compatibility Reject",
+          slug: "catalog-repo-compat-reject",
+          summary: "Summary.",
+          categoryId,
+        });
+        await expect(
+          repo.upsertCompatibilityEntry(created.id, {
+            platformArea: "DATAVERSE",
+            minReleaseYear: 2025,
+            minReleaseWave: 1,
+            notes: null,
+            evidenceStatus: "MARKETPLACE_REVIEWED",
+            evidenceSummary: null,
+            lastVerifiedAt: null,
+          }),
+        ).rejects.toThrow();
+        expect(
+          await db.compatibilityRecord.count({
+            where: { productId: created.id, platformArea: "DATAVERSE" },
+          }),
+        ).toBe(0);
+      });
+    });
+
+    describe("createRelease, attachReleaseFile and listReleasesForAdmin", () => {
+      it("attachReleaseFile rejects a file that is not CLEAN, and never creates the join row", async () => {
+        const created = await repo.createProductDraft({
+          name: "Attach Reject",
+          slug: "catalog-repo-attach-reject",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const dirty = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-dirty-${release.id}`,
+            originalFilename: "malware.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 10,
+            status: "QUARANTINED",
+            uploadedByUserId: adminUserId,
+          },
+        });
+
+        await expect(repo.attachReleaseFile(release.id, dirty.id)).rejects.toThrow();
+        expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(0);
+      });
+
+      it("attachReleaseFile rejects an unknown release or file scan id", async () => {
+        const created = await repo.createProductDraft({
+          name: "Attach Unknown",
+          slug: "catalog-repo-attach-unknown",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-unknown-release-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 10,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+
+        await expect(repo.attachReleaseFile("does-not-exist", clean.id)).rejects.toThrow();
+        await expect(repo.attachReleaseFile(release.id, "does-not-exist")).rejects.toThrow();
+      });
+
+      it("attachReleaseFile accepts a CLEAN file and listReleasesForAdmin reports it; attaching twice is a no-op", async () => {
+        const created = await repo.createProductDraft({
+          name: "Attach Accept",
+          slug: "catalog-repo-attach-accept",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 2048,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+
+        await repo.attachReleaseFile(release.id, clean.id);
+        await repo.attachReleaseFile(release.id, clean.id);
+        expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
+
+        const releases = await repo.listReleasesForAdmin(created.id);
+        expect(releases).toHaveLength(1);
+        expect(releases[0]?.files).toEqual([{ fileScanId: clean.id, status: "CLEAN" }]);
+      });
+
+      it("rejects a duplicate release version for the same product (unique constraint)", async () => {
+        const created = await repo.createProductDraft({
+          name: "Duplicate Version",
+          slug: "catalog-repo-dup-version",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.createRelease(created.id, "1.0.0");
+        await expect(repo.createRelease(created.id, "1.0.0")).rejects.toThrow();
+      });
+
+      it("listReleasesForAdmin returns newest first with an empty files array when nothing is attached", async () => {
+        const created = await repo.createProductDraft({
+          name: "Release List Order",
+          slug: "catalog-repo-release-order",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.createRelease(created.id, "1.0.0");
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        await repo.createRelease(created.id, "2.0.0");
+
+        const releases = await repo.listReleasesForAdmin(created.id);
+        expect(releases.map((r) => r.version)).toEqual(["2.0.0", "1.0.0"]);
+        expect(releases[0]?.files).toEqual([]);
+      });
     });
   });
 });

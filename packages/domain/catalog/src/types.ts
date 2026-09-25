@@ -111,3 +111,71 @@ export interface ProductDetail extends ProductWithCategory {
   support: SupportPolicyRecord | null;
   compatibility: CompatibilityEntry[];
 }
+
+/**
+ * Product and release authoring (MVP-012, FR-009). First-party ADMIN-only
+ * (docs/final-decisions.md, "First-party-only publishing model" section 6)
+ * — no CREATOR/SELLER/EDITOR/PUBLISHER role exists. The caller (the API
+ * route) checks the actor is ADMIN before any of this runs, mirroring
+ * @ppu/domain-content's ContentRepository/ArticleUpdateInput pattern
+ * exactly.
+ */
+
+/** Create and update share the same core-field shape: name, slug, summary,
+ * categoryId. `categoryId` referencing a real Category is checked by the
+ * caller (repository access is needed; this package stays DB-free), not by
+ * any pure validator here. */
+export interface ProductCoreFields {
+  name: string;
+  slug: string;
+  summary: string;
+  categoryId: string;
+}
+
+export type ProductCreateInput = ProductCoreFields;
+
+/** Deliberately excludes `status`/`publishedAt` — those change only
+ * through CatalogRepository.publishProduct, never a general edit, so a bad
+ * or accidental edit can never silently unpublish or republish a Product
+ * (mirrors @ppu/domain-content's ArticleUpdateInput exactly). */
+export type ProductUpdateInput = ProductCoreFields;
+
+/** Free-text version (docs/open-questions.md item 61: format enforcement
+ * deferred). `publishedAt` null means the release itself has not been
+ * published — distinct from, and currently unused by, the product's own
+ * DRAFT/PUBLISHED status; MVP-012 creates Release rows but does not yet
+ * publish them (FR-011/immutability is MVP-014's scope). */
+export interface ReleaseRecord {
+  id: string;
+  productId: string;
+  version: string;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** The mandatory-field snapshot the DRAFT -> PUBLISHED gate needs
+ * (docs/open-questions.md item 61's recorded safest-reversible default).
+ * `releasesWithCleanFileCount` counts only releases that have at least one
+ * attached ReleaseFile whose FileScan is CLEAN -- a release with zero
+ * attachments, or attachments that never passed scanning, does not count.
+ * `compatibilityCount` counts CompatibilityRecord rows regardless of
+ * evidence status, since MVP-012's write path can only ever produce
+ * CREATOR_DECLARED rows (see checkProductPublishReadiness's doc comment). */
+export interface ProductPublishSnapshot {
+  licenseCount: number;
+  hasSupportPolicy: boolean;
+  compatibilityCount: number;
+  releasesWithCleanFileCount: number;
+}
+
+/** One entry per missing mandatory field, in the fixed check order used by
+ * checkProductPublishReadiness: "license", "supportPolicy", "compatibility",
+ * "release". Never invents a reason not in this list (price is correctly
+ * excluded -- MVP-007, blocked on open questions 3 and 7). */
+export type ProductPublishMissingField = "license" | "supportPolicy" | "compatibility" | "release";
+
+export interface ProductPublishReadiness {
+  ready: boolean;
+  missingFields: ProductPublishMissingField[];
+}

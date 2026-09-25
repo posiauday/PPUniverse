@@ -15,8 +15,23 @@ export type {
   SupportPolicyRecord,
   CompatibilityEntry,
   ProductDetail,
+  ProductCoreFields,
+  ProductCreateInput,
+  ProductUpdateInput,
+  ReleaseRecord,
+  ProductPublishSnapshot,
+  ProductPublishMissingField,
+  ProductPublishReadiness,
 } from "./types.js";
 export { isPubliclyVisible } from "./visibility.js";
+export {
+  isValidProductSlug,
+  isValidProductName,
+  isValidProductSummary,
+  isValidReleaseVersion,
+  isValidProductStatusTransition,
+  checkProductPublishReadiness,
+} from "./product.js";
 export type { CatalogRepository } from "./catalog-repository.js";
 export {
   DEFAULT_PAGE_SIZE,
