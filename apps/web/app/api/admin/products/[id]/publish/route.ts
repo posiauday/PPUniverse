@@ -1,7 +1,11 @@
 import { prisma } from "@ppu/db";
 import {
-  checkProductPublishReadiness,
-  isValidProductStatusTransition,
+  ProductNotDraftError,
+  ProductNotFoundError,
+  ProductNotReadyError,
+  ReleaseAlreadyPublishedError,
+  ReleaseNotFoundForProductError,
+  ReleaseNotReadyError,
   type ProductPublishMissingField,
 } from "@ppu/domain-catalog";
 import { createErrorEnvelope } from "@ppu/shared";
@@ -42,68 +46,134 @@ const MISSING_FIELD_MESSAGES: Record<ProductPublishMissingField, string> = {
     "At least one release with an attached, scanned-clean file must exist before publishing.",
 };
 
+interface PublishInputBody {
+  releaseId?: unknown;
+}
+
+function missingFieldErrors(fields: ProductPublishMissingField[]): Record<string, string[]> {
+  const fieldErrors: Record<string, string[]> = {};
+  for (const field of fields) {
+    fieldErrors[field] = [MISSING_FIELD_MESSAGES[field]];
+  }
+  return fieldErrors;
+}
+
 /**
- * Publishes a Product: DRAFT -> PUBLISHED only (MVP-012, FR-009). A
- * dedicated sub-route, not a PATCH-with-action-field, mirroring
- * api/admin/content/[id]/publish/route.ts exactly. Two independent gates,
- * checked in order:
- *   1. The pure status transition (isValidProductStatusTransition) -- an
- *      already-PUBLISHED product is rejected with INVALID_STATE, same as
- *      Article.
- *   2. The mandatory-field readiness gate (checkProductPublishReadiness) --
- *      a DRAFT product missing a license/support policy/compatibility
- *      entry/clean-file release is rejected with PUBLISH_NOT_READY and the
- *      full list of what's missing, not just the first failure.
+ * Initial product publication (MVP-012, FR-009; direct product-owner
+ * decision, "PR #23 blocker corrections" A2/A4). A dedicated sub-route, not
+ * a PATCH-with-action-field, mirroring
+ * api/admin/content/[id]/publish/route.ts's shape. The caller explicitly
+ * selects which draft release becomes the initial published release --
+ * publishing is never implicit about which release it applies to.
+ *
+ * The one authoritative gate is CatalogRepository.publishProductWithRelease
+ * itself: it re-reads and re-validates the Product and the selected Release
+ * fresh, inside one transaction, and either both are published together or
+ * neither is. This route does no separate pre-check that could drift from
+ * that transaction's own logic -- it only maps each of the transaction's
+ * typed errors to the right HTTP response.
  */
 export const POST = withObservability(
   "POST /api/admin/products/[id]/publish",
-  async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const correlationId = getCorrelationId() ?? "unknown";
     const admin = await requireAdmin();
     if (!admin) return deny(correlationId);
 
     const { id } = await params;
-    const product = await catalogRepository.findProductByIdForAdmin(id);
-    if (!product) {
+
+    let body: PublishInputBody;
+    try {
+      body = (await request.json()) as PublishInputBody;
+    } catch {
       return NextResponse.json(
-        createErrorEnvelope("NOT_FOUND", "Product not found.", correlationId),
-        { status: 404 },
+        createErrorEnvelope("VALIDATION", "Invalid request body.", correlationId),
+        { status: 400 },
+      );
+    }
+    if (typeof body.releaseId !== "string" || body.releaseId.length === 0) {
+      return NextResponse.json(
+        createErrorEnvelope("VALIDATION", "One or more fields are invalid.", correlationId, {
+          fieldErrors: { releaseId: ["releaseId is required -- select the release to publish."] },
+        }),
+        { status: 400 },
       );
     }
 
-    if (!isValidProductStatusTransition(product.status, "PUBLISHED")) {
-      return NextResponse.json(
-        createErrorEnvelope(
-          "INVALID_STATE",
-          `Cannot publish a product in status ${product.status}.`,
-          correlationId,
-        ),
-        { status: 409 },
-      );
-    }
+    try {
+      const result = await catalogRepository.publishProductWithRelease(id, body.releaseId);
 
-    const snapshot = await catalogRepository.getProductPublishSnapshot(id);
-    const readiness = checkProductPublishReadiness(snapshot);
-    if (!readiness.ready) {
-      const fieldErrors: Record<string, string[]> = {};
-      for (const field of readiness.missingFields) {
-        fieldErrors[field] = [MISSING_FIELD_MESSAGES[field]];
+      logger.info("product.published", {
+        productId: result.product.id,
+        releaseId: result.release.id,
+        actorUserId: admin.userId,
+      });
+
+      return NextResponse.json(
+        { product: result.product, release: result.release },
+        { status: 200 },
+      );
+    } catch (error) {
+      if (error instanceof ProductNotFoundError) {
+        return NextResponse.json(
+          createErrorEnvelope("NOT_FOUND", "Product not found.", correlationId),
+          { status: 404 },
+        );
       }
-      return NextResponse.json(
-        createErrorEnvelope(
-          "PUBLISH_NOT_READY",
-          "This product is missing mandatory fields and cannot be published yet.",
-          correlationId,
-          { fieldErrors },
-        ),
-        { status: 409 },
-      );
+      if (error instanceof ReleaseNotFoundForProductError) {
+        return NextResponse.json(
+          createErrorEnvelope(
+            "VALIDATION",
+            "The selected release does not belong to this product.",
+            correlationId,
+            { fieldErrors: { releaseId: ["This release does not belong to this product."] } },
+          ),
+          { status: 404 },
+        );
+      }
+      if (error instanceof ProductNotDraftError) {
+        return NextResponse.json(
+          createErrorEnvelope(
+            "INVALID_STATE",
+            `Cannot publish a product in status ${error.status}.`,
+            correlationId,
+          ),
+          { status: 409 },
+        );
+      }
+      if (error instanceof ReleaseAlreadyPublishedError) {
+        return NextResponse.json(
+          createErrorEnvelope(
+            "INVALID_STATE",
+            "This release is already published and cannot be published again.",
+            correlationId,
+          ),
+          { status: 409 },
+        );
+      }
+      if (error instanceof ReleaseNotReadyError) {
+        return NextResponse.json(
+          createErrorEnvelope(
+            "PUBLISH_NOT_READY",
+            "The selected release has no attached, scanned-clean file.",
+            correlationId,
+            { fieldErrors: missingFieldErrors(["release"]) },
+          ),
+          { status: 409 },
+        );
+      }
+      if (error instanceof ProductNotReadyError) {
+        return NextResponse.json(
+          createErrorEnvelope(
+            "PUBLISH_NOT_READY",
+            "This product is missing mandatory fields and cannot be published yet.",
+            correlationId,
+            { fieldErrors: missingFieldErrors(error.missingFields) },
+          ),
+          { status: 409 },
+        );
+      }
+      throw error;
     }
-
-    const published = await catalogRepository.publishProduct(id);
-
-    logger.info("product.published", { productId: published.id, actorUserId: admin.userId });
-
-    return NextResponse.json({ product: published }, { status: 200 });
   },
 );
