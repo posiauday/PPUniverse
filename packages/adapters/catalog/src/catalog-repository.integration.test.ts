@@ -733,9 +733,9 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
         // Re-publishing the same product: it's no longer DRAFT.
         const anotherRelease = await repo.createRelease(product.id, "2.0.0");
-        await expect(
-          repo.publishProductWithRelease(product.id, anotherRelease.id),
-        ).rejects.toThrow(/not found|status|DRAFT/i);
+        await expect(repo.publishProductWithRelease(product.id, anotherRelease.id)).rejects.toThrow(
+          /not found|status|DRAFT/i,
+        );
       });
 
       it("rejects publication with no release selected against an unready product, naming every missing field", async () => {
@@ -755,9 +755,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       it("rejects a release id that belongs to a different product (cross-product access)", async () => {
         const { product: productA } = await createFullyReadyProduct("cross-a");
         const { release: releaseB } = await createFullyReadyProduct("cross-b");
-        await expect(
-          repo.publishProductWithRelease(productA.id, releaseB.id),
-        ).rejects.toThrow();
+        await expect(repo.publishProductWithRelease(productA.id, releaseB.id)).rejects.toThrow();
         const rowA = await db.product.findUniqueOrThrow({ where: { id: productA.id } });
         expect(rowA.status).toBe("DRAFT");
       });
@@ -794,9 +792,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         // A second draft release exists; attempting to publish the *original*
         // (already-published) release id again must fail, distinct from the
         // "product is no longer DRAFT" case covered above.
-        await expect(
-          repo.publishProductWithRelease(product.id, release.id),
-        ).rejects.toThrow();
+        await expect(repo.publishProductWithRelease(product.id, release.id)).rejects.toThrow();
       });
 
       it("a fully-evidenced product's snapshot reports ready, and publishing sets both timestamps", async () => {
@@ -1091,9 +1087,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
         // productA's id supplied with productB's release id: rejected, not
         // silently attached against the wrong product.
-        await expect(
-          repo.attachReleaseFile(productA.id, releaseB.id, clean.id),
-        ).rejects.toThrow();
+        await expect(repo.attachReleaseFile(productA.id, releaseB.id, clean.id)).rejects.toThrow();
         expect(await db.releaseFile.count({ where: { releaseId: releaseB.id } })).toBe(0);
       });
 
@@ -1239,9 +1233,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         await repo.attachReleaseFile(created.id, release.id, clean.id);
         await repo.publishProductWithRelease(created.id, release.id);
 
-        await expect(
-          repo.detachReleaseFile(created.id, release.id, clean.id),
-        ).rejects.toThrow();
+        await expect(repo.detachReleaseFile(created.id, release.id, clean.id)).rejects.toThrow();
         expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
       });
 
@@ -1271,9 +1263,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         });
         await repo.attachReleaseFile(productB.id, releaseB.id, clean.id);
 
-        await expect(
-          repo.detachReleaseFile(productA.id, releaseB.id, clean.id),
-        ).rejects.toThrow();
+        await expect(repo.detachReleaseFile(productA.id, releaseB.id, clean.id)).rejects.toThrow();
         expect(await db.releaseFile.count({ where: { releaseId: releaseB.id } })).toBe(1);
       });
 

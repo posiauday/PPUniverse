@@ -100,9 +100,7 @@ describe("POST /api/admin/products/[id]/publish", () => {
   it("returns 409 INVALID_STATE for an already-PUBLISHED product", async () => {
     getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
     findUnique.mockResolvedValue({ role: "ADMIN" });
-    publishProductWithRelease.mockRejectedValue(
-      new ProductNotDraftError("product-1", "PUBLISHED"),
-    );
+    publishProductWithRelease.mockRejectedValue(new ProductNotDraftError("product-1", "PUBLISHED"));
 
     const response = await POST(makeRequest(), { params });
 

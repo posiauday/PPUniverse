@@ -48,9 +48,7 @@ export function ProductPublishControl({
 }: ProductPublishControlProps) {
   const router = useRouter();
   const [missingFields, setMissingFields] = useState<string[]>(initialMissingFields);
-  const [selectedReleaseId, setSelectedReleaseId] = useState<string>(
-    eligibleReleases[0]?.id ?? "",
-  );
+  const [selectedReleaseId, setSelectedReleaseId] = useState<string>(eligibleReleases[0]?.id ?? "");
   const [status, setStatus] = useState<Status>("idle");
   const selectId = useId();
 
@@ -117,7 +115,11 @@ export function ProductPublishControl({
         </div>
       ) : null}
 
-      <button type="button" onClick={handlePublish} aria-disabled={status === "submitting" || !canPublish}>
+      <button
+        type="button"
+        onClick={handlePublish}
+        aria-disabled={status === "submitting" || !canPublish}
+      >
         {status === "submitting" ? "Publishing…" : "Publish"}
       </button>
       <p role="status">
