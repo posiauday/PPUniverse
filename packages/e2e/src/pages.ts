@@ -726,6 +726,91 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/admin/content/${seed.draftArticle.id}/edit`,
   },
   {
+    // The positive admin state: proves the surface actually lists real
+    // Products (one DRAFT, one PUBLISHED), not just that it denies a
+    // non-admin (below) — mirrors admin-content-populated.
+    id: "admin-products-populated",
+    route: "/admin/products",
+    description: "admin products list, signed in as ADMIN, with a draft and a published product",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/products",
+    prepare: async (page, seed) => {
+      await expect(page.getByText(seed.draftAdminProduct.name)).toBeVisible();
+      await expect(page.getByText(seed.publishedAdminProduct.name)).toBeVisible();
+    },
+  },
+  {
+    // "denied": mirrors admin-content-denied exactly -- a signed-in MEMBER
+    // gets the identical Next.js not-found response an unauthenticated
+    // visitor gets (docs/final-decisions.md, "First-party-only publishing
+    // model" section 6: first-party product authoring reuses ADMIN).
+    id: "admin-products-denied",
+    route: null,
+    description: "admin products list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/products",
+  },
+  {
+    id: "admin-products-new",
+    route: "/admin/products/new",
+    description: "admin new-product form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/products/new",
+  },
+  {
+    id: "admin-products-new-denied",
+    route: null,
+    description: "admin new-product form, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/products/new",
+  },
+  {
+    // The DRAFT edit state: a bare product with none of the mandatory
+    // publish fields yet, so the publish control's full missing-field list
+    // (license, support policy, compatibility, release) is on screen --
+    // the most accessibility-relevant edit-page state, since it is the one
+    // with the richest dynamic error/status content.
+    id: "admin-products-edit-draft",
+    route: "/admin/products/[id]/edit",
+    description:
+      "admin edit-product form, signed in as ADMIN, a draft still missing every mandatory publish field",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/products/${seed.draftAdminProduct.id}/edit`,
+    prepare: async (page) => {
+      await expect(page.getByText(/still needs/i)).toBeVisible();
+    },
+  },
+  {
+    // The PUBLISHED edit state (direct product-owner decision, "PR #23
+    // blocker corrections" A2/A7): no publish control renders at all (the
+    // product is no longer DRAFT), and the one existing release shows as
+    // "Published" with no attach/detach controls -- files are immutable.
+    id: "admin-products-edit-published",
+    route: "/admin/products/[id]/edit",
+    description:
+      "admin edit-product form, signed in as ADMIN, a published product with an immutable published release",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/products/${seed.publishedAdminProduct.id}/edit`,
+    prepare: async (page) => {
+      await expect(page.getByText(/—\s*Published/)).toBeVisible();
+      await expect(page.getByText(/files are immutable/i)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-products-edit-denied",
+    route: null,
+    description: "admin edit-product form, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: (seed) => `/admin/products/${seed.draftAdminProduct.id}/edit`,
+  },
+  {
     id: "not-found",
     route: null,
     description: "404 for an unknown URL",

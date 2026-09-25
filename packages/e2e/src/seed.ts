@@ -36,6 +36,15 @@ export interface ArticleRef {
   title: string;
 }
 
+/** MVP-012 (FR-009): admin authoring fixtures need the row id (the editor
+ * URL is /admin/products/[id]/edit, not slug-addressed), unlike the public
+ * ProductRef above. */
+export interface AdminProductRef {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 export interface SessionRef {
   id: string;
   token: string;
@@ -56,6 +65,16 @@ export interface FixtureSet {
   publishedArticle: ArticleRef;
   /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /learn/[slug] must 404 for it. */
   draftArticle: ArticleRef;
+  /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
+   * support/compatibility/release) — visible in the admin products list,
+   * and exercises the "still missing mandatory fields" publish-readiness
+   * state on its own edit page. */
+  draftAdminProduct: AdminProductRef;
+  /** MVP-012 (FR-009): a fully-evidenced, PUBLISHED Product with its
+   * selected Release also published (direct product-owner decision, "PR #23
+   * blocker corrections" A2) — visible in the admin products list, and
+   * exercises the "published release, files immutable" edit-page state. */
+  publishedAdminProduct: AdminProductRef;
   user: { id: string; email: string };
   /** The session the browser signs in with. */
   currentSession: SessionRef;
@@ -142,6 +161,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     adminUserId: null as string | null,
     productIds: [] as string[],
     articleIds: [] as string[],
+    fileScanIds: [] as string[],
   };
 
   const cleanup = async (): Promise<void> => {
@@ -193,6 +213,31 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         where: { id: { in: created.articleIds }, slug: { startsWith: RESERVED_PREFIX } },
       }),
     );
+    // MVP-012: must also run BEFORE user.deleteMany below, for a subtler
+    // version of the same reason as Article above. FileScan.uploadedByUserId
+    // -> User is onDelete: Cascade (packages/db/prisma/schema/files.prisma),
+    // but ReleaseFile -> FileScan is onDelete: Restrict (deliberately: "a
+    // scanned file already attached to a release must not be deletable out
+    // from under it"). If the fixture admin user were deleted first, its
+    // Cascade would try to delete the FileScan rows it uploaded while a
+    // ReleaseFile row still references them, and the Restrict FK would
+    // block that — a real failure reproduced locally while building this
+    // fixture. Deleting Product first cascades away Release and (via
+    // Release's own Cascade) ReleaseFile, so by the time FileScan is deleted
+    // explicitly below, nothing references it and nothing later blocks the
+    // user delete either.
+    await attempt(() =>
+      prisma.product.deleteMany({
+        where: { id: { in: created.productIds }, slug: { startsWith: RESERVED_PREFIX } },
+      }),
+    );
+    if (created.fileScanIds.length > 0) {
+      await attempt(() =>
+        prisma.fileScan.deleteMany({
+          where: { id: { in: created.fileScanIds }, storageKey: { startsWith: RESERVED_PREFIX } },
+        }),
+      );
+    }
     // Every delete is scoped by the ids this worker created AND the reserved prefix.
     await attempt(() =>
       prisma.session.deleteMany({
@@ -206,11 +251,6 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         }),
       );
     }
-    await attempt(() =>
-      prisma.product.deleteMany({
-        where: { id: { in: created.productIds }, slug: { startsWith: RESERVED_PREFIX } },
-      }),
-    );
     await attempt(() => prisma.$disconnect());
     if (failures.length > 0) {
       throw new AggregateError(failures, `Cleanup of ${prefix} rows failed`);
@@ -400,6 +440,76 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.articleIds.push(draftArticle.id);
 
+    // MVP-012 (FR-009): admin product/release editor fixtures. Deliberately
+    // built with direct Prisma writes, not through the admin API routes --
+    // this is fixture setup for the accessibility harness, not the
+    // behavior under test (same rationale as submitDeletionRequest/
+    // advanceDeletionRequest below).
+    const draftAdminProductSlug = `${prefix}admin-draft-product`;
+    assertReserved("product", draftAdminProductSlug);
+    const draftAdminProduct = await prisma.product.create({
+      data: {
+        slug: draftAdminProductSlug,
+        name: `E2E fixture: admin draft product ${prefix}(not a real listing)`,
+        summary,
+        categoryId: populated.id,
+      },
+    });
+    created.productIds.push(draftAdminProduct.id);
+
+    const publishedAdminProductSlug = `${prefix}admin-published-product`;
+    assertReserved("product", publishedAdminProductSlug);
+    const publishedAdminProduct = await prisma.product.create({
+      data: {
+        slug: publishedAdminProductSlug,
+        name: `E2E fixture: admin published product ${prefix}(not a real listing)`,
+        summary,
+        categoryId: populated.id,
+        licenses: { create: [{ licenseDefinitionId: licences[0]!.id }] },
+        supportPolicy: {
+          create: { status: "PLATFORM_SUPPORTED", channel: "https://example.invalid/support" },
+        },
+        compatibility: {
+          create: [
+            {
+              platformArea: "POWER_APPS",
+              minReleaseYear: 2025,
+              minReleaseWave: 1,
+              evidenceStatus: "CREATOR_DECLARED",
+            },
+          ],
+        },
+      },
+    });
+    created.productIds.push(publishedAdminProduct.id);
+
+    const adminReleaseFileStorageKey = `${prefix}admin-release-file`;
+    assertReserved("fileScan", adminReleaseFileStorageKey);
+    const adminReleaseFileScan = await prisma.fileScan.create({
+      data: {
+        storageKey: adminReleaseFileStorageKey,
+        originalFilename: "fixture-package.zip",
+        declaredMimeType: "application/zip",
+        sizeBytes: 1024,
+        status: "CLEAN",
+        uploadedByUserId: admin.id,
+      },
+    });
+    created.fileScanIds.push(adminReleaseFileScan.id);
+
+    await prisma.release.create({
+      data: {
+        productId: publishedAdminProduct.id,
+        version: "1.0.0",
+        publishedAt: now,
+        files: { create: { fileScanId: adminReleaseFileScan.id } },
+      },
+    });
+    await prisma.product.update({
+      where: { id: publishedAdminProduct.id },
+      data: { status: "PUBLISHED", publishedAt: now },
+    });
+
     const makeSession = async (
       createdAt: Date,
       forUserId: string = user.id,
@@ -445,6 +555,16 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         title: publishedArticle.title,
       },
       draftArticle: { id: draftArticle.id, slug: draftArticle.slug, title: draftArticle.title },
+      draftAdminProduct: {
+        id: draftAdminProduct.id,
+        slug: draftAdminProduct.slug,
+        name: draftAdminProduct.name,
+      },
+      publishedAdminProduct: {
+        id: publishedAdminProduct.id,
+        slug: publishedAdminProduct.slug,
+        name: publishedAdminProduct.name,
+      },
       user: { id: user.id, email },
       currentSession,
       otherSession,
