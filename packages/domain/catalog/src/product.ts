@@ -73,6 +73,118 @@ export function isValidProductStatusTransition(from: ProductStatus, to: ProductS
   return ALLOWED_TRANSITIONS[from].includes(to);
 }
 
+/**
+ * Whether a release's files/version may still change. A release is mutable
+ * (attach/detach/version edits allowed) only while `publishedAt` is null;
+ * once set, the release and its file set are immutable — direct product-
+ * owner decision, "PR #23 blocker corrections", A2/A3: a published Product
+ * is not frozen (new draft releases may follow), but a published *Release*
+ * is.
+ */
+export function isReleaseMutable(release: { publishedAt: Date | null }): boolean {
+  return release.publishedAt === null;
+}
+
+/** Thrown by CatalogRepository.publishProductWithRelease when the Product
+ * row doesn't exist. */
+export class ProductNotFoundError extends Error {
+  constructor(public readonly productId: string) {
+    super(`Product ${productId} not found`);
+    this.name = "ProductNotFoundError";
+  }
+}
+
+/** Thrown when publish is attempted on a Product that isn't DRAFT — mirrors
+ * @ppu/domain-content's isValidArticleStatusTransition rejection, but
+ * carries structured fields since this is thrown deep inside a transaction,
+ * not returned from a pure boolean check the caller evaluates first. */
+export class ProductNotDraftError extends Error {
+  constructor(
+    public readonly productId: string,
+    public readonly status: string,
+  ) {
+    super(`Cannot publish a Product in status ${status}`);
+    this.name = "ProductNotDraftError";
+  }
+}
+
+/** Thrown when the selected release doesn't exist, or exists but belongs to
+ * a different product — prevents a request for one product's publish
+ * selecting another product's release by id (A8: "route parameters cannot
+ * access another product's release"). */
+export class ReleaseNotFoundForProductError extends Error {
+  constructor(
+    public readonly releaseId: string,
+    public readonly productId: string,
+  ) {
+    super(`Release ${releaseId} does not belong to product ${productId}`);
+    this.name = "ReleaseNotFoundForProductError";
+  }
+}
+
+/** Thrown by any write that would mutate an already-published release
+ * (attach, detach, or publish-selecting it again) — A3's immutability
+ * rules, enforced below the UI, not by a disabled button. */
+export class ReleaseAlreadyPublishedError extends Error {
+  constructor(public readonly releaseId: string) {
+    super(`Release ${releaseId} is already published; its files are immutable`);
+    this.name = "ReleaseAlreadyPublishedError";
+  }
+}
+
+/** Thrown when the selected release has no attached CLEAN file at the
+ * moment of publication (re-verified fresh inside the transaction, never
+ * trusted from an earlier read). */
+export class ReleaseNotReadyError extends Error {
+  constructor(public readonly releaseId: string) {
+    super(`Release ${releaseId} has no attached CLEAN file`);
+    this.name = "ReleaseNotReadyError";
+  }
+}
+
+/** Thrown when a Product-level mandatory field (license/support/
+ * compatibility) is missing at the moment of publication, re-verified fresh
+ * inside the same transaction as the release checks — carries every missing
+ * field, not just the first, matching checkProductPublishReadiness's
+ * existing "full list" contract. */
+export class ProductNotReadyError extends Error {
+  constructor(public readonly missingFields: ProductPublishMissingField[]) {
+    super(`Product is not ready to publish: missing ${missingFields.join(", ")}`);
+    this.name = "ProductNotReadyError";
+  }
+}
+
+/** Thrown by attachReleaseFile/detachReleaseFile when the release doesn't
+ * exist, or exists but belongs to a different product than the caller
+ * supplied. */
+export class ReleaseNotFoundError extends Error {
+  constructor(public readonly releaseId: string) {
+    super(`Release ${releaseId} not found`);
+    this.name = "ReleaseNotFoundError";
+  }
+}
+
+/** Thrown by attachReleaseFile when the referenced FileScan doesn't exist. */
+export class FileScanNotFoundError extends Error {
+  constructor(public readonly fileScanId: string) {
+    super(`FileScan ${fileScanId} not found`);
+    this.name = "FileScanNotFoundError";
+  }
+}
+
+/** Thrown by attachReleaseFile when the referenced FileScan is not CLEAN —
+ * never trusts a client-supplied "this file is clean" claim; the status is
+ * always re-read fresh from the database at attach time. */
+export class FileScanNotCleanError extends Error {
+  constructor(
+    public readonly fileScanId: string,
+    public readonly status: string,
+  ) {
+    super(`FileScan ${fileScanId} is not CLEAN (status: ${status})`);
+    this.name = "FileScanNotCleanError";
+  }
+}
+
 /** Fixed check order so `missingFields` is deterministic and the UI/tests
  * never have to normalize array order. */
 const CHECK_ORDER: readonly ProductPublishMissingField[] = [
@@ -84,12 +196,18 @@ const CHECK_ORDER: readonly ProductPublishMissingField[] = [
 
 /**
  * The DRAFT -> PUBLISHED mandatory-field gate (docs/open-questions.md item
- * 61's recorded safest-reversible default, applied pending product-owner
- * confirmation): at least one license, a support policy, at least one
- * compatibility entry, and at least one release with at least one attached
- * CLEAN file. Core fields (name/slug/summary/categoryId) are not re-checked
- * here -- they are non-nullable on Product and already validated at
- * create/update time, so a persisted row always has them.
+ * 61, directly approved by the product owner, "PR #23 blocker corrections"
+ * A11): at least one license, a support policy, at least one compatibility
+ * entry, and at least one *unpublished* (draft) release with at least one
+ * attached CLEAN file. Core fields (name/slug/summary/categoryId) are not
+ * re-checked here -- they are non-nullable on Product and already validated
+ * at create/update time, so a persisted row always has them.
+ *
+ * This is a UI-facing readiness *hint* only (e.g. enabling the publish
+ * control and offering a release to select) — it is not the authoritative
+ * gate. The authoritative check re-reads this same state fresh, inside the
+ * same transaction that publishes, in CatalogRepository.publishProductWithRelease
+ * (A2/A4: enforced below the UI, never by a disabled button alone).
  *
  * Price is deliberately never checked (MVP-007, blocked on open questions 3
  * and 7) -- its absence is a correct, expected draft state, not a missing

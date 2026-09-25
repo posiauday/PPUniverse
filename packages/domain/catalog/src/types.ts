@@ -141,10 +141,17 @@ export type ProductCreateInput = ProductCoreFields;
 export type ProductUpdateInput = ProductCoreFields;
 
 /** Free-text version (docs/open-questions.md item 61: format enforcement
- * deferred). `publishedAt` null means the release itself has not been
- * published — distinct from, and currently unused by, the product's own
- * DRAFT/PUBLISHED status; MVP-012 creates Release rows but does not yet
- * publish them (FR-011/immutability is MVP-014's scope). */
+ * deferred). `publishedAt` null means the release is still a draft:
+ * editable release notes (within MVP-012's scope) and an editable file set.
+ * Once `publishedAt` is set — only by
+ * CatalogRepository.publishProductWithRelease, transactionally with the
+ * Product's own publish — the release and its files are immutable: no
+ * attach, detach, version edit, or publishedAt clearing (direct
+ * product-owner decision, "PR #23 blocker corrections" A2). A published
+ * Product is not frozen — an ADMIN may still create further draft releases
+ * for future versions — but each individual published Release is. Deeper
+ * release-promotion policy (which published release is "current" once more
+ * than one exists) is MVP-014's scope. */
 export interface ReleaseRecord {
   id: string;
   productId: string;
@@ -154,14 +161,25 @@ export interface ReleaseRecord {
   updatedAt: Date;
 }
 
-/** The mandatory-field snapshot the DRAFT -> PUBLISHED gate needs
- * (docs/open-questions.md item 61's recorded safest-reversible default).
- * `releasesWithCleanFileCount` counts only releases that have at least one
- * attached ReleaseFile whose FileScan is CLEAN -- a release with zero
- * attachments, or attachments that never passed scanning, does not count.
+/** Returned by CatalogRepository.publishProductWithRelease: both rows the
+ * one atomic transaction updated. */
+export interface ProductPublishResult {
+  product: ProductRecord;
+  release: ReleaseRecord;
+}
+
+/** The mandatory-field snapshot the DRAFT -> PUBLISHED readiness *hint*
+ * needs (docs/open-questions.md item 61, approved "PR #23 blocker
+ * corrections" A11). `releasesWithCleanFileCount` counts only *unpublished*
+ * (draft) releases that have at least one attached ReleaseFile whose
+ * FileScan is CLEAN -- an already-published release never counts here (it's
+ * not a candidate to select again), and a release with zero attachments, or
+ * attachments that never passed scanning, does not count either.
  * `compatibilityCount` counts CompatibilityRecord rows regardless of
  * evidence status, since MVP-012's write path can only ever produce
- * CREATOR_DECLARED rows (see checkProductPublishReadiness's doc comment). */
+ * CREATOR_DECLARED rows (see checkProductPublishReadiness's doc comment).
+ * This snapshot is a UI hint only -- the authoritative check re-reads the
+ * same facts fresh inside publishProductWithRelease's own transaction. */
 export interface ProductPublishSnapshot {
   licenseCount: number;
   hasSupportPolicy: boolean;

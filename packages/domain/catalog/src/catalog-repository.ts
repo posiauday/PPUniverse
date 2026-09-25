@@ -5,6 +5,7 @@ import type {
   ProductCreateInput,
   ProductDetail,
   ProductEvidenceForAdmin,
+  ProductPublishResult,
   ProductPublishSnapshot,
   ProductRecord,
   ProductUpdateInput,
@@ -55,11 +56,34 @@ export interface CatalogRepository {
    * entry, any status -- the admin editor's own pre-fill/pre-check read,
    * distinct from the PUBLISHED-only findPublishedProductDetailBySlug. */
   getProductEvidenceForAdmin(id: string): Promise<ProductEvidenceForAdmin>;
-  /** Transitions DRAFT -> PUBLISHED and sets publishedAt. Rejects (throws)
-   * if the transition is invalid -- the caller must check
-   * isValidProductStatusTransition / checkProductPublishReadiness first for
-   * a friendly error, same contract as ContentRepository.publishArticle. */
-  publishProduct(id: string): Promise<ProductRecord>;
+  /**
+   * Initial product publication (direct product-owner decision, "PR #23
+   * blocker corrections" A2/A4): the caller explicitly selects which draft
+   * release becomes the product's initial published release. One
+   * transaction, re-reading and re-validating every fact fresh from the
+   * database (never trusting an earlier snapshot or a client-supplied
+   * claim) before writing anything:
+   *   - the Product exists and is still DRAFT (else ProductNotFoundError /
+   *     ProductNotDraftError);
+   *   - the Release exists and belongs to this Product (else
+   *     ReleaseNotFoundForProductError — a release id from another product
+   *     is rejected, not silently accepted);
+   *   - the Release is not already published (else
+   *     ReleaseAlreadyPublishedError);
+   *   - the Release has at least one attached CLEAN file, re-verified fresh
+   *     (else ReleaseNotReadyError);
+   *   - every Product-level mandatory field is present — license, support
+   *     policy, compatibility — re-verified fresh (else ProductNotReadyError,
+   *     carrying every missing field, not just the first).
+   * If every check passes, Product.status/publishedAt and the selected
+   * Release's publishedAt are set together, atomically, using the same
+   * timestamp. If any check fails, the whole transaction rolls back and
+   * neither row changes — no half-published state is possible. Callers
+   * should still run checkProductPublishReadiness first for a friendly
+   * pre-flight UI hint, but must not rely on it as the actual gate (this
+   * method is the authoritative one).
+   */
+  publishProductWithRelease(productId: string, releaseId: string): Promise<ProductPublishResult>;
   /** Replaces the full assigned license set for a product (simplest correct
    * semantics for a checkbox-style picker) -- not an incremental add/remove. */
   setProductLicenses(productId: string, licenseDefinitionIds: string[]): Promise<void>;
@@ -81,12 +105,30 @@ export interface CatalogRepository {
     productId: string,
     input: ValidCompatibilityEntry,
   ): Promise<CompatibilityEntry>;
+  /** Product may be DRAFT or PUBLISHED — a new draft release on an
+   * already-published product is how future versions are authored (A2/A3);
+   * it never changes the public current version by itself. Always created
+   * with publishedAt null. */
   createRelease(productId: string, version: string): Promise<ReleaseRecord>;
-  /** Must re-verify FileScan.status === "CLEAN" server-side before creating
-   * the ReleaseFile row -- never trusts a client-supplied "this file is
-   * clean" claim. Throws if the release doesn't exist or the file isn't
-   * CLEAN. */
-  attachReleaseFile(releaseId: string, fileScanId: string): Promise<void>;
+  /**
+   * Re-verifies, fresh from the database, that the release belongs to
+   * `productId` (else ReleaseNotFoundError — prevents a request scoped to
+   * one product from attaching a file to another product's release),
+   * that the release is not already published (else
+   * ReleaseAlreadyPublishedError — a published release's file set is
+   * immutable, A3), and that FileScan.status === "CLEAN" (else
+   * FileScanNotFoundError / FileScanNotCleanError — never trusts a
+   * client-supplied "this file is clean" claim).
+   */
+  attachReleaseFile(productId: string, releaseId: string, fileScanId: string): Promise<void>;
+  /**
+   * Removes one ReleaseFile association from a draft release, correcting an
+   * accidental attachment (A3). Same release/product/published-state checks
+   * as attachReleaseFile. Deletes only the join row — never the underlying
+   * FileScan or its stored file. Idempotent: detaching a file that was never
+   * attached is a no-op, not an error.
+   */
+  detachReleaseFile(productId: string, releaseId: string, fileScanId: string): Promise<void>;
   /** Every release for a product, newest first, with its attached
    * (fileScanId, status) pairs -- the admin editor's release list. */
   listReleasesForAdmin(

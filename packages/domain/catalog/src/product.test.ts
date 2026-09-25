@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
   checkProductPublishReadiness,
+  isReleaseMutable,
   isValidProductName,
   isValidProductSlug,
   isValidProductStatusTransition,
   isValidProductSummary,
   isValidReleaseVersion,
+  ProductNotDraftError,
+  ProductNotFoundError,
+  ProductNotReadyError,
+  ReleaseAlreadyPublishedError,
+  ReleaseNotFoundError,
+  ReleaseNotFoundForProductError,
+  ReleaseNotReadyError,
 } from "./product.js";
 import type { ProductPublishSnapshot, ProductStatus } from "./types.js";
 
@@ -93,6 +101,44 @@ describe("isValidProductStatusTransition", () => {
     for (const from of ALL_STATUSES) {
       expect(isValidProductStatusTransition(from, "DRAFT")).toBe(false);
     }
+  });
+});
+
+describe("isReleaseMutable", () => {
+  it("is true for a draft release (publishedAt null)", () => {
+    expect(isReleaseMutable({ publishedAt: null })).toBe(true);
+  });
+
+  it("is false once publishedAt is set", () => {
+    expect(isReleaseMutable({ publishedAt: new Date() })).toBe(false);
+  });
+});
+
+describe("product/release publish error classes", () => {
+  it("each carries the identifying fields callers need to build a specific response", () => {
+    expect(new ProductNotFoundError("p1").productId).toBe("p1");
+    expect(new ProductNotDraftError("p1", "PUBLISHED").status).toBe("PUBLISHED");
+    expect(new ReleaseNotFoundForProductError("r1", "p1").releaseId).toBe("r1");
+    expect(new ReleaseAlreadyPublishedError("r1").releaseId).toBe("r1");
+    expect(new ReleaseNotReadyError("r1").releaseId).toBe("r1");
+    expect(new ProductNotReadyError(["license", "release"]).missingFields).toEqual([
+      "license",
+      "release",
+    ]);
+    expect(new ReleaseNotFoundError("r1").releaseId).toBe("r1");
+  });
+
+  it("each has a distinct .name so route handlers can pattern-match without instanceof pitfalls across module boundaries", () => {
+    const names = [
+      new ProductNotFoundError("p1").name,
+      new ProductNotDraftError("p1", "DRAFT").name,
+      new ReleaseNotFoundForProductError("r1", "p1").name,
+      new ReleaseAlreadyPublishedError("r1").name,
+      new ReleaseNotReadyError("r1").name,
+      new ProductNotReadyError([]).name,
+      new ReleaseNotFoundError("r1").name,
+    ];
+    expect(new Set(names).size).toBe(names.length);
   });
 });
 

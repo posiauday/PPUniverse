@@ -667,7 +667,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       expect(all.map((p) => p.id)).toContain(created.id);
     });
 
-    describe("publishProduct and the readiness gate", () => {
+    describe("publishProductWithRelease and the readiness gate", () => {
       it("getProductPublishSnapshot reports zero counts for a bare draft", async () => {
         const created = await repo.createProductDraft({
           name: "Readiness Check",
@@ -684,28 +684,12 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         });
       });
 
-      it("publishProduct enforces the status transition and rejects double-publish", async () => {
-        // publishProduct itself only enforces the DRAFT -> PUBLISHED schema
-        // transition; the mandatory-field readiness gate
-        // (checkProductPublishReadiness) is the API route's own
-        // responsibility, checked before this is ever called.
-        const created = await repo.createProductDraft({
-          name: "Not Ready",
-          slug: "catalog-repo-not-ready",
-          summary: "Summary.",
-          categoryId,
-        });
-        const published = await repo.publishProduct(created.id);
-        expect(published.status).toBe("PUBLISHED");
-        const row = await db.product.findUniqueOrThrow({ where: { id: created.id } });
-        expect(row.publishedAt).not.toBeNull();
-        await expect(repo.publishProduct(created.id)).rejects.toThrow();
-      });
-
-      it("a fully-evidenced product's snapshot reports ready, and publishProduct sets publishedAt", async () => {
+      /** Builds a product with every mandatory field satisfied and one
+       * eligible draft release, for the publish-path tests below. */
+      async function createFullyReadyProduct(slugSuffix: string) {
         const created = await repo.createProductDraft({
           name: "Fully Ready",
-          slug: "catalog-repo-fully-ready",
+          slug: `catalog-repo-fully-ready-${slugSuffix}`,
           summary: "Summary.",
           categoryId,
         });
@@ -731,9 +715,93 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
             uploadedByUserId: adminUserId,
           },
         });
-        await repo.attachReleaseFile(release.id, fileScan.id);
+        await repo.attachReleaseFile(created.id, release.id, fileScan.id);
+        return { product: created, release, fileScan };
+      }
 
-        const snapshot = await repo.getProductPublishSnapshot(created.id);
+      it("publishes the Product and the selected Release atomically, and rejects double-publish", async () => {
+        const { product, release } = await createFullyReadyProduct("double");
+        const result = await repo.publishProductWithRelease(product.id, release.id);
+        expect(result.product.status).toBe("PUBLISHED");
+        expect(result.release.publishedAt).not.toBeNull();
+
+        const productRow = await db.product.findUniqueOrThrow({ where: { id: product.id } });
+        const releaseRow = await db.release.findUniqueOrThrow({ where: { id: release.id } });
+        expect(productRow.publishedAt).not.toBeNull();
+        expect(releaseRow.publishedAt).not.toBeNull();
+        expect(productRow.publishedAt?.getTime()).toBe(releaseRow.publishedAt?.getTime());
+
+        // Re-publishing the same product: it's no longer DRAFT.
+        const anotherRelease = await repo.createRelease(product.id, "2.0.0");
+        await expect(
+          repo.publishProductWithRelease(product.id, anotherRelease.id),
+        ).rejects.toThrow(/not found|status|DRAFT/i);
+      });
+
+      it("rejects publication with no release selected against an unready product, naming every missing field", async () => {
+        const created = await repo.createProductDraft({
+          name: "Not Ready",
+          slug: "catalog-repo-not-ready",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        await expect(repo.publishProductWithRelease(created.id, release.id)).rejects.toThrow();
+        const row = await db.product.findUniqueOrThrow({ where: { id: created.id } });
+        expect(row.status).toBe("DRAFT");
+        expect(row.publishedAt).toBeNull();
+      });
+
+      it("rejects a release id that belongs to a different product (cross-product access)", async () => {
+        const { product: productA } = await createFullyReadyProduct("cross-a");
+        const { release: releaseB } = await createFullyReadyProduct("cross-b");
+        await expect(
+          repo.publishProductWithRelease(productA.id, releaseB.id),
+        ).rejects.toThrow();
+        const rowA = await db.product.findUniqueOrThrow({ where: { id: productA.id } });
+        expect(rowA.status).toBe("DRAFT");
+      });
+
+      it("rejects a release with no attached CLEAN file even when the product is otherwise ready", async () => {
+        const created = await repo.createProductDraft({
+          name: "Release Not Ready",
+          slug: "catalog-repo-release-not-ready",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        await repo.upsertSupportPolicy(created.id, { status: "UNSUPPORTED", channel: null });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_BI",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        await expect(repo.publishProductWithRelease(created.id, release.id)).rejects.toThrow();
+        const row = await db.product.findUniqueOrThrow({ where: { id: created.id } });
+        expect(row.status).toBe("DRAFT");
+        const releaseRow = await db.release.findUniqueOrThrow({ where: { id: release.id } });
+        expect(releaseRow.publishedAt).toBeNull();
+      });
+
+      it("rejects publishing an already-published release again, leaving the product untouched", async () => {
+        const { product, release } = await createFullyReadyProduct("already-published");
+        await repo.publishProductWithRelease(product.id, release.id);
+        // A second draft release exists; attempting to publish the *original*
+        // (already-published) release id again must fail, distinct from the
+        // "product is no longer DRAFT" case covered above.
+        await expect(
+          repo.publishProductWithRelease(product.id, release.id),
+        ).rejects.toThrow();
+      });
+
+      it("a fully-evidenced product's snapshot reports ready, and publishing sets both timestamps", async () => {
+        const { product, release } = await createFullyReadyProduct("snapshot");
+        const snapshot = await repo.getProductPublishSnapshot(product.id);
         expect(snapshot).toEqual({
           licenseCount: 1,
           hasSupportPolicy: true,
@@ -741,8 +809,14 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           releasesWithCleanFileCount: 1,
         });
 
-        const published = await repo.publishProduct(created.id);
-        expect(published.status).toBe("PUBLISHED");
+        const result = await repo.publishProductWithRelease(product.id, release.id);
+        expect(result.product.status).toBe("PUBLISHED");
+        expect(result.release.publishedAt).not.toBeNull();
+
+        // Once published, the release no longer counts toward the readiness
+        // snapshot (it's not a candidate to select again).
+        const afterSnapshot = await repo.getProductPublishSnapshot(product.id);
+        expect(afterSnapshot.releasesWithCleanFileCount).toBe(0);
       });
 
       it("a release with only a non-CLEAN attachment does not count toward readiness", async () => {
@@ -765,6 +839,21 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         });
         const snapshot = await repo.getProductPublishSnapshot(created.id);
         expect(snapshot.releasesWithCleanFileCount).toBe(0);
+      });
+
+      it("a published product can still receive a new draft release, which does not appear as the public current version", async () => {
+        const { product, release } = await createFullyReadyProduct("post-publish-draft");
+        await repo.publishProductWithRelease(product.id, release.id);
+
+        const nextRelease = await repo.createRelease(product.id, "1.1.0");
+        expect(nextRelease.publishedAt).toBeNull();
+
+        const detail = await repo.findPublishedProductDetailBySlug(product.slug);
+        expect(detail?.currentVersion).toBe("1.0.0");
+
+        const releases = await repo.listReleasesForAdmin(product.id);
+        const found = releases.find((entry) => entry.id === nextRelease.id);
+        expect(found?.publishedAt).toBeNull();
       });
     });
 
@@ -924,7 +1013,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       });
     });
 
-    describe("createRelease, attachReleaseFile and listReleasesForAdmin", () => {
+    describe("createRelease, attachReleaseFile, detachReleaseFile and listReleasesForAdmin", () => {
       it("attachReleaseFile rejects a file that is not CLEAN, and never creates the join row", async () => {
         const created = await repo.createProductDraft({
           name: "Attach Reject",
@@ -944,7 +1033,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           },
         });
 
-        await expect(repo.attachReleaseFile(release.id, dirty.id)).rejects.toThrow();
+        await expect(repo.attachReleaseFile(created.id, release.id, dirty.id)).rejects.toThrow();
         expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(0);
       });
 
@@ -967,8 +1056,45 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           },
         });
 
-        await expect(repo.attachReleaseFile("does-not-exist", clean.id)).rejects.toThrow();
-        await expect(repo.attachReleaseFile(release.id, "does-not-exist")).rejects.toThrow();
+        await expect(
+          repo.attachReleaseFile(created.id, "does-not-exist", clean.id),
+        ).rejects.toThrow();
+        await expect(
+          repo.attachReleaseFile(created.id, release.id, "does-not-exist"),
+        ).rejects.toThrow();
+      });
+
+      it("attachReleaseFile rejects a release id that belongs to a different product", async () => {
+        const productA = await repo.createProductDraft({
+          name: "Attach Cross A",
+          slug: "catalog-repo-attach-cross-a",
+          summary: "Summary.",
+          categoryId,
+        });
+        const productB = await repo.createProductDraft({
+          name: "Attach Cross B",
+          slug: "catalog-repo-attach-cross-b",
+          summary: "Summary.",
+          categoryId,
+        });
+        const releaseB = await repo.createRelease(productB.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-cross-${releaseB.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 10,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+
+        // productA's id supplied with productB's release id: rejected, not
+        // silently attached against the wrong product.
+        await expect(
+          repo.attachReleaseFile(productA.id, releaseB.id, clean.id),
+        ).rejects.toThrow();
+        expect(await db.releaseFile.count({ where: { releaseId: releaseB.id } })).toBe(0);
       });
 
       it("attachReleaseFile accepts a CLEAN file and listReleasesForAdmin reports it; attaching twice is a no-op", async () => {
@@ -990,13 +1116,165 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           },
         });
 
-        await repo.attachReleaseFile(release.id, clean.id);
-        await repo.attachReleaseFile(release.id, clean.id);
+        await repo.attachReleaseFile(created.id, release.id, clean.id);
+        await repo.attachReleaseFile(created.id, release.id, clean.id);
         expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
 
         const releases = await repo.listReleasesForAdmin(created.id);
         expect(releases).toHaveLength(1);
         expect(releases[0]?.files).toEqual([{ fileScanId: clean.id, status: "CLEAN" }]);
+      });
+
+      it("attachReleaseFile rejects attaching to an already-published release", async () => {
+        const created = await repo.createProductDraft({
+          name: "Attach Published Reject",
+          slug: "catalog-repo-attach-published-reject",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        await repo.upsertSupportPolicy(created.id, { status: "UNSUPPORTED", channel: null });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_PAGES",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-published-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 2048,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(created.id, release.id, clean.id);
+        await repo.publishProductWithRelease(created.id, release.id);
+
+        const secondFile = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-published-2-${release.id}`,
+            originalFilename: "package-2.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 2048,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await expect(
+          repo.attachReleaseFile(created.id, release.id, secondFile.id),
+        ).rejects.toThrow();
+        expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
+      });
+
+      it("detachReleaseFile removes only the join row, never the underlying FileScan, and is idempotent", async () => {
+        const created = await repo.createProductDraft({
+          name: "Detach Draft",
+          slug: "catalog-repo-detach-draft",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-detach-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 2048,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(created.id, release.id, clean.id);
+        expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
+
+        await repo.detachReleaseFile(created.id, release.id, clean.id);
+        expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(0);
+        // The underlying FileScan itself must still exist, untouched.
+        const stillThere = await db.fileScan.findUnique({ where: { id: clean.id } });
+        expect(stillThere).not.toBeNull();
+        expect(stillThere?.status).toBe("CLEAN");
+
+        // Detaching again (already detached) is a no-op, not an error.
+        await expect(
+          repo.detachReleaseFile(created.id, release.id, clean.id),
+        ).resolves.toBeUndefined();
+      });
+
+      it("detachReleaseFile rejects an already-published release", async () => {
+        const created = await repo.createProductDraft({
+          name: "Detach Published Reject",
+          slug: "catalog-repo-detach-published-reject",
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [enterpriseTierId]);
+        await repo.upsertSupportPolicy(created.id, { status: "UNSUPPORTED", channel: null });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "MICROSOFT_FABRIC",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-detach-published-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 2048,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(created.id, release.id, clean.id);
+        await repo.publishProductWithRelease(created.id, release.id);
+
+        await expect(
+          repo.detachReleaseFile(created.id, release.id, clean.id),
+        ).rejects.toThrow();
+        expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
+      });
+
+      it("detachReleaseFile rejects a release id that belongs to a different product", async () => {
+        const productA = await repo.createProductDraft({
+          name: "Detach Cross A",
+          slug: "catalog-repo-detach-cross-a",
+          summary: "Summary.",
+          categoryId,
+        });
+        const productB = await repo.createProductDraft({
+          name: "Detach Cross B",
+          slug: "catalog-repo-detach-cross-b",
+          summary: "Summary.",
+          categoryId,
+        });
+        const releaseB = await repo.createRelease(productB.id, "1.0.0");
+        const clean = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-clean-detach-cross-${releaseB.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 10,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(productB.id, releaseB.id, clean.id);
+
+        await expect(
+          repo.detachReleaseFile(productA.id, releaseB.id, clean.id),
+        ).rejects.toThrow();
+        expect(await db.releaseFile.count({ where: { releaseId: releaseB.id } })).toBe(1);
       });
 
       it("rejects a duplicate release version for the same product (unique constraint)", async () => {

@@ -19,6 +19,7 @@ export type {
   ProductCreateInput,
   ProductUpdateInput,
   ReleaseRecord,
+  ProductPublishResult,
   ProductPublishSnapshot,
   ProductPublishMissingField,
   ProductPublishReadiness,
@@ -31,7 +32,17 @@ export {
   isValidProductSummary,
   isValidReleaseVersion,
   isValidProductStatusTransition,
+  isReleaseMutable,
   checkProductPublishReadiness,
+  ProductNotFoundError,
+  ProductNotDraftError,
+  ReleaseNotFoundForProductError,
+  ReleaseAlreadyPublishedError,
+  ReleaseNotReadyError,
+  ProductNotReadyError,
+  ReleaseNotFoundError,
+  FileScanNotFoundError,
+  FileScanNotCleanError,
 } from "./product.js";
 export type { CatalogRepository } from "./catalog-repository.js";
 export {

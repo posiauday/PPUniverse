@@ -1,6 +1,15 @@
 import { Prisma, type PrismaClient } from "@ppu/db";
 import {
   isValidProductStatusTransition,
+  FileScanNotCleanError,
+  FileScanNotFoundError,
+  ProductNotDraftError,
+  ProductNotFoundError,
+  ProductNotReadyError,
+  ReleaseAlreadyPublishedError,
+  ReleaseNotFoundError,
+  ReleaseNotFoundForProductError,
+  ReleaseNotReadyError,
   type AssetType,
   type CategoryRecord,
   type CatalogRepository,
@@ -11,6 +20,8 @@ import {
   type ProductCreateInput,
   type ProductDetail,
   type ProductEvidenceForAdmin,
+  type ProductPublishMissingField,
+  type ProductPublishResult,
   type ProductPublishSnapshot,
   type ProductRecord,
   type ProductStatus,
@@ -232,10 +243,13 @@ export class PrismaCatalogRepository implements CatalogRepository {
 
   /**
    * Loads the counts checkProductPublishReadiness (@ppu/domain-catalog)
-   * needs. "a release with at least one attached CLEAN file" is computed as
-   * the count of distinct releases that have at least one ReleaseFile whose
-   * FileScan.status is CLEAN -- a release with zero attachments, or only
-   * attachments that never passed scanning, does not count.
+   * needs, as a UI hint only (publishProductWithRelease re-reads everything
+   * fresh as the authoritative gate). "a release with at least one attached
+   * CLEAN file" is computed as the count of distinct *unpublished* releases
+   * that have at least one ReleaseFile whose FileScan.status is CLEAN -- an
+   * already-published release is never a candidate to select again, and a
+   * release with zero attachments, or only attachments that never passed
+   * scanning, does not count either.
    */
   async getProductPublishSnapshot(id: string): Promise<ProductPublishSnapshot> {
     const [licenseCount, supportPolicy, compatibilityCount, releasesWithCleanFile] =
@@ -244,7 +258,11 @@ export class PrismaCatalogRepository implements CatalogRepository {
         this.db.supportPolicy.findUnique({ where: { productId: id } }),
         this.db.compatibilityRecord.count({ where: { productId: id } }),
         this.db.release.findMany({
-          where: { productId: id, files: { some: { fileScan: { status: "CLEAN" } } } },
+          where: {
+            productId: id,
+            publishedAt: null,
+            files: { some: { fileScan: { status: "CLEAN" } } },
+          },
           select: { id: true },
         }),
       ]);
@@ -283,28 +301,69 @@ export class PrismaCatalogRepository implements CatalogRepository {
   }
 
   /**
-   * Transitions DRAFT -> PUBLISHED and sets publishedAt, inside a
-   * transaction that re-checks the row's actual current status (not a
-   * caller-supplied belief), so a race between two publish requests can
-   * never double-publish or silently overwrite publishedAt -- mirrors
-   * PrismaContentRepository.publishArticle exactly. Unlike Article, no
-   * publish-event log entity exists for Product in this pass; structured
-   * telemetry (the API route's product.published log) is the MVP-017
-   * precedent's substitute until MVP-019 builds a persisted AuditEvent.
+   * Initial product publication (direct product-owner decision, "PR #23
+   * blocker corrections" A2/A4). One transaction; every fact is re-read and
+   * re-validated fresh from the database inside it -- never a caller-
+   * supplied belief or an earlier snapshot -- so a race between two publish
+   * requests, or a publish racing a concurrent file/evidence edit, can never
+   * produce a half-published state or an incorrectly-published release. If
+   * any check fails, the thrown error rolls the whole transaction back and
+   * neither Product nor Release changes. Structured telemetry (the API
+   * route's product.published log) is the MVP-017 precedent's substitute
+   * for a persisted AuditEvent until MVP-019 builds one.
    */
-  async publishProduct(id: string): Promise<ProductRecord> {
+  async publishProductWithRelease(
+    productId: string,
+    releaseId: string,
+  ): Promise<ProductPublishResult> {
     const publishedAt = new Date();
-    const product = await this.db.$transaction(async (tx) => {
-      const current = await tx.product.findUnique({ where: { id } });
-      if (!current) {
-        throw new Error(`Product ${id} not found`);
+    const result = await this.db.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id: productId } });
+      if (!product) {
+        throw new ProductNotFoundError(productId);
       }
-      if (!isValidProductStatusTransition(current.status as ProductStatus, "PUBLISHED")) {
-        throw new Error(`Cannot publish a Product in status ${current.status}`);
+      if (!isValidProductStatusTransition(product.status as ProductStatus, "PUBLISHED")) {
+        throw new ProductNotDraftError(productId, product.status);
       }
-      return tx.product.update({ where: { id }, data: { status: "PUBLISHED", publishedAt } });
+
+      const release = await tx.release.findUnique({
+        where: { id: releaseId },
+        include: { files: { include: { fileScan: { select: { status: true } } } } },
+      });
+      if (!release || release.productId !== productId) {
+        throw new ReleaseNotFoundForProductError(releaseId, productId);
+      }
+      if (release.publishedAt !== null) {
+        throw new ReleaseAlreadyPublishedError(releaseId);
+      }
+      const hasCleanFile = release.files.some((file) => file.fileScan.status === "CLEAN");
+      if (!hasCleanFile) {
+        throw new ReleaseNotReadyError(releaseId);
+      }
+
+      const [licenseCount, supportPolicy, compatibilityCount] = await Promise.all([
+        tx.productLicense.count({ where: { productId } }),
+        tx.supportPolicy.findUnique({ where: { productId } }),
+        tx.compatibilityRecord.count({ where: { productId } }),
+      ]);
+      const missingFields: ProductPublishMissingField[] = [];
+      if (licenseCount < 1) missingFields.push("license");
+      if (!supportPolicy) missingFields.push("supportPolicy");
+      if (compatibilityCount < 1) missingFields.push("compatibility");
+      if (missingFields.length > 0) {
+        throw new ProductNotReadyError(missingFields);
+      }
+
+      const [updatedProduct, updatedRelease] = await Promise.all([
+        tx.product.update({ where: { id: productId }, data: { status: "PUBLISHED", publishedAt } }),
+        tx.release.update({ where: { id: releaseId }, data: { publishedAt } }),
+      ]);
+      return { product: updatedProduct, release: updatedRelease };
     });
-    return toProductRecord(product);
+    return {
+      product: toProductRecord(result.product),
+      release: toReleaseRecord(result.release),
+    };
   }
 
   /** Replaces the full assigned set -- not an incremental add/remove
@@ -390,37 +449,65 @@ export class PrismaCatalogRepository implements CatalogRepository {
     return toCompatibilityEntry(row);
   }
 
+  /** Product may be DRAFT or PUBLISHED -- a new draft release on an
+   * already-published product is how future versions are authored (A2/A3),
+   * and never changes the public current version by itself. Always created
+   * with publishedAt null (the Prisma column default). */
   async createRelease(productId: string, version: string): Promise<ReleaseRecord> {
     const row = await this.db.release.create({ data: { productId, version } });
     return toReleaseRecord(row);
   }
 
-  /**
-   * Re-verifies FileScan.status === "CLEAN" server-side before creating the
-   * ReleaseFile row -- never trusts a client-supplied "this file is clean"
-   * claim (mirrors MVP-006/MVP-009's existing signed-download authorization
-   * discipline). Upsert (not create) so attaching the same file twice is a
-   * harmless no-op rather than a unique-constraint error.
-   */
-  async attachReleaseFile(releaseId: string, fileScanId: string): Promise<void> {
-    const [release, fileScan] = await Promise.all([
-      this.db.release.findUnique({ where: { id: releaseId } }),
-      this.db.fileScan.findUnique({ where: { id: fileScanId } }),
-    ]);
-    if (!release) {
-      throw new Error(`Release ${releaseId} not found`);
+  /** Shared by attachReleaseFile/detachReleaseFile: loads the release fresh
+   * and confirms it belongs to `productId` and is still a draft (A3) --
+   * never trusts the caller's own belief about either fact. */
+  private async loadMutableReleaseOrThrow(productId: string, releaseId: string) {
+    const release = await this.db.release.findUnique({ where: { id: releaseId } });
+    if (!release || release.productId !== productId) {
+      throw new ReleaseNotFoundError(releaseId);
     }
+    if (release.publishedAt !== null) {
+      throw new ReleaseAlreadyPublishedError(releaseId);
+    }
+    return release;
+  }
+
+  /**
+   * Re-verifies, fresh from the database: the release belongs to
+   * `productId` and is not already published (A3 -- a published release's
+   * file set is immutable), and FileScan.status === "CLEAN" -- never trusts
+   * a client-supplied "this file is clean" claim (mirrors MVP-006/MVP-009's
+   * existing signed-download authorization discipline). Upsert (not create)
+   * so attaching the same file twice is a harmless no-op rather than a
+   * unique-constraint error.
+   */
+  async attachReleaseFile(productId: string, releaseId: string, fileScanId: string): Promise<void> {
+    await this.loadMutableReleaseOrThrow(productId, releaseId);
+    const fileScan = await this.db.fileScan.findUnique({ where: { id: fileScanId } });
     if (!fileScan) {
-      throw new Error(`FileScan ${fileScanId} not found`);
+      throw new FileScanNotFoundError(fileScanId);
     }
     if (fileScan.status !== "CLEAN") {
-      throw new Error(`FileScan ${fileScanId} is not CLEAN (status: ${fileScan.status})`);
+      throw new FileScanNotCleanError(fileScanId, fileScan.status);
     }
     await this.db.releaseFile.upsert({
       where: { releaseId_fileScanId: { releaseId, fileScanId } },
       create: { releaseId, fileScanId },
       update: {},
     });
+  }
+
+  /**
+   * Removes one ReleaseFile association from a draft release (A3), so an
+   * ADMIN can correct an accidental attachment. Same release/product/
+   * published-state checks as attachReleaseFile. Deletes only the join row
+   * -- never the underlying FileScan or its stored file -- and is
+   * idempotent: detaching a file that was never attached is a no-op deleteMany
+   * (count 0), not an error.
+   */
+  async detachReleaseFile(productId: string, releaseId: string, fileScanId: string): Promise<void> {
+    await this.loadMutableReleaseOrThrow(productId, releaseId);
+    await this.db.releaseFile.deleteMany({ where: { releaseId, fileScanId } });
   }
 
   async listReleasesForAdmin(
