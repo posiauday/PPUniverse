@@ -112,6 +112,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
           <ProductPublishControl
             productId={product.id}
             initialMissingFields={readiness.missingFields}
+            eligibleReleases={releases
+              .filter(
+                (release) =>
+                  release.publishedAt === null &&
+                  release.files.some((file) => file.status === "CLEAN"),
+              )
+              .map((release) => ({ id: release.id, version: release.version }))}
           />
         </section>
       ) : null}
