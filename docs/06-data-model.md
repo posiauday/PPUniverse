@@ -17,8 +17,10 @@ Price, Coupon, CheckoutSession, Order, OrderLine, PaymentEvent, Refund, TaxRecor
 ## Privacy
 PolicyVersion, ConsentRecord, DeletionRequest, DeletionRequestEvent (MVP-020, FR-004; `docs/final-decisions.md`, "MVP-020 open questions 46, 47 and 48"). `PolicyVersion` is metadata about a legal-document version only — never the operative text. `ConsentRecord` and `DeletionRequestEvent` are both append-only: a change of mind or a review action always inserts a new row, never updates an earlier one. `DeletionRequest` itself has no status column — its current state is derived from its latest `DeletionRequestEvent`. This story records and reviews a deletion request only; it does not execute erasure, anonymisation, pseudonymisation or scheduled retention (tracked separately, open question 23/NFR-010).
 
-## Creator and marketplace
-CreatorProfile, CreatorApplication, AgreementAcceptance, ProductSubmission, ModerationReview, ModerationComment, TakedownCase, SupportPolicy.
+## Creator and marketplace (superseded 2026-09-24 — see below)
+~~CreatorProfile, CreatorApplication, AgreementAcceptance, ProductSubmission, ModerationReview, ModerationComment, TakedownCase, SupportPolicy.~~
+
+**Superseded by the first-party-only publishing decision (`docs/final-decisions.md`, "First-party-only publishing model").** None of `CreatorProfile`, `CreatorApplication`, `AgreementAcceptance`, or `ProductSubmission` were ever built beyond this naming (confirmed: `packages/domain/creator/` contains only a placeholder README, no `src/`; no `packages/adapters/creator/` exists) — they are retired as planned entities, not rolled back from a real schema. `ModerationReview`, `ModerationComment`, and `TakedownCase` depend on the still-open question of what MVP-013's successor scope is (a first-party self-review gate, retirement, or the suggestion-inbox review surface — not resolved by this entry); they stay listed here as still-possibly-needed, not superseded outright, pending that resolution. **`SupportPolicy` is unaffected and stays exactly as built** (`packages/db/prisma/schema/evidence.prisma:94-104`) — a first-party product still declares a support model, independent of who authored it.
 
 ## Engagement and content
 SavedProduct, Review, ReviewVote, CreatorResponse, NotificationPreference, Notification, Article, ArticlePublishEvent, LearningPath, LearningPathItem, SEORecord.
@@ -44,7 +46,7 @@ Authorization: content-publishing authority (create/edit/publish an `Article`) r
 SupportCase, AuditEvent, FeatureFlag, JobRecord, WebhookReceipt, AnalyticsEvent.
 
 ## Critical constraints
-- Unique product slug and creator handle.
+- Unique product slug. ~~and creator handle~~ (moot under first-party-only, 2026-09-24 — no creator handle to be unique).
 - Unique provider event ID for webhook idempotency.
 - Entitlement references the order line, admin grant or subscription source.
 - Download requires active entitlement or explicit free-product policy.

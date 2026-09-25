@@ -46,20 +46,22 @@ Acceptance summary: Only entitled users receive expiring URL.
 Epic: EPIC-06 Entitlements · Priority: P0 · Requirement: FR-005 · Depends on: FEAT-002, FEAT-006
 Acceptance summary: Policy creates entitlement and download record.
 
-### FEAT-011 — Creator application
-Epic: EPIC-07 Creator · Priority: P0 · Requirement: FR-008 · Depends on: FEAT-002
-Acceptance summary: Applicant accepts agreement and enters review.
+### FEAT-011 — ~~Creator application~~ (Superseded)
+~~Epic: EPIC-07 Creator · Priority: P0 · Requirement: FR-008 · Depends on: FEAT-002~~
+~~Acceptance summary: Applicant accepts agreement and enters review.~~
+**Superseded 2026-09-24** (`docs/final-decisions.md`, "First-party-only publishing model") — implements a third-party creator-onboarding model no longer approved. Not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md`.
 
 ### FEAT-012 — Product and release editor
-Epic: EPIC-07 Creator · Priority: P0 · Requirement: FR-009 · Depends on: FEAT-006, FEAT-011
+Epic: EPIC-07 First-Party Publishing · Priority: P0 · Requirement: FR-009 · Depends on: FEAT-006 **(reworded 2026-09-24, same decision — FEAT-011 dependency removed; existing `ADMIN` authorization pattern is the approved authoring authority)**
 Acceptance summary: Draft validates all mandatory submission fields.
 
-### FEAT-013 — Submission review queue
-Epic: EPIC-08 Moderation · Priority: P0 · Requirement: FR-010 · Depends on: FEAT-012
-Acceptance summary: Reviewer can approve/request changes/reject with reason.
+### FEAT-013 — ~~Submission review queue~~ (Superseded)
+~~Epic: EPIC-08 Moderation · Priority: P0 · Requirement: FR-010 · Depends on: FEAT-012~~
+~~Acceptance summary: Reviewer can approve/request changes/reject with reason.~~
+**Superseded 2026-09-24** (`docs/final-decisions.md`, "First-party-only publishing model") — presumes a submitter distinct from the reviewer, which does not exist under first-party-only. Quality requirements redistributed to FEAT-012, FEAT-014, and existing security/compatibility gates — see that decision entry, section 5.
 
 ### FEAT-014 — Immutable published releases
-Epic: EPIC-09 Publishing · Priority: P0 · Requirement: FR-011 · Depends on: FEAT-013
+Epic: EPIC-09 Publishing · Priority: P0 · Requirement: FR-011 · Depends on: FEAT-012 (reworded 2026-09-24, `docs/final-decisions.md` — FEAT-013 superseded)
 Acceptance summary: Published files cannot be replaced.
 
 ### FEAT-015 — Library orders and saved items
@@ -79,7 +81,7 @@ Epic: EPIC-13 Notifications · Priority: P1 · Requirement: FR-013 · Depends on
 Acceptance summary: Required messages send and optional messages respect preference.
 
 ### FEAT-019 — Operations console and audit
-Epic: EPIC-14 Admin · Priority: P0 · Requirement: FR-015 · Depends on: FEAT-013
+Epic: EPIC-14 Admin · Priority: P0 · Requirement: FR-015 · Depends on: FEAT-012 (reworded 2026-09-24, `docs/final-decisions.md` — FEAT-013 superseded)
 Acceptance summary: Sensitive actions are authorized and auditable.
 
 ### FEAT-020 — Consent legal deletion workflow

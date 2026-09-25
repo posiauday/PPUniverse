@@ -2,7 +2,9 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-24 — **TD-008 (compatibility-evidence vocabulary correction) partially resolved**, own branch (`tech-debt/td-008-evidence-vocabulary`), own PR, per direct product-owner instruction. Added the approved `MARKETPLACE_REVIEWED` enum value and a nullable `reviewedAt` column in two migrations (Postgres requires a new enum value in its own transaction before it can be referenced), with a CHECK constraint keeping the two in lockstep — verified against a real database in both directions (a mismatched row is rejected either way; a correctly-paired row is accepted). `validateCompatibilityEntry` now rejects `TESTED`/`NOT_VERIFIED` as reserved/legacy with a distinct error code, regardless of what else is supplied; the old "Tested requires evidence" special case is now unreachable application-side (the database CHECK still enforces it directly for the reserved value, confirmed by the existing rejection tests passing unchanged). The public legend and compatibility matrix (`present-evidence.ts`) show only the two assignable statuses, using the approved wording verbatim, and fail closed — any `TESTED`/`NOT_VERIFIED` row is filtered out of the public matrix entirely, proven by a dedicated regression test. **Deliberately not built**: the write path, moderation workflow, `ModerationReview`/`AuditEvent` entities and role enforcement — MVP-012/013's scope, per explicit instruction not to build it here. Also reconciled BUG-012 and BUG-014's stale `bugs.csv` entries against merge history and CI evidence (not the records themselves) before this work — see the immediately preceding "Last updated" note. Verified directly in this session against a real local Postgres: `@ppu/domain-catalog` 66/66, `@ppu/ui` 57/57, `@ppu/adapter-catalog` 40/40 (including the 3 new DB-gated CHECK-constraint tests, confirmed individually), full workspace `pnpm lint`/`typecheck`/`build` clean.
+Last updated: 2026-09-24 — **First-party-only publishing model decided**, direct product-owner instruction, reversing the 2026-09-23 invited/vetted third-party creator decision (`docs/final-decisions.md`, "First-party-only publishing model"). MVP-011 (Creator application) and MVP-013 (Submission review queue) marked **Superseded** — preserved as historical records, not deleted or renamed. MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done); MVP-012 is now the recommended next story. Open question 2 closed by the new decision; open question 8 (creator payout terms) closed as obsolete; open question 51 narrowed to a general legal-entity/commercial-readiness flag not blocking engineering; open questions 3 and 7 stay open, unresolved. `planning/proposed-stories.md` gains PROP-009 (Asset and Content Suggestions) as the separate, not-yet-approved successor concept — explicitly not MVP-013 renamed. `planning/tech-debt/TD-018.md` records a follow-up presentation-wording decision (`CREATOR_DECLARED` → "Publisher declared") with no schema, validator, or production code changed. Full impact analysis: `planning/prework/first-party-only-impact-analysis.md`. Documentation and planning only — no product code, schema, UI, route, API, test, or CI changed.
+
+Last updated (previous): 2026-09-24 — **TD-008 (compatibility-evidence vocabulary correction) partially resolved**, own branch (`tech-debt/td-008-evidence-vocabulary`), own PR, per direct product-owner instruction. Added the approved `MARKETPLACE_REVIEWED` enum value and a nullable `reviewedAt` column in two migrations (Postgres requires a new enum value in its own transaction before it can be referenced), with a CHECK constraint keeping the two in lockstep — verified against a real database in both directions (a mismatched row is rejected either way; a correctly-paired row is accepted). `validateCompatibilityEntry` now rejects `TESTED`/`NOT_VERIFIED` as reserved/legacy with a distinct error code, regardless of what else is supplied; the old "Tested requires evidence" special case is now unreachable application-side (the database CHECK still enforces it directly for the reserved value, confirmed by the existing rejection tests passing unchanged). The public legend and compatibility matrix (`present-evidence.ts`) show only the two assignable statuses, using the approved wording verbatim, and fail closed — any `TESTED`/`NOT_VERIFIED` row is filtered out of the public matrix entirely, proven by a dedicated regression test. **Deliberately not built**: the write path, moderation workflow, `ModerationReview`/`AuditEvent` entities and role enforcement — MVP-012/013's scope, per explicit instruction not to build it here. Also reconciled BUG-012 and BUG-014's stale `bugs.csv` entries against merge history and CI evidence (not the records themselves) before this work — see the immediately preceding "Last updated" note. Verified directly in this session against a real local Postgres: `@ppu/domain-catalog` 66/66, `@ppu/ui` 57/57, `@ppu/adapter-catalog` 40/40 (including the 3 new DB-gated CHECK-constraint tests, confirmed individually), full workspace `pnpm lint`/`typecheck`/`build` clean.
 
 Last updated (previous): 2026-09-24 — **BUG-012 and BUG-014 reconciled in `bugs.csv` against merge history and CI evidence, not the records themselves.** BUG-012: confirmed **Resolved** (`bugs.csv` incorrectly said Open) — fix commit `e43e1aa` is merged into `develop`, and the actual merged CI run (`35702619219`, PR #6) shows 0 `TooManyConnections`/`P2037` occurrences in the raw log; `docs/open-questions.md` item 43 was already correctly marked DECIDED. `bugs.csv`'s BUG-012 row was written before the fix merged and never updated afterward, despite the file being touched three more times since. BUG-014: `bugs.csv` said "two occurrences," the record said "three" — the record is correct; the third occurrence (run 15) was added to `BUG-014.md` in MVP-023's final commit, which never touched `bugs.csv`. A full sweep of every other BUG-*/TD-* found no further index-vs-record disagreements (BUG-003–008 share a separate, non-disagreeing staleness: both index and record still say "pending merge" for the long-merged PR #6 — flagged, not corrected, since it wasn't a disagreement).
 
@@ -22,15 +24,18 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 10 | MVP-008, MVP-009, MVP-012, MVP-013, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
-| Ready | 2 | MVP-007, MVP-011 |
+| Backlog | 9 | MVP-008, MVP-009, MVP-012, MVP-014, MVP-015, MVP-016, MVP-019, MVP-024, MVP-025 |
+| Ready | 1 | MVP-007 |
 | In Progress | 0 | — |
 | QA | 0 | — |
 | Blocked | 0 | — |
+| Superseded | 2 | MVP-011, MVP-013 |
 | Done | 13 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-017, MVP-018, MVP-020, MVP-021, MVP-022, MVP-023 |
 | **Total** | **25** | |
 
-MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-023 (depends only on MVP-003, already Done) likewise has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself — its value is the accessibility harness (`packages/e2e`) every future UI story now runs against, and the branch-protection rule now enforcing it. MVP-010 (depends on MVP-002 and MVP-006, both already Done) also has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below).
+**2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
+
+MVP-005 unblocked MVP-007 (Checkout, which also needs MVP-002 — Done) and MVP-021 (SEO/sitemap); MVP-021 is now Done and, having no dependents, unblocks nothing new. MVP-023 (depends only on MVP-003, already Done) likewise has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself — its value is the accessibility harness (`packages/e2e`) every future UI story now runs against, and the branch-protection rule now enforcing it. MVP-010 (depends on MVP-002 and MVP-006, both already Done) also has no dependents in `planning/mvp-backlog.csv` and unblocks nothing new by itself. MVP-007 is Ready — "Ready" means dependencies are met, and MVP-007 is still gated by unanswered product decisions (see the recommendation below). MVP-012 is now genuinely Ready in substance (MVP-006 is Done, and the `ADMIN` authorization pattern it needs already exists) — its `Status` column still reads `Backlog` pending a formal Ready-column pass, since the product-owner instruction authorizing this update was documentation/planning only and did not direct a full board-recompute beyond the specific rows named above.
 
 ## Completed stories
 
@@ -128,7 +133,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 
 ## Remaining work summary
 
-12 of 25 stories remain (78 of 170 points).
+**10 of 25 stories remain as active backlog work (65 of 170 points)** — updated 2026-09-24. Two stories (MVP-011, MVP-013, 13 points combined) are Superseded, not Done and not counted as remaining; they are off the active board per `docs/final-decisions.md`, "First-party-only publishing model." (13 Done + 10 remaining + 2 Superseded = 25 total.)
 
 | Sprint | Stories | Status | Points |
 |---|---|---|---|
@@ -137,14 +142,15 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-004, MVP-005 | **Done** | 13 (done) |
 | 3 | MVP-023 | **Done** | 13 (done) |
 | 3 | MVP-010 | **Done** | 3 (done) |
-| 3 | MVP-011 | Ready | 5 |
+| 3 | MVP-011 | **Superseded** | 5 (not counted toward remaining) |
 | 3 | MVP-017 | **Done** | 5 (done) |
 | 3 | MVP-018 | **Done** | 5 (done) |
 | 3 | MVP-020 | **Done** | 8 (done) |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | Ready | 8 |
-| 4 | MVP-012 | Backlog | 8 |
-| 5 | MVP-008, MVP-013 | Backlog | 16 |
+| 4 | MVP-012 | Backlog (dependency now MVP-006 only) | 8 |
+| 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
+| 5 | MVP-008 | Backlog | 8 |
 | 6 | MVP-009, MVP-014, MVP-019 | Backlog | 21 |
 | 7 | MVP-015, MVP-016, MVP-024 | Backlog | 15 |
 | 8 | MVP-025 (launch gate) | Backlog | 8 |
@@ -153,11 +159,13 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
 
-**MVP-017 is Done and merged** (`docs/final-decisions.md`, "MVP-017: security and accessibility review, Done, merge"). **MVP-011 (Creator application)** is the next Ready candidate, but is gated by open questions 2 (first-party-only vs. invited third-party creators) and 8 (creator commercial terms) — not recommended until those are answered.
+**Updated 2026-09-24** following the first-party-only publishing decision (`docs/final-decisions.md`). **MVP-011 (Creator application) is Superseded and is no longer a candidate at all** — its underlying business model no longer exists.
 
-One thing still needs the product owner rather than a story: **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32). **TD-008** (the compatibility-evidence vocabulary correction) landed 2026-09-24, ahead of MVP-012, so it no longer gates that story's start.
+**MVP-012 (Product and release editor) is the recommended next story.** Its dependency is now `MVP-006` alone (already Done) — MVP-011 no longer gates it. `TD-008` (the compatibility-evidence vocabulary correction) landed 2026-09-24, ahead of MVP-012, so it no longer gates that story's start either; `TD-006` (compatibility write-time validation, still Open) is relevant to what MVP-012 must correctly call, not a blocker to starting. **Pricing fields specifically are not implemented until open question 7 is answered** (`docs/final-decisions.md`, "First-party-only publishing model", section 6) — the rest of MVP-012's scope (drafts, media, documentation, licence *offerings* as opposed to prices, compatibility evidence, releases, publish/unpublish/retire) does not wait on that.
 
-Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds), 7 (pricing) and 8 (payout model); **MVP-011 (Creator application)** — open questions 2 (first-party-only vs invited creators) and 8 (creator commercial terms).
+One thing still needs the product owner rather than a story: **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
+
+Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds) and 7 (pricing); open question 8 (creator payout model) is now closed as obsolete and no longer gates it. **MVP-013 (Submission review queue) is Superseded** — not a candidate; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (`docs/final-decisions.md`, section 5).
 
 ## Open bugs
 
@@ -176,12 +184,13 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 
 ## Open tech debt
 
-14 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+15 open items (3 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
 - [TD-006](tech-debt/TD-006.md) — **Open** (new, 2026-09-21): compatibility write-time rules (`validateCompatibilityEntry`) exist but no write path calls them yet, and nothing screens notes/summaries for private data — for MVP-012/013 to enforce.
-- [TD-007](tech-debt/TD-007.md) — **Open** (new, 2026-09-21): FR-003 items beyond license/version/support/compatibility (creator, screenshots, demo, price, prerequisites, setup, accessibility statement, changelog, version history, related assets) have no approved delivering story, and there is no Playwright E2E for the product page; FR-003 traceability is "Partially Implemented". Ownership dispositions were recorded 2026-09-21: creator to MVP-011, price to MVP-007, the rest proposed (not approved).
+- [TD-007](tech-debt/TD-007.md) — **Open** (new, 2026-09-21): FR-003 items beyond license/version/support/compatibility (~~creator~~ — moot 2026-09-24, publisher is LowCodeStacks, see `docs/final-decisions.md`; screenshots, demo, price, prerequisites, setup, accessibility statement, changelog, version history, related assets) have no approved delivering story, and there is no Playwright E2E for the product page; FR-003 traceability is "Partially Implemented". Ownership dispositions were recorded 2026-09-21: ~~creator to MVP-011~~ (moot, same decision), price to MVP-007, the rest proposed (not approved).
+- **[TD-018](tech-debt/TD-018.md)** — **Open** (new, 2026-09-24, Low): `CREATOR_DECLARED`/`CREATOR_SUPPORTED` compatibility-evidence display labels still read "Creator" after the first-party-only decision; `CREATOR_DECLARED`'s replacement wording ("Publisher declared") is decided, `CREATOR_SUPPORTED`'s is not. No enum, validator, or production code changed.
 - [TD-008](tech-debt/TD-008.md) — **Partially Resolved (2026-09-24)**: the schema/validator/presentation correction landed on its own branch (own PR, per direct product-owner instruction) — `MARKETPLACE_REVIEWED` enum value and nullable `reviewedAt` column (two migrations, CHECK constraint verified against a real database both directions), the validator now rejects `TESTED`/`NOT_VERIFIED` as reserved/legacy, and the public legend/matrix show only the two assignable statuses (fail closed for any legacy row). **Still open, deliberately**: the write path, moderation workflow, `ModerationReview`/`AuditEvent` entities and role enforcement remain MVP-012/013's scope, not built here.
 - [TD-009](tech-debt/TD-009.md) — **Open** (new, 2026-09-21): no environment-level noindex switch for staging/preview deployments; needs the hosting decision (open question 5).
 - [TD-010](tech-debt/TD-010.md) — **Open** (new, 2026-09-21, Low): the sitemap is one file capped at 50,000 URLs (no sitemap index, no `lastmod`).
@@ -194,7 +203,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-017](tech-debt/TD-017.md) — **Open** (new, 2026-09-23, Low): `Article.body` (MVP-017) is stored as Markdown but rendered as plain, preformatted text, not converted to HTML — a deliberate security-first choice to avoid a new sanitizer/renderer dependency.
 
 ## Proposed stories (not approved — not on the board, not counted above)
-[`planning/proposed-stories.md`](proposed-stories.md) holds five proposals from the product owner's 2026-09-21 FR-003 disposition: PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets (deferred). Status **Proposed** until the product owner directly approves each. Creator (ownership) is assigned to MVP-011 and price to MVP-007.
+[`planning/proposed-stories.md`](proposed-stories.md) holds proposals from the product owner's 2026-09-21 FR-003 disposition (PROP-001 Product Media and Screenshots, PROP-002 Product Documentation and Prerequisites, PROP-003 Product Accessibility Disclosure, PROP-004 Product Releases and Changelog, PROP-005 Related Assets, deferred), the 2026-09-24 PROP-008 (Power Apps component generator/library, Declined for now), and the 2026-09-24 PROP-009 (Asset and Content Suggestions, Proposed — the successor concept to MVP-011, per `docs/final-decisions.md`, "First-party-only publishing model"). Status **Proposed** until the product owner directly approves each. ~~Creator (ownership) is assigned to MVP-011~~ (moot 2026-09-24, same decision — publisher is LowCodeStacks) and price to MVP-007.
 
 ## Notes
 - `planning/mvp-backlog.csv` is the canonical status record; `planning/backlog.csv` mirrors Sprint/Points/Status.
