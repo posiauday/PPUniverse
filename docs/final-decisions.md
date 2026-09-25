@@ -1176,3 +1176,26 @@ Creator applications, creator public profiles, seller onboarding, seller roles, 
 ### Unchanged (restated)
 
 No product code, schema, UI, route, or API changed. No test changed. No CI change. No enum value changed or removed. No role created. Questions 3 and 7 are not resolved. MVP-007 is not started. No security or accessibility gate is weakened. No historical decision record is erased or rewritten.
+
+## 2026-09-25 — Stripe Checkout: provider and payment-shape decision (MVP-007 pre-work)
+
+Direct product-owner instruction ("COMBINED PRODUCT-OWNER INSTRUCTION," Phase B, B1). Documentation and pre-work only — see `planning/prework/MVP-007-stripe-checkout-prework.md` for the full analysis this decision informs. **No Stripe code, SDK, route, schema, migration, or UI exists as a result of this entry.**
+
+**Decision:** LowCodeStacks will use **Stripe Checkout** (hosted, one-time `payment` mode) for selected first-party premium products and premium digital assets. Free/MIT-licensed products remain the majority and bypass Stripe entirely.
+
+**In scope, decided:**
+- First-party products only — consistent with the standing first-party-only decision above.
+- Only selected products are premium; most may remain free.
+- One-time purchases only. Stripe-hosted Checkout. Server-created Checkout Sessions.
+- Verified Stripe webhook (signature-checked, raw body, `whsec_...` secret) controls fulfillment — never the redirect return alone.
+- Free products bypass Stripe entirely; no false paid Order is ever created for a free product.
+
+**Explicitly not part of this decision — none of the following exist or are planned:** subscriptions, memberships, recurring charges, saved-card/usage billing beyond Checkout's own defaults, creator payouts, commissions, split payments, Stripe Connect, PayPal, or a second payment gateway at launch.
+
+**This decision fixes the provider and payment shape only.** It does **not** decide currency, amount, launch countries, tax registration or collection, refund policy, support period, update entitlement, price per licence grant, or Enterprise commercial treatment. **Open questions 3 and 7 are not resolved and are unaffected by this entry.**
+
+**Not authorized by this entry:** any Stripe SDK installation, Checkout/webhook implementation, API route, UI, schema, migration, Stripe Product/Price creation (including in test mode), product-owner-account configuration, or credential request. MVP-007 is not marked In Progress or Done.
+
+### Unchanged (restated)
+
+No product code, schema, UI, route, or API changed. No test changed. No CI change. No enum value changed. No role created. Questions 3 and 7 remain open, unresolved. MVP-007 is not started. PR #23/MVP-012 are untouched by this entry. No historical decision record is erased or rewritten.
