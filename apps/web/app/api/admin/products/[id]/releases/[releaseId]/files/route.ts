@@ -42,10 +42,7 @@ interface AttachFileInputBody {
  */
 export const POST = withObservability(
   "POST /api/admin/products/[id]/releases/[releaseId]/files",
-  async (
-    request: Request,
-    { params }: { params: Promise<{ id: string; releaseId: string }> },
-  ) => {
+  async (request: Request, { params }: { params: Promise<{ id: string; releaseId: string }> }) => {
     const correlationId = getCorrelationId() ?? "unknown";
     const admin = await requireAdmin();
     if (!admin) return deny(correlationId);

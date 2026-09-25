@@ -65,7 +65,9 @@ export const PUT = withObservability(
     if (!Array.isArray(ids) || !ids.every((entry) => typeof entry === "string")) {
       return NextResponse.json(
         createErrorEnvelope("VALIDATION", "One or more fields are invalid.", correlationId, {
-          fieldErrors: { licenseDefinitionIds: ["licenseDefinitionIds must be an array of strings."] },
+          fieldErrors: {
+            licenseDefinitionIds: ["licenseDefinitionIds must be an array of strings."],
+          },
         }),
         { status: 400 },
       );

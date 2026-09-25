@@ -167,7 +167,11 @@ describe("PATCH /api/admin/products/[id]", () => {
     updateProductDraft.mockResolvedValue({ id: "product-1", ...VALID_BODY, status: "DRAFT" });
 
     await PATCH(
-      makePatchRequest({ ...VALID_BODY, status: "PUBLISHED", publishedAt: new Date().toISOString() }),
+      makePatchRequest({
+        ...VALID_BODY,
+        status: "PUBLISHED",
+        publishedAt: new Date().toISOString(),
+      }),
       { params },
     );
 

@@ -131,9 +131,14 @@ export const POST = withObservability("POST /api/admin/products", async (request
   } catch (error) {
     if (isDuplicateSlugError(error)) {
       return NextResponse.json(
-        createErrorEnvelope("VALIDATION", "A product with this slug already exists.", correlationId, {
-          fieldErrors: { slug: ["This slug is already in use."] },
-        }),
+        createErrorEnvelope(
+          "VALIDATION",
+          "A product with this slug already exists.",
+          correlationId,
+          {
+            fieldErrors: { slug: ["This slug is already in use."] },
+          },
+        ),
         { status: 409 },
       );
     }

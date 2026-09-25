@@ -89,7 +89,9 @@ describe("POST /api/admin/products/[id]/releases/[releaseId]/files", () => {
   it("returns 400 when the repository rejects a non-CLEAN file -- never trusts the client's claim", async () => {
     getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
     findUnique.mockResolvedValue({ role: "ADMIN" });
-    attachReleaseFile.mockRejectedValue(new Error("FileScan file-1 is not CLEAN (status: QUARANTINED)"));
+    attachReleaseFile.mockRejectedValue(
+      new Error("FileScan file-1 is not CLEAN (status: QUARANTINED)"),
+    );
 
     const response = await POST(makeRequest({ fileScanId: "file-1" }), { params });
 

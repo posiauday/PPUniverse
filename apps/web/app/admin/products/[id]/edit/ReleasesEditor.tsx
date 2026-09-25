@@ -136,14 +136,11 @@ function AttachFileForm({ productId, releaseId }: { productId: string; releaseId
     setErrorMessage(null);
 
     try {
-      const response = await fetch(
-        `/api/admin/products/${productId}/releases/${releaseId}/files`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileScanId }),
-        },
-      );
+      const response = await fetch(`/api/admin/products/${productId}/releases/${releaseId}/files`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileScanId }),
+      });
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as {

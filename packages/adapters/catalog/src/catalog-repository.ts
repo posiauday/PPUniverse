@@ -433,7 +433,10 @@ export class PrismaCatalogRepository implements CatalogRepository {
     });
     return rows.map((row) => ({
       ...toReleaseRecord(row),
-      files: row.files.map((file) => ({ fileScanId: file.fileScanId, status: file.fileScan.status })),
+      files: row.files.map((file) => ({
+        fileScanId: file.fileScanId,
+        status: file.fileScan.status,
+      })),
     }));
   }
 }

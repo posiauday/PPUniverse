@@ -67,7 +67,10 @@ export const PUT = withObservability(
     }
 
     const fieldErrors: Record<string, string[]> = {};
-    if (typeof body.status !== "string" || !SUPPORT_STATUSES.includes(body.status as SupportStatus)) {
+    if (
+      typeof body.status !== "string" ||
+      !SUPPORT_STATUSES.includes(body.status as SupportStatus)
+    ) {
       fieldErrors["status"] = [`status must be one of ${SUPPORT_STATUSES.join(", ")}.`];
     }
     const channel = body.channel === undefined || body.channel === null ? null : body.channel;
