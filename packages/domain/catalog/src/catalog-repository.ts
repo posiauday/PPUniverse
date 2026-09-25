@@ -4,6 +4,7 @@ import type {
   LicenseDefinitionRecord,
   ProductCreateInput,
   ProductDetail,
+  ProductEvidenceForAdmin,
   ProductPublishSnapshot,
   ProductRecord,
   ProductUpdateInput,
@@ -50,6 +51,10 @@ export interface CatalogRepository {
    * entry count, and the count of releases with at least one attached
    * CLEAN file. */
   getProductPublishSnapshot(id: string): Promise<ProductPublishSnapshot>;
+  /** Current assigned license ids, support policy, and every compatibility
+   * entry, any status -- the admin editor's own pre-fill/pre-check read,
+   * distinct from the PUBLISHED-only findPublishedProductDetailBySlug. */
+  getProductEvidenceForAdmin(id: string): Promise<ProductEvidenceForAdmin>;
   /** Transitions DRAFT -> PUBLISHED and sets publishedAt. Rejects (throws)
    * if the transition is invalid -- the caller must check
    * isValidProductStatusTransition / checkProductPublishReadiness first for

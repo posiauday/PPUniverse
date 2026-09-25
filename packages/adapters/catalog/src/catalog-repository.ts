@@ -10,6 +10,7 @@ import {
   type PlatformArea,
   type ProductCreateInput,
   type ProductDetail,
+  type ProductEvidenceForAdmin,
   type ProductPublishSnapshot,
   type ProductRecord,
   type ProductStatus,
@@ -253,6 +254,31 @@ export class PrismaCatalogRepository implements CatalogRepository {
       hasSupportPolicy: supportPolicy !== null,
       compatibilityCount,
       releasesWithCleanFileCount: releasesWithCleanFile.length,
+    };
+  }
+
+  /** Current assigned license ids, support policy, and every compatibility
+   * entry, any status -- the admin editor's own pre-fill/pre-check read
+   * (distinct from the PUBLISHED-only findPublishedProductDetailBySlug). */
+  async getProductEvidenceForAdmin(id: string): Promise<ProductEvidenceForAdmin> {
+    const [licenses, supportPolicy, compatibility] = await Promise.all([
+      this.db.productLicense.findMany({
+        where: { productId: id },
+        select: { licenseDefinitionId: true },
+      }),
+      this.db.supportPolicy.findUnique({ where: { productId: id } }),
+      this.db.compatibilityRecord.findMany({
+        where: { productId: id },
+        orderBy: { platformArea: "asc" },
+      }),
+    ]);
+
+    return {
+      licenseDefinitionIds: licenses.map((license) => license.licenseDefinitionId),
+      support: supportPolicy
+        ? { status: supportPolicy.status as SupportStatus, channel: supportPolicy.channel }
+        : null,
+      compatibility: compatibility.map(toCompatibilityEntry),
     };
   }
 

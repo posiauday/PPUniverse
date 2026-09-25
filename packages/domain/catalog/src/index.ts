@@ -22,6 +22,7 @@ export type {
   ProductPublishSnapshot,
   ProductPublishMissingField,
   ProductPublishReadiness,
+  ProductEvidenceForAdmin,
 } from "./types.js";
 export { isPubliclyVisible } from "./visibility.js";
 export {

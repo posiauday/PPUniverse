@@ -768,6 +768,44 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       });
     });
 
+    describe("getProductEvidenceForAdmin", () => {
+      it("returns empty evidence for a bare draft, and the real evidence once set", async () => {
+        const created = await repo.createProductDraft({
+          name: "Admin Evidence",
+          slug: "catalog-repo-admin-evidence",
+          summary: "Summary.",
+          categoryId,
+        });
+
+        const empty = await repo.getProductEvidenceForAdmin(created.id);
+        expect(empty).toEqual({ licenseDefinitionIds: [], support: null, compatibility: [] });
+
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        await repo.upsertSupportPolicy(created.id, {
+          status: "PLATFORM_SUPPORTED",
+          channel: "https://example.test/support",
+        });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_AUTOMATE",
+          minReleaseYear: 2025,
+          minReleaseWave: 2,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+
+        const filled = await repo.getProductEvidenceForAdmin(created.id);
+        expect(filled.licenseDefinitionIds).toEqual([personalTierId]);
+        expect(filled.support).toEqual({
+          status: "PLATFORM_SUPPORTED",
+          channel: "https://example.test/support",
+        });
+        expect(filled.compatibility).toHaveLength(1);
+        expect(filled.compatibility[0]?.platformArea).toBe("POWER_AUTOMATE");
+      });
+    });
+
     describe("setProductLicenses", () => {
       it("replaces the full assigned set rather than adding incrementally", async () => {
         const created = await repo.createProductDraft({

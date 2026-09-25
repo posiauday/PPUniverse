@@ -179,3 +179,15 @@ export interface ProductPublishReadiness {
   ready: boolean;
   missingFields: ProductPublishMissingField[];
 }
+
+/** Current evidence state for the admin editor (MVP-012): which license
+ * tiers are assigned, the support policy if one exists, and every
+ * compatibility entry -- so the edit page can pre-fill/pre-check its forms
+ * against what is actually persisted, any status, not just PUBLISHED (the
+ * ProductDetail read path @ppu/domain-catalog already exposes is
+ * PUBLISHED-only and cannot be reused for a DRAFT product's own editor). */
+export interface ProductEvidenceForAdmin {
+  licenseDefinitionIds: string[];
+  support: SupportPolicyRecord | null;
+  compatibility: CompatibilityEntry[];
+}
