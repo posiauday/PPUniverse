@@ -31,10 +31,12 @@ test.describe("fixture cleanup is scoped to the rows its worker created", () => 
 
     try {
       expect(first.prefix).not.toBe(second.prefix);
-      // 3 fixture products per worker: fullProduct, minimalProduct, freeGrantProduct
-      // (MVP-010) — isolated from each other so a state that grants a free
-      // entitlement can never leak into one that expects none yet.
-      expect(await prisma.product.count({ where: { slug: { startsWith: first.prefix } } })).toBe(3);
+      // 5 fixture products per worker: fullProduct, minimalProduct,
+      // freeGrantProduct (MVP-010) — isolated from each other so a state
+      // that grants a free entitlement can never leak into one that expects
+      // none yet — plus draftAdminProduct and publishedAdminProduct
+      // (MVP-012), the admin product/release editor's own fixtures.
+      expect(await prisma.product.count({ where: { slug: { startsWith: first.prefix } } })).toBe(5);
       // 2 fixture users per worker: the ordinary member and the ADMIN fixture
       // (MVP-020) — 3 sessions: currentSession, otherSession (both the
       // member's) and adminSession.
@@ -53,7 +55,7 @@ test.describe("fixture cleanup is scoped to the rows its worker created", () => 
       ).toBe(0);
       // ...the second worker's rows are untouched...
       expect(await prisma.product.count({ where: { slug: { startsWith: second.prefix } } })).toBe(
-        3,
+        5,
       );
       expect(await prisma.user.count({ where: { email: { startsWith: second.prefix } } })).toBe(2);
       expect(
