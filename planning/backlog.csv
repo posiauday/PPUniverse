@@ -10,7 +10,7 @@ MVP-008,Verified webhook fulfillment,Backlog,P0,5,8
 MVP-009,Authorized signed downloads,Backlog,P0,6,5
 MVP-010,Free entitlement flow,Done,P0,3,3
 MVP-011,Creator application,Superseded,P0,3,5
-MVP-012,Product and release editor,In Progress,P0,4,8
+MVP-012,Product and release editor,QA,P0,4,8
 MVP-013,Submission review queue (superseded),Superseded,P0,5,8
 MVP-014,Immutable published releases,Backlog,P0,6,3
 MVP-015,Library orders and saved items,Backlog,P1,7,5
