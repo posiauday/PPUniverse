@@ -15,3 +15,8 @@ ALTER TABLE "release_files" ADD CONSTRAINT "release_files_releaseId_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "release_files" ADD CONSTRAINT "release_files_fileScanId_fkey" FOREIGN KEY ("fileScanId") REFERENCES "file_scans"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Row-level security: enabled with zero policies, the same unconditional
+-- convention every table in this schema follows (docs/final-decisions.md,
+-- 2026-09-17, "RLS is approved and required").
+ALTER TABLE "release_files" ENABLE ROW LEVEL SECURITY;
