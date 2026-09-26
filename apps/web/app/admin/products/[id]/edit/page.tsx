@@ -10,6 +10,7 @@ import { ProductForm } from "../../ProductForm";
 import { CompatibilityEditor } from "./CompatibilityEditor";
 import { LicensesEditor } from "./LicensesEditor";
 import { ProductPublishControl } from "./ProductPublishControl";
+import { ProductStatusControl } from "./ProductStatusControl";
 import { ReleasesEditor } from "./ReleasesEditor";
 import { SupportPolicyEditor } from "./SupportPolicyEditor";
 
@@ -120,6 +121,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
               )
               .map((release) => ({ id: release.id, version: release.version }))}
           />
+        </section>
+      ) : null}
+
+      {product.status === "PUBLISHED" || product.status === "SUSPENDED" ? (
+        <section aria-labelledby="status-heading">
+          <h2 id="status-heading">Status</h2>
+          <ProductStatusControl productId={product.id} currentStatus={product.status} />
         </section>
       ) : null}
     </main>
