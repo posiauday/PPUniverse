@@ -48,11 +48,12 @@ model Product {
   updatedAt   DateTime      @updatedAt
   publishedAt DateTime?
 
-  licenses      ProductLicense[]
-  releases      Release[]
-  supportPolicy SupportPolicy?
-  compatibility CompatibilityRecord[]
-  entitlements  Entitlement[]
+  licenses             ProductLicense[]
+  releases             Release[]
+  supportPolicy        SupportPolicy?
+  compatibility        CompatibilityRecord[]
+  entitlements         Entitlement[]
+  releasePublishEvents ReleasePublishEvent[]
 
   @@index([categoryId])
   @@index([status])
