@@ -11,6 +11,12 @@ Product, ProductSlug, Category, Tag, ProductCategory, ProductTag, CompatibilityR
 ## Versioning and files
 Release, ReleaseFile, FileScan, ChangelogEntry, Download, SignedDownloadGrant. Published releases are immutable. File scan transitions: uploaded, quarantined, scanning, clean, rejected, overridden.
 
+## Catalog (Product lifecycle addendum, MVP-019)
+
+`ProductStatus` gains `SUSPENDED` and `ARCHIVED` (MVP-019, FR-015/NFR-009; `docs/final-decisions.md`, "MVP-019 operations console and audit: open questions evaluated and decided"). Valid transitions: `PUBLISHED ⇄ SUSPENDED`, `PUBLISHED → ARCHIVED`, `SUSPENDED → ARCHIVED`. `ARCHIVED` is terminal. `DRAFT` cannot go directly to either — nothing public exists yet to suspend or retire, and `DRAFT → PUBLISHED` remains exclusively MVP-012's own initial-publish concern (a deliberately separate transition table, `ALLOWED_STATUS_CHANGE_TRANSITIONS`, so a suspended/archived product can never accidentally satisfy the initial-publish gate's "must be DRAFT" precondition). Suspending or archiving a Product **never touches any `Entitlement` row** — it is a discoverability toggle only (drops the product from public listing/category/search/detail), not a revocation mechanism; existing entitlement holders keep unchanged access.
+
+`ProductStatusEvent` is the append-only audit trail for every status-change transition — structurally identical to `ArticlePublishEvent`/`ReleasePublishEvent`: `id`, `productId` (FK `Product`, `Restrict`), `actorUserId` (FK `User`, `Restrict`), `fromStatus`/`toStatus` (both `ProductStatus`), `reason` (nullable at the schema level, but application-enforced non-empty for every transition this table records — NFR-009, mirroring `DeletionRequestEvent.reason`'s precedent), `createdAt`. The transition is claimed via an atomic conditional update (`status: { in: validFromStatusesForStatusChange(toStatus) }` in the `WHERE` clause), the same pattern MVP-014 established for `Release.publishedAt`.
+
 ## Commerce
 Price, Coupon, CheckoutSession, Order, OrderLine, PaymentEvent, Refund, TaxRecord, InvoiceReference, Entitlement, EntitlementGrant, Subscription, SubscriptionItem.
 
@@ -43,7 +49,9 @@ SavedProduct, Review, ReviewVote, CreatorResponse, NotificationPreference, Notif
 Authorization: content-publishing authority (create/edit/publish an `Article`) reuses the existing `ADMIN` role — no `EDITOR` role exists or is introduced (`docs/final-decisions.md`, "MVP-017 implementation: content-publishing authorization reuses ADMIN").
 
 ## Operations
-SupportCase, AuditEvent, FeatureFlag, JobRecord, WebhookReceipt, AnalyticsEvent.
+SupportCase, FeatureFlag, JobRecord, WebhookReceipt, AnalyticsEvent.
+
+~~AuditEvent~~ — **superseded by a read/merge admin view, not a new table** (MVP-019, question 4). Rather than a single physical audit table every sensitive-action write path would need to also write to, `apps/web/lib/audit.ts` reads and merges the existing per-domain event tables (`ProductStatusEvent` above, `DeletionRequestEvent` from MVP-020, `ArticlePublishEvent` from MVP-017) at request time. No schema exists for `AuditEvent` and none is planned under this name; a future physical unification, if ever needed for cross-domain query performance, remains a clean additive step from here, not a redesign.
 
 ## Critical constraints
 - Unique product slug. ~~and creator handle~~ (moot under first-party-only, 2026-09-24 — no creator handle to be unique).
