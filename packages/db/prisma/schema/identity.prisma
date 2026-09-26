@@ -43,6 +43,7 @@ model User {
   emailSends             EmailSend[]
   articles               Article[]
   articlePublishActions  ArticlePublishEvent[]
+  productStatusActions   ProductStatusEvent[]
 
   @@map("users")
 }

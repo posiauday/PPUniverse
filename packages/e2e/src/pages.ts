@@ -811,6 +811,51 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/admin/products/${seed.draftAdminProduct.id}/edit`,
   },
   {
+    // MVP-019 (FR-015/NFR-009): the reinstate-or-archive status control,
+    // rendered only for a PUBLISHED or SUSPENDED product -- this fixture is
+    // the SUSPENDED case (the PUBLISHED case is already exercised as part
+    // of admin-products-edit-published above, which visits a PUBLISHED
+    // product's edit page and therefore already renders this same control
+    // in its PUBLISHED form -- no separate state needed for that half).
+    id: "admin-products-edit-suspended",
+    route: "/admin/products/[id]/edit",
+    description:
+      "admin edit-product form, signed in as ADMIN, a suspended product showing the reinstate/archive status control",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/products/${seed.suspendedAdminProduct.id}/edit`,
+    prepare: async (page) => {
+      await expect(page.getByText(/Status:\s*SUSPENDED/)).toBeVisible();
+      await expect(page.getByLabel(/change status to/i)).toBeVisible();
+      await expect(page.getByLabel(/reason/i)).toBeVisible();
+    },
+  },
+  {
+    // The positive admin state: this worker's own suspendedAdminProduct
+    // fixture (created via a real ProductStatusEvent, see seed.ts) must be
+    // visible -- never a total count, since listRecentProductStatusEvents
+    // is a genuine cross-domain, cross-worker admin query and other
+    // workers' own fixture events may legitimately also be present
+    // (mirrors admin-deletion-requests-populated's identical rationale).
+    id: "admin-audit-populated",
+    route: "/admin/audit",
+    description: "admin audit log, signed in as ADMIN, showing a product status change",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/audit",
+    prepare: async (page, seed) => {
+      await expect(page.getByText(seed.suspendedAdminProduct.name)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-audit-denied",
+    route: null,
+    description: "admin audit log, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/audit",
+  },
+  {
     id: "not-found",
     route: null,
     description: "404 for an unknown URL",

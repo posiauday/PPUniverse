@@ -60,17 +60,72 @@ export function isValidReleaseVersion(version: string): boolean {
 
 /**
  * DRAFT -> PUBLISHED is the only allowed transition (mirrors
- * @ppu/domain-content's isValidArticleStatusTransition exactly). There is
- * no unpublish/republish path in this story -- FR-011's immutability rules
- * are MVP-014's scope.
+ * @ppu/domain-content's isValidArticleStatusTransition exactly). This is
+ * MVP-012's initial-publish-only gate -- it deliberately does NOT allow
+ * SUSPENDED/ARCHIVED -> PUBLISHED (reinstating) even though that is a valid
+ * transition under MVP-019's own ALLOWED_STATUS_CHANGE_TRANSITIONS below:
+ * reinstating a suspended product must go through
+ * CatalogRepository.changeProductStatus (with its reason capture and
+ * ProductStatusEvent audit row), never through publishProductWithRelease,
+ * which has entirely different preconditions (selecting a specific
+ * unpublished Release to publish -- meaningless for a product that already
+ * has published releases).
  */
 const ALLOWED_TRANSITIONS: Record<ProductStatus, readonly ProductStatus[]> = {
   DRAFT: ["PUBLISHED"],
   PUBLISHED: [],
+  SUSPENDED: [],
+  ARCHIVED: [],
 };
 
 export function isValidProductStatusTransition(from: ProductStatus, to: ProductStatus): boolean {
   return ALLOWED_TRANSITIONS[from].includes(to);
+}
+
+/**
+ * MVP-019 status-change transitions (suspend/archive/reinstate) --
+ * deliberately a separate table from ALLOWED_TRANSITIONS/
+ * isValidProductStatusTransition above, which is MVP-012's initial-publish-
+ * only DRAFT -> PUBLISHED gate. Reusing that table here would incorrectly
+ * let a SUSPENDED product satisfy publishProductWithRelease's own "must be
+ * DRAFT" precondition once SUSPENDED gained a transition to PUBLISHED --
+ * exactly the kind of precondition-weakening MVP-014's own authorization
+ * warned against ("Do not add a blanket rule... in a way that weakens its
+ * opposite precondition"). Two separate tables for two separate operations,
+ * same as MVP-014's two separate publish methods.
+ *
+ * Valid transitions (docs/final-decisions.md, "MVP-019 operations console
+ * and audit: open questions evaluated and decided", question 1):
+ * PUBLISHED <-> SUSPENDED, PUBLISHED -> ARCHIVED, SUSPENDED -> ARCHIVED.
+ * ARCHIVED is terminal -- no code path transitions out of it. DRAFT is
+ * never a valid "from" or "to" here: nothing public exists yet to
+ * suspend/retire, and DRAFT -> PUBLISHED is exclusively
+ * publishProductWithRelease's own concern.
+ */
+const ALLOWED_STATUS_CHANGE_TRANSITIONS: Record<ProductStatus, readonly ProductStatus[]> = {
+  DRAFT: [],
+  PUBLISHED: ["SUSPENDED", "ARCHIVED"],
+  SUSPENDED: ["PUBLISHED", "ARCHIVED"],
+  ARCHIVED: [],
+};
+
+export function isValidProductStatusChangeTransition(
+  from: ProductStatus,
+  to: ProductStatus,
+): boolean {
+  return ALLOWED_STATUS_CHANGE_TRANSITIONS[from].includes(to);
+}
+
+/** NFR-009 ("destructive admin actions require reason capture"), decided to
+ * apply to all four status-change transitions (question 5 above) -- a
+ * non-empty, length-capped reason, enforced by application logic against
+ * the nullable `ProductStatusEvent.reason` column, mirroring
+ * DeletionRequestEvent.reason's precedent of per-action-value strictness
+ * enforced in code rather than a schema NOT NULL constraint. */
+const MAX_STATUS_CHANGE_REASON_LENGTH = 1000;
+
+export function isValidProductStatusChangeReason(reason: string): boolean {
+  return reason.trim().length > 0 && reason.length <= MAX_STATUS_CHANGE_REASON_LENGTH;
 }
 
 /**
@@ -151,6 +206,34 @@ export class ProductNotReadyError extends Error {
   constructor(public readonly missingFields: ProductPublishMissingField[]) {
     super(`Product is not ready to publish: missing ${missingFields.join(", ")}`);
     this.name = "ProductNotReadyError";
+  }
+}
+
+/** Thrown by CatalogRepository.changeProductStatus when the requested
+ * fromStatus -> toStatus transition is not in
+ * ALLOWED_STATUS_CHANGE_TRANSITIONS (e.g. attempting to suspend a DRAFT
+ * product, or any transition out of ARCHIVED). Carries the Product's actual
+ * current status so the caller can report it, since a concurrent change may
+ * mean the status is no longer what the request assumed. */
+export class ProductStatusTransitionNotAllowedError extends Error {
+  constructor(
+    public readonly productId: string,
+    public readonly fromStatus: string,
+    public readonly toStatus: string,
+  ) {
+    super(`Cannot change product ${productId} from ${fromStatus} to ${toStatus}`);
+    this.name = "ProductStatusTransitionNotAllowedError";
+  }
+}
+
+/** Thrown by CatalogRepository.changeProductStatus when no reason (or a
+ * blank one) is supplied -- NFR-009 requires a reason for every status
+ * change this method performs (docs/final-decisions.md, "MVP-019
+ * operations console and audit" -- question 5). */
+export class ProductStatusChangeReasonRequiredError extends Error {
+  constructor(public readonly productId: string) {
+    super(`A reason is required to change the status of product ${productId}`);
+    this.name = "ProductStatusChangeReasonRequiredError";
   }
 }
 

@@ -19,6 +19,17 @@ self-review gate before publish — is not resolved here; see
 safest stated lifecycle is the four states no one disputes: an administrator
 drafts a product, publishes it, may suspend it, and may archive it.
 
+**Implemented 2026-09-26 (MVP-019, `docs/final-decisions.md`, "MVP-019
+operations console and audit"): suspend and archive are real, not just
+stated.** `ProductStatus` gains `SUSPENDED`/`ARCHIVED`; valid transitions are
+`PUBLISHED ⇄ SUSPENDED`, `PUBLISHED → ARCHIVED`, `SUSPENDED → ARCHIVED`, with
+`ARCHIVED` terminal (no path back out) and `DRAFT` never a valid source or
+destination for either. A reason is required for every transition (NFR-009)
+and recorded in the append-only `ProductStatusEvent` audit trail. Suspending
+or archiving affects public discoverability only — it never touches an
+`Entitlement` row, so existing customers keep whatever access they already
+had regardless of a later suspend/archive.
+
 ## ~~Creator lifecycle~~ (superseded)
 
 ~~Applicant, under review, approved, restricted, suspended, closed.~~

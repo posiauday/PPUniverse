@@ -1,11 +1,15 @@
 import { Prisma, type PrismaClient } from "@ppu/db";
 import {
   isValidProductStatusTransition,
+  isValidProductStatusChangeTransition,
+  isValidProductStatusChangeReason,
   FileScanNotCleanError,
   FileScanNotFoundError,
   ProductNotDraftError,
   ProductNotFoundError,
   ProductNotReadyError,
+  ProductStatusChangeReasonRequiredError,
+  ProductStatusTransitionNotAllowedError,
   ReleaseAlreadyPublishedError,
   ReleaseNotFoundError,
   ReleaseNotFoundForProductError,
@@ -25,6 +29,8 @@ import {
   type ProductPublishSnapshot,
   type ProductRecord,
   type ProductStatus,
+  type ProductStatusChangeResult,
+  type ProductStatusEventRecord,
   type ProductUpdateInput,
   type ProductWithCategory,
   type ReleaseRecord,
@@ -526,6 +532,69 @@ export class PrismaCatalogRepository implements CatalogRepository {
       })),
     }));
   }
+
+  async changeProductStatus(
+    productId: string,
+    toStatus: ProductStatus,
+    actorUserId: string,
+    reason: string,
+  ): Promise<ProductStatusChangeResult> {
+    if (!isValidProductStatusChangeReason(reason)) {
+      throw new ProductStatusChangeReasonRequiredError(productId);
+    }
+    const result = await this.db.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id: productId } });
+      if (!product) {
+        throw new ProductNotFoundError(productId);
+      }
+      if (!isValidProductStatusChangeTransition(product.status as ProductStatus, toStatus)) {
+        throw new ProductStatusTransitionNotAllowedError(productId, product.status, toStatus);
+      }
+
+      // Compare-and-swap on the EXACT status just validated and about to be
+      // recorded as the event's fromStatus. Claiming against every status
+      // that could legally reach `toStatus` (an earlier draft) let a
+      // concurrent transaction succeed from a newer state while still
+      // recording its stale pre-claim read as fromStatus, producing an
+      // audit chain (PUBLISHED->SUSPENDED, PUBLISHED->ARCHIVED) that never
+      // happened. With an exact predicate, count === 1 proves the row was
+      // still in product.status when replaced; a loser retries against
+      // fresh state.
+      const claim = await tx.product.updateMany({
+        where: { id: productId, status: product.status },
+        data: { status: toStatus },
+      });
+      if (claim.count !== 1) {
+        const fresh = await tx.product.findUniqueOrThrow({ where: { id: productId } });
+        throw new ProductStatusTransitionNotAllowedError(productId, fresh.status, toStatus);
+      }
+
+      const statusEvent = await tx.productStatusEvent.create({
+        data: { productId, actorUserId, fromStatus: product.status, toStatus, reason },
+      });
+      const updatedProduct = await tx.product.findUniqueOrThrow({ where: { id: productId } });
+      return { product: updatedProduct, statusEvent };
+    });
+    return {
+      product: toProductRecord(result.product),
+      statusEvent: toProductStatusEventRecord(result.statusEvent),
+    };
+  }
+
+  async listRecentProductStatusEvents(
+    limit: number,
+  ): Promise<Array<ProductStatusEventRecord & { productSlug: string; productName: string }>> {
+    const rows = await this.db.productStatusEvent.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      include: { product: { select: { slug: true, name: true } } },
+    });
+    return rows.map((row) => ({
+      ...toProductStatusEventRecord(row),
+      productSlug: row.product.slug,
+      productName: row.product.name,
+    }));
+  }
 }
 
 interface RawSearchRow {
@@ -651,5 +720,25 @@ function toProductRecord(row: {
     summary: row.summary,
     status: row.status as ProductStatus,
     categoryId: row.categoryId,
+  };
+}
+
+function toProductStatusEventRecord(row: {
+  id: string;
+  productId: string;
+  actorUserId: string;
+  fromStatus: string;
+  toStatus: string;
+  reason: string | null;
+  createdAt: Date;
+}): ProductStatusEventRecord {
+  return {
+    id: row.id,
+    productId: row.productId,
+    actorUserId: row.actorUserId,
+    fromStatus: row.fromStatus as ProductStatus,
+    toStatus: row.toStatus as ProductStatus,
+    reason: row.reason,
+    createdAt: row.createdAt,
   };
 }

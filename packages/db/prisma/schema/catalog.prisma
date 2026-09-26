@@ -7,6 +7,10 @@
 // release, support, compatibility) live in evidence.prisma; Prerequisite,
 // ProductMedia and ProductDocument remain unbuilt; Collection/
 // CollectionItem have no owning story yet (docs/open-questions.md).
+// ProductStatusEvent (MVP-019, FR-015/NFR-009) is the append-only audit
+// trail for SUSPENDED/ARCHIVED transitions — see docs/final-decisions.md,
+// "MVP-019 operations console and audit: open questions evaluated and
+// decided".
 
 enum AssetType {
   POWER_APPS_COMPONENT
@@ -17,9 +21,17 @@ enum AssetType {
   GOVERNANCE_ASSET
 }
 
+/// SUSPENDED and ARCHIVED added MVP-019. Valid transitions (enforced in
+/// packages/domain/catalog, not just here): PUBLISHED <-> SUSPENDED,
+/// PUBLISHED -> ARCHIVED, SUSPENDED -> ARCHIVED. ARCHIVED is terminal --
+/// no transition out of it exists. DRAFT cannot go directly to either
+/// (nothing public to suspend/retire yet); DRAFT -> PUBLISHED remains
+/// MVP-012's own publish flow, untouched by MVP-019.
 enum ProductStatus {
   DRAFT
   PUBLISHED
+  SUSPENDED
+  ARCHIVED
 }
 
 model Category {
@@ -53,8 +65,34 @@ model Product {
   supportPolicy SupportPolicy?
   compatibility CompatibilityRecord[]
   entitlements  Entitlement[]
+  statusEvents  ProductStatusEvent[]
 
   @@index([categoryId])
   @@index([status])
   @@map("products")
+}
+
+/// Append-only audit trail for every SUSPENDED/ARCHIVED transition
+/// (MVP-019). Structurally identical to ArticlePublishEvent/
+/// ReleasePublishEvent: Restrict FKs, no UPDATE path. `reason` is nullable
+/// at the schema level but required by application logic for every
+/// transition this story writes (docs/final-decisions.md, "MVP-019
+/// operations console and audit" -- question 5) -- the same
+/// per-action-value strictness pattern DeletionRequestEvent.reason
+/// established (required for DENIED, optional otherwise; here, required
+/// for all four transitions this table records).
+model ProductStatusEvent {
+  id          String        @id @default(cuid())
+  productId   String
+  actorUserId String
+  fromStatus  ProductStatus
+  toStatus    ProductStatus
+  reason      String?
+  createdAt   DateTime      @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([productId, createdAt])
+  @@map("product_status_events")
 }

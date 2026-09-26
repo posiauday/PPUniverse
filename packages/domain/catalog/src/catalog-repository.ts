@@ -8,6 +8,9 @@ import type {
   ProductPublishResult,
   ProductPublishSnapshot,
   ProductRecord,
+  ProductStatus,
+  ProductStatusChangeResult,
+  ProductStatusEventRecord,
   ProductUpdateInput,
   ProductWithCategory,
   ReleaseRecord,
@@ -134,4 +137,44 @@ export interface CatalogRepository {
   listReleasesForAdmin(
     productId: string,
   ): Promise<Array<ReleaseRecord & { files: Array<{ fileScanId: string; status: string }> }>>;
+  /**
+   * Suspend, archive, or reinstate a Product (MVP-019, FR-015/NFR-009).
+   * Entirely separate from publishProductWithRelease -- deliberately does
+   * not touch Product.publishedAt, does not select or touch any Release,
+   * and never revokes any Entitlement (docs/final-decisions.md, "MVP-019
+   * operations console and audit" -- question 2).
+   *
+   * Re-reads and re-validates fresh, inside one transaction:
+   *   - the Product exists (else ProductNotFoundError);
+   *   - `fromStatus -> toStatus` is a transition
+   *     isValidProductStatusChangeTransition allows (else
+   *     ProductStatusTransitionNotAllowedError, carrying the Product's
+   *     actual current status);
+   *   - `reason` is non-empty (else ProductStatusChangeReasonRequiredError
+   *     -- NFR-009 requires a reason for all four transitions this method
+   *     performs).
+   * The status change itself is a compare-and-swap: an atomic conditional
+   * update whose WHERE clause requires the exact status just validated
+   * (`status: product.status`) and exactly one affected row -- the same
+   * concurrency-safe family as MVP-014's Release.publishedAt claim. That
+   * exactness guarantees the ProductStatusEvent written in the same
+   * transaction records the status actually replaced, so the audit chain
+   * stays continuous; a request that lost a race fails with
+   * ProductStatusTransitionNotAllowedError (carrying the fresh status) and
+   * may be retried.
+   */
+  changeProductStatus(
+    productId: string,
+    toStatus: ProductStatus,
+    actorUserId: string,
+    reason: string,
+  ): Promise<ProductStatusChangeResult>;
+  /** The most recent ProductStatusEvent rows across every product, newest
+   * first, up to `limit` -- one of the audit-log view's three source
+   * queries (MVP-019, question 4: read/merge over existing tables, not a
+   * new unified AuditEvent table). Includes the product's current slug/name
+   * so the admin view can render a link without a second round trip. */
+  listRecentProductStatusEvents(
+    limit: number,
+  ): Promise<Array<ProductStatusEventRecord & { productSlug: string; productName: string }>>;
 }

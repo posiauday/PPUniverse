@@ -17,7 +17,7 @@ MVP-015,Account,Library orders and saved items,P1,Backlog,FR-013,"User can acces
 MVP-016,Reviews,Verified reviews and replies,P1,Backlog,FR-012,"Only qualifying users can review; moderation exists",MVP-009
 MVP-017,Content,Tutorials collections learning paths,P1,Done,FR-014,"Editor can publish indexable structured content",MVP-003
 MVP-018,Notifications,Transactional email and preferences,P1,Done,FR-013,"Required messages send and optional messages respect preference",MVP-002
-MVP-019,Admin,Operations console and audit,P0,Backlog,FR-015,"Sensitive actions are authorized and auditable",MVP-012
+MVP-019,Admin,Operations console and audit,P0,QA,FR-015,"Sensitive actions are authorized and auditable. Implemented 2026-09-26: Product suspend/archive/reinstate (ProductStatusEvent audit trail, reason required for every transition, atomic conditional-update concurrency guarantee) and a unified read-only admin audit-log view merging ProductStatusEvent/DeletionRequestEvent/ArticlePublishEvent. Status QA (not Done) - PR open, pending real-CI accessibility confirmation and merge. User management, taxonomy admin CRUD, and Entitlement revocation remain explicitly out of scope.",MVP-012
 MVP-020,Privacy,Consent legal deletion workflow,P0,Done,FR-004,"Consent and deletion request are recorded",MVP-002
 MVP-021,SEO,Metadata sitemap canonical structured data,P0,Done,FR-017,"Indexable pages emit valid metadata and sitemap",MVP-005
 MVP-022,Observability,Logs traces metrics and alerts,P0,Done,NFR-007,"Critical journeys have correlation and runbooks",MVP-001

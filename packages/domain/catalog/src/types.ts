@@ -6,7 +6,9 @@ export type AssetType =
   | "ARCHITECTURE_BLUEPRINT"
   | "GOVERNANCE_ASSET";
 
-export type ProductStatus = "DRAFT" | "PUBLISHED";
+/** SUSPENDED and ARCHIVED added MVP-019 -- see product.ts's
+ * ALLOWED_STATUS_CHANGE_TRANSITIONS for the valid transition graph. */
+export type ProductStatus = "DRAFT" | "PUBLISHED" | "SUSPENDED" | "ARCHIVED";
 
 export interface CategoryRecord {
   id: string;
@@ -208,4 +210,25 @@ export interface ProductEvidenceForAdmin {
   licenseDefinitionIds: string[];
   support: SupportPolicyRecord | null;
   compatibility: CompatibilityEntry[];
+}
+
+/** Returned by CatalogRepository.changeProductStatus (MVP-019, FR-015/
+ * NFR-009). */
+export interface ProductStatusChangeResult {
+  product: ProductRecord;
+  statusEvent: ProductStatusEventRecord;
+}
+
+/** One row of the append-only ProductStatusEvent audit trail. `reason` is
+ * always non-null in practice (application-enforced at write time; see
+ * product.ts's isValidProductStatusChangeReason), typed nullable here only
+ * because the underlying column is nullable at the schema level. */
+export interface ProductStatusEventRecord {
+  id: string;
+  productId: string;
+  actorUserId: string;
+  fromStatus: ProductStatus;
+  toStatus: ProductStatus;
+  reason: string | null;
+  createdAt: Date;
 }
