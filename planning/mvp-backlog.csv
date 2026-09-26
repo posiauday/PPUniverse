@@ -10,7 +10,7 @@ MVP-008,Commerce,Verified webhook fulfillment,P0,Backlog,FR-006,"Signature and d
 MVP-009,Entitlements,Authorized signed downloads,P0,Backlog,FR-007,"Only entitled users receive expiring URL",MVP-006;MVP-008
 MVP-010,Free assets,Free entitlement flow,P0,Done,FR-005,"Policy creates entitlement and download record",MVP-002;MVP-006
 MVP-011,Creator,Creator application,P0,Superseded,FR-008,"SUPERSEDED 2026-09-24 by the first-party-only publishing decision (docs/final-decisions.md) - third-party creator onboarding is no longer part of the approved business model. Not renamed into a suggestion story; see PROP-009.",MVP-002
-MVP-012,Publishing,Product and release editor,P0,Backlog,FR-009,"Draft validates all mandatory submission fields (first-party ADMIN authoring, not a creator portal)",MVP-006
+MVP-012,Publishing,Product and release editor,P0,Done,FR-009,"Draft validates all mandatory submission fields (first-party ADMIN authoring, not a creator portal)",MVP-006
 MVP-013,Moderation,Submission review queue,P0,Superseded,FR-010,"SUPERSEDED 2026-09-24 by the first-party-only publishing decision (docs/final-decisions.md) - reviewing a third-party submission presumes a submitter distinct from the reviewer, which does not exist. Quality requirements redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008 and MVP-019 - see docs/final-decisions.md section 5.",MVP-012
 MVP-014,Publishing,Immutable published releases,P0,Backlog,FR-011,"Published files cannot be replaced",MVP-012
 MVP-015,Account,Library orders and saved items,P1,Backlog,FR-013,"User can access entitled products and preferences",MVP-009

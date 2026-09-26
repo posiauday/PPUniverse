@@ -111,3 +111,101 @@ export interface ProductDetail extends ProductWithCategory {
   support: SupportPolicyRecord | null;
   compatibility: CompatibilityEntry[];
 }
+
+/**
+ * Product and release authoring (MVP-012, FR-009). First-party ADMIN-only
+ * (docs/final-decisions.md, "First-party-only publishing model" section 6)
+ * — no CREATOR/SELLER/EDITOR/PUBLISHER role exists. The caller (the API
+ * route) checks the actor is ADMIN before any of this runs, mirroring
+ * @ppu/domain-content's ContentRepository/ArticleUpdateInput pattern
+ * exactly.
+ */
+
+/** Create and update share the same core-field shape: name, slug, summary,
+ * categoryId. `categoryId` referencing a real Category is checked by the
+ * caller (repository access is needed; this package stays DB-free), not by
+ * any pure validator here. */
+export interface ProductCoreFields {
+  name: string;
+  slug: string;
+  summary: string;
+  categoryId: string;
+}
+
+export type ProductCreateInput = ProductCoreFields;
+
+/** Deliberately excludes `status`/`publishedAt` — those change only
+ * through CatalogRepository.publishProduct, never a general edit, so a bad
+ * or accidental edit can never silently unpublish or republish a Product
+ * (mirrors @ppu/domain-content's ArticleUpdateInput exactly). */
+export type ProductUpdateInput = ProductCoreFields;
+
+/** Free-text version (docs/open-questions.md item 61: format enforcement
+ * deferred). `publishedAt` null means the release is still a draft:
+ * editable release notes (within MVP-012's scope) and an editable file set.
+ * Once `publishedAt` is set — only by
+ * CatalogRepository.publishProductWithRelease, transactionally with the
+ * Product's own publish — the release and its files are immutable: no
+ * attach, detach, version edit, or publishedAt clearing (direct
+ * product-owner decision, "PR #23 blocker corrections" A2). A published
+ * Product is not frozen — an ADMIN may still create further draft releases
+ * for future versions — but each individual published Release is. Deeper
+ * release-promotion policy (which published release is "current" once more
+ * than one exists) is MVP-014's scope. */
+export interface ReleaseRecord {
+  id: string;
+  productId: string;
+  version: string;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** Returned by CatalogRepository.publishProductWithRelease: both rows the
+ * one atomic transaction updated. */
+export interface ProductPublishResult {
+  product: ProductRecord;
+  release: ReleaseRecord;
+}
+
+/** The mandatory-field snapshot the DRAFT -> PUBLISHED readiness *hint*
+ * needs (docs/open-questions.md item 61, approved "PR #23 blocker
+ * corrections" A11). `releasesWithCleanFileCount` counts only *unpublished*
+ * (draft) releases that have at least one attached ReleaseFile whose
+ * FileScan is CLEAN -- an already-published release never counts here (it's
+ * not a candidate to select again), and a release with zero attachments, or
+ * attachments that never passed scanning, does not count either.
+ * `compatibilityCount` counts CompatibilityRecord rows regardless of
+ * evidence status, since MVP-012's write path can only ever produce
+ * CREATOR_DECLARED rows (see checkProductPublishReadiness's doc comment).
+ * This snapshot is a UI hint only -- the authoritative check re-reads the
+ * same facts fresh inside publishProductWithRelease's own transaction. */
+export interface ProductPublishSnapshot {
+  licenseCount: number;
+  hasSupportPolicy: boolean;
+  compatibilityCount: number;
+  releasesWithCleanFileCount: number;
+}
+
+/** One entry per missing mandatory field, in the fixed check order used by
+ * checkProductPublishReadiness: "license", "supportPolicy", "compatibility",
+ * "release". Never invents a reason not in this list (price is correctly
+ * excluded -- MVP-007, blocked on open questions 3 and 7). */
+export type ProductPublishMissingField = "license" | "supportPolicy" | "compatibility" | "release";
+
+export interface ProductPublishReadiness {
+  ready: boolean;
+  missingFields: ProductPublishMissingField[];
+}
+
+/** Current evidence state for the admin editor (MVP-012): which license
+ * tiers are assigned, the support policy if one exists, and every
+ * compatibility entry -- so the edit page can pre-fill/pre-check its forms
+ * against what is actually persisted, any status, not just PUBLISHED (the
+ * ProductDetail read path @ppu/domain-catalog already exposes is
+ * PUBLISHED-only and cannot be reused for a DRAFT product's own editor). */
+export interface ProductEvidenceForAdmin {
+  licenseDefinitionIds: string[];
+  support: SupportPolicyRecord | null;
+  compatibility: CompatibilityEntry[];
+}

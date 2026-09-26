@@ -81,7 +81,8 @@ model Release {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  files   ReleaseFile[]
 
   @@unique([productId, version])
   @@index([productId, publishedAt])

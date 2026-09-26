@@ -1,19 +1,39 @@
 import { Prisma, type PrismaClient } from "@ppu/db";
-import type {
-  AssetType,
-  CategoryRecord,
-  CatalogRepository,
-  CompatibilityEntry,
-  CompatibilityEvidenceStatus,
-  LicenseDefinitionRecord,
-  PlatformArea,
-  ProductDetail,
-  ProductRecord,
-  ProductStatus,
-  ProductWithCategory,
-  SearchOptions,
-  SearchResult,
-  SitemapEntries,
+import {
+  isValidProductStatusTransition,
+  FileScanNotCleanError,
+  FileScanNotFoundError,
+  ProductNotDraftError,
+  ProductNotFoundError,
+  ProductNotReadyError,
+  ReleaseAlreadyPublishedError,
+  ReleaseNotFoundError,
+  ReleaseNotFoundForProductError,
+  ReleaseNotReadyError,
+  type AssetType,
+  type CategoryRecord,
+  type CatalogRepository,
+  type CompatibilityEntry,
+  type CompatibilityEvidenceStatus,
+  type LicenseDefinitionRecord,
+  type PlatformArea,
+  type ProductCreateInput,
+  type ProductDetail,
+  type ProductEvidenceForAdmin,
+  type ProductPublishMissingField,
+  type ProductPublishResult,
+  type ProductPublishSnapshot,
+  type ProductRecord,
+  type ProductStatus,
+  type ProductUpdateInput,
+  type ProductWithCategory,
+  type ReleaseRecord,
+  type SearchOptions,
+  type SearchResult,
+  type SitemapEntries,
+  type SupportPolicyRecord,
+  type SupportStatus,
+  type ValidCompatibilityEntry,
 } from "@ppu/domain-catalog";
 
 export class PrismaCatalogRepository implements CatalogRepository {
@@ -180,6 +200,332 @@ export class PrismaCatalogRepository implements CatalogRepository {
       pageSize: options.pageSize,
     };
   }
+
+  // --- Admin authoring surface (MVP-012, FR-009) -----------------------
+
+  async createProductDraft(input: ProductCreateInput): Promise<ProductRecord> {
+    const row = await this.db.product.create({
+      data: {
+        name: input.name,
+        slug: input.slug,
+        summary: input.summary,
+        categoryId: input.categoryId,
+      },
+    });
+    return toProductRecord(row);
+  }
+
+  /** Core fields only -- never touches status/publishedAt (see
+   * ProductUpdateInput's doc comment in @ppu/domain-catalog). */
+  async updateProductDraft(id: string, input: ProductUpdateInput): Promise<ProductRecord> {
+    const row = await this.db.product.update({
+      where: { id },
+      data: {
+        name: input.name,
+        slug: input.slug,
+        summary: input.summary,
+        categoryId: input.categoryId,
+      },
+    });
+    return toProductRecord(row);
+  }
+
+  async findProductByIdForAdmin(id: string): Promise<ProductWithCategory | null> {
+    const row = await this.db.product.findUnique({ where: { id }, include: { category: true } });
+    if (!row) return null;
+    return { ...toProductRecord(row), category: toCategoryRecord(row.category) };
+  }
+
+  async listProductsForAdmin(): Promise<ProductRecord[]> {
+    const rows = await this.db.product.findMany({ orderBy: { createdAt: "desc" } });
+    return rows.map(toProductRecord);
+  }
+
+  /**
+   * Loads the counts checkProductPublishReadiness (@ppu/domain-catalog)
+   * needs, as a UI hint only (publishProductWithRelease re-reads everything
+   * fresh as the authoritative gate). "a release with at least one attached
+   * CLEAN file" is computed as the count of distinct *unpublished* releases
+   * that have at least one ReleaseFile whose FileScan.status is CLEAN -- an
+   * already-published release is never a candidate to select again, and a
+   * release with zero attachments, or only attachments that never passed
+   * scanning, does not count either.
+   */
+  async getProductPublishSnapshot(id: string): Promise<ProductPublishSnapshot> {
+    const [licenseCount, supportPolicy, compatibilityCount, releasesWithCleanFile] =
+      await Promise.all([
+        this.db.productLicense.count({ where: { productId: id } }),
+        this.db.supportPolicy.findUnique({ where: { productId: id } }),
+        this.db.compatibilityRecord.count({ where: { productId: id } }),
+        this.db.release.findMany({
+          where: {
+            productId: id,
+            publishedAt: null,
+            files: { some: { fileScan: { status: "CLEAN" } } },
+          },
+          select: { id: true },
+        }),
+      ]);
+
+    return {
+      licenseCount,
+      hasSupportPolicy: supportPolicy !== null,
+      compatibilityCount,
+      releasesWithCleanFileCount: releasesWithCleanFile.length,
+    };
+  }
+
+  /** Current assigned license ids, support policy, and every compatibility
+   * entry, any status -- the admin editor's own pre-fill/pre-check read
+   * (distinct from the PUBLISHED-only findPublishedProductDetailBySlug). */
+  async getProductEvidenceForAdmin(id: string): Promise<ProductEvidenceForAdmin> {
+    const [licenses, supportPolicy, compatibility] = await Promise.all([
+      this.db.productLicense.findMany({
+        where: { productId: id },
+        select: { licenseDefinitionId: true },
+      }),
+      this.db.supportPolicy.findUnique({ where: { productId: id } }),
+      this.db.compatibilityRecord.findMany({
+        where: { productId: id },
+        orderBy: { platformArea: "asc" },
+      }),
+    ]);
+
+    return {
+      licenseDefinitionIds: licenses.map((license) => license.licenseDefinitionId),
+      support: supportPolicy
+        ? { status: supportPolicy.status as SupportStatus, channel: supportPolicy.channel }
+        : null,
+      compatibility: compatibility.map(toCompatibilityEntry),
+    };
+  }
+
+  /**
+   * Initial product publication (direct product-owner decision, "PR #23
+   * blocker corrections" A2/A4). One transaction; every fact is re-read and
+   * re-validated fresh from the database inside it -- never a caller-
+   * supplied belief or an earlier snapshot -- so a race between two publish
+   * requests, or a publish racing a concurrent file/evidence edit, can never
+   * produce a half-published state or an incorrectly-published release. If
+   * any check fails, the thrown error rolls the whole transaction back and
+   * neither Product nor Release changes. Structured telemetry (the API
+   * route's product.published log) is the MVP-017 precedent's substitute
+   * for a persisted AuditEvent until MVP-019 builds one.
+   */
+  async publishProductWithRelease(
+    productId: string,
+    releaseId: string,
+  ): Promise<ProductPublishResult> {
+    const publishedAt = new Date();
+    const result = await this.db.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id: productId } });
+      if (!product) {
+        throw new ProductNotFoundError(productId);
+      }
+      if (!isValidProductStatusTransition(product.status as ProductStatus, "PUBLISHED")) {
+        throw new ProductNotDraftError(productId, product.status);
+      }
+
+      const release = await tx.release.findUnique({
+        where: { id: releaseId },
+        include: { files: { include: { fileScan: { select: { status: true } } } } },
+      });
+      if (!release || release.productId !== productId) {
+        throw new ReleaseNotFoundForProductError(releaseId, productId);
+      }
+      if (release.publishedAt !== null) {
+        throw new ReleaseAlreadyPublishedError(releaseId);
+      }
+      const hasCleanFile = release.files.some((file) => file.fileScan.status === "CLEAN");
+      if (!hasCleanFile) {
+        throw new ReleaseNotReadyError(releaseId);
+      }
+
+      const [licenseCount, supportPolicy, compatibilityCount] = await Promise.all([
+        tx.productLicense.count({ where: { productId } }),
+        tx.supportPolicy.findUnique({ where: { productId } }),
+        tx.compatibilityRecord.count({ where: { productId } }),
+      ]);
+      const missingFields: ProductPublishMissingField[] = [];
+      if (licenseCount < 1) missingFields.push("license");
+      if (!supportPolicy) missingFields.push("supportPolicy");
+      if (compatibilityCount < 1) missingFields.push("compatibility");
+      if (missingFields.length > 0) {
+        throw new ProductNotReadyError(missingFields);
+      }
+
+      const [updatedProduct, updatedRelease] = await Promise.all([
+        tx.product.update({ where: { id: productId }, data: { status: "PUBLISHED", publishedAt } }),
+        tx.release.update({ where: { id: releaseId }, data: { publishedAt } }),
+      ]);
+      return { product: updatedProduct, release: updatedRelease };
+    });
+    return {
+      product: toProductRecord(result.product),
+      release: toReleaseRecord(result.release),
+    };
+  }
+
+  /** Replaces the full assigned set -- not an incremental add/remove
+   * (simplest correct semantics for a checkbox-style picker). Runs as one
+   * transaction so a concurrent reader never observes a moment with zero
+   * licenses assigned. */
+  async setProductLicenses(productId: string, licenseDefinitionIds: string[]): Promise<void> {
+    await this.db.$transaction([
+      this.db.productLicense.deleteMany({ where: { productId } }),
+      ...(licenseDefinitionIds.length > 0
+        ? [
+            this.db.productLicense.createMany({
+              data: licenseDefinitionIds.map((licenseDefinitionId) => ({
+                productId,
+                licenseDefinitionId,
+              })),
+              skipDuplicates: true,
+            }),
+          ]
+        : []),
+    ]);
+  }
+
+  async listLicenseDefinitions(): Promise<LicenseDefinitionRecord[]> {
+    const rows = await this.db.licenseDefinition.findMany({ orderBy: { sortOrder: "asc" } });
+    return rows.map(toLicenseDefinitionRecord);
+  }
+
+  async upsertSupportPolicy(
+    productId: string,
+    input: { status: SupportStatus; channel: string | null },
+  ): Promise<SupportPolicyRecord> {
+    const row = await this.db.supportPolicy.upsert({
+      where: { productId },
+      create: { productId, status: input.status, channel: input.channel },
+      update: { status: input.status, channel: input.channel },
+    });
+    return { status: row.status as SupportStatus, channel: row.channel };
+  }
+
+  /**
+   * Upsert keyed on the existing (productId, platformArea) unique
+   * constraint. Defense in depth (TD-008 section 9, MVP-012's own hard
+   * gate): refuses to persist any evidenceStatus other than
+   * CREATOR_DECLARED, even though the API route must already reject it
+   * before this is ever called -- this repository is the last line before
+   * the database. Never touches `reviewedAt`: it is explicitly nulled on
+   * every write this method performs, since only the not-yet-built trusted
+   * server-side moderation workflow (TD-008, MVP-013) may ever set it, and
+   * this method only ever writes CREATOR_DECLARED.
+   */
+  async upsertCompatibilityEntry(
+    productId: string,
+    input: ValidCompatibilityEntry,
+  ): Promise<CompatibilityEntry> {
+    if (input.evidenceStatus !== "CREATOR_DECLARED") {
+      throw new Error(
+        `upsertCompatibilityEntry only accepts CREATOR_DECLARED evidenceStatus, got ${input.evidenceStatus}`,
+      );
+    }
+    const row = await this.db.compatibilityRecord.upsert({
+      where: { productId_platformArea: { productId, platformArea: input.platformArea } },
+      create: {
+        productId,
+        platformArea: input.platformArea,
+        minReleaseYear: input.minReleaseYear,
+        minReleaseWave: input.minReleaseWave,
+        notes: input.notes,
+        evidenceStatus: input.evidenceStatus,
+        evidenceSummary: input.evidenceSummary,
+        lastVerifiedAt: input.lastVerifiedAt ? new Date(input.lastVerifiedAt) : null,
+      },
+      update: {
+        minReleaseYear: input.minReleaseYear,
+        minReleaseWave: input.minReleaseWave,
+        notes: input.notes,
+        evidenceStatus: input.evidenceStatus,
+        evidenceSummary: input.evidenceSummary,
+        lastVerifiedAt: input.lastVerifiedAt ? new Date(input.lastVerifiedAt) : null,
+        reviewedAt: null,
+      },
+    });
+    return toCompatibilityEntry(row);
+  }
+
+  /** Product may be DRAFT or PUBLISHED -- a new draft release on an
+   * already-published product is how future versions are authored (A2/A3),
+   * and never changes the public current version by itself. Always created
+   * with publishedAt null (the Prisma column default). */
+  async createRelease(productId: string, version: string): Promise<ReleaseRecord> {
+    const row = await this.db.release.create({ data: { productId, version } });
+    return toReleaseRecord(row);
+  }
+
+  /** Shared by attachReleaseFile/detachReleaseFile: loads the release fresh
+   * and confirms it belongs to `productId` and is still a draft (A3) --
+   * never trusts the caller's own belief about either fact. */
+  private async loadMutableReleaseOrThrow(productId: string, releaseId: string) {
+    const release = await this.db.release.findUnique({ where: { id: releaseId } });
+    if (!release || release.productId !== productId) {
+      throw new ReleaseNotFoundError(releaseId);
+    }
+    if (release.publishedAt !== null) {
+      throw new ReleaseAlreadyPublishedError(releaseId);
+    }
+    return release;
+  }
+
+  /**
+   * Re-verifies, fresh from the database: the release belongs to
+   * `productId` and is not already published (A3 -- a published release's
+   * file set is immutable), and FileScan.status === "CLEAN" -- never trusts
+   * a client-supplied "this file is clean" claim (mirrors MVP-006/MVP-009's
+   * existing signed-download authorization discipline). Upsert (not create)
+   * so attaching the same file twice is a harmless no-op rather than a
+   * unique-constraint error.
+   */
+  async attachReleaseFile(productId: string, releaseId: string, fileScanId: string): Promise<void> {
+    await this.loadMutableReleaseOrThrow(productId, releaseId);
+    const fileScan = await this.db.fileScan.findUnique({ where: { id: fileScanId } });
+    if (!fileScan) {
+      throw new FileScanNotFoundError(fileScanId);
+    }
+    if (fileScan.status !== "CLEAN") {
+      throw new FileScanNotCleanError(fileScanId, fileScan.status);
+    }
+    await this.db.releaseFile.upsert({
+      where: { releaseId_fileScanId: { releaseId, fileScanId } },
+      create: { releaseId, fileScanId },
+      update: {},
+    });
+  }
+
+  /**
+   * Removes one ReleaseFile association from a draft release (A3), so an
+   * ADMIN can correct an accidental attachment. Same release/product/
+   * published-state checks as attachReleaseFile. Deletes only the join row
+   * -- never the underlying FileScan or its stored file -- and is
+   * idempotent: detaching a file that was never attached is a no-op deleteMany
+   * (count 0), not an error.
+   */
+  async detachReleaseFile(productId: string, releaseId: string, fileScanId: string): Promise<void> {
+    await this.loadMutableReleaseOrThrow(productId, releaseId);
+    await this.db.releaseFile.deleteMany({ where: { releaseId, fileScanId } });
+  }
+
+  async listReleasesForAdmin(
+    productId: string,
+  ): Promise<Array<ReleaseRecord & { files: Array<{ fileScanId: string; status: string }> }>> {
+    const rows = await this.db.release.findMany({
+      where: { productId },
+      orderBy: { createdAt: "desc" },
+      include: { files: { include: { fileScan: { select: { status: true } } } } },
+    });
+    return rows.map((row) => ({
+      ...toReleaseRecord(row),
+      files: row.files.map((file) => ({
+        fileScanId: file.fileScanId,
+        status: file.fileScan.status,
+      })),
+    }));
+  }
 }
 
 interface RawSearchRow {
@@ -269,6 +615,24 @@ function toCompatibilityEntry(row: {
     evidenceSummary: row.evidenceSummary,
     lastVerifiedAt: row.lastVerifiedAt ? row.lastVerifiedAt.toISOString().slice(0, 10) : null,
     reviewedAt: row.reviewedAt ? row.reviewedAt.toISOString() : null,
+  };
+}
+
+function toReleaseRecord(row: {
+  id: string;
+  productId: string;
+  version: string;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): ReleaseRecord {
+  return {
+    id: row.id,
+    productId: row.productId,
+    version: row.version,
+    publishedAt: row.publishedAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   };
 }
 

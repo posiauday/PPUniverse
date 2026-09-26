@@ -151,3 +151,38 @@ these questions.
     closed off permanently — revisit if conditions change; the research stays in
     the repository for that purpose. *Original question:* should PROP-008 be
     pursued, in what shape, and when?
+
+## Raised 2026-09-24 (MVP-012 pre-work) — recorded with safest reversible defaults applied, not resolved
+
+61. **OPEN — safest reversible default applied, now implemented (2026-09-24,
+    MVP-012).** The exact mandatory field set for MVP-012's DRAFT → PUBLISHED
+    transition is not stated by FR-009 or the backlog row beyond "all mandatory
+    submission fields." Default applied: `name`, `slug`, `summary`, `categoryId`
+    (already non-nullable on `Product`); at least one `ProductLicense`; a
+    `SupportPolicy`; at least one `CompatibilityRecord` (Creator Declared
+    only); at least one `Release` with at least one attached CLEAN
+    `ReleaseFile`. Price is correctly excluded (MVP-007, blocked on open
+    questions 3 and 7). Full reasoning: `planning/prework/MVP-012-prework-analysis.md`.
+    **Implementation note:** built exactly as recorded, in
+    `checkProductPublishReadiness` (`packages/domain/catalog/src/product.ts`) and
+    enforced server-side by `POST /api/admin/products/{id}/publish`
+    (`apps/web/app/api/admin/products/[id]/publish/route.ts`). This item stays
+    **OPEN** — it is an engineering default applied under the Decision
+    Validation Rule's "safest reversible assumption" clause, not a
+    product-owner-confirmed decision; close it only if/when the product owner
+    directly confirms this field set (or a different one) and it is recorded in
+    `docs/final-decisions.md`.
+62. **OPEN — safest reversible default applied, now implemented (2026-09-24,
+    MVP-012).** `docs/07-api-contracts.md`'s Admin API line listed `GET
+    /api/admin/submissions`, `POST /api/admin/submissions/{id}/decision` — a
+    third-party moderation-decision shape presuming the superseded MVP-013
+    model, missed by the first-party-only validation pass (PR #22) because it
+    names no searched term. Default applied: corrected as part of MVP-012
+    itself, since MVP-012 is what actually defines the real admin endpoint
+    shape, rather than guessed at twice. Full reasoning:
+    `planning/prework/MVP-012-prework-analysis.md`. **Implementation note:**
+    `docs/07-api-contracts.md`'s "First-party authoring" and "Moderation/admin"
+    sections now list the real, implemented `/api/admin/products/...` routes
+    and no longer reference `/api/admin/submissions`. This item stays **OPEN**
+    for the same reason item 61 does — a documentation-correctness default, not
+    a product-owner-confirmed decision needing closure.
