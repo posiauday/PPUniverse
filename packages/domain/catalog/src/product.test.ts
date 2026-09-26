@@ -5,11 +5,16 @@ import {
   isValidProductName,
   isValidProductSlug,
   isValidProductStatusTransition,
+  isValidProductStatusChangeTransition,
+  isValidProductStatusChangeReason,
+  validFromStatusesForStatusChange,
   isValidProductSummary,
   isValidReleaseVersion,
   ProductNotDraftError,
   ProductNotFoundError,
   ProductNotReadyError,
+  ProductStatusChangeReasonRequiredError,
+  ProductStatusTransitionNotAllowedError,
   ReleaseAlreadyPublishedError,
   ReleaseNotFoundError,
   ReleaseNotFoundForProductError,
@@ -17,7 +22,7 @@ import {
 } from "./product.js";
 import type { ProductPublishSnapshot, ProductStatus } from "./types.js";
 
-const ALL_STATUSES: ProductStatus[] = ["DRAFT", "PUBLISHED"];
+const ALL_STATUSES: ProductStatus[] = ["DRAFT", "PUBLISHED", "SUSPENDED", "ARCHIVED"];
 
 describe("isValidProductSlug", () => {
   it("accepts lowercase hyphenated slugs", () => {
@@ -101,6 +106,84 @@ describe("isValidProductStatusTransition", () => {
     for (const from of ALL_STATUSES) {
       expect(isValidProductStatusTransition(from, "DRAFT")).toBe(false);
     }
+  });
+
+  it("rejects SUSPENDED/ARCHIVED -> PUBLISHED (reinstating is changeProductStatus's concern, not publishProductWithRelease's)", () => {
+    expect(isValidProductStatusTransition("SUSPENDED", "PUBLISHED")).toBe(false);
+    expect(isValidProductStatusTransition("ARCHIVED", "PUBLISHED")).toBe(false);
+  });
+});
+
+describe("isValidProductStatusChangeTransition (MVP-019)", () => {
+  it("allows PUBLISHED <-> SUSPENDED", () => {
+    expect(isValidProductStatusChangeTransition("PUBLISHED", "SUSPENDED")).toBe(true);
+    expect(isValidProductStatusChangeTransition("SUSPENDED", "PUBLISHED")).toBe(true);
+  });
+
+  it("allows PUBLISHED -> ARCHIVED and SUSPENDED -> ARCHIVED", () => {
+    expect(isValidProductStatusChangeTransition("PUBLISHED", "ARCHIVED")).toBe(true);
+    expect(isValidProductStatusChangeTransition("SUSPENDED", "ARCHIVED")).toBe(true);
+  });
+
+  it("rejects DRAFT as a source or destination", () => {
+    for (const to of ALL_STATUSES) {
+      expect(isValidProductStatusChangeTransition("DRAFT", to)).toBe(false);
+    }
+    for (const from of ALL_STATUSES) {
+      expect(isValidProductStatusChangeTransition(from, "DRAFT")).toBe(false);
+    }
+  });
+
+  it("rejects any transition out of ARCHIVED -- it is terminal", () => {
+    for (const to of ALL_STATUSES) {
+      expect(isValidProductStatusChangeTransition("ARCHIVED", to)).toBe(false);
+    }
+  });
+
+  it("rejects no-op self-transitions", () => {
+    expect(isValidProductStatusChangeTransition("PUBLISHED", "PUBLISHED")).toBe(false);
+    expect(isValidProductStatusChangeTransition("SUSPENDED", "SUSPENDED")).toBe(false);
+    expect(isValidProductStatusChangeTransition("ARCHIVED", "ARCHIVED")).toBe(false);
+  });
+});
+
+describe("validFromStatusesForStatusChange", () => {
+  it("returns the exact reverse mapping of ALLOWED_STATUS_CHANGE_TRANSITIONS", () => {
+    expect(validFromStatusesForStatusChange("PUBLISHED").sort()).toEqual(["SUSPENDED"]);
+    expect(validFromStatusesForStatusChange("SUSPENDED").sort()).toEqual(["PUBLISHED"]);
+    expect(validFromStatusesForStatusChange("ARCHIVED").sort()).toEqual(["PUBLISHED", "SUSPENDED"]);
+    expect(validFromStatusesForStatusChange("DRAFT")).toEqual([]);
+  });
+});
+
+describe("isValidProductStatusChangeReason", () => {
+  it("rejects empty or whitespace-only reasons", () => {
+    expect(isValidProductStatusChangeReason("")).toBe(false);
+    expect(isValidProductStatusChangeReason("   ")).toBe(false);
+  });
+
+  it("accepts a normal reason and rejects one over 1000 characters", () => {
+    expect(isValidProductStatusChangeReason("Temporary pause for maintenance.")).toBe(true);
+    expect(isValidProductStatusChangeReason("a".repeat(1001))).toBe(false);
+    expect(isValidProductStatusChangeReason("a".repeat(1000))).toBe(true);
+  });
+});
+
+describe("ProductStatusTransitionNotAllowedError / ProductStatusChangeReasonRequiredError", () => {
+  it("identify their product id and carry distinct names", () => {
+    const transitionError = new ProductStatusTransitionNotAllowedError(
+      "product-1",
+      "DRAFT",
+      "SUSPENDED",
+    );
+    expect(transitionError.productId).toBe("product-1");
+    expect(transitionError.fromStatus).toBe("DRAFT");
+    expect(transitionError.toStatus).toBe("SUSPENDED");
+    expect(transitionError.name).toBe("ProductStatusTransitionNotAllowedError");
+
+    const reasonError = new ProductStatusChangeReasonRequiredError("product-1");
+    expect(reasonError.productId).toBe("product-1");
+    expect(reasonError.name).toBe("ProductStatusChangeReasonRequiredError");
   });
 });
 
