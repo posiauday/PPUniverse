@@ -75,6 +75,11 @@ export interface FixtureSet {
    * blocker corrections" A2) — visible in the admin products list, and
    * exercises the "published release, files immutable" edit-page state. */
   publishedAdminProduct: AdminProductRef;
+  /** MVP-019 (FR-015/NFR-009): a Product published, then suspended, with a
+   * ProductStatusEvent recording the transition — exercises the edit page's
+   * "reinstate or archive" status-control state, and gives the admin
+   * audit-log page a guaranteed, this-worker-owned row to find. */
+  suspendedAdminProduct: AdminProductRef;
   user: { id: string; email: string };
   /** The session the browser signs in with. */
   currentSession: SessionRef;
@@ -226,6 +231,16 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     // Release's own Cascade) ReleaseFile, so by the time FileScan is deleted
     // explicitly below, nothing references it and nothing later blocks the
     // user delete either.
+    // ProductStatusEvent (MVP-019) has a Restrict FK on productId -- same
+    // reason as the ArticlePublishEvent/deletion-request rows above: must be
+    // cleared before the product deleteMany below or the Restrict FK blocks it.
+    if (created.productIds.length > 0) {
+      await attempt(() =>
+        prisma.productStatusEvent.deleteMany({
+          where: { productId: { in: created.productIds } },
+        }),
+      );
+    }
     await attempt(() =>
       prisma.product.deleteMany({
         where: { id: { in: created.productIds }, slug: { startsWith: RESERVED_PREFIX } },
@@ -510,6 +525,35 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       data: { status: "PUBLISHED", publishedAt: now },
     });
 
+    // MVP-019 (FR-015/NFR-009): a second published product, immediately
+    // suspended, with its ProductStatusEvent. Deliberately its own separate
+    // product from publishedAdminProduct above rather than reusing it and
+    // suspending that one -- other fixture states (accessibility states
+    // exercising the immutable-published-release view) depend on
+    // publishedAdminProduct staying PUBLISHED for the life of this worker's
+    // fixture set.
+    const suspendedAdminProductSlug = `${prefix}admin-suspended-product`;
+    assertReserved("product", suspendedAdminProductSlug);
+    const suspendedAdminProduct = await prisma.product.create({
+      data: {
+        slug: suspendedAdminProductSlug,
+        name: `E2E fixture: admin suspended product ${prefix}(not a real listing)`,
+        summary,
+        categoryId: populated.id,
+        status: "SUSPENDED",
+      },
+    });
+    created.productIds.push(suspendedAdminProduct.id);
+    await prisma.productStatusEvent.create({
+      data: {
+        productId: suspendedAdminProduct.id,
+        actorUserId: admin.id,
+        fromStatus: "PUBLISHED",
+        toStatus: "SUSPENDED",
+        reason: "E2E fixture: suspended for accessibility testing.",
+      },
+    });
+
     const makeSession = async (
       createdAt: Date,
       forUserId: string = user.id,
@@ -564,6 +608,11 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         id: publishedAdminProduct.id,
         slug: publishedAdminProduct.slug,
         name: publishedAdminProduct.name,
+      },
+      suspendedAdminProduct: {
+        id: suspendedAdminProduct.id,
+        slug: suspendedAdminProduct.slug,
+        name: suspendedAdminProduct.name,
       },
       user: { id: user.id, email },
       currentSession,
