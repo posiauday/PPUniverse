@@ -7,7 +7,6 @@ import {
   isValidProductStatusTransition,
   isValidProductStatusChangeTransition,
   isValidProductStatusChangeReason,
-  validFromStatusesForStatusChange,
   isValidProductSummary,
   isValidReleaseVersion,
   ProductNotDraftError,
@@ -144,15 +143,6 @@ describe("isValidProductStatusChangeTransition (MVP-019)", () => {
     expect(isValidProductStatusChangeTransition("PUBLISHED", "PUBLISHED")).toBe(false);
     expect(isValidProductStatusChangeTransition("SUSPENDED", "SUSPENDED")).toBe(false);
     expect(isValidProductStatusChangeTransition("ARCHIVED", "ARCHIVED")).toBe(false);
-  });
-});
-
-describe("validFromStatusesForStatusChange", () => {
-  it("returns the exact reverse mapping of ALLOWED_STATUS_CHANGE_TRANSITIONS", () => {
-    expect(validFromStatusesForStatusChange("PUBLISHED").sort()).toEqual(["SUSPENDED"]);
-    expect(validFromStatusesForStatusChange("SUSPENDED").sort()).toEqual(["PUBLISHED"]);
-    expect(validFromStatusesForStatusChange("ARCHIVED").sort()).toEqual(["PUBLISHED", "SUSPENDED"]);
-    expect(validFromStatusesForStatusChange("DRAFT")).toEqual([]);
   });
 });
 

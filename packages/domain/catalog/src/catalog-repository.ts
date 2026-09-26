@@ -153,13 +153,15 @@ export interface CatalogRepository {
    *   - `reason` is non-empty (else ProductStatusChangeReasonRequiredError
    *     -- NFR-009 requires a reason for all four transitions this method
    *     performs).
-   * The status change itself is claimed via an atomic conditional update
-   * (`status: { in: validFromStatusesForStatusChange(toStatus) }` in the
-   * WHERE clause, requiring exactly one affected row) -- the same
-   * concurrency-safe pattern MVP-014 established for Release.publishedAt,
-   * so two concurrent requests targeting different toStatus values for the
-   * same product can never both succeed. A ProductStatusEvent is written
-   * in the same transaction as the claim.
+   * The status change itself is a compare-and-swap: an atomic conditional
+   * update whose WHERE clause requires the exact status just validated
+   * (`status: product.status`) and exactly one affected row -- the same
+   * concurrency-safe family as MVP-014's Release.publishedAt claim. That
+   * exactness guarantees the ProductStatusEvent written in the same
+   * transaction records the status actually replaced, so the audit chain
+   * stays continuous; a request that lost a race fails with
+   * ProductStatusTransitionNotAllowedError (carrying the fresh status) and
+   * may be retried.
    */
   changeProductStatus(
     productId: string,

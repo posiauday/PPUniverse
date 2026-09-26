@@ -2,7 +2,6 @@ import { Prisma, type PrismaClient } from "@ppu/db";
 import {
   isValidProductStatusTransition,
   isValidProductStatusChangeTransition,
-  validFromStatusesForStatusChange,
   isValidProductStatusChangeReason,
   FileScanNotCleanError,
   FileScanNotFoundError,
@@ -548,40 +547,32 @@ export class PrismaCatalogRepository implements CatalogRepository {
       if (!product) {
         throw new ProductNotFoundError(productId);
       }
-      const validFromStatuses = validFromStatusesForStatusChange(toStatus);
       if (!isValidProductStatusChangeTransition(product.status as ProductStatus, toStatus)) {
         throw new ProductStatusTransitionNotAllowedError(productId, product.status, toStatus);
       }
 
-      // Atomic conditional claim (same pattern MVP-014 established for
-      // Release.publishedAt): the WHERE clause's own `status: { in: ... }`
-      // predicate is what proves exclusivity under concurrency, not the
-      // earlier read above -- two concurrent requests targeting different
-      // toStatus values for the same product can never both succeed.
+      // Compare-and-swap on the EXACT status just validated and about to be
+      // recorded as the event's fromStatus. Claiming against every status
+      // that could legally reach `toStatus` (an earlier draft) let a
+      // concurrent transaction succeed from a newer state while still
+      // recording its stale pre-claim read as fromStatus, producing an
+      // audit chain (PUBLISHED->SUSPENDED, PUBLISHED->ARCHIVED) that never
+      // happened. With an exact predicate, count === 1 proves the row was
+      // still in product.status when replaced; a loser retries against
+      // fresh state.
       const claim = await tx.product.updateMany({
-        where: { id: productId, status: { in: validFromStatuses } },
+        where: { id: productId, status: product.status },
         data: { status: toStatus },
       });
       if (claim.count !== 1) {
-        // We already confirmed the transition is valid from the status we
-        // read above; zero rows matched only because a concurrent request
-        // changed the status underneath us between the read and the claim.
         const fresh = await tx.product.findUniqueOrThrow({ where: { id: productId } });
         throw new ProductStatusTransitionNotAllowedError(productId, fresh.status, toStatus);
       }
 
-      const [updatedProduct, statusEvent] = await Promise.all([
-        tx.product.findUniqueOrThrow({ where: { id: productId } }),
-        tx.productStatusEvent.create({
-          data: {
-            productId,
-            actorUserId,
-            fromStatus: product.status,
-            toStatus,
-            reason,
-          },
-        }),
-      ]);
+      const statusEvent = await tx.productStatusEvent.create({
+        data: { productId, actorUserId, fromStatus: product.status, toStatus, reason },
+      });
+      const updatedProduct = await tx.product.findUniqueOrThrow({ where: { id: productId } });
       return { product: updatedProduct, statusEvent };
     });
     return {

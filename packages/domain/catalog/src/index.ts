@@ -35,7 +35,6 @@ export {
   isValidReleaseVersion,
   isValidProductStatusTransition,
   isValidProductStatusChangeTransition,
-  validFromStatusesForStatusChange,
   isValidProductStatusChangeReason,
   isReleaseMutable,
   checkProductPublishReadiness,

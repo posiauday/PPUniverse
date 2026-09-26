@@ -1437,9 +1437,10 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       });
 
       it("two concurrent requests for the same target status: exactly one succeeds", async () => {
-        // Both requests target SUSPENDED -- the genuine mutual-exclusion
-        // case (identical WHERE-clause predicate racing against itself),
-        // mirroring MVP-014's Release.publishedAt concurrency test.
+        // Regression test for the duplicate-request outcome (one fulfilled,
+        // one rejected, one event). It does not force the two calls to
+        // overlap inside the database -- the repeated-race test below is
+        // the one that hunts for genuine interleavings.
         const productId = await createPublishedProduct("race-same-target");
         const [first, second] = await Promise.allSettled([
           repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "First attempt."),
@@ -1454,47 +1455,48 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         expect(await db.productStatusEvent.count({ where: { productId } })).toBe(1);
       });
 
-      it("two concurrent requests for DIFFERENT, sequentially-composable targets: never corrupts state, regardless of which the database serializes first", async () => {
-        // PUBLISHED -> SUSPENDED and PUBLISHED -> ARCHIVED racing is NOT a
-        // mutual-exclusion case like the test above: ARCHIVED's valid-from
-        // set includes SUSPENDED (question 1's own decision, so a suspended
-        // product can still be retired later). Genuinely two outcomes are
-        // both correct here, and which one happens depends on which
-        // transaction's UPDATE the database locks first -- not something
-        // this test controls, so it must not assert a single fixed
-        // ordering (that would be exactly the kind of order-dependent
-        // flaky test this project's own BUG-015 warns against):
-        //   - SUSPENDED's UPDATE wins the lock first: it commits
-        //     PUBLISHED -> SUSPENDED; ARCHIVED's UPDATE then re-evaluates
-        //     against the fresh SUSPENDED row, matches, and ALSO succeeds
-        //     (SUSPENDED -> ARCHIVED). Both fulfill; 2 events.
-        //   - ARCHIVED's UPDATE wins the lock first: it commits
-        //     PUBLISHED -> ARCHIVED directly; SUSPENDED's UPDATE then
-        //     re-evaluates against the fresh ARCHIVED row, which is not in
-        //     its own valid-from set (["PUBLISHED"]), so it correctly
-        //     rejects. Only ARCHIVED fulfills; 1 event.
-        // What must hold either way: the final status is ARCHIVED, no
-        // request throws anything other than the expected domain error, and
-        // the event count matches the fulfilled count exactly (no
-        // event written for a request that didn't actually succeed, and no
-        // successful transition left unaudited).
-        const productId = await createPublishedProduct("race-composable-targets");
-        const [first, second] = await Promise.allSettled([
-          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "First attempt."),
-          repo.changeProductStatus(productId, "ARCHIVED", adminUserId, "Second attempt."),
-        ]);
-        const outcomes = [first, second];
-        const fulfilledCount = outcomes.filter((o) => o.status === "fulfilled").length;
-        expect(fulfilledCount === 1 || fulfilledCount === 2).toBe(true);
-        for (const outcome of outcomes) {
-          if (outcome.status === "rejected") {
-            expect(outcome.reason).toBeInstanceOf(Error);
+      it("racing SUSPENDED against ARCHIVED, repeated: the audit trail is always a continuous chain from PUBLISHED to the final status", async () => {
+        // The compare-and-swap claim means the outcome depends on when each
+        // request reads relative to the other's commit: if both read
+        // PUBLISHED, exactly one wins and the other is rejected; if the
+        // second reads after the first committed, both can succeed
+        // (PUBLISHED -> SUSPENDED -> ARCHIVED). So the final status may be
+        // SUSPENDED or ARCHIVED and the fulfilled count 1 or 2 -- none of
+        // that is asserted as fixed. What must hold in every interleaving
+        // (a false fromStatus, e.g. PUBLISHED -> SUSPENDED then PUBLISHED ->
+        // ARCHIVED, was a real defect in an earlier claim predicate): the
+        // events, followed from PUBLISHED via fromStatus === previous
+        // toStatus, consume every event and end at the product's final
+        // status; and events equal fulfilled requests. Repeated to raise the
+        // odds of hitting a genuinely overlapping read/claim window.
+        for (let i = 0; i < 8; i++) {
+          const productId = await createPublishedProduct(`race-chain-${i}`);
+          const outcomes = await Promise.allSettled([
+            repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "First attempt."),
+            repo.changeProductStatus(productId, "ARCHIVED", adminUserId, "Second attempt."),
+          ]);
+          const fulfilledCount = outcomes.filter((o) => o.status === "fulfilled").length;
+          expect(fulfilledCount === 1 || fulfilledCount === 2).toBe(true);
+          for (const outcome of outcomes) {
+            if (outcome.status === "rejected") expect(outcome.reason).toBeInstanceOf(Error);
           }
-        }
 
-        const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
-        expect(row.status).toBe("ARCHIVED");
-        expect(await db.productStatusEvent.count({ where: { productId } })).toBe(fulfilledCount);
+          const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
+          const events = await db.productStatusEvent.findMany({ where: { productId } });
+          expect(events).toHaveLength(fulfilledCount);
+
+          let current: string = "PUBLISHED";
+          const remaining = [...events];
+          while (remaining.length > 0) {
+            const nextIndex = remaining.findIndex((e) => e.fromStatus === current);
+            expect(
+              nextIndex,
+              `no event continues the chain from ${current}`,
+            ).toBeGreaterThanOrEqual(0);
+            current = remaining.splice(nextIndex, 1)[0]!.toStatus;
+          }
+          expect(current).toBe(row.status);
+        }
       });
 
       it("listRecentProductStatusEvents returns newest first, across products, with product name/slug attached", async () => {

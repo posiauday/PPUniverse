@@ -116,18 +116,6 @@ export function isValidProductStatusChangeTransition(
   return ALLOWED_STATUS_CHANGE_TRANSITIONS[from].includes(to);
 }
 
-/** Every ProductStatus that may transition to `to` under
- * ALLOWED_STATUS_CHANGE_TRANSITIONS -- used to build the atomic conditional
- * update's WHERE clause (`status: { in: validFromStatusesForStatusChange(to) }`),
- * the same atomic-claim pattern MVP-014 established for Release.publishedAt:
- * the WHERE clause's own predicate is what proves exclusivity under
- * concurrency, not an earlier read. */
-export function validFromStatusesForStatusChange(to: ProductStatus): ProductStatus[] {
-  return (Object.keys(ALLOWED_STATUS_CHANGE_TRANSITIONS) as ProductStatus[]).filter((from) =>
-    ALLOWED_STATUS_CHANGE_TRANSITIONS[from].includes(to),
-  );
-}
-
 /** NFR-009 ("destructive admin actions require reason capture"), decided to
  * apply to all four status-change transitions (question 5 above) -- a
  * non-empty, length-capped reason, enforced by application logic against

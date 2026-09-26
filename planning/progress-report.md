@@ -3478,14 +3478,14 @@ so the concurrently in-flight MVP-014 branch/PR was never disturbed.
   `isValidProductStatusTransition` (the initial-publish-only DRAFT ->
   PUBLISHED gate) so a suspended/archived product could never accidentally
   satisfy that gate's "must be DRAFT" precondition once SUSPENDED gained a
-  transition to PUBLISHED. Also: `validFromStatusesForStatusChange`,
-  `isValidProductStatusChangeReason`, two new error classes.
+  transition to PUBLISHED. Also: `isValidProductStatusChangeReason`, two new
+  error classes.
 - `packages/domain/catalog/src/types.ts`, `index.ts`,
   `catalog-repository.ts` (interface) -- new types/exports and the
   `changeProductStatus`/`listRecentProductStatusEvents` contract.
 - `packages/adapters/catalog/src/catalog-repository.ts` -- `changeProductStatus`
-  (atomic conditional update, same pattern MVP-014 established for
-  `Release.publishedAt`) and `listRecentProductStatusEvents`.
+  (compare-and-swap on the exact validated status -- see the review-fix
+  section below) and `listRecentProductStatusEvents`.
 - `apps/web/app/api/admin/products/[id]/status/route.ts` (new) -- one route
   for suspend/archive/reinstate, not three near-identical ones.
 - `apps/web/app/admin/products/[id]/edit/ProductStatusControl.tsx` (new),
@@ -3558,3 +3558,11 @@ accessibility matrix (only a local chromium pass has run so far); tear
 down the local embedded-Postgres instance and confirm no orphaned process
 remains; report per the standard 24-heading format; stop for
 product-owner review.
+
+### MVP-019 — independent review finding fixed before merge (2026-09-26)
+
+An independent review (GitHub Copilot, given a compact packet of the method and both concurrency tests; it could not read the private PR itself) found a real audit-integrity defect, verified here against the code rather than taken on trust. `changeProductStatus` claimed the transition with `status: { in: <every status that can reach toStatus> }` but wrote the event's `fromStatus` from the earlier pre-claim read. If two requests both read PUBLISHED and one moved it to SUSPENDED, the other (targeting ARCHIVED) could then succeed from SUSPENDED while its event still said PUBLISHED -> ARCHIVED: correct final status, false audit history, in the story whose purpose is audit. The earlier test comment even described this interleaving as "correct" and asserted only event count -- the review's point that the test rationalized the defect was right.
+
+Fixed: the claim is now a compare-and-swap on the exact validated status (`status: product.status`), so `count === 1` proves the recorded `fromStatus` is what was replaced; a loser fails with the existing state-transition error carrying the fresh status and may retry. The now-dead `validFromStatusesForStatusChange` was removed (function, export, test). The two events are created sequentially before the final product read (review M2). Test B now races SUSPENDED against ARCHIVED eight times and asserts, for every interleaving, that events form a continuous chain from PUBLISHED consuming every event and ending at the product's final status, with event count equal to fulfilled count (final status may legitimately be SUSPENDED or ARCHIVED under exact CAS). Verified the tests bite: with the broad predicate temporarily restored, the concurrency tests fail on every run; with the fix, 6 consecutive runs of the 80-test integration suite pass.
+
+Not adopted, with reasons: the review's M1 asks for a deterministic barrier proving the two calls overlap inside the database; the repository method owns its transaction and exposes no hook, and adding a test-only seam to production code for this was judged disproportionate -- the repeated race raises overlap odds and the CAS predicate itself is the guarantee. Test A is documented as a duplicate-request regression test, not proof of overlap. Review points on route authorization (actorUserId derived from the server session, toStatus and reason validated server-side, 409 INVALID_STATE mapping) were checked against `route.ts` and already hold.
