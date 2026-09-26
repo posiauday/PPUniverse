@@ -42,6 +42,12 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
     // Q36), so a prefix match replaces what used to be a hand-maintained
     // exact slug list — every test below only ever needs to add its own
     // "catalog-repo-..." slug, never touch this cleanup block.
+    // ProductStatusEvent (MVP-019) has a Restrict FK on productId -- must be
+    // cleared before the product deleteMany below, same lesson as
+    // ReleasePublishEvent's Restrict FK in MVP-014.
+    await db.productStatusEvent.deleteMany({
+      where: { product: { slug: { startsWith: "catalog-repo-" } } },
+    });
     await db.product.deleteMany({ where: { slug: { startsWith: "catalog-repo-" } } });
     await db.licenseDefinition.deleteMany({ where: { slug: "catalog-repo-test-tier" } });
     // FileScan rows the admin-authoring-surface tests below create for
@@ -1292,6 +1298,215 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         const releases = await repo.listReleasesForAdmin(created.id);
         expect(releases.map((r) => r.version)).toEqual(["2.0.0", "1.0.0"]);
         expect(releases[0]?.files).toEqual([]);
+      });
+    });
+
+    describe("changeProductStatus and listRecentProductStatusEvents (MVP-019)", () => {
+      /** Builds and publishes a fully-ready product, returning its id --
+       * the starting point every suspend/archive/reinstate test needs. */
+      async function createPublishedProduct(slugSuffix: string) {
+        const created = await repo.createProductDraft({
+          name: "Status Change Target",
+          slug: `catalog-repo-status-${slugSuffix}`,
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        await repo.upsertSupportPolicy(created.id, { status: "UNSUPPORTED", channel: null });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_APPS",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        const fileScan = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-status-file-${release.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 1024,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(created.id, release.id, fileScan.id);
+        await repo.publishProductWithRelease(created.id, release.id);
+        return created.id;
+      }
+
+      it("suspends a PUBLISHED product, writing a ProductStatusEvent with the reason", async () => {
+        const productId = await createPublishedProduct("suspend");
+        const result = await repo.changeProductStatus(
+          productId,
+          "SUSPENDED",
+          adminUserId,
+          "Temporary pause for maintenance.",
+        );
+        expect(result.product.status).toBe("SUSPENDED");
+        expect(result.statusEvent.fromStatus).toBe("PUBLISHED");
+        expect(result.statusEvent.toStatus).toBe("SUSPENDED");
+        expect(result.statusEvent.reason).toBe("Temporary pause for maintenance.");
+
+        const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
+        expect(row.status).toBe("SUSPENDED");
+      });
+
+      it("reinstates a SUSPENDED product back to PUBLISHED", async () => {
+        const productId = await createPublishedProduct("reinstate");
+        await repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "Pausing sales.");
+        const result = await repo.changeProductStatus(
+          productId,
+          "PUBLISHED",
+          adminUserId,
+          "Resuming sales.",
+        );
+        expect(result.product.status).toBe("PUBLISHED");
+        expect(result.statusEvent.fromStatus).toBe("SUSPENDED");
+        expect(result.statusEvent.toStatus).toBe("PUBLISHED");
+      });
+
+      it("archives a PUBLISHED product directly, and rejects any further transition -- ARCHIVED is terminal", async () => {
+        const productId = await createPublishedProduct("archive-terminal");
+        await repo.changeProductStatus(
+          productId,
+          "ARCHIVED",
+          adminUserId,
+          "Retiring this product.",
+        );
+
+        const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
+        expect(row.status).toBe("ARCHIVED");
+
+        await expect(
+          repo.changeProductStatus(productId, "PUBLISHED", adminUserId, "Trying to reinstate."),
+        ).rejects.toThrow();
+        await expect(
+          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "Trying to suspend."),
+        ).rejects.toThrow();
+      });
+
+      it("archives a SUSPENDED product", async () => {
+        const productId = await createPublishedProduct("suspend-then-archive");
+        await repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "Pausing.");
+        const result = await repo.changeProductStatus(
+          productId,
+          "ARCHIVED",
+          adminUserId,
+          "Retiring after pause.",
+        );
+        expect(result.product.status).toBe("ARCHIVED");
+        expect(result.statusEvent.fromStatus).toBe("SUSPENDED");
+      });
+
+      it("rejects suspending or archiving a DRAFT product", async () => {
+        const created = await repo.createProductDraft({
+          name: "Draft Status Target",
+          slug: "catalog-repo-status-draft-reject",
+          summary: "Summary.",
+          categoryId,
+        });
+        await expect(
+          repo.changeProductStatus(created.id, "SUSPENDED", adminUserId, "Reason."),
+        ).rejects.toThrow();
+        await expect(
+          repo.changeProductStatus(created.id, "ARCHIVED", adminUserId, "Reason."),
+        ).rejects.toThrow();
+      });
+
+      it("rejects an empty or blank reason without writing any event", async () => {
+        const productId = await createPublishedProduct("blank-reason");
+        await expect(
+          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, ""),
+        ).rejects.toThrow();
+        await expect(
+          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "   "),
+        ).rejects.toThrow();
+        expect(await db.productStatusEvent.count({ where: { productId } })).toBe(0);
+        const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
+        expect(row.status).toBe("PUBLISHED");
+      });
+
+      it("rejects an unknown product id", async () => {
+        await expect(
+          repo.changeProductStatus("does-not-exist", "SUSPENDED", adminUserId, "Reason."),
+        ).rejects.toThrow();
+      });
+
+      it("two concurrent requests for the same target status: exactly one succeeds", async () => {
+        // Both requests target SUSPENDED -- the genuine mutual-exclusion
+        // case (identical WHERE-clause predicate racing against itself),
+        // mirroring MVP-014's Release.publishedAt concurrency test.
+        const productId = await createPublishedProduct("race-same-target");
+        const [first, second] = await Promise.allSettled([
+          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "First attempt."),
+          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "Second attempt."),
+        ]);
+        const outcomes = [first, second];
+        expect(outcomes.filter((o) => o.status === "fulfilled")).toHaveLength(1);
+        expect(outcomes.filter((o) => o.status === "rejected")).toHaveLength(1);
+
+        const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
+        expect(row.status).toBe("SUSPENDED");
+        expect(await db.productStatusEvent.count({ where: { productId } })).toBe(1);
+      });
+
+      it("two concurrent requests for DIFFERENT, sequentially-composable targets: never corrupts state, regardless of which the database serializes first", async () => {
+        // PUBLISHED -> SUSPENDED and PUBLISHED -> ARCHIVED racing is NOT a
+        // mutual-exclusion case like the test above: ARCHIVED's valid-from
+        // set includes SUSPENDED (question 1's own decision, so a suspended
+        // product can still be retired later). Genuinely two outcomes are
+        // both correct here, and which one happens depends on which
+        // transaction's UPDATE the database locks first -- not something
+        // this test controls, so it must not assert a single fixed
+        // ordering (that would be exactly the kind of order-dependent
+        // flaky test this project's own BUG-015 warns against):
+        //   - SUSPENDED's UPDATE wins the lock first: it commits
+        //     PUBLISHED -> SUSPENDED; ARCHIVED's UPDATE then re-evaluates
+        //     against the fresh SUSPENDED row, matches, and ALSO succeeds
+        //     (SUSPENDED -> ARCHIVED). Both fulfill; 2 events.
+        //   - ARCHIVED's UPDATE wins the lock first: it commits
+        //     PUBLISHED -> ARCHIVED directly; SUSPENDED's UPDATE then
+        //     re-evaluates against the fresh ARCHIVED row, which is not in
+        //     its own valid-from set (["PUBLISHED"]), so it correctly
+        //     rejects. Only ARCHIVED fulfills; 1 event.
+        // What must hold either way: the final status is ARCHIVED, no
+        // request throws anything other than the expected domain error, and
+        // the event count matches the fulfilled count exactly (no
+        // event written for a request that didn't actually succeed, and no
+        // successful transition left unaudited).
+        const productId = await createPublishedProduct("race-composable-targets");
+        const [first, second] = await Promise.allSettled([
+          repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "First attempt."),
+          repo.changeProductStatus(productId, "ARCHIVED", adminUserId, "Second attempt."),
+        ]);
+        const outcomes = [first, second];
+        const fulfilledCount = outcomes.filter((o) => o.status === "fulfilled").length;
+        expect(fulfilledCount === 1 || fulfilledCount === 2).toBe(true);
+        for (const outcome of outcomes) {
+          if (outcome.status === "rejected") {
+            expect(outcome.reason).toBeInstanceOf(Error);
+          }
+        }
+
+        const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
+        expect(row.status).toBe("ARCHIVED");
+        expect(await db.productStatusEvent.count({ where: { productId } })).toBe(fulfilledCount);
+      });
+
+      it("listRecentProductStatusEvents returns newest first, across products, with product name/slug attached", async () => {
+        const productId = await createPublishedProduct("recent-list");
+        await repo.changeProductStatus(productId, "SUSPENDED", adminUserId, "For listing test.");
+
+        const events = await repo.listRecentProductStatusEvents(500);
+        const match = events.find((e) => e.productId === productId);
+        expect(match).toBeDefined();
+        expect(match?.toStatus).toBe("SUSPENDED");
+        expect(match?.productSlug).toBe(`catalog-repo-status-recent-list`);
+        expect(match?.productName).toBe("Status Change Target");
       });
     });
   });

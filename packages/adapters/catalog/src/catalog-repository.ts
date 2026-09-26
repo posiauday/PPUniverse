@@ -1,11 +1,16 @@
 import { Prisma, type PrismaClient } from "@ppu/db";
 import {
   isValidProductStatusTransition,
+  isValidProductStatusChangeTransition,
+  validFromStatusesForStatusChange,
+  isValidProductStatusChangeReason,
   FileScanNotCleanError,
   FileScanNotFoundError,
   ProductNotDraftError,
   ProductNotFoundError,
   ProductNotReadyError,
+  ProductStatusChangeReasonRequiredError,
+  ProductStatusTransitionNotAllowedError,
   ReleaseAlreadyPublishedError,
   ReleaseNotFoundError,
   ReleaseNotFoundForProductError,
@@ -25,6 +30,8 @@ import {
   type ProductPublishSnapshot,
   type ProductRecord,
   type ProductStatus,
+  type ProductStatusChangeResult,
+  type ProductStatusEventRecord,
   type ProductUpdateInput,
   type ProductWithCategory,
   type ReleaseRecord,
@@ -526,6 +533,77 @@ export class PrismaCatalogRepository implements CatalogRepository {
       })),
     }));
   }
+
+  async changeProductStatus(
+    productId: string,
+    toStatus: ProductStatus,
+    actorUserId: string,
+    reason: string,
+  ): Promise<ProductStatusChangeResult> {
+    if (!isValidProductStatusChangeReason(reason)) {
+      throw new ProductStatusChangeReasonRequiredError(productId);
+    }
+    const result = await this.db.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id: productId } });
+      if (!product) {
+        throw new ProductNotFoundError(productId);
+      }
+      const validFromStatuses = validFromStatusesForStatusChange(toStatus);
+      if (!isValidProductStatusChangeTransition(product.status as ProductStatus, toStatus)) {
+        throw new ProductStatusTransitionNotAllowedError(productId, product.status, toStatus);
+      }
+
+      // Atomic conditional claim (same pattern MVP-014 established for
+      // Release.publishedAt): the WHERE clause's own `status: { in: ... }`
+      // predicate is what proves exclusivity under concurrency, not the
+      // earlier read above -- two concurrent requests targeting different
+      // toStatus values for the same product can never both succeed.
+      const claim = await tx.product.updateMany({
+        where: { id: productId, status: { in: validFromStatuses } },
+        data: { status: toStatus },
+      });
+      if (claim.count !== 1) {
+        // We already confirmed the transition is valid from the status we
+        // read above; zero rows matched only because a concurrent request
+        // changed the status underneath us between the read and the claim.
+        const fresh = await tx.product.findUniqueOrThrow({ where: { id: productId } });
+        throw new ProductStatusTransitionNotAllowedError(productId, fresh.status, toStatus);
+      }
+
+      const [updatedProduct, statusEvent] = await Promise.all([
+        tx.product.findUniqueOrThrow({ where: { id: productId } }),
+        tx.productStatusEvent.create({
+          data: {
+            productId,
+            actorUserId,
+            fromStatus: product.status,
+            toStatus,
+            reason,
+          },
+        }),
+      ]);
+      return { product: updatedProduct, statusEvent };
+    });
+    return {
+      product: toProductRecord(result.product),
+      statusEvent: toProductStatusEventRecord(result.statusEvent),
+    };
+  }
+
+  async listRecentProductStatusEvents(
+    limit: number,
+  ): Promise<Array<ProductStatusEventRecord & { productSlug: string; productName: string }>> {
+    const rows = await this.db.productStatusEvent.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      include: { product: { select: { slug: true, name: true } } },
+    });
+    return rows.map((row) => ({
+      ...toProductStatusEventRecord(row),
+      productSlug: row.product.slug,
+      productName: row.product.name,
+    }));
+  }
 }
 
 interface RawSearchRow {
@@ -651,5 +729,25 @@ function toProductRecord(row: {
     summary: row.summary,
     status: row.status as ProductStatus,
     categoryId: row.categoryId,
+  };
+}
+
+function toProductStatusEventRecord(row: {
+  id: string;
+  productId: string;
+  actorUserId: string;
+  fromStatus: string;
+  toStatus: string;
+  reason: string | null;
+  createdAt: Date;
+}): ProductStatusEventRecord {
+  return {
+    id: row.id,
+    productId: row.productId,
+    actorUserId: row.actorUserId,
+    fromStatus: row.fromStatus as ProductStatus,
+    toStatus: row.toStatus as ProductStatus,
+    reason: row.reason,
+    createdAt: row.createdAt,
   };
 }
