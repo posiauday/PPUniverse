@@ -5,6 +5,7 @@ import {
   FileScanNotFoundError,
   ProductNotDraftError,
   ProductNotFoundError,
+  ProductNotPublishedError,
   ProductNotReadyError,
   ReleaseAlreadyPublishedError,
   ReleaseNotFoundError,
@@ -315,6 +316,7 @@ export class PrismaCatalogRepository implements CatalogRepository {
   async publishProductWithRelease(
     productId: string,
     releaseId: string,
+    actorUserId: string,
   ): Promise<ProductPublishResult> {
     const publishedAt = new Date();
     const result = await this.db.$transaction(async (tx) => {
@@ -326,17 +328,45 @@ export class PrismaCatalogRepository implements CatalogRepository {
         throw new ProductNotDraftError(productId, product.status);
       }
 
-      const release = await tx.release.findUnique({
-        where: { id: releaseId },
-        include: { files: { include: { fileScan: { select: { status: true } } } } },
-      });
-      if (!release || release.productId !== productId) {
+      const existingRelease = await tx.release.findUnique({ where: { id: releaseId } });
+      if (!existingRelease || existingRelease.productId !== productId) {
         throw new ReleaseNotFoundForProductError(releaseId, productId);
       }
-      if (release.publishedAt !== null) {
+
+      // Atomic conditional update (MVP-014, "MVP-014 implementation
+      // authorization" section 3): the WHERE clause's own `publishedAt:
+      // null` predicate is what proves exclusivity, not the earlier read
+      // above -- a plain findUnique-then-update is not sufficient proof
+      // under concurrency, since two concurrent transactions could both
+      // observe publishedAt: null before either commits. Postgres
+      // serializes concurrent writers to the same row, so at most one
+      // concurrent updateMany can ever match this predicate for a given
+      // release id; a losing concurrent attempt affects zero rows.
+      const productClaim = await tx.product.updateMany({
+        where: { id: productId, status: "DRAFT" },
+        data: { status: "PUBLISHED", publishedAt },
+      });
+      const releaseClaim = await tx.release.updateMany({
+        where: { id: releaseId, productId, publishedAt: null },
+        data: { publishedAt },
+      });
+      if (productClaim.count !== 1 || releaseClaim.count !== 1) {
+        // Either lost the race or the precondition changed underneath us;
+        // roll back (throwing inside $transaction rolls back both
+        // conditional updates above, even the one that did succeed).
+        if (productClaim.count !== 1) {
+          throw new ProductNotDraftError(productId, product.status);
+        }
         throw new ReleaseAlreadyPublishedError(releaseId);
       }
-      const hasCleanFile = release.files.some((file) => file.fileScan.status === "CLEAN");
+
+      // We now hold the exclusive right to publish. Re-verify readiness
+      // fresh -- a failure here rolls back both conditional updates above.
+      const releaseFiles = await tx.releaseFile.findMany({
+        where: { releaseId },
+        include: { fileScan: { select: { status: true } } },
+      });
+      const hasCleanFile = releaseFiles.some((file) => file.fileScan.status === "CLEAN");
       if (!hasCleanFile) {
         throw new ReleaseNotReadyError(releaseId);
       }
@@ -355,10 +385,127 @@ export class PrismaCatalogRepository implements CatalogRepository {
       }
 
       const [updatedProduct, updatedRelease] = await Promise.all([
-        tx.product.update({ where: { id: productId }, data: { status: "PUBLISHED", publishedAt } }),
-        tx.release.update({ where: { id: releaseId }, data: { publishedAt } }),
+        tx.product.findUniqueOrThrow({ where: { id: productId } }),
+        tx.release.findUniqueOrThrow({ where: { id: releaseId } }),
+        tx.releasePublishEvent.create({
+          data: { releaseId, productId, actorUserId, action: "PUBLISHED" },
+        }),
       ]);
       return { product: updatedProduct, release: updatedRelease };
+    });
+    return {
+      product: toProductRecord(result.product),
+      release: toReleaseRecord(result.release),
+    };
+  }
+
+  /**
+   * Subsequent release publication (MVP-014, FR-011; direct product-owner
+   * decision, "MVP-014 implementation authorization" sections 3-4). The
+   * exclusivity invariant -- a Release transitions unpublished -> published
+   * at most once -- is enforced by an atomic, database-backed conditional
+   * update (`updateMany` with `publishedAt: null` in its own WHERE clause),
+   * never by a plain `findUnique` read followed by a separate `update`: a
+   * read-then-write is not sufficient proof of exclusivity under
+   * concurrency, because two concurrent transactions can both read
+   * `publishedAt: null` before either commits. The conditional update's own
+   * WHERE clause is evaluated by Postgres against the row's current
+   * committed state at statement-execution time, and Postgres serializes
+   * concurrent writers to the same row -- so at most one concurrent
+   * `updateMany` can ever match `publishedAt: null` for a given release id;
+   * a second, concurrent attempt is guaranteed to affect zero rows once the
+   * first commits.
+   *
+   * Ordering matters: the conditional update runs *before* the CLEAN-file
+   * and Product-readiness re-checks, so this transaction "claims" the
+   * publish right atomically first, then verifies readiness -- if readiness
+   * fails after the claim, throwing rolls back the *entire* transaction,
+   * including the tentative `publishedAt` write, so a not-ready release is
+   * never left published. This also closes the race where a concurrent
+   * `detachReleaseFile` call removes the release's last CLEAN file between
+   * an earlier read and this transaction's commit: the CLEAN-file check
+   * below re-reads fresh, inside this same transaction, after the
+   * conditional update, under the same read-committed isolation
+   * `publishProductWithRelease` already relies on.
+   */
+  async publishSubsequentRelease(
+    productId: string,
+    releaseId: string,
+    actorUserId: string,
+  ): Promise<ProductPublishResult> {
+    const publishedAt = new Date();
+    const result = await this.db.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id: productId } });
+      if (!product) {
+        throw new ProductNotFoundError(productId);
+      }
+      if (product.status !== "PUBLISHED") {
+        throw new ProductNotPublishedError(productId, product.status);
+      }
+
+      // Confirm the release exists and belongs to this product before even
+      // attempting the conditional update, so a wrong/foreign release id
+      // gets ReleaseNotFoundForProductError rather than being folded into
+      // the generic "zero rows matched" case below.
+      const existingRelease = await tx.release.findUnique({ where: { id: releaseId } });
+      if (!existingRelease || existingRelease.productId !== productId) {
+        throw new ReleaseNotFoundForProductError(releaseId, productId);
+      }
+
+      // The atomic claim: matches only if this release is, right now,
+      // unpublished. Exactly one concurrent transaction can ever succeed
+      // here for a given release id.
+      const claim = await tx.release.updateMany({
+        where: { id: releaseId, productId, publishedAt: null },
+        data: { publishedAt },
+      });
+      if (claim.count !== 1) {
+        // We already confirmed the release exists and belongs to this
+        // product above, and productId/id can't have changed underneath us
+        // (no route mutates either) -- so zero rows matched only because
+        // publishedAt was no longer null. A concurrent publisher won.
+        throw new ReleaseAlreadyPublishedError(releaseId);
+      }
+
+      // We now hold the exclusive right to publish this release. Re-verify
+      // readiness fresh -- if this fails, the throw below rolls back the
+      // conditional update above too, so the release is never left
+      // published in a not-ready state.
+      const releaseFiles = await tx.releaseFile.findMany({
+        where: { releaseId },
+        include: { fileScan: { select: { status: true } } },
+      });
+      const hasCleanFile = releaseFiles.some((file) => file.fileScan.status === "CLEAN");
+      if (!hasCleanFile) {
+        throw new ReleaseNotReadyError(releaseId);
+      }
+
+      const [licenseCount, supportPolicy, compatibilityCount] = await Promise.all([
+        tx.productLicense.count({ where: { productId } }),
+        tx.supportPolicy.findUnique({ where: { productId } }),
+        tx.compatibilityRecord.count({ where: { productId } }),
+      ]);
+      const missingFields: ProductPublishMissingField[] = [];
+      if (licenseCount < 1) missingFields.push("license");
+      if (!supportPolicy) missingFields.push("supportPolicy");
+      if (compatibilityCount < 1) missingFields.push("compatibility");
+      if (missingFields.length > 0) {
+        throw new ProductNotReadyError(missingFields);
+      }
+
+      // Product.publishedAt is deliberately NOT touched -- it represents
+      // initial product publication only (direct product-owner decision,
+      // "MVP-014 implementation authorization" section 6). The release row
+      // was already written by the conditional update above; re-read it
+      // fresh to return, alongside appending the audit event in the same
+      // transaction.
+      const [updatedRelease] = await Promise.all([
+        tx.release.findUniqueOrThrow({ where: { id: releaseId } }),
+        tx.releasePublishEvent.create({
+          data: { releaseId, productId, actorUserId, action: "PUBLISHED" },
+        }),
+      ]);
+      return { product, release: updatedRelease };
     });
     return {
       product: toProductRecord(result.product),

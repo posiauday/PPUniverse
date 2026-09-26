@@ -72,7 +72,13 @@ model ProductLicense {
 
 /// Minimal on purpose: version is release-scoped (FR-011: corrections
 /// create another version). `publishedAt` null means not yet published.
-/// Immutability enforcement, files and changelog are MVP-012/014's scope.
+/// Immutability enforcement is MVP-012 (initial publish) and MVP-014
+/// (subsequent publish); once non-null, set only by
+/// CatalogRepository.publishProductWithRelease/publishSubsequentRelease, via
+/// an atomic conditional update, never cleared or changed afterward.
+/// ChangelogEntry does not exist — direct product-owner decision, "MVP-014
+/// implementation authorization" section 2.D: no story adds it; Release has
+/// no notes/description field, so none is required at publish time either.
 model Release {
   id          String    @id @default(cuid())
   productId   String
@@ -81,12 +87,46 @@ model Release {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  product Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  files   ReleaseFile[]
+  product       Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  files         ReleaseFile[]
+  publishEvents ReleasePublishEvent[]
 
   @@unique([productId, version])
   @@index([productId, publishedAt])
   @@map("releases")
+}
+
+/// MVP-014's only action is `action = "PUBLISHED"` (direct product-owner
+/// decision, "MVP-014 implementation authorization" section 2.B) —
+/// SUPERSEDED/WITHDRAWN/ROLLED_BACK/SUSPENDED/ARCHIVED/DELETED are
+/// explicitly not approved and must not be added without a separate
+/// decision. Mirrors ArticlePublishEvent exactly (content.prisma): a bare,
+/// append-only action log, Restrict FKs on both the release and the actor so
+/// this audit trail can never be cascaded away by a release or user delete.
+/// `productId` is denormalized (matches FileScan.uploadedByUserId's existing
+/// pattern) so a query never needs to join through Release to filter by
+/// product. Written only inside the same transaction that sets
+/// Release.publishedAt — never on its own, never if that transaction rolls
+/// back.
+enum ReleasePublishAction {
+  PUBLISHED
+}
+
+model ReleasePublishEvent {
+  id          String               @id @default(cuid())
+  releaseId   String
+  productId   String
+  actorUserId String
+  action      ReleasePublishAction
+  createdAt   DateTime             @default(now())
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([releaseId, createdAt])
+  @@index([productId, createdAt])
+  @@map("release_publish_events")
 }
 
 /// One declaration per product (docs/09-marketplace-operations.md "Support

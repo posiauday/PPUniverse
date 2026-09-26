@@ -1176,3 +1176,45 @@ Creator applications, creator public profiles, seller onboarding, seller roles, 
 ### Unchanged (restated)
 
 No product code, schema, UI, route, or API changed. No test changed. No CI change. No enum value changed or removed. No role created. Questions 3 and 7 are not resolved. MVP-007 is not started. No security or accessibility gate is weakened. No historical decision record is erased or rewritten.
+
+## 2026-09-25 — MVP-014 immutable published releases: implementation authorization and decisions
+
+Direct product-owner instruction ("PRODUCT-OWNER DECISION AND IMPLEMENTATION AUTHORIZATION — MVP-014 — IMMUTABLE PUBLISHED RELEASES"), following the read-only pre-work analysis this session produced on request (`planning/prework/MVP-014-prework-analysis.md`, 22-section classification of 19 candidate scope items). Implemented on `feature/mvp-014-immutable-releases-prework`. **Not merged under this authorization** — see the story's own status in `planning/mvp-backlog.csv` (QA, not Done) for the merge gate.
+
+### 1. Scope boundary: MVP-019 owns Product suspend/archive, not MVP-014
+
+**Confirmed by direct instruction:** `docs/09-marketplace-operations.md`'s four-state Product lifecycle (draft, published, suspended, archived) is owned by MVP-019. MVP-014 touches only the release-level immutability axis — a published `Release` can never be corrected or replaced — and does not add `SUSPENDED`/`ARCHIVED` to `ProductStatus` (confirmed still `DRAFT | PUBLISHED` only) or otherwise change `Product.status` semantics. A `Product` stays editable and re-publishable (further draft releases) for its whole life; only a published `Release` freezes.
+
+### 2. Minimal `ReleasePublishEvent`: `action = "PUBLISHED"` only
+
+Approved and built: a `ReleasePublishEvent` model (`packages/db/prisma/schema/evidence.prisma`), structurally identical to the existing `ArticlePublishEvent` precedent — `id`, `releaseId` (FK `Release`, `Restrict`), `productId` (FK `Product`, `Restrict`, denormalized for query convenience), `actorUserId` (FK `User`, `Restrict`), `action` (enum, **only `PUBLISHED` is a member — no other action value is approved**), `createdAt`. `ENABLE ROW LEVEL SECURITY` with zero policies, in the same migration that creates the table (not a later fix — MVP-012's own review found `release_files` missing this once; not repeated here). One event is written per release publication, on **both** the product's first release (`publishProductWithRelease`) and any subsequent release (`publishSubsequentRelease`), so the audit trail has no gap at a product's very first publish — a deliberate extension beyond a literal "subsequent releases only" reading, justified because auditing only later publishes would leave every product's inaugural release unaudited, an inconsistent and confusing gap for an audit trail whose entire purpose is completeness. `ProductPublishEvent` (named in the instruction's own required-reading list) does not exist anywhere in the codebase and was not built — only `ReleasePublishEvent`.
+
+### 3. Concurrency: atomic conditional update required, a plain read-then-write is not sufficient
+
+**Technical correction, binding on this and future release/entitlement-state-transition work:** a Prisma `findUnique`-then-`update` inside a `$transaction` does **not** by itself prove exclusivity under concurrency — Postgres's default `READ COMMITTED` isolation lets two concurrent transactions both read `publishedAt: null` before either writes. The invariant ("a Release transitions unpublished → published at most once, `publishedAt` never changes after") is enforced instead by an **atomic, database-backed conditional update**: `tx.release.updateMany({ where: { id, productId, publishedAt: null }, data: { publishedAt } })`, checking `.count !== 1` — Postgres's row-level locking on the `UPDATE` statement itself (not the earlier `SELECT`) is what guarantees exactly one concurrent caller wins. The readiness checks (CLEAN file, product-level license/support/compatibility fields) are re-verified **after** the claim, inside the same transaction, so a losing race or a stale readiness check rolls back the entire transaction — including the tentative claim — rather than leaving a not-ready release published. Proven against a real database, not just asserted: a genuine `Promise.allSettled`-based concurrency test (two simultaneous publish attempts on the same release) confirms exactly one fulfilled, one rejected, exactly one database state transition, and exactly one audit event.
+
+**Extended, as a self-identified safe refactoring, to the existing `publishProductWithRelease`** (merged in MVP-012, PR #23): it had the identical latent read-then-write concurrency gap. Fixed with the same `updateMany`-gated pattern on both `Product` (`status: "DRAFT"` in the `WHERE`) and `Release` (`publishedAt: null` in the `WHERE`), and extended to write the same `ReleasePublishEvent` audit record (see section 2). This is invisible to any correctly-behaving single caller and only hardens the previously-unsafe concurrent-misuse case — no existing test's expected behavior changed, confirmed by the full existing `publishProductWithRelease` test suite passing unchanged plus its own new atomicity assertion.
+
+### 4. No compatibility/licence snapshots; `Entitlement` unchanged; no `ChangelogEntry`
+
+**Explicitly out of scope, confirmed by direct instruction:** MVP-014 does not snapshot `ProductLicense`, `SupportPolicy`, or `CompatibilityEntry` at the moment a release is published — those stay product-scoped and mutable exactly as MVP-005/MVP-012 built them. This is a recorded, known gap, not an oversight: see [TD-021](../planning/tech-debt/TD-021.md). The product-scoped `Entitlement` model (MVP-010) is unchanged — entitlements remain per-product, not per-release. `ChangelogEntry` remains an unbuilt, out-of-scope placeholder; `Release` has no `notes` field in the current schema, so the instruction's conditional "use the existing `Release.notes` field" requirement is correctly inapplicable (the field does not exist) — no new field was added, avoiding scope creep into `ChangelogEntry`-adjacent territory.
+
+### 5. No `currentReleaseId` pointer; existing query shape retained; `Product.publishedAt` never changes on subsequent-release publish
+
+**Explicitly retained, confirmed by direct instruction:** the "current" published release for a product with more than one is still derived by query — `publishedAt DESC, createdAt DESC, take 1` — unchanged from MVP-012. No `currentReleaseId` pointer or sequence field was added to `Product`. **`Product.publishedAt` is set exactly once, by the product's own first release/publish (`publishProductWithRelease`), and is never touched by `publishSubsequentRelease`** — confirmed by the implementation (the subsequent-release transaction's final read of `Product` is a plain `findUnique`, not re-derived from any write, since nothing in that transaction writes to `Product`).
+
+### 6. Two separate methods, deliberately not unified
+
+`publishProductWithRelease` (requires `Product.status === "DRAFT"`) and `publishSubsequentRelease` (requires `Product.status === "PUBLISHED"`) are kept as two distinct repository methods with opposite preconditions, per direct instruction not to add a blanket rule or share logic in a way that would weaken either one's guard.
+
+### 7. New route, extends existing UI
+
+`POST /api/admin/products/{productId}/releases/{releaseId}/publish` (new route, mirrors the existing publish route's authorization/error-mapping structure exactly). The existing `ReleasesEditor` admin component is extended (a `PublishReleaseControl` shown for a `DRAFT` release when the product is already `PUBLISHED`) — no new admin shell was built.
+
+### 8. Accessibility: only actually-implemented states added
+
+Two new Playwright a11y states were added to the existing page-state matrix (`packages/e2e/src/pages.ts`): `admin-products-edit-published-draft-ready` (a published product with a ready-to-publish draft release) and `admin-products-edit-published-draft-not-ready` (a published product with a not-yet-ready draft release), each at 320/375/768/1280px. No state was added for functionality not actually built.
+
+### Unchanged (restated)
+
+No `Product.status` enum value added or removed. No `EDITOR`/`PUBLISHER`/`CREATOR` role created. No pricing, checkout, or commerce code touched. No existing route's authorization pattern changed. `main` still requires a promoted release, separate from `develop`'s ordinary PR flow. Merge remains a separate, later authorization — never implied by this entry.

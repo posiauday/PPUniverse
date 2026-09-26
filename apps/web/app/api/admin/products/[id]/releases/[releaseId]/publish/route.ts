@@ -1,7 +1,7 @@
 import { prisma } from "@ppu/db";
 import {
-  ProductNotDraftError,
   ProductNotFoundError,
+  ProductNotPublishedError,
   ProductNotReadyError,
   ReleaseAlreadyPublishedError,
   ReleaseNotFoundForProductError,
@@ -12,9 +12,9 @@ import { createErrorEnvelope } from "@ppu/shared";
 import { getCorrelationId, logger } from "@ppu/telemetry";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { authOptions } from "../../../../../../lib/auth";
-import { catalogRepository } from "../../../../../../lib/catalog";
-import { withObservability } from "../../../../../../lib/observability";
+import { authOptions } from "../../../../../../../../lib/auth";
+import { catalogRepository } from "../../../../../../../../lib/catalog";
+import { withObservability } from "../../../../../../../../lib/observability";
 
 /** Same deny-by-default pattern as api/admin/products/route.ts. */
 async function requireAdmin(): Promise<{ userId: string } | null> {
@@ -34,10 +34,8 @@ function deny(correlationId: string): NextResponse {
   });
 }
 
-/** One friendly sentence per missing mandatory field (docs/open-questions.md
- * item 61's recorded field set). Carried as `fieldErrors` on the 409
- * response -- the same shape ordinary validation errors use elsewhere in
- * this codebase, so the admin UI can render it with the same code path. */
+/** Mirrors .../[id]/publish/route.ts's MISSING_FIELD_MESSAGES exactly --
+ * the same mandatory-field vocabulary applies to a subsequent release. */
 const MISSING_FIELD_MESSAGES: Record<ProductPublishMissingField, string> = {
   license: "At least one license must be assigned before publishing.",
   supportPolicy: "A support policy must be set before publishing.",
@@ -45,10 +43,6 @@ const MISSING_FIELD_MESSAGES: Record<ProductPublishMissingField, string> = {
   release:
     "At least one release with an attached, scanned-clean file must exist before publishing.",
 };
-
-interface PublishInputBody {
-  releaseId?: unknown;
-}
 
 function missingFieldErrors(fields: ProductPublishMissingField[]): Record<string, string[]> {
   const fieldErrors: Record<string, string[]> = {};
@@ -59,55 +53,35 @@ function missingFieldErrors(fields: ProductPublishMissingField[]): Record<string
 }
 
 /**
- * Initial product publication (MVP-012, FR-009; direct product-owner
- * decision, "PR #23 blocker corrections" A2/A4). A dedicated sub-route, not
- * a PATCH-with-action-field, mirroring
- * api/admin/content/[id]/publish/route.ts's shape. The caller explicitly
- * selects which draft release becomes the initial published release --
- * publishing is never implicit about which release it applies to.
+ * Publishes a further draft Release belonging to an already-PUBLISHED
+ * Product (MVP-014, FR-011; direct product-owner decision, "MVP-014
+ * implementation authorization" sections 4/8). A dedicated sub-route,
+ * distinct from .../[id]/publish -- that route requires the Product to
+ * still be DRAFT; this one requires the opposite, so the two can never be
+ * confused for one another and neither weakens the other's precondition.
  *
- * The one authoritative gate is CatalogRepository.publishProductWithRelease
- * itself: it re-reads and re-validates the Product and the selected Release
- * fresh, inside one transaction, and either both are published together or
- * neither is. This route does no separate pre-check that could drift from
- * that transaction's own logic -- it only maps each of the transaction's
- * typed errors to the right HTTP response.
+ * The one authoritative gate is
+ * CatalogRepository.publishSubsequentRelease itself: it re-reads and
+ * re-validates the Product, the selected Release, and every mandatory
+ * field fresh, inside one transaction, using an atomic conditional update
+ * (not a plain read-then-write) to guarantee a Release transitions
+ * unpublished -> published at most once even under concurrent requests.
+ * Product.publishedAt is never touched here -- it records only the
+ * Product's initial publication.
  */
 export const POST = withObservability(
-  "POST /api/admin/products/[id]/publish",
-  async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  "POST /api/admin/products/[id]/releases/[releaseId]/publish",
+  async (_request: Request, { params }: { params: Promise<{ id: string; releaseId: string }> }) => {
     const correlationId = getCorrelationId() ?? "unknown";
     const admin = await requireAdmin();
     if (!admin) return deny(correlationId);
 
-    const { id } = await params;
-
-    let body: PublishInputBody;
-    try {
-      body = (await request.json()) as PublishInputBody;
-    } catch {
-      return NextResponse.json(
-        createErrorEnvelope("VALIDATION", "Invalid request body.", correlationId),
-        { status: 400 },
-      );
-    }
-    if (typeof body.releaseId !== "string" || body.releaseId.length === 0) {
-      return NextResponse.json(
-        createErrorEnvelope("VALIDATION", "One or more fields are invalid.", correlationId, {
-          fieldErrors: { releaseId: ["releaseId is required -- select the release to publish."] },
-        }),
-        { status: 400 },
-      );
-    }
+    const { id, releaseId } = await params;
 
     try {
-      const result = await catalogRepository.publishProductWithRelease(
-        id,
-        body.releaseId,
-        admin.userId,
-      );
+      const result = await catalogRepository.publishSubsequentRelease(id, releaseId, admin.userId);
 
-      logger.info("product.published", {
+      logger.info("product.subsequent_release_published", {
         productId: result.product.id,
         releaseId: result.release.id,
         actorUserId: admin.userId,
@@ -127,19 +101,18 @@ export const POST = withObservability(
       if (error instanceof ReleaseNotFoundForProductError) {
         return NextResponse.json(
           createErrorEnvelope(
-            "VALIDATION",
+            "NOT_FOUND",
             "The selected release does not belong to this product.",
             correlationId,
-            { fieldErrors: { releaseId: ["This release does not belong to this product."] } },
           ),
           { status: 404 },
         );
       }
-      if (error instanceof ProductNotDraftError) {
+      if (error instanceof ProductNotPublishedError) {
         return NextResponse.json(
           createErrorEnvelope(
             "INVALID_STATE",
-            `Cannot publish a product in status ${error.status}.`,
+            `Cannot publish a subsequent release for a product in status ${error.status}. Use the initial publish action instead.`,
             correlationId,
           ),
           { status: 409 },
@@ -170,7 +143,7 @@ export const POST = withObservability(
         return NextResponse.json(
           createErrorEnvelope(
             "PUBLISH_NOT_READY",
-            "This product is missing mandatory fields and cannot be published yet.",
+            "This product is missing mandatory fields and cannot publish a new release yet.",
             correlationId,
             { fieldErrors: missingFieldErrors(error.missingFields) },
           ),

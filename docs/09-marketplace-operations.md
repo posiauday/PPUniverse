@@ -19,6 +19,19 @@ self-review gate before publish — is not resolved here; see
 safest stated lifecycle is the four states no one disputes: an administrator
 drafts a product, publishes it, may suspend it, and may archive it.
 
+**Confirmed 2026-09-25 (`docs/final-decisions.md`, "MVP-014 immutable published
+releases"): "suspended" and "archived" are owned by MVP-019, not MVP-014.**
+MVP-014 built only the immutable-release-history half of this document's
+release-level concerns (a published `Release` can never be corrected or
+replaced, and now carries its own append-only `ReleasePublishEvent` audit
+trail) — it does not touch `Product.status`, and neither `SUSPENDED` nor
+`ARCHIVED` exists in the `ProductStatus` enum yet (still `DRAFT | PUBLISHED`
+only, confirmed unchanged). A **Product** remains editable and re-publishable
+(further draft releases) after its first release ships; only a **published
+Release** is frozen — this document's four-state Product lifecycle and
+MVP-014's release-level immutability are two different axes, not the same
+guarantee restated.
+
 ## ~~Creator lifecycle~~ (superseded)
 
 ~~Applicant, under review, approved, restricted, suspended, closed.~~
