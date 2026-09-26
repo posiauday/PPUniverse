@@ -9,6 +9,7 @@ import {
   isValidReleaseVersion,
   ProductNotDraftError,
   ProductNotFoundError,
+  ProductNotPublishedError,
   ProductNotReadyError,
   ReleaseAlreadyPublishedError,
   ReleaseNotFoundError,
@@ -118,6 +119,7 @@ describe("product/release publish error classes", () => {
   it("each carries the identifying fields callers need to build a specific response", () => {
     expect(new ProductNotFoundError("p1").productId).toBe("p1");
     expect(new ProductNotDraftError("p1", "PUBLISHED").status).toBe("PUBLISHED");
+    expect(new ProductNotPublishedError("p1", "DRAFT").status).toBe("DRAFT");
     expect(new ReleaseNotFoundForProductError("r1", "p1").releaseId).toBe("r1");
     expect(new ReleaseAlreadyPublishedError("r1").releaseId).toBe("r1");
     expect(new ReleaseNotReadyError("r1").releaseId).toBe("r1");
@@ -132,6 +134,7 @@ describe("product/release publish error classes", () => {
     const names = [
       new ProductNotFoundError("p1").name,
       new ProductNotDraftError("p1", "DRAFT").name,
+      new ProductNotPublishedError("p1", "DRAFT").name,
       new ReleaseNotFoundForProductError("r1", "p1").name,
       new ReleaseAlreadyPublishedError("r1").name,
       new ReleaseNotReadyError("r1").name,

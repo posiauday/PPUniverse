@@ -168,6 +168,29 @@ export interface ProductPublishResult {
   release: ReleaseRecord;
 }
 
+/** MVP-014's only approved action. Modeled as an enum, not a boolean, so a
+ * future action is one more union member and one more repository call, not
+ * a schema redesign -- mirrors @ppu/domain-content's ArticlePublishAction
+ * pattern exactly. Direct product-owner decision ("MVP-014 implementation
+ * authorization" section 2.B): SUPERSEDED/WITHDRAWN/ROLLED_BACK/SUSPENDED/
+ * ARCHIVED/DELETED are explicitly not approved actions and must not be
+ * added without a separate decision. */
+export type ReleasePublishAction = "PUBLISHED";
+
+/** The durable, append-only audit record for a release publication (MVP-014,
+ * FR-011; direct product-owner decision, "MVP-014 implementation
+ * authorization" section 2.B). Minimum fields only -- no file contents, no
+ * secrets, no payment or customer data, no compatibility/licence payload
+ * copies. */
+export interface ReleasePublishEventRecord {
+  id: string;
+  releaseId: string;
+  productId: string;
+  actorUserId: string;
+  action: ReleasePublishAction;
+  createdAt: Date;
+}
+
 /** The mandatory-field snapshot the DRAFT -> PUBLISHED readiness *hint*
  * needs (docs/open-questions.md item 61, approved "PR #23 blocker
  * corrections" A11). `releasesWithCleanFileCount` counts only *unpublished*
