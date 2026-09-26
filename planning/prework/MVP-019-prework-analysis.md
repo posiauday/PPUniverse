@@ -61,13 +61,15 @@ Three append-only, per-domain event tables already exist and already satisfy "au
 
 Reuses the existing `ADMIN` role exactly as `/admin/content`, `/admin/products`, and `/admin/deletion-requests` already do — deny-by-default, re-queried server-side per request, no new role. No `AUDITOR`, `SUPPORT`, or other new role is implied by anything read so far.
 
-## 6. Open questions this analysis surfaces (not answered here)
+## 6. Open questions this analysis surfaced — since decided
 
-1. Exact `ProductStatus` transition graph for `SUSPENDED`/`ARCHIVED` (which transitions are valid, whether `ARCHIVED` is terminal, whether `DRAFT` can go directly to either).
-2. What happens to an existing `Entitlement` holder's download access when their product is suspended or archived — a real customer-facing consequence, not decided by anything read in this pass.
-3. Whether "manage users" in FR-015 means anything more than what already exists (nothing yet) for MVP-019 specifically, or is entirely out of scope until a later story.
-4. Whether the audit-log view is read/merge (recommended default above) or a new unified `AuditEvent` table.
-5. Whether a reason is mandatory for every `SUSPENDED`/`ARCHIVED` transition or only some of them (mirroring `DeletionRequestEvent`'s per-action-value strictness).
+**Update, 2026-09-26:** the product owner directly instructed this session to evaluate and decide the five questions below itself, rather than waiting for separate answers. Full reasoning for each: `docs/final-decisions.md`, "MVP-019 operations console and audit: open questions evaluated and decided."
+
+1. ~~Exact `ProductStatus` transition graph~~ **Decided:** `PUBLISHED ⇄ SUSPENDED`, `PUBLISHED → ARCHIVED`, `SUSPENDED → ARCHIVED`; `ARCHIVED` is terminal; `DRAFT` cannot go directly to either.
+2. ~~Entitlement-holder impact~~ **Decided:** unaffected — suspend/archive is a discoverability toggle only, not a revocation mechanism.
+3. ~~"Manage users" scope~~ **Decided:** out of scope for MVP-019; no user-management UI, no `User.role` mutation path.
+4. ~~Unified table vs. read/merge~~ **Decided:** read/merge admin view over the existing per-domain event tables plus the new `ProductStatusEvent`; no new `AuditEvent` table.
+5. ~~Reason mandatory for which transitions~~ **Decided:** all four transitions require a non-empty, application-enforced reason.
 
 ## 7. Non-goals (explicit)
 
