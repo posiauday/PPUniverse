@@ -18,7 +18,25 @@ export interface ReleasesEditorRelease {
 interface ReleasesEditorProps {
   productId: string;
   releases: ReleasesEditorRelease[];
+  /** Whether the Product itself is already PUBLISHED -- when it is, a
+   * ready draft release may be published on its own (MVP-014, FR-011;
+   * direct product-owner decision, "MVP-014 implementation authorization"
+   * sections 4/8), via a dedicated action distinct from the initial
+   * Product-level publish control (which only renders while the Product is
+   * still DRAFT). */
+  productStatus: "DRAFT" | "PUBLISHED";
+  /** Product-level mandatory fields (license/support policy/compatibility)
+   * still missing, computed server-side -- the same readiness check the
+   * initial-publish control uses, minus the "release" field (checked here
+   * per-specific-draft-release from its own attached files instead). */
+  productLevelMissingFields: string[];
 }
+
+const MISSING_FIELD_LABELS: Record<string, string> = {
+  license: "At least one license",
+  supportPolicy: "A support policy",
+  compatibility: "At least one compatibility entry",
+};
 
 type Status = "idle" | "submitting" | "error" | "saved";
 
@@ -38,7 +56,12 @@ type Status = "idle" | "submitting" | "error" | "saved";
  * this independently and rejects the request either way; hiding the control
  * is not the authorization).
  */
-export function ReleasesEditor({ productId, releases }: ReleasesEditorProps) {
+export function ReleasesEditor({
+  productId,
+  releases,
+  productStatus,
+  productLevelMissingFields,
+}: ReleasesEditorProps) {
   const router = useRouter();
   const [version, setVersion] = useState("");
   const [releaseStatus, setReleaseStatus] = useState<Status>("idle");
@@ -131,7 +154,17 @@ export function ReleasesEditor({ productId, releases }: ReleasesEditorProps) {
               {isPublished ? (
                 <p>This release is published; its files are immutable.</p>
               ) : (
-                <AttachFileForm productId={productId} releaseId={release.id} />
+                <>
+                  <AttachFileForm productId={productId} releaseId={release.id} />
+                  {productStatus === "PUBLISHED" ? (
+                    <PublishReleaseControl
+                      productId={productId}
+                      releaseId={release.id}
+                      hasCleanFile={release.files.some((file) => file.status === "CLEAN")}
+                      productLevelMissingFields={productLevelMissingFields}
+                    />
+                  ) : null}
+                </>
               )}
             </li>
           );
@@ -317,5 +350,96 @@ function DetachFileButton({
         {status === "saved" ? "File removed." : errorMessage}
       </span>
     </span>
+  );
+}
+
+/**
+ * Publishes a further draft Release on an already-PUBLISHED Product
+ * (MVP-014, FR-011). The one authoritative gate is the server (POST
+ * .../releases/[releaseId]/publish, backed by
+ * CatalogRepository.publishSubsequentRelease's atomic conditional update) --
+ * `hasCleanFile`/`productLevelMissingFields` here only drive which message
+ * this control shows before the admin even attempts the action; the server
+ * re-validates everything fresh regardless.
+ */
+function PublishReleaseControl({
+  productId,
+  releaseId,
+  hasCleanFile,
+  productLevelMissingFields,
+}: {
+  productId: string;
+  releaseId: string;
+  hasCleanFile: boolean;
+  productLevelMissingFields: string[];
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState<Status>("idle");
+  const [missingFields, setMissingFields] = useState<string[]>(
+    hasCleanFile ? productLevelMissingFields : [...productLevelMissingFields, "release"],
+  );
+  const statusId = useId();
+
+  const canPublish = missingFields.length === 0;
+
+  async function handlePublish() {
+    if (status === "submitting" || !canPublish) return;
+    setStatus("submitting");
+    try {
+      const response = await fetch(
+        `/api/admin/products/${productId}/releases/${releaseId}/publish`,
+        { method: "POST" },
+      );
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          fieldErrors?: Record<string, string[]>;
+        } | null;
+        if (payload?.fieldErrors) {
+          setMissingFields(Object.keys(payload.fieldErrors));
+        }
+        setStatus("error");
+        return;
+      }
+      setStatus("saved");
+      setMissingFields([]);
+      router.refresh();
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  if (status === "saved") {
+    return <p role="status">This release is now published.</p>;
+  }
+
+  return (
+    <div>
+      {missingFields.length > 0 ? (
+        <div>
+          <p>Before this release can be published, it still needs:</p>
+          <ul>
+            {missingFields.map((field) => (
+              <li key={field}>
+                {field === "release"
+                  ? "An attached, scanned-clean file"
+                  : (MISSING_FIELD_LABELS[field] ?? field)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={handlePublish}
+        aria-disabled={status === "submitting" || !canPublish}
+      >
+        {status === "submitting" ? "Publishing…" : "Publish this release"}
+      </button>
+      <p id={statusId} role="status">
+        {status === "error" && missingFields.length === 0
+          ? "Something went wrong. Please try again."
+          : null}
+      </p>
+    </div>
   );
 }
