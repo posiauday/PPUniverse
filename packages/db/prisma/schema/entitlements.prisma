@@ -27,18 +27,18 @@ enum EntitlementSource {
 /// decisions.md, MVP-010 pre-work). Product-scoped: covers every past and
 /// future release of the product, not one version of it (Q45).
 model Entitlement {
-  id         String            @id @default(cuid())
-  userId     String
-  productId  String
-  source     EntitlementSource
-  grantedAt  DateTime          @default(now())
+  id        String            @id @default(cuid())
+  userId    String
+  productId String
+  source    EntitlementSource
+  grantedAt DateTime          @default(now())
   /// Reserved and enforced at read time (a download is denied when this is
   /// non-null) even though nothing in this story ever sets it (Q45
   /// amendment, docs/final-decisions.md, 2026-09-22). Do not read this
   /// column's presence as evidence any revocation workflow exists yet.
-  revokedAt  DateTime?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  revokedAt DateTime?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
