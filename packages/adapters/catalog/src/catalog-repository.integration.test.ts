@@ -42,6 +42,16 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
     // Q36), so a prefix match replaces what used to be a hand-maintained
     // exact slug list — every test below only ever needs to add its own
     // "catalog-repo-..." slug, never touch this cleanup block.
+    //
+    // ReleasePublishEvent (MVP-014) uses Restrict FKs on both releaseId and
+    // productId (an audit trail must survive a release/product delete
+    // failing, not cascade away) — deleted here, BEFORE product.deleteMany,
+    // for the same reason FileScan's cleanup below already has to run
+    // relative to user deletion: the Restrict FK blocks the parent delete
+    // while a referencing row still exists.
+    await db.releasePublishEvent.deleteMany({
+      where: { product: { slug: { startsWith: "catalog-repo-" } } },
+    });
     await db.product.deleteMany({ where: { slug: { startsWith: "catalog-repo-" } } });
     await db.licenseDefinition.deleteMany({ where: { slug: "catalog-repo-test-tier" } });
     // FileScan rows the admin-authoring-surface tests below create for
@@ -721,7 +731,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
       it("publishes the Product and the selected Release atomically, and rejects double-publish", async () => {
         const { product, release } = await createFullyReadyProduct("double");
-        const result = await repo.publishProductWithRelease(product.id, release.id);
+        const result = await repo.publishProductWithRelease(product.id, release.id, adminUserId);
         expect(result.product.status).toBe("PUBLISHED");
         expect(result.release.publishedAt).not.toBeNull();
 
@@ -733,9 +743,9 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
         // Re-publishing the same product: it's no longer DRAFT.
         const anotherRelease = await repo.createRelease(product.id, "2.0.0");
-        await expect(repo.publishProductWithRelease(product.id, anotherRelease.id)).rejects.toThrow(
-          /not found|status|DRAFT/i,
-        );
+        await expect(
+          repo.publishProductWithRelease(product.id, anotherRelease.id, adminUserId),
+        ).rejects.toThrow(/not found|status|DRAFT/i);
       });
 
       it("rejects publication with no release selected against an unready product, naming every missing field", async () => {
@@ -746,7 +756,9 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           categoryId,
         });
         const release = await repo.createRelease(created.id, "1.0.0");
-        await expect(repo.publishProductWithRelease(created.id, release.id)).rejects.toThrow();
+        await expect(
+          repo.publishProductWithRelease(created.id, release.id, adminUserId),
+        ).rejects.toThrow();
         const row = await db.product.findUniqueOrThrow({ where: { id: created.id } });
         expect(row.status).toBe("DRAFT");
         expect(row.publishedAt).toBeNull();
@@ -755,7 +767,9 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
       it("rejects a release id that belongs to a different product (cross-product access)", async () => {
         const { product: productA } = await createFullyReadyProduct("cross-a");
         const { release: releaseB } = await createFullyReadyProduct("cross-b");
-        await expect(repo.publishProductWithRelease(productA.id, releaseB.id)).rejects.toThrow();
+        await expect(
+          repo.publishProductWithRelease(productA.id, releaseB.id, adminUserId),
+        ).rejects.toThrow();
         const rowA = await db.product.findUniqueOrThrow({ where: { id: productA.id } });
         expect(rowA.status).toBe("DRAFT");
       });
@@ -779,7 +793,9 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           lastVerifiedAt: null,
         });
         const release = await repo.createRelease(created.id, "1.0.0");
-        await expect(repo.publishProductWithRelease(created.id, release.id)).rejects.toThrow();
+        await expect(
+          repo.publishProductWithRelease(created.id, release.id, adminUserId),
+        ).rejects.toThrow();
         const row = await db.product.findUniqueOrThrow({ where: { id: created.id } });
         expect(row.status).toBe("DRAFT");
         const releaseRow = await db.release.findUniqueOrThrow({ where: { id: release.id } });
@@ -788,11 +804,13 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
       it("rejects publishing an already-published release again, leaving the product untouched", async () => {
         const { product, release } = await createFullyReadyProduct("already-published");
-        await repo.publishProductWithRelease(product.id, release.id);
+        await repo.publishProductWithRelease(product.id, release.id, adminUserId);
         // A second draft release exists; attempting to publish the *original*
         // (already-published) release id again must fail, distinct from the
         // "product is no longer DRAFT" case covered above.
-        await expect(repo.publishProductWithRelease(product.id, release.id)).rejects.toThrow();
+        await expect(
+          repo.publishProductWithRelease(product.id, release.id, adminUserId),
+        ).rejects.toThrow();
       });
 
       it("a fully-evidenced product's snapshot reports ready, and publishing sets both timestamps", async () => {
@@ -805,7 +823,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           releasesWithCleanFileCount: 1,
         });
 
-        const result = await repo.publishProductWithRelease(product.id, release.id);
+        const result = await repo.publishProductWithRelease(product.id, release.id, adminUserId);
         expect(result.product.status).toBe("PUBLISHED");
         expect(result.release.publishedAt).not.toBeNull();
 
@@ -839,7 +857,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
 
       it("a published product can still receive a new draft release, which does not appear as the public current version", async () => {
         const { product, release } = await createFullyReadyProduct("post-publish-draft");
-        await repo.publishProductWithRelease(product.id, release.id);
+        await repo.publishProductWithRelease(product.id, release.id, adminUserId);
 
         const nextRelease = await repo.createRelease(product.id, "1.1.0");
         expect(nextRelease.publishedAt).toBeNull();
@@ -850,6 +868,182 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
         const releases = await repo.listReleasesForAdmin(product.id);
         const found = releases.find((entry) => entry.id === nextRelease.id);
         expect(found?.publishedAt).toBeNull();
+      });
+    });
+
+    describe("publishSubsequentRelease (MVP-014)", () => {
+      /** Builds a product, publishes its first release (mirroring
+       * createFullyReadyProduct + publishProductWithRelease above), then
+       * attaches a second CLEAN file to a new draft release -- the starting
+       * point for every subsequent-release-publish test below. */
+      async function createPublishedProductWithDraftRelease(slugSuffix: string) {
+        const created = await repo.createProductDraft({
+          name: "Published With Draft",
+          slug: `catalog-repo-subsequent-${slugSuffix}`,
+          summary: "Summary.",
+          categoryId,
+        });
+        await repo.setProductLicenses(created.id, [personalTierId]);
+        await repo.upsertSupportPolicy(created.id, { status: "UNSUPPORTED", channel: null });
+        await repo.upsertCompatibilityEntry(created.id, {
+          platformArea: "POWER_APPS",
+          minReleaseYear: 2025,
+          minReleaseWave: 1,
+          notes: null,
+          evidenceStatus: "CREATOR_DECLARED",
+          evidenceSummary: null,
+          lastVerifiedAt: null,
+        });
+
+        const firstRelease = await repo.createRelease(created.id, "1.0.0");
+        const firstFileScan = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-subsequent-first-file-${firstRelease.id}`,
+            originalFilename: "package.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 1024,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(created.id, firstRelease.id, firstFileScan.id);
+        const published = await repo.publishProductWithRelease(
+          created.id,
+          firstRelease.id,
+          adminUserId,
+        );
+
+        const draftRelease = await repo.createRelease(created.id, "1.1.0");
+        const draftFileScan = await db.fileScan.create({
+          data: {
+            storageKey: `catalog-repo-subsequent-draft-file-${draftRelease.id}`,
+            originalFilename: "package-2.zip",
+            declaredMimeType: "application/zip",
+            sizeBytes: 1024,
+            status: "CLEAN",
+            uploadedByUserId: adminUserId,
+          },
+        });
+        await repo.attachReleaseFile(created.id, draftRelease.id, draftFileScan.id);
+
+        return {
+          product: published.product,
+          firstRelease: published.release,
+          draftRelease,
+          draftFileScan,
+        };
+      }
+
+      it("publishes the subsequent release, leaves Product.publishedAt unchanged, and leaves the earlier release unchanged", async () => {
+        const { product, firstRelease, draftRelease } =
+          await createPublishedProductWithDraftRelease("success");
+        const productBefore = await db.product.findUniqueOrThrow({ where: { id: product.id } });
+        const firstReleaseBefore = await db.release.findUniqueOrThrow({
+          where: { id: firstRelease.id },
+        });
+
+        const result = await repo.publishSubsequentRelease(
+          product.id,
+          draftRelease.id,
+          adminUserId,
+        );
+
+        expect(result.product.status).toBe("PUBLISHED");
+        expect(result.release.id).toBe(draftRelease.id);
+        expect(result.release.publishedAt).not.toBeNull();
+
+        const productRow = await db.product.findUniqueOrThrow({ where: { id: product.id } });
+        expect(productRow.publishedAt?.getTime()).toBe(productBefore.publishedAt?.getTime());
+
+        const earlierReleaseRow = await db.release.findUniqueOrThrow({
+          where: { id: firstRelease.id },
+        });
+        expect(earlierReleaseRow.publishedAt?.getTime()).toBe(
+          firstReleaseBefore.publishedAt?.getTime(),
+        );
+
+        const detail = await repo.findPublishedProductDetailBySlug(product.slug);
+        expect(detail?.currentVersion).toBe("1.1.0");
+      });
+
+      it("creates exactly one ReleasePublishEvent for the publication", async () => {
+        const { product, draftRelease } = await createPublishedProductWithDraftRelease("audit");
+        await repo.publishSubsequentRelease(product.id, draftRelease.id, adminUserId);
+
+        const events = await db.releasePublishEvent.findMany({
+          where: { releaseId: draftRelease.id },
+        });
+        expect(events).toHaveLength(1);
+        expect(events[0]?.productId).toBe(product.id);
+        expect(events[0]?.actorUserId).toBe(adminUserId);
+        expect(events[0]?.action).toBe("PUBLISHED");
+      });
+
+      it("rejects a DRAFT product -- must use initial publication instead", async () => {
+        const created = await repo.createProductDraft({
+          name: "Still Draft",
+          slug: "catalog-repo-subsequent-still-draft",
+          summary: "Summary.",
+          categoryId,
+        });
+        const release = await repo.createRelease(created.id, "1.0.0");
+        await expect(
+          repo.publishSubsequentRelease(created.id, release.id, adminUserId),
+        ).rejects.toThrow();
+      });
+
+      it("rejects a release id belonging to a different product", async () => {
+        const a = await createPublishedProductWithDraftRelease("cross-a");
+        const b = await createPublishedProductWithDraftRelease("cross-b");
+        await expect(
+          repo.publishSubsequentRelease(a.product.id, b.draftRelease.id, adminUserId),
+        ).rejects.toThrow();
+      });
+
+      it("rejects an already-published release, leaving it unchanged", async () => {
+        const { product, firstRelease } =
+          await createPublishedProductWithDraftRelease("already-published");
+        await expect(
+          repo.publishSubsequentRelease(product.id, firstRelease.id, adminUserId),
+        ).rejects.toThrow();
+        const row = await db.release.findUniqueOrThrow({ where: { id: firstRelease.id } });
+        expect(row.publishedAt?.getTime()).toBe(firstRelease.publishedAt?.getTime());
+      });
+
+      it("rejects a draft release with no attached CLEAN file, publishing nothing", async () => {
+        const { product } = await createPublishedProductWithDraftRelease("not-ready");
+        const bareRelease = await repo.createRelease(product.id, "2.0.0");
+        await expect(
+          repo.publishSubsequentRelease(product.id, bareRelease.id, adminUserId),
+        ).rejects.toThrow();
+        const row = await db.release.findUniqueOrThrow({ where: { id: bareRelease.id } });
+        expect(row.publishedAt).toBeNull();
+        expect(await db.releasePublishEvent.count({ where: { releaseId: bareRelease.id } })).toBe(
+          0,
+        );
+      });
+
+      it("two concurrent publish attempts for the same release: exactly one succeeds, exactly one ReleasePublishEvent is created, no partial state", async () => {
+        const { product, draftRelease } = await createPublishedProductWithDraftRelease("race");
+
+        const [first, second] = await Promise.allSettled([
+          repo.publishSubsequentRelease(product.id, draftRelease.id, adminUserId),
+          repo.publishSubsequentRelease(product.id, draftRelease.id, adminUserId),
+        ]);
+
+        const outcomes = [first, second];
+        const fulfilled = outcomes.filter((o) => o.status === "fulfilled");
+        const rejected = outcomes.filter((o) => o.status === "rejected");
+        expect(fulfilled).toHaveLength(1);
+        expect(rejected).toHaveLength(1);
+
+        const row = await db.release.findUniqueOrThrow({ where: { id: draftRelease.id } });
+        expect(row.publishedAt).not.toBeNull();
+
+        const events = await db.releasePublishEvent.findMany({
+          where: { releaseId: draftRelease.id },
+        });
+        expect(events).toHaveLength(1);
       });
     });
 
@@ -1149,7 +1343,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           },
         });
         await repo.attachReleaseFile(created.id, release.id, clean.id);
-        await repo.publishProductWithRelease(created.id, release.id);
+        await repo.publishProductWithRelease(created.id, release.id, adminUserId);
 
         const secondFile = await db.fileScan.create({
           data: {
@@ -1231,7 +1425,7 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           },
         });
         await repo.attachReleaseFile(created.id, release.id, clean.id);
-        await repo.publishProductWithRelease(created.id, release.id);
+        await repo.publishProductWithRelease(created.id, release.id, adminUserId);
 
         await expect(repo.detachReleaseFile(created.id, release.id, clean.id)).rejects.toThrow();
         expect(await db.releaseFile.count({ where: { releaseId: release.id } })).toBe(1);
