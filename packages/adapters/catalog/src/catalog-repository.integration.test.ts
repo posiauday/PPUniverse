@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { ProductStatusTransitionNotAllowedError } from "@ppu/domain-catalog";
 import { PrismaCatalogRepository } from "./catalog-repository.js";
 
 /**
@@ -1478,7 +1479,9 @@ describe.skipIf(!hasDatabase)("PrismaCatalogRepository (integration)", () => {
           const fulfilledCount = outcomes.filter((o) => o.status === "fulfilled").length;
           expect(fulfilledCount === 1 || fulfilledCount === 2).toBe(true);
           for (const outcome of outcomes) {
-            if (outcome.status === "rejected") expect(outcome.reason).toBeInstanceOf(Error);
+            if (outcome.status === "rejected") {
+              expect(outcome.reason).toBeInstanceOf(ProductStatusTransitionNotAllowedError);
+            }
           }
 
           const row = await db.product.findUniqueOrThrow({ where: { id: productId } });
