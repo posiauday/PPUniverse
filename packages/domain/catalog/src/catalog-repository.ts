@@ -83,7 +83,56 @@ export interface CatalogRepository {
    * pre-flight UI hint, but must not rely on it as the actual gate (this
    * method is the authoritative one).
    */
-  publishProductWithRelease(productId: string, releaseId: string): Promise<ProductPublishResult>;
+  publishProductWithRelease(
+    productId: string,
+    releaseId: string,
+    actorUserId: string,
+  ): Promise<ProductPublishResult>;
+  /**
+   * Subsequent release publication (MVP-014, FR-011; direct product-owner
+   * decision, "MVP-014 implementation authorization" sections 3-4): publishes
+   * a further draft Release belonging to a Product that is *already*
+   * PUBLISHED -- the deliberately opposite precondition of
+   * publishProductWithRelease, which requires DRAFT. The two are separate
+   * operations so neither can silently weaken the other's guard.
+   *
+   * Concurrency-critical: the exclusivity invariant ("a Release transitions
+   * unpublished -> published at most once") is enforced by an atomic,
+   * database-backed conditional update (`UPDATE ... WHERE id = ? AND
+   * productId = ? AND publishedAt IS NULL`, requiring exactly one affected
+   * row) -- never by a plain read-then-write, which is not sufficient proof
+   * of exclusivity under concurrency. Zero affected rows means the release
+   * was already published, does not belong to this product, or does not
+   * exist; the implementation performs a controlled re-read to distinguish
+   * these and throw the correct typed error.
+   *
+   * Rejects, in this order:
+   *   - the Product doesn't exist (ProductNotFoundError);
+   *   - the Product is not PUBLISHED (ProductNotPublishedError -- a DRAFT
+   *     product must use publishProductWithRelease instead);
+   *   - the Release doesn't exist or belongs to a different product
+   *     (ReleaseNotFoundForProductError);
+   *   - the atomic conditional update affects zero rows, meaning the
+   *     Release was already published (ReleaseAlreadyPublishedError);
+   *   - the Release has no attached CLEAN file, re-verified fresh, inside
+   *     the same transaction, after the conditional update claims the
+   *     right to publish -- so a losing race never leaves a not-ready
+   *     Release published (ReleaseNotReadyError);
+   *   - a Product-level mandatory field (license/support/compatibility) is
+   *     no longer present, re-verified fresh (ProductNotReadyError).
+   * On success: the selected Release's `publishedAt` is set; `Product.
+   * publishedAt` is left completely unchanged (it represents *initial*
+   * publication only); every earlier published Release is untouched; a
+   * ReleasePublishEventRecord is appended in the same transaction. If any
+   * check fails after the conditional update already claimed the row, the
+   * whole transaction (including that claim) rolls back -- a not-ready
+   * Release is never left published.
+   */
+  publishSubsequentRelease(
+    productId: string,
+    releaseId: string,
+    actorUserId: string,
+  ): Promise<ProductPublishResult>;
   /** Replaces the full assigned license set for a product (simplest correct
    * semantics for a checkbox-style picker) -- not an incremental add/remove. */
   setProductLicenses(productId: string, licenseDefinitionIds: string[]): Promise<void>;

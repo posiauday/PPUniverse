@@ -108,6 +108,23 @@ export class ProductNotDraftError extends Error {
   }
 }
 
+/** Thrown when subsequent-release publication is attempted on a Product
+ * that is not yet PUBLISHED (MVP-014) — the opposite precondition of
+ * ProductNotDraftError. A DRAFT product must use the initial
+ * publishProductWithRelease path, never this one; the two are deliberately
+ * separate operations with opposite Product.status preconditions, not one
+ * method generalized over both, so neither can silently weaken the other's
+ * guard. */
+export class ProductNotPublishedError extends Error {
+  constructor(
+    public readonly productId: string,
+    public readonly status: string,
+  ) {
+    super(`Cannot publish a subsequent release for a Product in status ${status}`);
+    this.name = "ProductNotPublishedError";
+  }
+}
+
 /** Thrown when the selected release doesn't exist, or exists but belongs to
  * a different product — prevents a request for one product's publish
  * selecting another product's release by id (A8: "route parameters cannot

@@ -510,6 +510,37 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       data: { status: "PUBLISHED", publishedAt: now },
     });
 
+    // MVP-014 (FR-011): two further draft releases on the now-PUBLISHED
+    // product above, exercising the subsequent-release-publish UI's two
+    // readiness branches on one edit-page render -- a CLEAN-file-attached
+    // draft (ready to publish) and a bare draft with no attachment (not
+    // ready), so the accessibility harness can capture both states without
+    // a separate fixture product for each.
+    const readyDraftFileStorageKey = `${prefix}admin-ready-draft-file`;
+    assertReserved("fileScan", readyDraftFileStorageKey);
+    const readyDraftFileScan = await prisma.fileScan.create({
+      data: {
+        storageKey: readyDraftFileStorageKey,
+        originalFilename: "fixture-package-ready.zip",
+        declaredMimeType: "application/zip",
+        sizeBytes: 1024,
+        status: "CLEAN",
+        uploadedByUserId: admin.id,
+      },
+    });
+    created.fileScanIds.push(readyDraftFileScan.id);
+    await prisma.release.create({
+      data: {
+        productId: publishedAdminProduct.id,
+        version: "1.1.0",
+        files: { create: { fileScanId: readyDraftFileScan.id } },
+      },
+    });
+
+    await prisma.release.create({
+      data: { productId: publishedAdminProduct.id, version: "1.2.0-not-ready" },
+    });
+
     const makeSession = async (
       createdAt: Date,
       forUserId: string = user.id,
