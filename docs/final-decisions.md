@@ -1423,3 +1423,43 @@ The SEO story is item 2 of the product owner's agreed work order ("Business mode
 7. **Brand in structured data.** Article `author` and `publisher` are the Organization "LowCodeStacks" (decision 4 of the business-model entry). No person is ever named.
 8. **Sitemap `lastmod` (TD-010, partial).** Articles carry their real `updatedAt`, and the `/learn` hub carries the newest of them. Products and categories still carry none, because evidence edits do not bump `products.updatedAt` and an inaccurate date is worse than none. The home page and hub now take one slot each, leaving 49,998 URLs to split between the catalog and articles.
 9. **BUG-002 (was PROP-006).** A repeated query parameter now uses its **first value**, the way a browser reads a form, instead of throwing and returning HTTP 500. This applies to `q`, `sort`, `page` and `pageSize` on `/search` and category pages. Nothing else about search changed.
+
+## 2026-09-29 — Revised work order; learning expansion; maintenance agent limits
+
+Direct product-owner instruction in chat (2026-09-28/29), answering the agent's two questions.
+
+### 1. What the product owner asked for (direction approved; details still to be researched and confirmed)
+- **Researched launch content.** The agent researches what works in each niche, writes original content and posts it before launch.
+- **Sections per technology.** Each Power Platform technology has its own section: Power Apps, Power Automate, Power BI and the rest, plus SharePoint Online and Dynamics 365. Each covers learning topics, best architecture practices, free components and KPIs.
+- **A daily maintenance agent.** It watches what visitors view, click and look for, and it tracks new updates across these products.
+- **A top-tier UI.** Modern, clean, with graphics and motion, chosen by researching and comparing proven design approaches.
+
+**Not yet decided, and to come back as a researched roadmap for confirmation:**
+- The exact technology list.
+- The section structure.
+- The content plan and volume.
+- The analytics tool (and its consent and privacy handling).
+- The design direction.
+
+### 2. Work order (revises decision 5 of "Business model: free learning first; one price per product; work order")
+1. MVP-026, the SEO story (built; PR #28).
+2. **New design system with motion**, meeting WCAG 2.2 AA, respecting reduced-motion preferences, and without hurting Core Web Vitals.
+3. **Per-technology sections.**
+4. **Researched launch content.**
+5. Ads story (AdSense on learning pages, consent banner).
+6. MVP-007 slice 3 (checkout) and MVP-008 (fulfilment).
+
+The product owner chose this order over keeping ads next: ads earn little until there is content and traffic.
+
+### 3. Maintenance agent: report and draft only
+The agent may:
+- Read analytics.
+- Produce a daily report: traffic, top pages and clicks, what visitors search for, new Microsoft release notes.
+- Create **unpublished drafts** of new or updated articles.
+
+It **never publishes**. The product owner reviews each draft and publishes it through the existing admin editor, so nothing inaccurate or stale goes live unreviewed. Any analytics it reads must respect the consent and privacy rules in `docs/08-security-privacy-compliance.md`.
+
+### 4. Content rules (restating standing rules that apply to all of this)
+- All content is original writing. Microsoft documentation is linked and cited, never copied.
+- No claim of Microsoft endorsement, certification or partnership.
+- No Government of Saskatchewan names or material.
