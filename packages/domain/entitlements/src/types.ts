@@ -22,6 +22,8 @@ export type ProductStatus = "DRAFT" | "PUBLISHED" | "SUSPENDED" | "ARCHIVED";
 
 export interface EntitlementEligibilityInput {
   status: ProductStatus;
+  /** Whether the product currently has a price (MVP-007 slice 2). */
+  hasPrice: boolean;
 }
 
 export interface EntitlementRecord {

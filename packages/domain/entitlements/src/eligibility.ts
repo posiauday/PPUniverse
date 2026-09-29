@@ -9,15 +9,15 @@ import type { EntitlementEligibilityInput, EntitlementRecord } from "./types.js"
  * calling this, not reusing a value read earlier in the request or accepted
  * as input.
  *
- * Only PUBLISHED is eligible. A DRAFT product isn't publicly visible yet;
- * there is no SUSPENDED/ARCHIVED/REJECTED status in the current schema
- * (packages/db/prisma/schema/catalog.prisma only has DRAFT and PUBLISHED),
- * so "draft, suspended, archived or rejected" from the decision collapses
- * to "anything that isn't PUBLISHED" against today's actual enum — this
- * function does not invent statuses the schema doesn't have.
+ * Eligible only when the product is PUBLISHED (SUSPENDED, ARCHIVED and DRAFT
+ * are all ineligible) AND has no price. A priced product is never free, so
+ * this route can never be used to take a paid item without paying
+ * (docs/final-decisions.md, "Business model: free learning first; one price
+ * per product; work order", decision 3). The caller must read the price
+ * fresh from the database, not accept it as input.
  */
 export function isProductEligibleForFreeEntitlement(product: EntitlementEligibilityInput): boolean {
-  return product.status === "PUBLISHED";
+  return product.status === "PUBLISHED" && !product.hasPrice;
 }
 
 /**
