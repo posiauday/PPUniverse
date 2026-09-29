@@ -1353,3 +1353,28 @@ Product-owner instruction: *"Price I should be able to decide."* Prices are **no
 - **Open question 3:** launch countries (the Canada/US proposal is still not approved) and tax handling.
 - **Open question 51:** legal entity before real payments.
 - **Open question 5:** hosting.
+
+## 2026-09-28 — Sales tax and launch countries (closes open question 3)
+
+Direct product-owner answers given in chat on 2026-09-28, following the currency and refund decisions above. Together they close open question 3.
+
+### 1. Sales tax: none collected at launch (option A)
+
+No sales tax is collected at launch; it is revisited as sales approach the registration thresholds. The product owner chose this over registering for GST/HST now (option B) and collecting everywhere through Stripe Tax from day one (option C). The agent laid out all three options without recommending one, since the choice has legal weight, and noted they should be confirmed with an accountant. That note is a flag, not legal advice.
+
+The thresholds this relies on, as stated when the options were given: in Canada, GST/HST registration is required after $30,000 CAD of sales over four consecutive calendar quarters; most US states require collection only after about $100,000 of sales into that state.
+
+### 2. Launch countries: Canada and the United States only
+
+Paid purchases are available only to buyers in Canada and the US. The agent recommended this and the product owner chose it. The reason is recorded because it is what makes decision 1 safe: the EU and UK require a non-EU seller of digital products to register and charge VAT from the **first** sale to a consumer, with no threshold, so a single EU/UK sale under "no tax collection" would already be non-compliant. **Free products stay available worldwide.** EU/UK sales can be added later, together with VAT registration.
+
+### Consequences for MVP-007 slice 3 (checkout)
+
+These follow from the decisions and bind the checkout implementation; they add no new scope:
+- **Checkout must enforce Canada/US.** A buyer outside both must not be able to complete a paid purchase. Enforcing this through the buyer's billing country is part of slice 3's design.
+- **Sales must be trackable against the thresholds.** Option A only works if the owner can see sales per country (and per US state) approaching the limits. Slice 3 therefore needs to record each paid order's billing country and, for the US, its state. How that is reported (an admin view or Stripe's own reporting) is not decided here.
+- **No tax lines at launch.** Prices are charged as set, with no tax added. The currency (USD) and refund (all sales final) decisions above are unchanged.
+
+### Open question 3: closed
+
+Currency (USD), refunds (none), tax (none at launch, revisited at the thresholds) and countries (Canada and the US) are all decided.
