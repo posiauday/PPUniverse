@@ -870,6 +870,33 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // MVP-007 slice 2: a priced product before checkout exists shows its
+    // price, "all sales final" and "Purchasing opens soon" -- never the
+    // free-download prompt.
+    id: "product-priced",
+    route: "/products/[slug]",
+    description: "product page, a priced product before checkout exists",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/products/${seed.pricedProduct.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByText("$49.00 USD")).toBeVisible();
+      await expect(page.getByText(/purchasing opens soon/i)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-products-edit-priced",
+    route: "/admin/products/[id]/edit",
+    description: "admin edit-product form, signed in as ADMIN, a product with a price set",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/products/${seed.pricedProduct.id}/edit`,
+    prepare: async (page) => {
+      await expect(page.getByText("Current price: $49.00 USD")).toBeVisible();
+      await expect(page.getByRole("button", { name: /make free/i })).toBeVisible();
+    },
+  },
+  {
     // The positive admin state: this worker's own suspendedAdminProduct
     // fixture (created via a real ProductStatusEvent, see seed.ts) must be
     // visible -- never a total count, since listRecentProductStatusEvents
