@@ -8,8 +8,8 @@ describe("deriveTestSchemaName", () => {
   });
 
   it("throws for a package name outside the known 7", () => {
-    expect(() => deriveTestSchemaName("web")).toThrow(/is not one of the 7 adapter packages/);
-    expect(() => deriveTestSchemaName("")).toThrow(/is not one of the 7 adapter packages/);
+    expect(() => deriveTestSchemaName("web")).toThrow(/is not one of the 8 adapter packages/);
+    expect(() => deriveTestSchemaName("")).toThrow(/is not one of the 8 adapter packages/);
   });
 });
 
@@ -45,7 +45,7 @@ describe("applyTestSchemaIsolation", () => {
       DATABASE_URL: "postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schema=public",
     };
     expect(() => applyTestSchemaIsolation("not-a-real-package", env)).toThrow(
-      /is not one of the 7 adapter packages/,
+      /is not one of the 8 adapter packages/,
     );
   });
 });

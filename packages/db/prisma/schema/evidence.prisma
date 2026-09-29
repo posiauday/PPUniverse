@@ -53,6 +53,7 @@ model LicenseDefinition {
   updatedAt   DateTime @updatedAt
 
   products ProductLicense[]
+  orders   Order[]
 
   @@map("license_definitions")
 }

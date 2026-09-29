@@ -1292,3 +1292,89 @@ Scope and method, not conformance. No claim of WCAG compliance, audit, or certif
 ### Done
 
 `planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-014 and MVP-019 move QA → Done. MVP-019's tech-debt record was renumbered TD-021 → TD-022 when the branches merged, since MVP-014's unrelated TD-021 merged first.
+
+## 2026-09-25 — Stripe Checkout: provider and payment-shape decision (MVP-007 pre-work)
+
+Direct product-owner instruction ("COMBINED PRODUCT-OWNER INSTRUCTION," Phase B, B1). Documentation and pre-work only — see `planning/prework/MVP-007-stripe-checkout-prework.md` for the full analysis this decision informs. **No Stripe code, SDK, route, schema, migration, or UI exists as a result of this entry.**
+
+**Decision:** LowCodeStacks will use **Stripe Checkout** (hosted, one-time `payment` mode) for selected first-party premium products and premium digital assets. Free/MIT-licensed products remain the majority and bypass Stripe entirely.
+
+**In scope, decided:**
+- First-party products only — consistent with the standing first-party-only decision above.
+- Only selected products are premium; most may remain free.
+- One-time purchases only. Stripe-hosted Checkout. Server-created Checkout Sessions.
+- Verified Stripe webhook (signature-checked, raw body, `whsec_...` secret) controls fulfillment — never the redirect return alone.
+- Free products bypass Stripe entirely; no false paid Order is ever created for a free product.
+
+**Explicitly not part of this decision — none of the following exist or are planned:** subscriptions, memberships, recurring charges, saved-card/usage billing beyond Checkout's own defaults, creator payouts, commissions, split payments, Stripe Connect, PayPal, or a second payment gateway at launch.
+
+**This decision fixes the provider and payment shape only.** It does **not** decide currency, amount, launch countries, tax registration or collection, refund policy, support period, update entitlement, price per licence grant, or Enterprise commercial treatment. **Open questions 3 and 7 are not resolved and are unaffected by this entry.**
+
+**Not authorized by this entry:** any Stripe SDK installation, Checkout/webhook implementation, API route, UI, schema, migration, Stripe Product/Price creation (including in test mode), product-owner-account configuration, or credential request. MVP-007 is not marked In Progress or Done.
+
+### Unchanged (restated)
+
+No product code, schema, UI, route, or API changed. No test changed. No CI change. No enum value changed. No role created. Questions 3 and 7 remain open, unresolved. MVP-007 is not started. PR #23/MVP-012 are untouched by this entry. No historical decision record is erased or rewritten.
+
+## 2026-09-28 — MVP-007 slice 1 authorized; launch currency; refund policy; pricing mechanism (open questions 3 and 7)
+
+All four decisions below are direct product-owner answers given in chat on 2026-09-28. They were asked one at a time, with the agent's recommendation stated where one was given.
+
+### 1. MVP-007 slice 1 is authorized
+
+The scope is exactly the part of MVP-007 that the Stripe pre-work (`planning/prework/MVP-007-stripe-checkout-prework.md`, section 21) identified as independent of pricing and tax: the `Order` and payment-event schema, the order state machine, and Stripe webhook signature verification. Slice 1 has **no prices, no Checkout Session creation, and no buyer-facing UI**. Those stay out of slice 1 and are sequenced below.
+
+### 2. Launch currency: USD only (open question 3, part)
+
+Buyers are charged in USD. That gives one price per licence tier, and Canadian buyers' cards convert automatically. The schema keeps a currency column so that adding CAD later is an additive change, not a redesign. This was the agent's stated recommendation, and the product owner accepted it.
+
+### 3. Refund policy: all sales final (open question 3, part)
+
+Product-owner instruction: *"There is no return or refund once purchased."* The products sold are digital components, which cannot be returned once delivered. Every paid product's refund classification (a `CLAUDE.md` requirement for paid assets) is therefore **non-refundable**.
+
+These consequences follow from the decision. They record what it implies; they add no new scope:
+- **Disclosure before purchase.** The buyer-facing purchase flow must say "all sales final" clearly *before* payment is taken. A no-refund policy is only as defensible as its disclosure. This binds the future checkout UI slice.
+- **Chargebacks still exist.** A refund policy cannot prevent a buyer's bank from reversing a card payment. Stripe dispute events still need recording (MVP-008's webhook scope), and MVP-010's `Download` record remains the evidence that the product was delivered.
+- **No in-app refund feature is built.** If an exceptional refund is ever needed (a duplicate charge, card fraud), it is done manually in the Stripe Dashboard. Revoking entitlement on refund is not built.
+- **Consumer-law check.** Some jurisdictions give buyers of digital goods rights a store policy cannot waive. Launch countries are still undecided, so the policy should be checked with an accountant or lawyer before live payments are taken. This note is a flag, not legal advice.
+
+### 4. Pricing: set by the product owner in the admin screens (open question 7)
+
+Product-owner instruction: *"Price I should be able to decide."* Prices are **not fixed in code or in any decision record.** The administrator sets a USD price per product and per licence tier (Personal/Team/Enterprise) through the admin product editor, and can change it. A product with no active price is free. This resolves the Stripe pre-work's section 4 choice in favour of deriving "premium" from the existence of an active price, rather than adding a separate product flag. Price amounts are operational data the owner manages, not requirements.
+
+### Sequencing that follows
+
+1. **Slice 1** (authorized, starting now): orders, payment events, state machine, webhook signature verification.
+2. **Slice 2** (unblocked by decision 4): a `Price` model, the admin price editor, and price display on the product page, including the "all sales final" notice (decision 3).
+3. **Slice 3**: Checkout Session creation and the purchase flow. **Still gated on sales tax** (the remaining part of open question 3). Whether to collect tax, and where to register, has legal weight and is not decided.
+
+### Still open
+
+- **Open question 3:** launch countries (the Canada/US proposal is still not approved) and tax handling.
+- **Open question 51:** legal entity before real payments.
+- **Open question 5:** hosting.
+
+## 2026-09-28 — Sales tax and launch countries (closes open question 3)
+
+Direct product-owner answers given in chat on 2026-09-28, following the currency and refund decisions above. Together they close open question 3.
+
+### 1. Sales tax: none collected at launch (option A)
+
+No sales tax is collected at launch; it is revisited as sales approach the registration thresholds. The product owner chose this over registering for GST/HST now (option B) and collecting everywhere through Stripe Tax from day one (option C). The agent laid out all three options without recommending one, since the choice has legal weight, and noted they should be confirmed with an accountant. That note is a flag, not legal advice.
+
+The thresholds this relies on, as stated when the options were given: in Canada, GST/HST registration is required after $30,000 CAD of sales over four consecutive calendar quarters; most US states require collection only after about $100,000 of sales into that state.
+
+### 2. Launch countries: Canada and the United States only
+
+Paid purchases are available only to buyers in Canada and the US. The agent recommended this and the product owner chose it. The reason is recorded because it is what makes decision 1 safe: the EU and UK require a non-EU seller of digital products to register and charge VAT from the **first** sale to a consumer, with no threshold, so a single EU/UK sale under "no tax collection" would already be non-compliant. **Free products stay available worldwide.** EU/UK sales can be added later, together with VAT registration.
+
+### Consequences for MVP-007 slice 3 (checkout)
+
+These follow from the decisions and bind the checkout implementation; they add no new scope:
+- **Checkout must enforce Canada/US.** A buyer outside both must not be able to complete a paid purchase. Enforcing this through the buyer's billing country is part of slice 3's design.
+- **Sales must be trackable against the thresholds.** Option A only works if the owner can see sales per country (and per US state) approaching the limits. Slice 3 therefore needs to record each paid order's billing country and, for the US, its state. How that is reported (an admin view or Stripe's own reporting) is not decided here.
+- **No tax lines at launch.** Prices are charged as set, with no tax added. The currency (USD) and refund (all sales final) decisions above are unchanged.
+
+### Open question 3: closed
+
+Currency (USD), refunds (none), tax (none at launch, revisited at the thresholds) and countries (Canada and the US) are all decided.

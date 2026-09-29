@@ -45,6 +45,7 @@ model User {
   articlePublishActions  ArticlePublishEvent[]
   releasePublishActions  ReleasePublishEvent[]
   productStatusActions   ProductStatusEvent[]
+  orders                 Order[]
 
   @@map("users")
 }

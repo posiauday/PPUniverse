@@ -3682,3 +3682,19 @@ The product owner merged PR #24 (MVP-014, merge commit `7c1f5d7`); Claude Code's
 **Verified on a fresh local Postgres:** both migrations apply in order; `prisma migrate diff` shows no drift between schema and migrations; `pnpm build` 25/25, `lint` 25/25, `typecheck` 48/48, `test` 48/48 tasks (`@ppu/adapter-catalog` 87/87 on 4 consecutive runs, `@ppu/web` 334/334, `@ppu/domain-catalog` 99/99, `@ppu/e2e` 82/82).
 
 **MVP-014 is Done; MVP-019 is Done on merge of PR #25.** The security and accessibility review is in `docs/final-decisions.md`, "MVP-014 and MVP-019: security and accessibility review, Done".
+
+## MVP-007 — Checkout (FR-006), slice 1 of 3: orders, payment-event ledger, webhook signature verification (2026-09-28)
+
+**Decisions taken first**, as direct product-owner answers (recorded in `docs/final-decisions.md`, "MVP-007 slice 1 authorized; launch currency; refund policy; pricing mechanism"): slice 1 authorized; USD only; all sales final; prices set by the owner per product and licence tier in the admin editor. Open question 3 is partly resolved (countries and tax remain open); open question 7 is resolved in substance. The Stripe pre-work and provider decision, previously only on the unmerged `docs/mvp-007-stripe-checkout-prework` branch, were brought onto this branch so they ship with the story that uses them.
+
+**Built:**
+- **Schema** (`packages/db/prisma/schema/commerce.prisma`, migration `20260929033331_add_orders_and_payment_events`): `Order` and `PaymentEvent`. The hand-appended SQL adds `amountCents > 0` and a three-letter currency-shape CHECK, and enables RLS on both tables. Verified directly in Postgres: RLS on, both CHECKs present, all four FKs `RESTRICT`, and no drift between schema and migrations.
+- **`@ppu/domain-commerce`** (previously a placeholder README): the order transition table (`PENDING` → `PAID`/`EXPIRED`/`FAILED`, `PAID` → `FULFILLED`), amount and currency validation, typed errors, and the provider-neutral `PaymentWebhookVerifier` and `CommerceRepository` ports (ADR 003).
+- **`@ppu/adapter-commerce`** (new package): `PrismaCommerceRepository`. Status transitions are compare-and-swap on the exact current status (the MVP-019 lesson). Payment events are insert-first, with the unique Stripe event id deciding duplicates (the MVP-010 `grantOrReuseEntitlement` pattern). The package is registered for per-package test isolation (BUG-015), which is now 8 packages.
+- **`@ppu/adapter-payments`** (previously a placeholder): `StripeWebhookVerifier`, using Stripe's official library (`stripe`, MIT, pinned exactly at 22.6.2) rather than hand-rolled cryptography. It needs no API key, keeps a 5-minute replay window, refuses a zero tolerance, and turns every failure into one detail-free error.
+
+**Deliberately not built (scope, not shortcuts):** no webhook route and no fulfilment (MVP-008 owns both, per the pre-work's section 8), and therefore no endpoint exposed, no secret configured, and no request-level telemetry, since there is no request surface yet. No `Price`, no Checkout Session, no UI, and so no new accessibility states.
+
+**Verified:** `@ppu/domain-commerce` 8/8; `@ppu/adapter-commerce` 15/15 on three consecutive runs against a real Postgres. Both concurrency tests were shown to fail when the conditional update was temporarily replaced with a plain one, then pass once restored. `@ppu/adapter-payments` 11/11 with real Stripe-generated signatures. Workspace: `build` 28/28, `lint` 28/28, `typecheck` 52/52, `test` 52/52 tasks; Prettier clean.
+
+**Remaining for MVP-007:** slice 2 (`Price` model, admin price editor, product-page price and "all sales final" notice) and slice 3 (Checkout Session creation and purchase flow), which is gated on the sales-tax decision. MVP-007 stays In Progress.
