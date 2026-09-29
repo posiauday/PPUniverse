@@ -3718,3 +3718,50 @@ The product owner merged PR #24 (MVP-014, merge commit `7c1f5d7`); Claude Code's
 **Verified:** `@ppu/domain-commerce` 13/13, `@ppu/adapter-commerce` 20/20 against real Postgres, `@ppu/domain-entitlements` 5/5, `@ppu/web` 345/345, `@ppu/e2e` 82/82; Playwright on chromium 73/73 across all product and admin-product states plus the inventory and fixture-cleanup specs; workspace build, lint, typecheck and test all green, Prettier clean.
 
 **Remaining for MVP-007:** slice 3 (checkout: Canada/US enforcement, billing country and state recorded, Offer data in JSON-LD), after the SEO and ads stories per the agreed order.
+
+## MVP-026 — SEO discoverability (FR-017, FR-014, FR-002) (2026-09-28)
+
+Item 2 of the product owner's work order. Implementation choices: `docs/final-decisions.md`, "SEO story (MVP-026): implementation decisions".
+
+**Built:**
+- **Rendered articles (TD-017 resolved):** `app/learn/ArticleBody.tsx` uses react-markdown + remark-gfm, pinned. No raw HTML is rendered, and `javascript:` links are dropped. Code blocks and tables sit in focusable, labelled scroll regions.
+- **`/learn` hub:** `app/learn/page.tsx` groups articles by type and carries CollectionPage and BreadcrumbList JSON-LD. It is indexable once populated and noindex-follow while empty. Its limit of 500 is TD-023.
+- **Internal links:**
+  - Breadcrumbs on the hub and on articles (`app/learn/Breadcrumbs.tsx`).
+  - "Keep learning" related articles (`lib/related-articles.ts`: same type first, topped up with the newest).
+  - "Latest from Learn" and a Learn link on the home page.
+  - A shared `ArticleList` component.
+- **Content port:** `listPublishedArticleSummaries({limit, type?, excludeSlug?})`, and sitemap entries now carry `updatedAt`. The adapter integration tests cover both.
+- **Share images:** `lib/seo/share-image.tsx` (next/og) renders `/og`, `/og/learn/{slug}` and `/og/products/{slug}`. Text comes from PUBLISHED rows only; anything else is a 404. The images are cached for a day. Metadata emits absolute `og:image` and a large Twitter card only when the origin is valid.
+- **Favicon:** `app/icon.svg`.
+- **Structured data:** TechArticle `author` and `publisher` are the LowCodeStacks Organization, and `buildBreadcrumbJsonLd` is new.
+- **Sitemap:** articles and the hub carry `lastmod`, and the budget is `MAX_SITEMAP_URLS - 2` (TD-010 partial).
+- **BUG-002 resolved** (was PROP-006): `firstParam()` and `normalizeQuery()` accept arrays, and both search pages read every parameter through them.
+- **Route-coverage guard:** it now matches `route.tsx` and `route.jsx` handlers. It previously matched only `.ts` and `.js`, so a JSX handler outside `/api` would have slipped through. It allows exactly the three share-image routes. `icon.svg` is a known metadata file, and `/learn` is a gated route.
+- **Accessibility states:**
+  - New: `learn-index`.
+  - `learn-published` now renders a fixture body with a heading, list, link, code block and table, and asserts the breadcrumb, table region and "Keep learning".
+  - A second published fixture article, `relatedArticle`, is seeded.
+
+**Found and fixed during the story:**
+1. **Heading levels.** My first heading rule shifted every Markdown level down by one, which turned the usual `##` into an h3 directly under the h1, skipping a level. The accessibility gate caught it. Now `#` and `##` are both h2, and deeper levels keep their own number.
+2. **An e2e assertion that depended on worker timing.** The related-article assertion named the worker's own fixture, but under parallel workers the newest same-type articles can belong to another worker. It now asserts that "Keep learning" has at least one link.
+3. **A guard catching my wording.** The no-raw-html guard flagged my own doc comment, which named the React raw-HTML prop. I reworded the comment; the guard was not weakened.
+
+**Verified locally (real Postgres):**
+- Workspace `build`, `lint`, `typecheck` and `test` all green:
+  - `@ppu/web` 380
+  - `@ppu/domain-catalog` 101
+  - `@ppu/adapter-content` 7
+  - `@ppu/e2e` 83
+- Full Playwright accessibility suite on chromium: 381/381.
+- Share-image output inspected visually: 1200x630, title and brand legible.
+
+**Commands:** `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (with `DATABASE_URL` and provisioned test schemas), `pnpm --filter @ppu/e2e exec playwright test --project=chromium`.
+
+**Risks:**
+- The share-image and favicon design is functional, not final, and will be replaced by the UI overhaul the product owner asked for.
+- The hub is unpaginated (TD-023).
+- Product and category `lastmod` is still absent (TD-010).
+
+**Remaining:** CI on all browsers, then merge. After that the ads story, then MVP-007 slice 3.

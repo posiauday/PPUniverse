@@ -1,6 +1,8 @@
 import { serializeJsonLd, type JsonLdObject } from "@ppu/ui";
 import { describe, expect, it } from "vitest";
 import {
+  buildArticleJsonLd,
+  buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
   buildProductJsonLd,
   buildWebSiteJsonLd,
@@ -215,5 +217,61 @@ describe("buildCollectionPageJsonLd", () => {
         description: null,
       }),
     ).toBeNull();
+  });
+});
+
+describe("buildArticleJsonLd (SEO story)", () => {
+  const input = {
+    origin: "https://example.com",
+    url: "https://example.com/learn/intro",
+    title: "Intro",
+    excerpt: "Start here.",
+    publishedAt: new Date("2026-09-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-09-20T00:00:00.000Z"),
+  };
+  const brand = { "@type": "Organization", name: SITE_NAME, url: "https://example.com/" };
+
+  it("emits TechArticle with dates and the brand as author and publisher", () => {
+    expect(buildArticleJsonLd(input)).toEqual({
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      headline: "Intro",
+      description: "Start here.",
+      url: "https://example.com/learn/intro",
+      datePublished: "2026-09-01T00:00:00.000Z",
+      dateModified: "2026-09-20T00:00:00.000Z",
+      author: brand,
+      publisher: brand,
+    });
+  });
+
+  it("never names a person, and returns null for an unpublished or untitled article", () => {
+    const keys = collectKeys(buildArticleJsonLd(input) as JsonLdObject);
+    expect(keys).not.toContain("givenName");
+    expect(JSON.stringify(buildArticleJsonLd(input))).not.toContain('"Person"');
+    expect(buildArticleJsonLd({ ...input, publishedAt: null })).toBeNull();
+    expect(buildArticleJsonLd({ ...input, title: "  " })).toBeNull();
+  });
+});
+
+describe("buildBreadcrumbJsonLd (SEO story)", () => {
+  it("numbers items from 1 with absolute URLs", () => {
+    expect(
+      buildBreadcrumbJsonLd([
+        { name: SITE_NAME, url: "https://example.com/" },
+        { name: "Learn", url: "https://example.com/learn" },
+      ]),
+    ).toEqual({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: SITE_NAME, item: "https://example.com/" },
+        { "@type": "ListItem", position: 2, name: "Learn", item: "https://example.com/learn" },
+      ],
+    });
+  });
+
+  it("returns null rather than an item with an empty name", () => {
+    expect(buildBreadcrumbJsonLd([{ name: " ", url: "https://example.com/" }])).toBeNull();
   });
 });

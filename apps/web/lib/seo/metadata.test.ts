@@ -5,6 +5,8 @@ import type { CategoryIndexingDecision } from "./category-indexing.js";
 import {
   buildCategoryMetadata,
   buildHomeMetadata,
+  buildLearnIndexMetadata,
+  buildLearnMetadata,
   buildNotFoundMetadata,
   buildProductMetadata,
   toMetaDescription,
@@ -59,7 +61,11 @@ describe("buildHomeMetadata", () => {
       title: SITE_NAME,
       description: SITE_DESCRIPTION,
     });
-    expect(metadata.twitter).toMatchObject({ card: "summary", title: SITE_NAME });
+    expect(metadata.twitter).toMatchObject({
+      card: "summary_large_image",
+      title: SITE_NAME,
+      images: ["https://example.com/og"],
+    });
   });
 });
 
@@ -149,17 +155,68 @@ describe("when the site origin is unavailable (production misconfiguration)", ()
   });
 });
 
-describe("social preview", () => {
-  it("never emits an image — no approved public media exists", () => {
+describe("social preview (SEO story: generated share images)", () => {
+  const imageOf = (metadata: Metadata) =>
+    (metadata.openGraph as { images?: Array<Record<string, unknown>> }).images;
+
+  it("gives every indexable page an absolute 1200x630 share image and a large Twitter card", () => {
+    const cases: Array<[Metadata, string]> = [
+      [buildHomeMetadata(SITE), "https://example.com/og"],
+      [buildCategoryMetadata({ site: SITE, category, decision: BASE }), "https://example.com/og"],
+      [
+        buildProductMetadata({ site: SITE, product }),
+        "https://example.com/og/products/sample-component",
+      ],
+      [
+        buildLearnMetadata({ site: SITE, article: { slug: "a b", title: "T", excerpt: null } }),
+        "https://example.com/og/learn/a%20b",
+      ],
+      [buildLearnIndexMetadata({ site: SITE, hasArticles: true }), "https://example.com/og"],
+    ];
+    for (const [metadata, url] of cases) {
+      expect(imageOf(metadata)).toEqual([
+        expect.objectContaining({ url, width: 1200, height: 630 }),
+      ]);
+      expect(metadata.twitter).toMatchObject({ card: "summary_large_image", images: [url] });
+    }
+  });
+
+  it("omits the image when the origin is unavailable, rather than a relative URL", () => {
     for (const metadata of [
-      buildHomeMetadata(SITE),
-      buildCategoryMetadata({ site: SITE, category, decision: BASE }),
-      buildProductMetadata({ site: SITE, product }),
+      buildHomeMetadata(NO_SITE),
+      buildProductMetadata({ site: NO_SITE, product }),
+      buildLearnIndexMetadata({ site: NO_SITE, hasArticles: true }),
     ]) {
-      expect((metadata.openGraph as { images?: unknown }).images).toBeUndefined();
+      expect(imageOf(metadata)).toBeUndefined();
       expect((metadata.twitter as { images?: unknown }).images).toBeUndefined();
       expect((metadata.twitter as { card?: string }).card).toBe("summary");
     }
+  });
+});
+
+describe("buildLearnMetadata", () => {
+  it("is indexable with a self-canonical and the excerpt as description", () => {
+    const metadata = buildLearnMetadata({
+      site: SITE,
+      article: { slug: "intro", title: "Intro", excerpt: "Start here." },
+    });
+    expect(metadata.title).toBe(`Intro | ${SITE_NAME}`);
+    expect(metadata.description).toBe("Start here.");
+    expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(canonicalOf(metadata)).toBe("https://example.com/learn/intro");
+  });
+});
+
+describe("buildLearnIndexMetadata", () => {
+  it("is indexable once it lists an article, and noindex-follow while empty", () => {
+    const populated = buildLearnIndexMetadata({ site: SITE, hasArticles: true });
+    expect(populated.robots).toEqual({ index: true, follow: true });
+    expect(canonicalOf(populated)).toBe("https://example.com/learn");
+    expect(populated.title).toBe(`Learn Power Platform | ${SITE_NAME}`);
+    expect(buildLearnIndexMetadata({ site: SITE, hasArticles: false }).robots).toEqual({
+      index: false,
+      follow: true,
+    });
   });
 });
 

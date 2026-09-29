@@ -175,8 +175,23 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
     expect(allIds).toContain(toPublish.id);
 
     const sitemap = await repo.listPublishedArticleSlugs(1000);
-    expect(sitemap.slugs).toContain(toPublish.slug);
-    expect(sitemap.slugs).not.toContain(draft.slug);
+    const sitemapSlugs = sitemap.entries.map((entry) => entry.slug);
+    expect(sitemapSlugs).toContain(toPublish.slug);
+    expect(sitemapSlugs).not.toContain(draft.slug);
+    const entry = sitemap.entries.find((e) => e.slug === toPublish.slug);
+    expect(entry?.updatedAt).toBeInstanceOf(Date);
+
+    const summaries = await repo.listPublishedArticleSummaries({ limit: 1000 });
+    const summarySlugs = summaries.map((summary) => summary.slug);
+    expect(summarySlugs).toContain(toPublish.slug);
+    expect(summarySlugs).not.toContain(draft.slug);
+    expect(summaries.find((a) => a.slug === toPublish.slug)).not.toHaveProperty("body");
+
+    const excluding = await repo.listPublishedArticleSummaries({
+      limit: 1000,
+      excludeSlug: toPublish.slug,
+    });
+    expect(excluding.map((a) => a.slug)).not.toContain(toPublish.slug);
   });
 
   it("an authorUserId cannot be hard-deleted while an Article references it (Restrict FK)", async () => {

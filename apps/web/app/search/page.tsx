@@ -1,4 +1,5 @@
 import {
+  firstParam,
   normalizeQuery,
   parsePage,
   parsePageSize,
@@ -13,7 +14,9 @@ import { catalogRepository } from "../../lib/catalog";
 import { SITE_NAME } from "../../lib/seo/site";
 
 interface SearchPageProps {
-  searchParams: Promise<Record<string, string | undefined>>;
+  // A repeated parameter arrives as an array (BUG-002); every value is read
+  // through firstParam/normalizeQuery.
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 // Rendered per-request (see apps/web/app/page.tsx for why). Search results
@@ -30,9 +33,9 @@ export function generateMetadata(): Metadata {
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = normalizeQuery(params["q"]);
-  const sort = resolveSortOption(params["sort"], Boolean(query));
-  const page = parsePage(params["page"]);
-  const pageSize = parsePageSize(params["pageSize"]);
+  const sort = resolveSortOption(firstParam(params["sort"]), Boolean(query));
+  const page = parsePage(firstParam(params["page"]));
+  const pageSize = parsePageSize(firstParam(params["pageSize"]));
 
   const result = await catalogRepository.searchProducts({ query, sort, page, pageSize });
 
@@ -44,7 +47,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     total: result.total,
   });
 
-  const currentParams = { q: query, sort, pageSize: params["pageSize"] };
+  const currentParams = { q: query, sort, pageSize: firstParam(params["pageSize"]) };
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">

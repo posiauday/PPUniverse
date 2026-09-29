@@ -56,6 +56,7 @@ export {
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
   resolveSortOption,
+  firstParam,
   normalizeQuery,
   parsePage,
   parsePageSize,

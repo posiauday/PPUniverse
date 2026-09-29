@@ -11,7 +11,7 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 | PROP-003 | Product Accessibility Disclosure | accessibility statement | P2 | 5 | Proposed |
 | PROP-004 | Product Releases and Changelog | changelog, version history | P1 | 5 | Proposed |
 | PROP-005 | Related Assets | related assets | P2 | 3 | Proposed — **deferred** |
-| PROP-006 | Repeated Query Parameter Handling (BUG-002 corrective) | — (FR-002; not an FR-003 item) | P3 | not estimated (expected small) | Proposed — approved in principle, not scheduled |
+| PROP-006 | Repeated Query Parameter Handling (BUG-002 corrective) | — (FR-002; not an FR-003 item) | P3 | not estimated (expected small) | **Done inside MVP-026 (2026-09-28)** |
 | PROP-007 | Job Queue Foundation | — (cross-cutting infrastructure; TD-004, TD-015; not an FR-003 item) | not assigned | ~13 (anchor: comparable to MVP-006) | Proposed — blocked on BUG-015 and its own approval |
 | PROP-008 | Power Apps Component Generator / Library | — (new product scope; not in BRD/PRD/backlog) | not assigned | not estimated | **Declined for now (2026-09-24)** — see `docs/final-decisions.md` |
 | PROP-009 | Asset and Content Suggestions | — (new product scope; not in BRD/PRD/backlog; not MVP-013 continued under a new name) | not assigned | not estimated (research level only) | Proposed — not approved, not scheduled, not an MVP-012 dependency |
@@ -79,7 +79,7 @@ Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 produ
 - **Security impact:** low — removes an unhandled-exception path reachable by any anonymous request.
 - **Accessibility impact:** none expected.
 - **Suggested priority / estimate:** P3 / not estimated.
-- **Status:** Proposed. The product owner approved the story in principle (Q32); it is not scheduled and not started.
+- **Status:** Done, 2026-09-28, inside MVP-026 (the SEO story), which the product owner's work order scheduled. The handling is first value. See `planning/bugs/BUG-002.md`.
 
 ## PROP-007 — Job Queue Foundation
 

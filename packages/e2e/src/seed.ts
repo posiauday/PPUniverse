@@ -30,6 +30,29 @@ export interface ProductRef {
   name: string;
 }
 
+/** Markdown for the published fixture article: one of each block ArticleBody styles. */
+const FIXTURE_ARTICLE_MARKDOWN = [
+  "Fixture body content for the accessibility harness.",
+  "",
+  "## Setting up",
+  "",
+  "- First step",
+  "- Second step, with [a link to the learn hub](/learn)",
+  "",
+  "### A code example",
+  "",
+  "```",
+  'Set(varFixture, LookUp(Accounts, Name = "A very long fixture value that is wider than a phone screen"))',
+  "```",
+  "",
+  "## Comparison",
+  "",
+  "| Option | When to use it |",
+  "| --- | --- |",
+  "| Fixture A | A fixture row |",
+  "| Fixture B | Another fixture row |",
+].join("\n");
+
 export interface ArticleRef {
   id: string;
   slug: string;
@@ -63,6 +86,8 @@ export interface FixtureSet {
   freeGrantProduct: ProductRef;
   /** MVP-017 (FR-014): a PUBLISHED Article, visible at /learn/[slug]. */
   publishedArticle: ArticleRef;
+  /** SEO story: a second PUBLISHED Article of the same type, listed under the first one's "Keep learning". */
+  relatedArticle: ArticleRef;
   /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /learn/[slug] must 404 for it. */
   draftArticle: ArticleRef;
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
@@ -448,7 +473,10 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         slug: publishedArticleSlug,
         title: `E2E fixture: published article ${prefix}(not real content)`,
         type: "TUTORIAL",
-        body: "Fixture body content for the accessibility harness.",
+        // SEO story: real Markdown, so the gate checks what ArticleBody
+        // renders -- headings, a list, a link, a code block and a table
+        // (each wide block in its own focusable, labelled scroll region).
+        body: FIXTURE_ARTICLE_MARKDOWN,
         excerpt: "Fixture excerpt.",
         status: "PUBLISHED",
         publishedAt: now,
@@ -458,6 +486,27 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     created.articleIds.push(publishedArticle.id);
     await prisma.articlePublishEvent.create({
       data: { articleId: publishedArticle.id, actorUserId: admin.id, action: "PUBLISHED" },
+    });
+
+    // SEO story: a second PUBLISHED article of the same type, so the first
+    // one's "Keep learning" section always has something to list.
+    const relatedArticleSlug = `${prefix}related-article`;
+    assertReserved("article", relatedArticleSlug);
+    const relatedArticle = await prisma.article.create({
+      data: {
+        slug: relatedArticleSlug,
+        title: `E2E fixture: related article ${prefix}(not real content)`,
+        type: "TUTORIAL",
+        body: "Fixture related body content for the accessibility harness.",
+        excerpt: "Fixture related excerpt.",
+        status: "PUBLISHED",
+        publishedAt: now,
+        authorUserId: admin.id,
+      },
+    });
+    created.articleIds.push(relatedArticle.id);
+    await prisma.articlePublishEvent.create({
+      data: { articleId: relatedArticle.id, actorUserId: admin.id, action: "PUBLISHED" },
     });
 
     const draftArticleSlug = `${prefix}draft-article`;
@@ -647,6 +696,11 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         id: publishedArticle.id,
         slug: publishedArticle.slug,
         title: publishedArticle.title,
+      },
+      relatedArticle: {
+        id: relatedArticle.id,
+        slug: relatedArticle.slug,
+        title: relatedArticle.title,
       },
       draftArticle: { id: draftArticle.id, slug: draftArticle.slug, title: draftArticle.title },
       draftAdminProduct: {

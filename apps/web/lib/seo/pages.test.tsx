@@ -20,6 +20,8 @@ const repository = vi.hoisted(() => ({
 
 const content = vi.hoisted(() => ({
   listPublishedArticleSlugs: vi.fn(),
+  listPublishedArticleSummaries: vi.fn(),
+  findPublishedArticleBySlug: vi.fn(),
 }));
 
 // MVP-007 slice 2: the product page reads the product's price. Free by
@@ -54,6 +56,10 @@ import { metadata as layoutMetadata } from "../../app/layout";
 import CategoryPage, {
   generateMetadata as categoryMetadata,
 } from "../../app/categories/[slug]/page";
+import LearnArticlePage, {
+  generateMetadata as learnArticleMetadata,
+} from "../../app/learn/[slug]/page";
+import LearnIndexPage, { generateMetadata as learnIndexMetadata } from "../../app/learn/page";
 import HomePage, { generateMetadata as homeMetadata } from "../../app/page";
 import ProductPage, { generateMetadata as productMetadata } from "../../app/products/[slug]/page";
 import robots from "../../app/robots";
@@ -113,11 +119,37 @@ const categoryProps = (searchParams: Record<string, string | undefined> = {}) =>
 });
 const productProps = (slug = "sample-component") => ({ params: Promise.resolve({ slug }) });
 
+const PUBLISHED_AT = new Date("2026-09-01T00:00:00.000Z");
+const UPDATED_AT = new Date("2026-09-20T00:00:00.000Z");
+const articleRow = {
+  id: "a1",
+  slug: "intro-tutorial",
+  title: "Intro Tutorial",
+  type: "TUTORIAL",
+  body: "## Step one\n\nDo the thing.",
+  excerpt: "Start here.",
+  status: "PUBLISHED",
+  publishedAt: PUBLISHED_AT,
+  updatedAt: UPDATED_AT,
+};
+const summary = (slug: string, type = "TUTORIAL") => ({
+  slug,
+  title: `Title ${slug}`,
+  type,
+  excerpt: null,
+  publishedAt: PUBLISHED_AT,
+});
+const articleProps = (slug = "intro-tutorial") => ({ params: Promise.resolve({ slug }) });
+const imageOf = (metadata: Metadata): unknown =>
+  (metadata.openGraph as { images?: Array<{ url: string }> } | undefined)?.images?.[0]?.url;
+
 beforeEach(() => {
   vi.stubEnv("NODE_ENV", "test");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", ORIGIN);
   repository.listCategories.mockResolvedValue([category]);
   repository.findPublishedProductDetailBySlug.mockResolvedValue(productDetail);
+  content.listPublishedArticleSummaries.mockResolvedValue([]);
+  content.findPublishedArticleBySlug.mockResolvedValue(articleRow);
 });
 
 afterEach(() => {
@@ -148,6 +180,107 @@ describe("home page", () => {
         url: "https://example.com/",
       },
     ]);
+  });
+});
+
+describe("home page — learning content (SEO story)", () => {
+  it("links to /learn and lists the newest articles when any are published", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("a"), summary("b")]);
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({ limit: 6 });
+    expect(markup).toContain("Latest from Learn");
+    expect(markup).toContain('href="/learn/a"');
+    expect(markup).toContain('href="/learn"');
+  });
+
+  it("omits the section, but keeps the /learn link, when nothing is published", async () => {
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup).not.toContain("Latest from Learn");
+    expect(markup).toContain('href="/learn"');
+  });
+
+  it("carries the site share image as an absolute URL", () => {
+    const metadata = homeMetadata();
+    expect(imageOf(metadata)).toBe("https://example.com/og");
+    expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
+  });
+});
+
+describe("/learn hub (SEO story)", () => {
+  it("is indexable with a self-canonical once an article is published", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("a")]);
+    const metadata = await learnIndexMetadata();
+    expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(canonicalOf(metadata)).toBe("https://example.com/learn");
+  });
+
+  it("stays noindex (links still followed) while it has no articles", async () => {
+    const metadata = await learnIndexMetadata();
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+  });
+
+  it("groups articles by type, skipping empty types, with CollectionPage and BreadcrumbList JSON-LD", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("t1", "TUTORIAL"),
+      summary("c1", "COMPARISON"),
+    ]);
+    const markup = renderToStaticMarkup(await LearnIndexPage());
+    expect(markup).toContain(">Tutorials</h2>");
+    expect(markup).toContain(">Comparisons</h2>");
+    expect(markup).not.toContain(">Patterns</h2>");
+    expect(markup.indexOf("Tutorials")).toBeLessThan(markup.indexOf("Comparisons"));
+    expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
+      "CollectionPage",
+      "BreadcrumbList",
+    ]);
+  });
+
+  it("shows an empty state and no CollectionPage when nothing is published", async () => {
+    const markup = renderToStaticMarkup(await LearnIndexPage());
+    expect(markup).toContain("No articles are published yet.");
+    expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual(["BreadcrumbList"]);
+  });
+});
+
+describe("article page (SEO story)", () => {
+  it("emits TechArticle JSON-LD with the LowCodeStacks brand as author and publisher, plus breadcrumbs", async () => {
+    const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
+    const [article, breadcrumbs] = jsonLdBlocks(markup);
+    const brand = { "@type": "Organization", name: SITE_NAME, url: "https://example.com/" };
+    expect(article).toMatchObject({
+      "@type": "TechArticle",
+      headline: "Intro Tutorial",
+      author: brand,
+      publisher: brand,
+      datePublished: PUBLISHED_AT.toISOString(),
+      dateModified: UPDATED_AT.toISOString(),
+    });
+    expect(breadcrumbs).toMatchObject({
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { position: 1, name: SITE_NAME, item: "https://example.com/" },
+        { position: 2, name: "Learn", item: "https://example.com/learn" },
+        { position: 3, name: "Intro Tutorial", item: "https://example.com/learn/intro-tutorial" },
+      ],
+    });
+  });
+
+  it("renders the Markdown body and a 'Keep learning' list of related articles", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("other")]);
+    const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
+    expect(markup).toContain(">Step one</h2>");
+    expect(markup).toContain("Keep learning");
+    expect(markup).toContain('href="/learn/other"');
+    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({
+      limit: 4,
+      type: "TUTORIAL",
+      excludeSlug: "intro-tutorial",
+    });
+  });
+
+  it("carries its own share image, built from the slug, as an absolute URL", async () => {
+    const metadata = await learnArticleMetadata(articleProps());
+    expect(imageOf(metadata)).toBe("https://example.com/og/learn/intro-tutorial");
   });
 });
 
@@ -263,12 +396,28 @@ describe("category page — canonical and robots policy", () => {
   });
 });
 
+describe("BUG-002: a repeated query parameter", () => {
+  it("renders the category page with the first value instead of throwing", async () => {
+    givenCategoryWith(30);
+    const props = {
+      params: Promise.resolve({ slug: category.slug }),
+      searchParams: Promise.resolve({ q: ["forms", "other"], page: ["2", "3"] }),
+    };
+    const markup = renderToStaticMarkup(await CategoryPage(props));
+    expect(markup).toContain("Sample Component");
+    expect(repository.searchProducts).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "forms", page: 2 }),
+    );
+  });
+});
+
 describe("product page", () => {
   it("is indexable with an absolute self-canonical", async () => {
     const metadata = await productMetadata(productProps());
     expect(metadata.robots).toEqual({ index: true, follow: true });
     expect(canonicalOf(metadata)).toBe("https://example.com/products/sample-component");
     expect(metadata.description).toBe("A reusable form control.");
+    expect(imageOf(metadata)).toBe("https://example.com/og/products/sample-component");
   });
 
   it("emits Product JSON-LD from real published data only — no Offer, price, rating or review", async () => {
@@ -362,6 +511,11 @@ describe("when the site origin is unavailable in production", () => {
     expect(homeMetadata().alternates).toBeUndefined();
     expect((await categoryMetadata(categoryProps())).alternates).toBeUndefined();
     expect((await productMetadata(productProps())).alternates).toBeUndefined();
+    // Nor a share image: a relative one would resolve against localhost.
+    expect(imageOf(homeMetadata())).toBeUndefined();
+    expect(imageOf(await productMetadata(productProps()))).toBeUndefined();
+    expect(imageOf(await learnArticleMetadata(articleProps()))).toBeUndefined();
+    expect((homeMetadata().twitter as { card?: string }).card).toBe("summary");
 
     const home = renderToStaticMarkup(await HomePage());
     const categoryMarkup = renderToStaticMarkup(await CategoryPage(categoryProps()));
@@ -394,20 +548,22 @@ describe("robots.txt and sitemap.xml routes", () => {
       productSlugs: ["sample-component"],
       truncated: false,
     });
+    const updatedAt = new Date("2026-09-20T10:00:00.000Z");
     content.listPublishedArticleSlugs.mockResolvedValue({
-      slugs: ["intro-tutorial"],
+      entries: [{ slug: "intro-tutorial", updatedAt }],
       truncated: false,
     });
     expect(await sitemap()).toEqual([
       { url: "https://example.com/" },
       { url: "https://example.com/categories/power-apps-components" },
       { url: "https://example.com/products/sample-component" },
-      { url: "https://example.com/learn/intro-tutorial" },
+      { url: "https://example.com/learn", lastModified: updatedAt },
+      { url: "https://example.com/learn/intro-tutorial", lastModified: updatedAt },
     ]);
-    // The home page takes one of MAX_SITEMAP_URLS (50,000); the remaining
-    // 49,999 is split between the catalog and content repositories (see
+    // The home page and the /learn hub take one each of MAX_SITEMAP_URLS
+    // (50,000); the remaining 49,998 is split between the catalog and content repositories (see
     // lib/seo/sitemap.ts's generateSitemap).
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(25_000);
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_999);
     expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_999);
   });
 });

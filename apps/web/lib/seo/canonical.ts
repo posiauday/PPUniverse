@@ -25,7 +25,25 @@ export function productUrl(origin: string, slug: string): string {
   return `${origin}/products/${encodeURIComponent(slug)}`;
 }
 
+/** The /learn hub listing every published article (SEO story). */
+export function learnIndexUrl(origin: string): string {
+  return `${origin}/learn`;
+}
+
 /** MVP-017, FR-014: tutorials, patterns and comparison pages. */
 export function learnUrl(origin: string, slug: string): string {
   return `${origin}/learn/${encodeURIComponent(slug)}`;
+}
+
+/** Share images (SEO story; lib/seo/share-image.tsx), served under /og, not /api. */
+export function siteShareImageUrl(origin: string): string {
+  return `${origin}/og`;
+}
+
+export function learnShareImageUrl(origin: string, slug: string): string {
+  return `${origin}/og/learn/${encodeURIComponent(slug)}`;
+}
+
+export function productShareImageUrl(origin: string, slug: string): string {
+  return `${origin}/og/products/${encodeURIComponent(slug)}`;
 }

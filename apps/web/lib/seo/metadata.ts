@@ -1,11 +1,22 @@
 import { normalizeDisplayText } from "@ppu/domain-catalog";
 import type { Metadata } from "next";
 import type { SiteUrlResult } from "../site-url";
-import { categoryUrl, homeUrl, learnUrl, productUrl } from "./canonical";
+import {
+  categoryUrl,
+  homeUrl,
+  learnIndexUrl,
+  learnShareImageUrl,
+  learnUrl,
+  productShareImageUrl,
+  productUrl,
+  siteShareImageUrl,
+} from "./canonical";
 import type { CategoryIndexingDecision } from "./category-indexing";
+import { SHARE_IMAGE_SIZE } from "./share-image-size";
 import {
   MAX_META_DESCRIPTION_LENGTH,
   OPEN_GRAPH_LOCALE,
+  LEARN_INDEX_DESCRIPTION,
   SITE_DESCRIPTION,
   SITE_NAME,
 } from "./site";
@@ -20,9 +31,11 @@ import {
  * When the site origin is unavailable (production misconfiguration) the
  * canonical and `og:url` are omitted rather than guessed — fail safe.
  *
- * There is deliberately no `og:image` / Twitter image: no approved public media
- * exists yet (screenshots are a proposed future story), and a relative image URL
- * would resolve against localhost when no metadataBase is set.
+ * Share images (SEO story): every indexable page carries a generated
+ * `og:image` / Twitter large card (lib/seo/share-image.tsx), as an ABSOLUTE
+ * URL built from the validated origin. When the origin is unavailable the
+ * image is omitted along with the canonical: a relative image URL would
+ * resolve against localhost, since no metadataBase is set.
  *
  * Creator-supplied text (names, summaries) is normalized (control, zero-width
  * and bidirectional-override characters removed); Next.js escapes the values
@@ -61,6 +74,8 @@ interface PageSeo {
   description: string;
   url: string | undefined;
   robots: RobotsDirective;
+  /** Absolute share-image URL; only ever set when the origin is valid. */
+  image: string | undefined;
 }
 
 function composeMetadata(seo: PageSeo): Metadata {
@@ -76,8 +91,18 @@ function composeMetadata(seo: PageSeo): Metadata {
       title: seo.socialTitle,
       description: seo.description,
       ...(seo.url ? { url: seo.url } : {}),
+      ...(seo.image
+        ? { images: [{ url: seo.image, ...SHARE_IMAGE_SIZE, alt: seo.socialTitle }] }
+        : {}),
     },
-    twitter: { card: "summary", title: seo.socialTitle, description: seo.description },
+    twitter: seo.image
+      ? {
+          card: "summary_large_image",
+          title: seo.socialTitle,
+          description: seo.description,
+          images: [seo.image],
+        }
+      : { card: "summary", title: seo.socialTitle, description: seo.description },
   };
 }
 
@@ -88,6 +113,7 @@ export function buildHomeMetadata(site: SiteUrlResult): Metadata {
     description: SITE_DESCRIPTION,
     url: site.ok ? homeUrl(site.origin) : undefined,
     robots: INDEXABLE_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
   });
 }
 
@@ -104,6 +130,7 @@ export function buildCategoryMetadata(input: {
     description: toMetaDescription(category.description, `Browse ${name} on ${SITE_NAME}.`),
     url: site.ok ? categoryUrl(site.origin, category.slug, decision.canonicalPage) : undefined,
     robots: decision.index ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
   });
 }
 
@@ -119,6 +146,7 @@ export function buildProductMetadata(input: {
     description: toMetaDescription(product.summary, `${name} on ${SITE_NAME}.`),
     url: site.ok ? productUrl(site.origin, product.slug) : undefined,
     robots: INDEXABLE_ROBOTS,
+    image: site.ok ? productShareImageUrl(site.origin, product.slug) : undefined,
   });
 }
 
@@ -137,6 +165,25 @@ export function buildLearnMetadata(input: {
     description: toMetaDescription(article.excerpt, `${title} on ${SITE_NAME}.`),
     url: site.ok ? learnUrl(site.origin, article.slug) : undefined,
     robots: INDEXABLE_ROBOTS,
+    image: site.ok ? learnShareImageUrl(site.origin, article.slug) : undefined,
+  });
+}
+
+/** The /learn hub (SEO story). Indexable once it lists at least one article;
+ * an empty hub is thin content, so it stays noindex (links still followed)
+ * until the first article is published. */
+export function buildLearnIndexMetadata(input: {
+  site: SiteUrlResult;
+  hasArticles: boolean;
+}): Metadata {
+  const { site, hasArticles } = input;
+  return composeMetadata({
+    title: `Learn Power Platform | ${SITE_NAME}`,
+    socialTitle: "Learn Power Platform",
+    description: LEARN_INDEX_DESCRIPTION,
+    url: site.ok ? learnIndexUrl(site.origin) : undefined,
+    robots: hasArticles ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
   });
 }
 

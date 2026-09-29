@@ -71,11 +71,22 @@ export interface ArticlePublishEventRecord {
   createdAt: Date;
 }
 
-/** Slugs eligible for sitemap.xml (FR-017 precedent, MVP-021): PUBLISHED
- * Articles only. Mirrors @ppu/domain-catalog's SitemapEntries shape. */
+/** PUBLISHED Articles for sitemap.xml (FR-017), each with its real
+ * last-modified time so crawlers can prioritise updated content (TD-010, SEO
+ * story). Article.updatedAt changes on every edit and on publish, so it is
+ * accurate -- unlike products, which stay without lastmod. */
 export interface ArticleSitemapEntries {
-  slugs: string[];
+  entries: Array<{ slug: string; updatedAt: Date }>;
   truncated: boolean;
+}
+
+/** What the /learn hub and related-article lists need -- no body. */
+export interface ArticleSummary {
+  slug: string;
+  title: string;
+  type: ArticleType;
+  excerpt: string | null;
+  publishedAt: Date;
 }
 
 /**
@@ -102,4 +113,11 @@ export interface ContentRepository {
   listArticles(): Promise<ArticleRecord[]>;
   /** PUBLISHED slugs only, ordered, for sitemap.xml. */
   listPublishedArticleSlugs(maxEntries: number): Promise<ArticleSitemapEntries>;
+  /** PUBLISHED Articles, newest first, at most `limit`. Optionally one type
+   * only, and optionally excluding one slug (the article being viewed). */
+  listPublishedArticleSummaries(options: {
+    limit: number;
+    type?: ArticleType;
+    excludeSlug?: string;
+  }): Promise<ArticleSummary[]>;
 }

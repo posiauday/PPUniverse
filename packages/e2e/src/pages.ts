@@ -654,13 +654,40 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // SEO story: the /learn hub lists every published article by type.
+    // Only the populated state is gated: parallel workers each publish
+    // fixture articles, so an empty hub cannot be produced here without
+    // racing them (the empty state is covered by a unit test instead).
+    id: "learn-index",
+    route: "/learn",
+    description: "the /learn hub, listing published articles by type",
+    auth: "guest",
+    status: 200,
+    path: () => "/learn",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("link", { name: seed.publishedArticle.title })).toBeVisible();
+    },
+  },
+  {
     // MVP-017 (FR-014). "published": the public /learn/[slug] read path.
+    // SEO story: the body is rendered Markdown, with breadcrumbs above and a
+    // "Keep learning" list below, both proven present here.
     id: "learn-published",
     route: "/learn/[slug]",
     description: "published article (tutorial/pattern/comparison) content page",
     auth: "guest",
     status: 200,
     path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
+      await expect(page.getByRole("region", { name: "Table, scrollable" })).toBeVisible();
+      // Not seed.relatedArticle by name: related articles are the newest of
+      // the same type, which under parallel workers may be another worker's
+      // fixtures. The seed guarantees at least one exists.
+      await expect(
+        page.getByRole("region", { name: "Keep learning" }).getByRole("link").first(),
+      ).toBeVisible();
+    },
   },
   {
     // "draft": a DRAFT article's slug is never publicly reachable — the
