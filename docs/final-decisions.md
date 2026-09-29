@@ -1378,3 +1378,31 @@ These follow from the decisions and bind the checkout implementation; they add n
 ### Open question 3: closed
 
 Currency (USD), refunds (none), tax (none at launch, revisited at the thresholds) and countries (Canada and the US) are all decided.
+
+## 2026-09-28 — Business model: free learning first; one price per product; work order
+
+Direct product-owner instruction in chat on 2026-09-28, clarifying the pricing decision recorded earlier the same day.
+
+### 1. Business model: mostly free, ads as the main revenue
+
+The product owner's words: *"I do not want to sell a lot. I want to give a lot — people can learn amazing stuff about the niche and come back for learning."* LowCodeStacks is primarily a **free learning site**. Only a few items will ever carry a price. **Advertising is the main intended revenue**, with paid items a small addition. Traffic, and therefore SEO, is the engine for both. Ads are not yet built: they are a later story (see the order below) and will need a consent banner for EU/UK visitors before any ad is served.
+
+### 2. One price per product, no licence tiers (revises the earlier pricing decision)
+
+This supersedes the "per product and per licence tier" wording in "MVP-007 slice 1 authorized; launch currency; refund policy; pricing mechanism", decision 4. **A product either is free or has a single USD price**, set and cleared by the owner in the admin product editor. There is no per-tier pricing for now. Licence definitions stay as they are, because every paid asset still needs a licence; they just are not priced separately. Which licence a purchase grants is settled when checkout (slice 3) is built.
+
+### 3. A priced product before checkout exists
+
+Decided by the agent under the product owner's standing instruction to decide and move forward; reversible. Until checkout ships, a priced product's public page shows the price, the "all sales final" notice and "Purchasing opens soon", and **no free download**. The free-entitlement route refuses any priced product, so a paid item can never be claimed for free through it.
+
+### 4. Article byline: the LowCodeStacks brand
+
+Articles are published under the LowCodeStacks brand, not a personal name. The SEO story adds the brand as publisher in the article structured data.
+
+### 5. Order of work
+
+The product owner chose this order, keeping the smaller pricing slice ahead of SEO:
+1. MVP-007 slice 2: one optional price per product.
+2. SEO story: proper article rendering (TD-017), a `/learn` hub with internal links, share images and favicon, the BUG-002 crawl error and sitemap `lastmod` (TD-010), and brand publisher data.
+3. Ads story: AdSense on learning pages only, with a consent banner and placements that respect performance and accessibility.
+4. MVP-007 slice 3 (checkout) and MVP-008 (fulfilment).
