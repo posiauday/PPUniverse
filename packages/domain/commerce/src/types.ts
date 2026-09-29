@@ -49,3 +49,12 @@ export interface RecordPaymentEventResult {
   recorded: boolean;
   event: PaymentEventRecord;
 }
+
+/** A product's single optional price (MVP-007 slice 2). A product with no
+ * price is free; "free" is never represented as a zero amount. */
+export interface PriceRecord {
+  productId: string;
+  amountCents: number;
+  currency: string;
+  updatedAt: Date;
+}

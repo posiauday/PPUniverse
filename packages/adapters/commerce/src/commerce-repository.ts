@@ -6,11 +6,13 @@ import {
   isValidOrderStatusTransition,
   OrderNotFoundError,
   OrderStatusTransitionNotAllowedError,
+  PricedProductNotFoundError,
   type CommerceRepository,
   type CreatePendingOrderInput,
   type OrderRecord,
   type OrderStatus,
   type PaymentEventRecord,
+  type PriceRecord,
   type RecordPaymentEventResult,
   type VerifiedPaymentEvent,
 } from "@ppu/domain-commerce";
@@ -92,6 +94,45 @@ export class PrismaCommerceRepository implements CommerceRepository {
       throw error;
     }
   }
+
+  async findProductPrice(productId: string): Promise<PriceRecord | null> {
+    const row = await this.db.price.findUnique({ where: { productId } });
+    return row ? toPriceRecord(row) : null;
+  }
+
+  async setProductPrice(
+    productId: string,
+    amountCents: number,
+    currency: string,
+  ): Promise<PriceRecord> {
+    if (!isValidOrderAmountCents(amountCents)) {
+      throw new InvalidOrderInputError(
+        "amountCents",
+        "amountCents must be a positive whole number of cents",
+      );
+    }
+    if (!isSupportedCurrency(currency)) {
+      throw new InvalidOrderInputError("currency", `Unsupported currency: ${currency}`);
+    }
+    try {
+      const row = await this.db.price.upsert({
+        where: { productId },
+        create: { productId, amountCents, currency },
+        update: { amountCents, currency },
+      });
+      return toPriceRecord(row);
+    } catch (error) {
+      // P2003: the productId foreign key has no matching product.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+        throw new PricedProductNotFoundError(productId);
+      }
+      throw error;
+    }
+  }
+
+  async clearProductPrice(productId: string): Promise<void> {
+    await this.db.price.deleteMany({ where: { productId } });
+  }
 }
 
 function toOrderRecord(row: {
@@ -135,5 +176,19 @@ function toPaymentEventRecord(row: {
     livemode: row.livemode,
     orderId: row.orderId,
     receivedAt: row.receivedAt,
+  };
+}
+
+function toPriceRecord(row: {
+  productId: string;
+  amountCents: number;
+  currency: string;
+  updatedAt: Date;
+}): PriceRecord {
+  return {
+    productId: row.productId,
+    amountCents: row.amountCents,
+    currency: row.currency,
+    updatedAt: row.updatedAt,
   };
 }

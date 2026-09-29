@@ -2,6 +2,7 @@ import type {
   CreatePendingOrderInput,
   OrderRecord,
   OrderStatus,
+  PriceRecord,
   RecordPaymentEventResult,
   VerifiedPaymentEvent,
 } from "./types.js";
@@ -52,4 +53,12 @@ export interface CommerceRepository {
     event: VerifiedPaymentEvent,
     orderId: string | null,
   ): Promise<RecordPaymentEventResult>;
+  /** The product's price, or null when the product is free. */
+  findProductPrice(productId: string): Promise<PriceRecord | null>;
+  /** Creates or replaces the product's single price. Rejects an invalid
+   * amount or unsupported currency (InvalidOrderInputError) and an unknown
+   * product (PricedProductNotFoundError). */
+  setProductPrice(productId: string, amountCents: number, currency: string): Promise<PriceRecord>;
+  /** Makes the product free again. A no-op if it has no price. */
+  clearProductPrice(productId: string): Promise<void>;
 }

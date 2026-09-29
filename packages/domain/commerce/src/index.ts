@@ -3,6 +3,7 @@ export type {
   OrderRecord,
   OrderStatus,
   PaymentEventRecord,
+  PriceRecord,
   RecordPaymentEventResult,
   VerifiedPaymentEvent,
 } from "./types.js";
@@ -13,6 +14,9 @@ export {
   isValidOrderStatusTransition,
   OrderNotFoundError,
   OrderStatusTransitionNotAllowedError,
+  formatPrice,
+  parsePriceInputToCents,
+  PricedProductNotFoundError,
   SUPPORTED_CURRENCIES,
 } from "./order.js";
 export type { CommerceRepository, PaymentWebhookVerifier } from "./ports.js";
