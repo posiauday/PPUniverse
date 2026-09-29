@@ -1218,3 +1218,77 @@ Two new Playwright a11y states were added to the existing page-state matrix (`pa
 ### Unchanged (restated)
 
 No `Product.status` enum value added or removed. No `EDITOR`/`PUBLISHER`/`CREATOR` role created. No pricing, checkout, or commerce code touched. No existing route's authorization pattern changed. `main` still requires a promoted release, separate from `develop`'s ordinary PR flow. Merge remains a separate, later authorization — never implied by this entry.
+
+## 2026-09-26 — MVP-019 operations console and audit: open questions evaluated and decided
+
+**Provenance, stated plainly:** `planning/prework/MVP-019-prework-analysis.md` (2026-09-26) surfaced five open questions rather than deciding them, per this repository's own established pre-work pattern. The product owner then directly instructed, in chat, that this session evaluate and decide them itself this time, rather than waiting for separate product-owner answers to each ("this time you evaluate and decide"). This is recorded as what it is — the agent's own reasoned evaluation, made under direct, explicit product-owner delegation of the decision — not as an independent product-owner judgment reached without that delegation. Per the Decision Validation Rule, direct product-owner instruction given directly in this session is itself an approved source; this entry is what makes that instruction durable rather than lost to chat history.
+
+### Question 1 — `ProductStatus` transition graph for `SUSPENDED`/`ARCHIVED`
+
+**Decided:** `PUBLISHED → SUSPENDED`, `SUSPENDED → PUBLISHED` (reinstate), `PUBLISHED → ARCHIVED`, and `SUSPENDED → ARCHIVED` are the only valid transitions. `ARCHIVED` is **terminal** — no code path transitions out of it. `DRAFT → SUSPENDED` and `DRAFT → ARCHIVED` are both **rejected** — a draft was never public, so there is nothing to suspend, and folding "abandon an unpublished draft" into the same `ARCHIVED` value as "retire a once-public product" would give one enum value two different meanings. No-op self-transitions (e.g. `PUBLISHED → PUBLISHED`) are also rejected, to keep the audit trail free of meaningless entries.
+
+**Why:** `SUSPENDED → PUBLISHED` must exist or suspension is a one-way door, defeating its purpose as a *temporary* measure — the whole reason `docs/09-marketplace-operations.md`'s four-state model separates "suspended" from "archived" is that one is meant to be reversible and the other isn't. Making `ARCHIVED` terminal is the safer default of the two possible mistakes: if it turns out products sometimes need to come back from `ARCHIVED`, that is an additive follow-up (add an `UNARCHIVE` transition later); the reverse mistake — building an unarchive path now, then discovering "permanently retired" needed to actually mean permanent — is not something a later change can cleanly undo once administrators have relied on it.
+
+### Question 2 — Entitlement holders' access when a Product is suspended or archived
+
+**Decided: suspending or archiving a Product does not touch any `Entitlement` row.** Existing entitlement holders keep unchanged read/download access regardless of the Product's current `status`. Suspend/archive affects public discoverability only (the product drops out of listing, category, search and its own detail page becoming publicly reachable) — it is not a revocation mechanism.
+
+**Why:** `Entitlement.revokedAt` already exists, precisely as the dedicated tool for cutting off access (MVP-010, "reserved and enforced at read time... nothing in this story ever sets it"). Silently wiring suspend/archive to also revoke entitlements would conflate two different administrative intents — "stop selling/showing this to new visitors" versus "existing owners lose what they already have" — under one action, which is exactly the kind of hard-to-reverse, customer-facing behavior change that deserves its own explicit decision with its own reasoning (a security takedown and a temporary sales pause are not the same thing), not an assumption folded into this story.
+
+### Question 3 — "Manage users" (FR-015) scope for MVP-019
+
+**Decided: out of scope for MVP-019.** No admin user-management UI, no user ban/suspend capability, and — critically — **no code path that changes `User.role`** is built by this story. FR-015's "manage users" phrase is left an explicit gap, not silently satisfied by nothing.
+
+**Why:** MVP-020 already established a hard rule — "No application code path grants `ADMIN`... Granting is a manual operational act performed directly against the database by the operator" — and a "manage users" UI is exactly the kind of surface that could accidentally cross into role management if built without its own dedicated security review. Declining to build it now protects that existing rule rather than risking it being weakened by an under-specified addition.
+
+### Question 4 — Unified `AuditEvent` table versus a read/merge admin view
+
+**Decided: a read/merge admin view, not a new table.** MVP-019 builds an admin surface that queries and combines the three existing append-only event tables (`DeletionRequestEvent`, `ArticlePublishEvent`, `ReleasePublishEvent` — the last pending MVP-014's own merge) plus the new `ProductStatusEvent` (question 1/5) this story adds. No new unified `AuditEvent` table is created, and `docs/06-data-model.md`'s "Operations" placeholder listing is understood as descriptive of the *concept* the read/merge view now satisfies, not a literal mandate for one physical table.
+
+**Why:** a real unified table would need every existing writer (`DeletionRequest`'s admin actions, `Article`'s publish action, `Release`'s publish action) to *also* write to it — either touching three already-shipped, already-tested write paths for a purely reporting-driven feature (real regression risk for no functional gain), or accepting the new table only covers actions from the day it ships onward, leaving a confusing "audit trail starts today" gap for everything before. The read/merge view has neither problem, costs nothing to existing code, and is fully reversible: deleting the view changes nothing about the underlying tables, and a future migration to one physical table (if a real cross-domain query-performance need ever appears) remains a clean additive step from here, not a redesign.
+
+### Question 5 — Is a reason mandatory for every `SUSPENDED`/`ARCHIVED` transition?
+
+**Decided: yes, for all four transitions in question 1's graph** (`PUBLISHED → SUSPENDED`, `SUSPENDED → PUBLISHED`, `PUBLISHED → ARCHIVED`, `SUSPENDED → ARCHIVED`) — a non-empty reason is required by application logic (not a `NOT NULL` schema constraint, mirroring `DeletionRequestEvent.reason`'s precedent of per-action-value strictness enforced in code) for every one of them, including the reinstating `SUSPENDED → PUBLISHED` transition.
+
+**Why:** NFR-009 ("destructive admin actions require reason capture") is the binding requirement, and all four transitions are sensitive, live-product-affecting state changes worth a documented reason for future audit review — reinstating a suspended product is arguably less "destructive" than the other three, but carving out just that one transition as reason-optional would add a special case for marginal benefit, against a uniform, simpler, and more conservative rule.
+
+### New table this decision authorizes: `ProductStatusEvent`
+
+Structurally identical to the existing publish-event precedent (`ArticlePublishEvent`, `ReleasePublishEvent`): append-only, `Restrict` FKs, RLS enabled in the same migration that creates it. Fields: `id`, `productId` (FK `Product`, `Restrict`), `actorUserId` (FK `User`, `Restrict`), `fromStatus`/`toStatus` (both `ProductStatus`), `reason` (`String?`, required by application logic per question 5, never a schema `NOT NULL`), `createdAt`.
+
+### Non-goals restated (unchanged from the pre-work analysis)
+
+No `Order`, `Refund`, `Review`, `ReviewVote`, or `FeatureFlag` model or admin surface. No taxonomy (`Category`/`Tag`) admin CRUD UI. No `Entitlement.revokedAt`-setting code path (question 2 above keeps this explicitly separate). No `SupportCase`, `JobRecord`, `WebhookReceipt`, or `AnalyticsEvent` model. No new role.
+
+### Unchanged (restated)
+
+No product code, schema, UI, route, or API existed before this entry; the implementation that follows it on `feature/mvp-019-operations-console-prework` is what puts these decisions into effect. Neither PR #23 nor PR #24 (MVP-014) is touched by this branch. No historical decision record is erased or rewritten.
+
+## 2026-09-28 — MVP-014 and MVP-019: security and accessibility review, Done
+
+MVP-014 merged via PR #24 (merge commit `7c1f5d7`, run by the product owner — Claude Code's auto-mode guardrail blocked the agent from merging). MVP-019 is Done on merge of PR #25, whose branch was brought up to date with that merge before this entry. The product owner's direct instruction for this pass was to decide and move the project forward as the developer would.
+
+### Security review
+
+Re-verified against the code on the combined branch, not restated from the implementation plans.
+
+- **Authorization:** both new routes (`POST .../releases/{releaseId}/publish`, `POST .../status`) and the `/admin/audit` page use the established deny-by-default pattern — no session and a non-`ADMIN` role get the identical 404, the role is re-read from the database per request, and `actorUserId` always comes from the server session, never the request body. Route tests cover both denial paths.
+- **Input handling:** `toStatus` is checked against a server-owned allow-list, `reason` is validated server-side (non-empty, at most 1000 characters), and no client-supplied `fromStatus`, `publishedAt`, or product state is accepted anywhere.
+- **Concurrency and audit integrity:** both state transitions are atomic conditional updates on an exact single prior state (`Release.publishedAt IS NULL`; `Product.status = <validated status>`), with the audit row written in the same transaction. The one defect found — MVP-019's first claim predicate could record a stale `fromStatus` — was caught by independent review and fixed before merge; the race test now asserts a continuous event chain and was shown to fail against the old predicate.
+- **Data layer:** `release_publish_events` and `product_status_events` both have `ENABLE ROW LEVEL SECURITY` in the migration that creates them, and `Restrict` FKs so audit rows cannot be cascaded away. On a fresh database both migrations apply in order, and `prisma migrate diff` reports no drift between the merged schema and the migrations.
+- **No entitlement side effects:** suspend/archive never touches `Entitlement` rows (question 2 above); `changeProductStatus` writes only `products` and `product_status_events`.
+- **Audit view data exposure:** `/admin/audit` shows actor and deletion-requester emails to `ADMIN` users only — data `/admin/deletion-requests` already shows them. It is read-only, with no mutation path.
+- No findings open.
+
+### Accessibility review sign-off
+
+Scope and method, not conformance. No claim of WCAG compliance, audit, or certification is made.
+
+- **What:** the established axe-core blocking rules plus overflow and title checks at 320/375/768/1280px in chromium, firefox, and webkit, with the unconditional self-check in every shard.
+- **New states:** MVP-014 added `admin-products-edit-published-draft-ready` and `-not-ready`; MVP-019 added `admin-products-edit-suspended`, `admin-audit-populated`, and `admin-audit-denied`. One real defect was found and fixed before merge: the audit table overflowed at 320/375px until wrapped in the labelled, keyboard-focusable scroll region the compatibility matrix already uses.
+- **Not tested:** screen readers, voice control, switch access, magnification, human manual review — unchanged from MVP-023's standing position.
+
+### Done
+
+`planning/mvp-backlog.csv`/`planning/backlog.csv`: MVP-014 and MVP-019 move QA → Done. MVP-019's tech-debt record was renumbered TD-021 → TD-022 when the branches merged, since MVP-014's unrelated TD-021 merged first.

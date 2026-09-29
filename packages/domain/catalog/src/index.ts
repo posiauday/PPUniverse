@@ -24,6 +24,8 @@ export type {
   ProductPublishMissingField,
   ProductPublishReadiness,
   ProductEvidenceForAdmin,
+  ProductStatusChangeResult,
+  ProductStatusEventRecord,
 } from "./types.js";
 export { isPubliclyVisible } from "./visibility.js";
 export {
@@ -32,6 +34,8 @@ export {
   isValidProductSummary,
   isValidReleaseVersion,
   isValidProductStatusTransition,
+  isValidProductStatusChangeTransition,
+  isValidProductStatusChangeReason,
   isReleaseMutable,
   checkProductPublishReadiness,
   ProductNotFoundError,
@@ -44,6 +48,8 @@ export {
   ReleaseNotFoundError,
   FileScanNotFoundError,
   FileScanNotCleanError,
+  ProductStatusTransitionNotAllowedError,
+  ProductStatusChangeReasonRequiredError,
 } from "./product.js";
 export type { CatalogRepository } from "./catalog-repository.js";
 export {

@@ -11,9 +11,14 @@ export type EntitlementSource = "FREE_POLICY";
  * package stays independent of the catalog domain's own type surface, and
  * the two happen to use the same string values by coincidence of both
  * modeling the same underlying Prisma enum, not because one depends on the
- * other.
+ * other. Updated to include SUSPENDED/ARCHIVED (MVP-019) for the same
+ * coincidental reason -- isProductEligibleForFreeEntitlement's own check
+ * (`status === "PUBLISHED"`) already treats every non-PUBLISHED value
+ * identically (ineligible), so this widening changes no behavior; it only
+ * keeps this literal union assignable from a real ProductRecord.status
+ * value without a cast at the call site.
  */
-export type ProductStatus = "DRAFT" | "PUBLISHED";
+export type ProductStatus = "DRAFT" | "PUBLISHED" | "SUSPENDED" | "ARCHIVED";
 
 export interface EntitlementEligibilityInput {
   status: ProductStatus;

@@ -3549,3 +3549,136 @@ local embedded-Postgres instance and confirm no orphaned process remains
 for product-owner review. `planning/mvp-backlog.csv`/`planning/backlog.csv`:
 MVP-014 moves Backlog -> QA (not Done -- real-CI accessibility confirmation
 and merge are still pending).
+
+## MVP-019 — Operations console and audit (FR-015/NFR-009), implementation (2026-09-26)
+
+Direct product-owner delegation: after this session's own read-only
+pre-work analysis (`planning/prework/MVP-019-prework-analysis.md`)
+surfaced five open questions rather than deciding them, the product owner
+instructed this session to evaluate and decide them itself this time. Full
+reasoning: `docs/final-decisions.md`, "MVP-019 operations console and
+audit: open questions evaluated and decided". Implemented on
+`feature/mvp-019-operations-console-prework`, in an isolated git worktree
+so the concurrently in-flight MVP-014 branch/PR was never disturbed.
+
+**Files changed:**
+- `packages/db/prisma/schema/catalog.prisma` -- `ProductStatus` gains
+  `SUSPENDED`/`ARCHIVED`; new `ProductStatusEvent` model (RLS enabled in
+  the same migration, `Restrict` FKs); `Product.statusEvents` back-relation.
+- `packages/db/prisma/schema/identity.prisma` -- `User.productStatusActions`
+  back-relation.
+- `packages/db/prisma/migrations/20260926073356_add_product_status_events/`
+  -- hand-appended RLS statement in the same migration Prisma generated.
+- `packages/domain/catalog/src/product.ts` -- a deliberately *separate*
+  transition table (`ALLOWED_STATUS_CHANGE_TRANSITIONS`) and
+  `isValidProductStatusChangeTransition`, kept apart from MVP-012's own
+  `isValidProductStatusTransition` (the initial-publish-only DRAFT ->
+  PUBLISHED gate) so a suspended/archived product could never accidentally
+  satisfy that gate's "must be DRAFT" precondition once SUSPENDED gained a
+  transition to PUBLISHED. Also: `isValidProductStatusChangeReason`, two new
+  error classes.
+- `packages/domain/catalog/src/types.ts`, `index.ts`,
+  `catalog-repository.ts` (interface) -- new types/exports and the
+  `changeProductStatus`/`listRecentProductStatusEvents` contract.
+- `packages/adapters/catalog/src/catalog-repository.ts` -- `changeProductStatus`
+  (compare-and-swap on the exact validated status -- see the review-fix
+  section below) and `listRecentProductStatusEvents`.
+- `apps/web/app/api/admin/products/[id]/status/route.ts` (new) -- one route
+  for suspend/archive/reinstate, not three near-identical ones.
+- `apps/web/app/admin/products/[id]/edit/ProductStatusControl.tsx` (new),
+  wired into `page.tsx` for a PUBLISHED or SUSPENDED product.
+- `apps/web/lib/audit.ts` (new) -- the read/merge audit-log query, living
+  in the app's `lib/` layer rather than a new domain/adapter package pair,
+  since it enforces no business rules of its own, only formats and merges
+  already-audited rows from three existing sources.
+- `apps/web/app/admin/audit/page.tsx` (new) -- the read-only admin surface.
+- `packages/e2e/src/seed.ts`, `pages.ts`, `page-routes.ts` -- a new
+  `suspendedAdminProduct` fixture (published, then suspended, with its own
+  `ProductStatusEvent`) and 3 new accessibility states.
+- `packages/e2e/tests/a11y/fixtures-cleanup.spec.ts` -- the hardcoded
+  "5 products per worker" assertion updated to 6.
+- `docs/06-data-model.md`, `docs/07-api-contracts.md`,
+  `docs/09-marketplace-operations.md`, `docs/final-decisions.md`,
+  `planning/mvp-backlog.csv`, `backlog.csv`, `requirement-traceability.csv`,
+  `status.md`, `tech-debt.csv`, `tech-debt/TD-022.md` (new; created as
+  TD-021 on this branch, renumbered when merged with MVP-014's own TD-021).
+
+**Commands executed** (all against a real local Postgres): Prisma
+migration generate/deploy/generate-client, `provision-test-schemas.mjs`;
+`pnpm --filter @ppu/domain-catalog test` (100/100); `pnpm --filter
+@ppu/adapter-catalog test` (80/80, including both concurrency tests);
+`pnpm --filter @ppu/web test` (325/325); full-workspace `pnpm
+build`/`lint`/`typecheck`/`test` (48/48 tasks each); Playwright a11y full
+page-inventory on chromium (207/207).
+
+**A real test-design bug found and fixed during this pass, not just a
+regression:** the first version of the "two concurrent status-change
+requests" integration test raced `PUBLISHED -> SUSPENDED` against
+`PUBLISHED -> ARCHIVED` and asserted exactly one must fail. That assertion
+was wrong, not the implementation: `ARCHIVED`'s valid-from set deliberately
+includes `SUSPENDED` (question 1's own decision, so a suspended product
+can still be retired later), so whichever transaction the database
+serializes second legitimately re-evaluates against the fresh,
+already-changed row and can also succeed. Fixed with two tests instead of
+one: a genuine mutual-exclusion case (both requests targeting the
+identical `SUSPENDED` status, mirroring MVP-014's `Release.publishedAt`
+concurrency test exactly) and a second test for the composable-target case
+that asserts only what holds under either legitimate lock-acquisition
+order (1 or 2 fulfilled, final status `ARCHIVED` either way, event count
+equals fulfilled count) rather than a fixed outcome -- deliberately
+avoiding the order-dependent flakiness this project's own BUG-015 already
+warned against.
+
+**A real accessibility defect found and fixed, not just asserted clean:**
+the audit-log `<table>` overflowed horizontally at 320px/375px (442px
+content in a 375px viewport) until wrapped in the same labelled,
+keyboard-focusable, horizontally-scrollable region
+`packages/ui/src/product-evidence.tsx`'s compatibility matrix already
+established for the identical problem.
+
+**Explicitly out of scope, confirmed by direct decision, not silently
+skipped:** user management (no admin UI, no `User.role` mutation path --
+protects MVP-020's existing "no application code path grants ADMIN" rule);
+taxonomy (`Category`/`Tag`) admin CRUD; `Entitlement.revokedAt`'s write
+path; `Order`/`Refund`/`Review`/`FeatureFlag` (no backing model or owning
+story exists for any of them yet).
+
+**New tech-debt record**: [TD-022](tech-debt/TD-022.md) (Low, Open) -- the
+admin audit log has no pagination, capped at 100 entries, mirroring
+TD-014's identical accepted precedent. (Created as TD-021 on this branch;
+renumbered to TD-022 when merged with MVP-014, whose own, unrelated TD-021
+merged first.)
+
+**MVP-019 status QA, not Done.** `planning/mvp-backlog.csv`/`backlog.csv`
+moved Backlog -> QA. Remaining: open exactly one PR via `gh pr create` (not
+merged under this authorization); let real CI run the full 3-engine
+accessibility matrix (only a local chromium pass has run so far); tear
+down the local embedded-Postgres instance and confirm no orphaned process
+remains; report per the standard 24-heading format; stop for
+product-owner review.
+
+### MVP-019 — independent review finding fixed before merge (2026-09-26)
+
+An independent review (GitHub Copilot, given a compact packet of the method and both concurrency tests; it could not read the private PR itself) found a real audit-integrity defect, verified here against the code rather than taken on trust. `changeProductStatus` claimed the transition with `status: { in: <every status that can reach toStatus> }` but wrote the event's `fromStatus` from the earlier pre-claim read. If two requests both read PUBLISHED and one moved it to SUSPENDED, the other (targeting ARCHIVED) could then succeed from SUSPENDED while its event still said PUBLISHED -> ARCHIVED: correct final status, false audit history, in the story whose purpose is audit. The earlier test comment even described this interleaving as "correct" and asserted only event count -- the review's point that the test rationalized the defect was right.
+
+Fixed: the claim is now a compare-and-swap on the exact validated status (`status: product.status`), so `count === 1` proves the recorded `fromStatus` is what was replaced; a loser fails with the existing state-transition error carrying the fresh status and may retry. The now-dead `validFromStatusesForStatusChange` was removed (function, export, test). The two events are created sequentially before the final product read (review M2). Test B now races SUSPENDED against ARCHIVED eight times and asserts, for every interleaving, that events form a continuous chain from PUBLISHED consuming every event and ending at the product's final status, with event count equal to fulfilled count (final status may legitimately be SUSPENDED or ARCHIVED under exact CAS). Verified the tests bite: with the broad predicate temporarily restored, the concurrency tests fail on every run; with the fix, 6 consecutive runs of the 80-test integration suite pass.
+
+Not adopted, with reasons: the review's M1 asks for a deterministic barrier proving the two calls overlap inside the database; the repository method owns its transaction and exposes no hook, and adding a test-only seam to production code for this was judged disproportionate -- the repeated race raises overlap odds and the CAS predicate itself is the guarantee. Test A is documented as a duplicate-request regression test, not proof of overlap. Review points on route authorization (actorUserId derived from the server session, toStatus and reason validated server-side, 409 INVALID_STATE mapping) were checked against `route.ts` and already hold.
+
+## MVP-014 merged; MVP-019 brought up to date and marked Done (2026-09-28)
+
+The product owner merged PR #24 (MVP-014, merge commit `7c1f5d7`); Claude Code's auto-mode guardrail had blocked the agent from merging it. `develop` was then merged into `feature/mvp-019-operations-console-prework` so PR #25 tests against the real combined code.
+
+**Conflicts:** 11 files. The prisma schemas, e2e seed, and integration-test cleanup were unions (both `ReleasePublishEvent` and `ProductStatusEvent` rows are now cleared before `product.deleteMany`, since both have `Restrict` FKs). The docs were ordered chronologically (MVP-014's entries before MVP-019's). `planning/status.md` was rewritten to the post-merge state rather than spliced. Both branches had created a `TD-021`: MVP-014's keeps the number because it merged first, and MVP-019's became [TD-022](tech-debt/TD-022.md).
+
+**Two real breaks from combining the stories, both fixed:**
+1. MVP-019's test helper called `publishProductWithRelease(productId, releaseId)`, the pre-MVP-014 signature; MVP-014 added a required `actorUserId`. The typecheck would have failed on `develop`.
+2. MVP-014's `ReleasesEditor` typed `productStatus` as `"DRAFT" | "PUBLISHED"`, which no longer compiles once MVP-019 widens `ProductStatus`. It now uses `ProductStatus` from `@ppu/domain-catalog`. The "publish this release" control still renders only for a `PUBLISHED` product, which is correct: `publishSubsequentRelease` rejects anything else.
+
+**One planned completion:** `/admin/audit` now also merges `ReleasePublishEvent` as a fourth source. MVP-019's own recorded decision (question 4) named it as a source once MVP-014 merged.
+
+**Stale metrics corrected:** `status.md`'s progress metrics still read 13 stories / 92 points and had never counted MVP-012. They were recomputed from `planning/backlog.csv`: 16/25 stories, 113/170 points, P0 103/145.
+
+**Verified on a fresh local Postgres:** both migrations apply in order; `prisma migrate diff` shows no drift between schema and migrations; `pnpm build` 25/25, `lint` 25/25, `typecheck` 48/48, `test` 48/48 tasks (`@ppu/adapter-catalog` 87/87 on 4 consecutive runs, `@ppu/web` 334/334, `@ppu/domain-catalog` 99/99, `@ppu/e2e` 82/82).
+
+**MVP-014 is Done; MVP-019 is Done on merge of PR #25.** The security and accessibility review is in `docs/final-decisions.md`, "MVP-014 and MVP-019: security and accessibility review, Done".

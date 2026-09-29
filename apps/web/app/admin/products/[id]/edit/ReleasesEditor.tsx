@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { ProductStatus } from "@ppu/domain-catalog";
 
 export interface ReleasesEditorRelease {
   id: string;
@@ -23,8 +24,9 @@ interface ReleasesEditorProps {
    * direct product-owner decision, "MVP-014 implementation authorization"
    * sections 4/8), via a dedicated action distinct from the initial
    * Product-level publish control (which only renders while the Product is
-   * still DRAFT). */
-  productStatus: "DRAFT" | "PUBLISHED";
+   * still DRAFT). A SUSPENDED or ARCHIVED product (MVP-019) never shows
+   * that action: publishSubsequentRelease requires PUBLISHED. */
+  productStatus: ProductStatus;
   /** Product-level mandatory fields (license/support policy/compatibility)
    * still missing, computed server-side -- the same readiness check the
    * initial-publish control uses, minus the "release" field (checked here
