@@ -1315,3 +1315,41 @@ Direct product-owner instruction ("COMBINED PRODUCT-OWNER INSTRUCTION," Phase B,
 ### Unchanged (restated)
 
 No product code, schema, UI, route, or API changed. No test changed. No CI change. No enum value changed. No role created. Questions 3 and 7 remain open, unresolved. MVP-007 is not started. PR #23/MVP-012 are untouched by this entry. No historical decision record is erased or rewritten.
+
+## 2026-09-28 — MVP-007 slice 1 authorized; launch currency; refund policy; pricing mechanism (open questions 3 and 7)
+
+All four decisions below are direct product-owner answers given in chat on 2026-09-28. They were asked one at a time, with the agent's recommendation stated where one was given.
+
+### 1. MVP-007 slice 1 is authorized
+
+The scope is exactly the part of MVP-007 that the Stripe pre-work (`planning/prework/MVP-007-stripe-checkout-prework.md`, section 21) identified as independent of pricing and tax: the `Order` and payment-event schema, the order state machine, and Stripe webhook signature verification. Slice 1 has **no prices, no Checkout Session creation, and no buyer-facing UI**. Those stay out of slice 1 and are sequenced below.
+
+### 2. Launch currency: USD only (open question 3, part)
+
+Buyers are charged in USD. That gives one price per licence tier, and Canadian buyers' cards convert automatically. The schema keeps a currency column so that adding CAD later is an additive change, not a redesign. This was the agent's stated recommendation, and the product owner accepted it.
+
+### 3. Refund policy: all sales final (open question 3, part)
+
+Product-owner instruction: *"There is no return or refund once purchased."* The products sold are digital components, which cannot be returned once delivered. Every paid product's refund classification (a `CLAUDE.md` requirement for paid assets) is therefore **non-refundable**.
+
+These consequences follow from the decision. They record what it implies; they add no new scope:
+- **Disclosure before purchase.** The buyer-facing purchase flow must say "all sales final" clearly *before* payment is taken. A no-refund policy is only as defensible as its disclosure. This binds the future checkout UI slice.
+- **Chargebacks still exist.** A refund policy cannot prevent a buyer's bank from reversing a card payment. Stripe dispute events still need recording (MVP-008's webhook scope), and MVP-010's `Download` record remains the evidence that the product was delivered.
+- **No in-app refund feature is built.** If an exceptional refund is ever needed (a duplicate charge, card fraud), it is done manually in the Stripe Dashboard. Revoking entitlement on refund is not built.
+- **Consumer-law check.** Some jurisdictions give buyers of digital goods rights a store policy cannot waive. Launch countries are still undecided, so the policy should be checked with an accountant or lawyer before live payments are taken. This note is a flag, not legal advice.
+
+### 4. Pricing: set by the product owner in the admin screens (open question 7)
+
+Product-owner instruction: *"Price I should be able to decide."* Prices are **not fixed in code or in any decision record.** The administrator sets a USD price per product and per licence tier (Personal/Team/Enterprise) through the admin product editor, and can change it. A product with no active price is free. This resolves the Stripe pre-work's section 4 choice in favour of deriving "premium" from the existence of an active price, rather than adding a separate product flag. Price amounts are operational data the owner manages, not requirements.
+
+### Sequencing that follows
+
+1. **Slice 1** (authorized, starting now): orders, payment events, state machine, webhook signature verification.
+2. **Slice 2** (unblocked by decision 4): a `Price` model, the admin price editor, and price display on the product page, including the "all sales final" notice (decision 3).
+3. **Slice 3**: Checkout Session creation and the purchase flow. **Still gated on sales tax** (the remaining part of open question 3). Whether to collect tax, and where to register, has legal weight and is not decided.
+
+### Still open
+
+- **Open question 3:** launch countries (the Canada/US proposal is still not approved) and tax handling.
+- **Open question 51:** legal entity before real payments.
+- **Open question 5:** hosting.

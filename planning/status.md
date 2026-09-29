@@ -35,8 +35,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Column | Count | Stories |
 |---|---|---|
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
-| Ready | 1 | MVP-007 |
-| In Progress | 0 | — |
+| Ready | 0 | — |
+| In Progress | 1 | MVP-007 (slice 1 of 3) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |

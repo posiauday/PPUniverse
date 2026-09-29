@@ -5,7 +5,7 @@ MVP-003,Catalog,Done,P0,2,8
 MVP-004,Search filter sort and zero results,Done,P0,3,8
 MVP-005,Product detail evidence model,Done,P0,3,5
 MVP-006,Quarantine scan and private storage,Done,P0,2,13
-MVP-007,Checkout session,Ready,P0,4,8
+MVP-007,Checkout session,In Progress,P0,4,8
 MVP-008,Verified webhook fulfillment,Backlog,P0,5,8
 MVP-009,Authorized signed downloads,Backlog,P0,6,5
 MVP-010,Free entitlement flow,Done,P0,3,3
