@@ -803,6 +803,45 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // MVP-014 (FR-011): a published product with a further draft release
+    // that already has a CLEAN file attached -- the "ready to publish"
+    // branch of PublishReleaseControl. Same product/page as
+    // admin-products-edit-published; a distinct id and prepare() because
+    // this state asserts a different, additional part of the same render.
+    id: "admin-products-edit-published-draft-ready",
+    route: "/admin/products/[id]/edit",
+    description:
+      "admin edit-product form, signed in as ADMIN, a published product with a ready-to-publish draft release",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/products/${seed.publishedAdminProduct.id}/edit`,
+    prepare: async (page) => {
+      // Two draft releases exist on this fixture product (1.1.0 ready,
+      // 1.2.0-not-ready unready), so the bare role query matches both
+      // releases' "Publish this release" buttons -- scope to the ready
+      // release's own list item.
+      const readyItem = page.getByRole("listitem").filter({ hasText: "1.1.0" });
+      await expect(
+        readyItem.getByRole("button", { name: /publish this release/i, disabled: false }),
+      ).toBeVisible();
+    },
+  },
+  {
+    // The "not ready" branch of the same control: a bare draft release
+    // (no file attached at all) shows its missing-field list instead of a
+    // publish button.
+    id: "admin-products-edit-published-draft-not-ready",
+    route: "/admin/products/[id]/edit",
+    description:
+      "admin edit-product form, signed in as ADMIN, a published product with a not-yet-ready draft release",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/products/${seed.publishedAdminProduct.id}/edit`,
+    prepare: async (page) => {
+      await expect(page.getByText(/attached, scanned-clean file/i)).toBeVisible();
+    },
+  },
+  {
     id: "admin-products-edit-denied",
     route: null,
     description: "admin edit-product form, denied to a signed-in member",

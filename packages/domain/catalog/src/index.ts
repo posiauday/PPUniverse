@@ -40,6 +40,7 @@ export {
   checkProductPublishReadiness,
   ProductNotFoundError,
   ProductNotDraftError,
+  ProductNotPublishedError,
   ReleaseNotFoundForProductError,
   ReleaseAlreadyPublishedError,
   ReleaseNotReadyError,

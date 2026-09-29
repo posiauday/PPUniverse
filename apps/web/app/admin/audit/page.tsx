@@ -3,15 +3,16 @@ import { getServerSession } from "next-auth/next";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { authOptions } from "../../../lib/auth";
-import { listRecentAuditLogEntries } from "../../../lib/audit";
+import { listRecentAuditLogEntries, type AuditLogDomain } from "../../../lib/audit";
 import { SITE_NAME } from "../../../lib/seo/site";
 
 export const metadata: Metadata = { title: `Audit log | ${SITE_NAME}` };
 
 const ENTRY_LIMIT = 100;
 
-const DOMAIN_LABELS: Record<string, string> = {
+const DOMAIN_LABELS: Record<AuditLogDomain, string> = {
   product_status: "Product status",
+  release_publish: "Release",
   deletion_request: "Deletion request",
   article_publish: "Content",
 };
@@ -22,8 +23,9 @@ const DOMAIN_LABELS: Record<string, string> = {
  * a session with role !== ADMIN, both render the identical Next.js
  * not-found page. Read-only -- this page has no form, no mutation, no
  * client component. `listRecentAuditLogEntries` merges the existing
- * per-domain event tables (ProductStatusEvent, DeletionRequestEvent,
- * ArticlePublishEvent) rather than reading from a new unified table
+ * per-domain event tables (ProductStatusEvent, ReleasePublishEvent,
+ * DeletionRequestEvent, ArticlePublishEvent) rather than reading from a new
+ * unified table
  * (docs/final-decisions.md, "MVP-019 operations console and audit" --
  * question 4).
  */
@@ -87,7 +89,7 @@ export default async function AdminAuditPage() {
               {entries.map((entry) => (
                 <tr key={`${entry.domain}-${entry.id}`}>
                   <td>{dateLabel(entry.occurredAt)}</td>
-                  <td>{DOMAIN_LABELS[entry.domain] ?? entry.domain}</td>
+                  <td>{DOMAIN_LABELS[entry.domain]}</td>
                   <td>{emailByUserId.get(entry.actorUserId) ?? entry.actorUserId}</td>
                   <td>{entry.summary}</td>
                   <td>{entry.reason ?? "—"}</td>

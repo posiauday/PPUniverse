@@ -3453,6 +3453,103 @@ policy needs to build on.
 PR #23 pushed with all corrections; **not merged**, per the authorizing
 instruction -- awaiting product-owner review.
 
+## MVP-014 — Immutable published releases (FR-011), implementation (2026-09-25)
+
+Direct product-owner authorization ("PRODUCT-OWNER DECISION AND
+IMPLEMENTATION AUTHORIZATION -- MVP-014 -- IMMUTABLE PUBLISHED RELEASES"),
+following this session's own read-only pre-work analysis
+(`planning/prework/MVP-014-prework-analysis.md`, 22-section classification
+of 19 candidate scope items) and its own prior "STORY INSTRUCTION" that
+required stopping before writing implementation code. Full decision detail:
+`docs/final-decisions.md`, "MVP-014 immutable published releases:
+implementation authorization and decisions". Implemented on
+`feature/mvp-014-immutable-releases-prework`.
+
+**Files changed:**
+- `packages/domain/catalog/src/product.ts` -- new `ProductNotPublishedError`.
+- `packages/domain/catalog/src/index.ts`, `types.ts` -- new export;
+  `ReleasePublishAction`/`ReleasePublishEventRecord` types.
+- `packages/domain/catalog/src/catalog-repository.ts` -- domain interface:
+  `publishProductWithRelease` gains an `actorUserId` parameter; new
+  `publishSubsequentRelease(productId, releaseId, actorUserId)`.
+- `packages/db/prisma/schema/evidence.prisma` -- `ReleasePublishAction` enum,
+  `ReleasePublishEvent` model (RLS enabled in the same migration, `Restrict`
+  FKs on all three relations).
+- `packages/db/prisma/schema/catalog.prisma`, `identity.prisma` -- back-relations
+  (`Product.releasePublishEvents`, `User.releasePublishActions`).
+- `packages/db/prisma/migrations/20260926040255_add_release_publish_events/` --
+  hand-appended `ENABLE ROW LEVEL SECURITY` statement in the same migration
+  Prisma generated, not a later fix.
+- `packages/adapters/catalog/src/catalog-repository.ts` -- rewrote
+  `publishProductWithRelease` to use an atomic conditional `updateMany` on
+  both `Product` (`status: "DRAFT"`) and `Release` (`publishedAt: null`),
+  checking `.count !== 1` on each, plus writing a `ReleasePublishEvent`; new
+  `publishSubsequentRelease` with the identical atomic pattern gated on
+  `Product.status === "PUBLISHED"` instead.
+- `apps/web/app/api/admin/products/[id]/publish/route.ts` -- passes
+  `admin.userId` as the new third argument.
+- `apps/web/app/api/admin/products/[id]/releases/[releaseId]/publish/route.ts`
+  (new) -- mirrors the existing publish route's authorization/error-mapping
+  structure.
+- `apps/web/app/admin/products/[id]/edit/page.tsx`,
+  `ReleasesEditor.tsx` -- pass `productStatus`/`productLevelMissingFields`;
+  new `PublishReleaseControl` shown for a `DRAFT` release on an already-
+  `PUBLISHED` product.
+- `packages/domain/catalog/src/product.test.ts`,
+  `packages/adapters/catalog/src/catalog-repository.integration.test.ts`
+  (new `publishSubsequentRelease` describe block, 7 tests including a real
+  `Promise.allSettled` concurrency test; 11 existing call sites updated for
+  the new `actorUserId` argument), `apps/web/app/api/admin/products/[id]/publish/route.test.ts`,
+  `.../releases/[releaseId]/publish/route.test.ts` (new, 9 tests).
+- `packages/e2e/src/seed.ts` -- two additional draft releases on the
+  `publishedAdminProduct` fixture (a ready one with a CLEAN file, a not-ready
+  bare one); `packages/e2e/src/pages.ts` -- 2 new `GATED_PAGES` states.
+- `docs/06-data-model.md`, `docs/07-api-contracts.md`,
+  `docs/09-marketplace-operations.md`, `docs/final-decisions.md`,
+  `planning/mvp-backlog.csv`, `planning/backlog.csv`,
+  `planning/requirement-traceability.csv`, `planning/status.md`,
+  `planning/tech-debt.csv`, `planning/tech-debt/TD-021.md` (new).
+
+**Commands executed (all against a real local Postgres, not assumed):**
+`pnpm --filter @ppu/db exec prisma migrate dev --create-only` then a
+hand-appended RLS statement; `pnpm --filter @ppu/db exec prisma generate`;
+`pnpm --filter @ppu/adapter-catalog typecheck`; `pnpm --filter @ppu/domain-catalog test`
+(90/90); `pnpm --filter @ppu/adapter-catalog test` (77/77, including the new
+concurrency test); `pnpm --filter @ppu/web test` (325/325);
+`pnpm --filter @ppu/e2e exec playwright test tests/a11y/pages.spec.ts --project=chromium -g "admin-products"`
+(36/36, up from 28); the same file's full page-inventory suite on chromium
+(205/205); then a full-workspace pass: `pnpm build` (25/25, new route
+confirmed in the manifest), `pnpm lint` (25/25), `pnpm typecheck` (48/48),
+`pnpm test` (48/48 tasks, every package green).
+
+**Risks identified, not fixed (recorded, not silently accepted):**
+[TD-021](tech-debt/TD-021.md) (Medium, new) -- no per-release license/
+compatibility/support-policy snapshot, an explicit scope exclusion by
+direct instruction; an older published release's evidence display can
+change if the product's current evidence rows change later, though the
+release's own files/content never do.
+
+**A self-identified, flagged judgment call, not asked for verbatim:**
+`publishProductWithRelease` (MVP-012, already merged in PR #23) had the
+identical latent read-then-write concurrency gap `publishSubsequentRelease`
+was built to avoid. Fixed with the same atomic-`updateMany` pattern and
+extended to write the same `ReleasePublishEvent` audit record, so a
+product's very first release-publish is never a gap in an otherwise
+complete audit trail. Justified under the authorization's own "shared safe
+refactoring, proven not to change behaviour" allowance: invisible to any
+correctly-behaving single caller, confirmed by its full existing test suite
+passing unchanged plus one new atomicity assertion.
+
+**Remaining work:** open exactly one PR via `gh pr create` (not merged
+under this authorization); let real CI run the full 3-engine accessibility
+matrix (only a local chromium smoke pass has run so far) and the full
+workspace suite; read the results back from the raw log; tear down the
+local embedded-Postgres instance and confirm no orphaned process remains
+(TD-020); report per the authorization's required 24-heading format; stop
+for product-owner review. `planning/mvp-backlog.csv`/`planning/backlog.csv`:
+MVP-014 moves Backlog -> QA (not Done -- real-CI accessibility confirmation
+and merge are still pending).
+
 ## MVP-019 — Operations console and audit (FR-015/NFR-009), implementation (2026-09-26)
 
 Direct product-owner delegation: after this session's own read-only
@@ -3503,7 +3600,8 @@ so the concurrently in-flight MVP-014 branch/PR was never disturbed.
 - `docs/06-data-model.md`, `docs/07-api-contracts.md`,
   `docs/09-marketplace-operations.md`, `docs/final-decisions.md`,
   `planning/mvp-backlog.csv`, `backlog.csv`, `requirement-traceability.csv`,
-  `status.md`, `tech-debt.csv`, `tech-debt/TD-021.md` (new).
+  `status.md`, `tech-debt.csv`, `tech-debt/TD-022.md` (new; created as
+  TD-021 on this branch, renumbered when merged with MVP-014's own TD-021).
 
 **Commands executed** (all against a real local Postgres): Prisma
 migration generate/deploy/generate-client, `provision-test-schemas.mjs`;
@@ -3545,11 +3643,11 @@ taxonomy (`Category`/`Tag`) admin CRUD; `Entitlement.revokedAt`'s write
 path; `Order`/`Refund`/`Review`/`FeatureFlag` (no backing model or owning
 story exists for any of them yet).
 
-**New tech-debt record**: [TD-021](tech-debt/TD-021.md) (Low, Open) -- the
+**New tech-debt record**: [TD-022](tech-debt/TD-022.md) (Low, Open) -- the
 admin audit log has no pagination, capped at 100 entries, mirroring
-TD-014's identical accepted precedent. This ID is assigned independently
-on this branch (based on `develop`) and will need reconciling with the
-also-in-flight MVP-014 branch's own, unrelated TD-021 once both merge.
+TD-014's identical accepted precedent. (Created as TD-021 on this branch;
+renumbered to TD-022 when merged with MVP-014, whose own, unrelated TD-021
+merged first.)
 
 **MVP-019 status QA, not Done.** `planning/mvp-backlog.csv`/`backlog.csv`
 moved Backlog -> QA. Remaining: open exactly one PR via `gh pr create` (not
@@ -3566,3 +3664,21 @@ An independent review (GitHub Copilot, given a compact packet of the method and 
 Fixed: the claim is now a compare-and-swap on the exact validated status (`status: product.status`), so `count === 1` proves the recorded `fromStatus` is what was replaced; a loser fails with the existing state-transition error carrying the fresh status and may retry. The now-dead `validFromStatusesForStatusChange` was removed (function, export, test). The two events are created sequentially before the final product read (review M2). Test B now races SUSPENDED against ARCHIVED eight times and asserts, for every interleaving, that events form a continuous chain from PUBLISHED consuming every event and ending at the product's final status, with event count equal to fulfilled count (final status may legitimately be SUSPENDED or ARCHIVED under exact CAS). Verified the tests bite: with the broad predicate temporarily restored, the concurrency tests fail on every run; with the fix, 6 consecutive runs of the 80-test integration suite pass.
 
 Not adopted, with reasons: the review's M1 asks for a deterministic barrier proving the two calls overlap inside the database; the repository method owns its transaction and exposes no hook, and adding a test-only seam to production code for this was judged disproportionate -- the repeated race raises overlap odds and the CAS predicate itself is the guarantee. Test A is documented as a duplicate-request regression test, not proof of overlap. Review points on route authorization (actorUserId derived from the server session, toStatus and reason validated server-side, 409 INVALID_STATE mapping) were checked against `route.ts` and already hold.
+
+## MVP-014 merged; MVP-019 brought up to date and marked Done (2026-09-28)
+
+The product owner merged PR #24 (MVP-014, merge commit `7c1f5d7`); Claude Code's auto-mode guardrail had blocked the agent from merging it. `develop` was then merged into `feature/mvp-019-operations-console-prework` so PR #25 tests against the real combined code.
+
+**Conflicts:** 11 files. The prisma schemas, e2e seed, and integration-test cleanup were unions (both `ReleasePublishEvent` and `ProductStatusEvent` rows are now cleared before `product.deleteMany`, since both have `Restrict` FKs). The docs were ordered chronologically (MVP-014's entries before MVP-019's). `planning/status.md` was rewritten to the post-merge state rather than spliced. Both branches had created a `TD-021`: MVP-014's keeps the number because it merged first, and MVP-019's became [TD-022](tech-debt/TD-022.md).
+
+**Two real breaks from combining the stories, both fixed:**
+1. MVP-019's test helper called `publishProductWithRelease(productId, releaseId)`, the pre-MVP-014 signature; MVP-014 added a required `actorUserId`. The typecheck would have failed on `develop`.
+2. MVP-014's `ReleasesEditor` typed `productStatus` as `"DRAFT" | "PUBLISHED"`, which no longer compiles once MVP-019 widens `ProductStatus`. It now uses `ProductStatus` from `@ppu/domain-catalog`. The "publish this release" control still renders only for a `PUBLISHED` product, which is correct: `publishSubsequentRelease` rejects anything else.
+
+**One planned completion:** `/admin/audit` now also merges `ReleasePublishEvent` as a fourth source. MVP-019's own recorded decision (question 4) named it as a source once MVP-014 merged.
+
+**Stale metrics corrected:** `status.md`'s progress metrics still read 13 stories / 92 points and had never counted MVP-012. They were recomputed from `planning/backlog.csv`: 16/25 stories, 113/170 points, P0 103/145.
+
+**Verified on a fresh local Postgres:** both migrations apply in order; `prisma migrate diff` shows no drift between schema and migrations; `pnpm build` 25/25, `lint` 25/25, `typecheck` 48/48, `test` 48/48 tasks (`@ppu/adapter-catalog` 87/87 on 4 consecutive runs, `@ppu/web` 334/334, `@ppu/domain-catalog` 99/99, `@ppu/e2e` 82/82).
+
+**MVP-014 is Done; MVP-019 is Done on merge of PR #25.** The security and accessibility review is in `docs/final-decisions.md`, "MVP-014 and MVP-019: security and accessibility review, Done".

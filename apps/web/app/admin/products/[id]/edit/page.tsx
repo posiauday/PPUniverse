@@ -104,7 +104,12 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
       <section aria-labelledby="releases-heading">
         <h2 id="releases-heading">Releases</h2>
-        <ReleasesEditor productId={product.id} releases={releases} />
+        <ReleasesEditor
+          productId={product.id}
+          releases={releases}
+          productStatus={product.status}
+          productLevelMissingFields={readiness.missingFields.filter((field) => field !== "release")}
+        />
       </section>
 
       {product.status === "DRAFT" ? (
