@@ -68,6 +68,7 @@ model Product {
   releasePublishEvents ReleasePublishEvent[]
   statusEvents         ProductStatusEvent[]
   orders               Order[]
+  price                Price?
 
   @@index([categoryId])
   @@index([status])

@@ -65,3 +65,25 @@ model PaymentEvent {
   @@index([orderId])
   @@map("payment_events")
 }
+
+/// The single optional price of a product (MVP-007 slice 2; docs/final-
+/// decisions.md, "Business model: free learning first; one price per
+/// product; work order"). At most one row per product: a product with no row
+/// is free, and most products are. The owner sets and clears it in the admin
+/// product editor. The CHECK constraints in the migration require a positive
+/// amount and a three-letter currency code, matching Order; USD is the only
+/// supported currency at launch. Deleting a product removes its price
+/// (Cascade) -- a price is configuration, not a purchase record; what a buyer
+/// actually paid is captured on their Order.
+model Price {
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  amountCents Int
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("prices")
+}
