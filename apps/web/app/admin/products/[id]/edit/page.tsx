@@ -1,14 +1,17 @@
 import { prisma } from "@ppu/db";
+import { formatPrice } from "@ppu/domain-commerce";
 import { checkProductPublishReadiness } from "@ppu/domain-catalog";
 import { getServerSession } from "next-auth/next";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { authOptions } from "../../../../../lib/auth";
 import { catalogRepository } from "../../../../../lib/catalog";
+import { commerceRepository } from "../../../../../lib/commerce";
 import { SITE_NAME } from "../../../../../lib/seo/site";
 import { ProductForm } from "../../ProductForm";
 import { CompatibilityEditor } from "./CompatibilityEditor";
 import { LicensesEditor } from "./LicensesEditor";
+import { PriceEditor } from "./PriceEditor";
 import { ProductPublishControl } from "./ProductPublishControl";
 import { ProductStatusControl } from "./ProductStatusControl";
 import { ReleasesEditor } from "./ReleasesEditor";
@@ -50,12 +53,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     notFound();
   }
 
-  const [categories, licenseDefinitions, evidence, releases, snapshot] = await Promise.all([
+  const [categories, licenseDefinitions, evidence, releases, snapshot, price] = await Promise.all([
     catalogRepository.listCategories(),
     catalogRepository.listLicenseDefinitions(),
     catalogRepository.getProductEvidenceForAdmin(id),
     catalogRepository.listReleasesForAdmin(id),
     catalogRepository.getProductPublishSnapshot(id),
+    commerceRepository.findProductPrice(id),
   ]);
   const readiness = checkProductPublishReadiness(snapshot);
 
@@ -85,6 +89,14 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
           productId={product.id}
           options={licenseDefinitions}
           initialSelectedIds={evidence.licenseDefinitionIds}
+        />
+      </section>
+
+      <section aria-labelledby="price-heading">
+        <h2 id="price-heading">Price</h2>
+        <PriceEditor
+          productId={product.id}
+          currentPriceLabel={price ? formatPrice(price.amountCents, price.currency) : null}
         />
       </section>
 

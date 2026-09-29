@@ -1,6 +1,7 @@
 import { PrismaEntitlementRepository } from "@ppu/adapter-entitlements";
 import { prisma } from "@ppu/db";
 import { presentProductEvidence } from "@ppu/domain-catalog";
+import { formatPrice } from "@ppu/domain-commerce";
 import { FreeDownloadControl, JsonLd, ProductEvidence } from "@ppu/ui";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
@@ -9,6 +10,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { authOptions } from "../../../lib/auth";
 import { catalogRepository } from "../../../lib/catalog";
+import { commerceRepository } from "../../../lib/commerce";
 import { productUrl } from "../../../lib/seo/canonical";
 import { buildProductJsonLd } from "../../../lib/seo/json-ld";
 import { buildNotFoundMetadata, buildProductMetadata } from "../../../lib/seo/metadata";
@@ -71,6 +73,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // decisions.md, "MVP-010 open questions 44 and 45", Q44); there is no
   // guest path and no per-product policy field.
   const session = await getServerSession(authOptions);
+  // MVP-007 slice 2: a priced product is never offered free. Until checkout
+  // exists it shows its price and "Purchasing opens soon" (docs/final-
+  // decisions.md, "Business model: free learning first; one price per
+  // product; work order", decision 3).
+  const price = await commerceRepository.findProductPrice(product.id);
   const existingEntitlement =
     session?.user?.id != null
       ? await new PrismaEntitlementRepository(prisma).findEntitlement(session.user.id, product.id)
@@ -85,7 +92,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <p className="mt-4">{product.summary}</p>
 
       <div className="mt-6">
-        {!session?.user?.id ? (
+        {price ? (
+          <div>
+            <p className="text-xl font-semibold">
+              {formatPrice(price.amountCents, price.currency)}
+            </p>
+            <p className="mt-1 text-sm">All sales are final. No refunds.</p>
+            <p className="mt-2">
+              {existingEntitlement ? "You already have this." : "Purchasing opens soon."}
+            </p>
+          </div>
+        ) : !session?.user?.id ? (
           <p>
             <Link href="/signin">Sign in</Link> to get this for free.
           </p>
