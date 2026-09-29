@@ -1,0 +1,67 @@
+// Commerce domain (MVP-007 slice 1, FR-006; docs/final-decisions.md,
+// "MVP-007 slice 1 authorized; launch currency; refund policy; pricing
+// mechanism"). Orders and the Stripe payment-event ledger only -- no Price
+// model yet (slice 2), no Checkout Session creation (slice 3), no webhook
+// route or fulfilment (MVP-008). Both tables are RLS-enabled and use Restrict
+// FKs, so a purchase record or its payment evidence can never be cascaded
+// away by deleting a user, product or licence tier.
+
+/// Valid transitions are enforced in packages/domain/commerce, not here:
+/// PENDING -> PAID | EXPIRED | FAILED, then PAID -> FULFILLED. FULFILLED,
+/// EXPIRED and FAILED are terminal. There is no REFUNDED state -- all sales
+/// are final (docs/final-decisions.md, 2026-09-28, decision 3).
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  EXPIRED
+  FAILED
+}
+
+/// One purchase of one licence tier of one product by one user. Only a paid
+/// product ever gets an Order: `amountCents` must be greater than zero (a
+/// CHECK constraint in the migration), so a free acquisition can never be
+/// recorded as a false paid order. `amountCents`/`currency` are the amount
+/// actually charged, captured when the order is created -- never re-derived
+/// from a price that may change later. Currency is USD only at launch
+/// (decision 2); the column exists so adding a currency later is additive.
+model Order {
+  id                      String      @id @default(cuid())
+  userId                  String
+  productId               String
+  licenseDefinitionId     String
+  status                  OrderStatus @default(PENDING)
+  amountCents             Int
+  currency                String      @default("USD")
+  stripeCheckoutSessionId String?     @unique
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  licenseDefinition LicenseDefinition @relation(fields: [licenseDefinitionId], references: [id], onDelete: Restrict)
+  paymentEvents     PaymentEvent[]
+
+  @@index([userId, createdAt])
+  @@index([productId])
+  @@map("orders")
+}
+
+/// Append-only ledger of Stripe webhook events, keyed on Stripe's own event
+/// id (unique), so a redelivered event is recognised and ignored. Stores only
+/// what idempotency and audit need -- never the event payload, which can
+/// carry customer details (NFR-006). `orderId` is nullable because an event
+/// may not map to an order this system created.
+model PaymentEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique
+  type          String
+  livemode      Boolean
+  orderId       String?
+  receivedAt    DateTime @default(now())
+
+  order Order? @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@map("payment_events")
+}

@@ -1,5 +1,5 @@
 /**
- * Per-package test-database isolation (BUG-015). Each of the 7 adapter packages
+ * Per-package test-database isolation (BUG-015). Each of the 8 adapter packages
  * whose integration suites write to Postgres gets its own Postgres schema
  * (`pkg_<name>`) inside the same database, so two packages' tests running
  * concurrently in CI (Turborepo, one shared `DATABASE_URL`) never see each
@@ -19,6 +19,7 @@
 
 const ADAPTER_PACKAGE_NAMES = new Set([
   "catalog",
+  "commerce",
   "content",
   "entitlements",
   "files",
@@ -30,7 +31,7 @@ const ADAPTER_PACKAGE_NAMES = new Set([
 export function deriveTestSchemaName(packageName: string): string {
   if (!ADAPTER_PACKAGE_NAMES.has(packageName)) {
     throw new Error(
-      `deriveTestSchemaName: "${packageName}" is not one of the 7 adapter packages this ` +
+      `deriveTestSchemaName: "${packageName}" is not one of the 8 adapter packages this ` +
         `story isolates (${[...ADAPTER_PACKAGE_NAMES].join(", ")}).`,
     );
   }

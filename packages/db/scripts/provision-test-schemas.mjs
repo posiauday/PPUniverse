@@ -31,11 +31,12 @@ import pg from "pg";
 
 const PACKAGE_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
-// The 7 adapter packages whose integration suites write to Postgres
+// The 8 adapter packages whose integration suites write to Postgres
 // (planning/prework/BUG-015-prework-analysis.md §1). scanning/storage are
 // excluded — confirmed by direct read to have no Postgres access at all.
 const ADAPTER_PACKAGES = [
   "catalog",
+  "commerce",
   "content",
   "entitlements",
   "files",

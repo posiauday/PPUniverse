@@ -67,6 +67,7 @@ model Product {
   entitlements         Entitlement[]
   releasePublishEvents ReleasePublishEvent[]
   statusEvents         ProductStatusEvent[]
+  orders               Order[]
 
   @@index([categoryId])
   @@index([status])
