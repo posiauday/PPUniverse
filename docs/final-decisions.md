@@ -1463,3 +1463,11 @@ It **never publishes**. The product owner reviews each draft and publishes it th
 - All content is original writing. Microsoft documentation is linked and cited, never copied.
 - No claim of Microsoft endorsement, certification or partnership.
 - No Government of Saskatchewan names or material.
+
+## 2026-09-29 — Releasing to `main`; branch hygiene
+
+Direct product-owner instruction in chat, answering the agent's two questions.
+
+1. **Catch-up release now.** Once #27 and #28 merge, the agent opens one release PR, `develop` → `main`, and CI runs on it. The product owner merges it. Before this, `main` was 173 commits behind `develop` and had nothing of its own. No deployment is wired to `main` yet, so a release updates the stable branch but publishes nothing to users.
+2. **Then one release per milestone.** A `develop` → `main` release PR follows each finished milestone of the work order: design system, per-technology sections, launch content, ads, checkout. Stories keep merging into `develop` as before.
+3. **Branch hygiene.** Merged branches are deleted once their PR merges; GitHub can restore any of them from the PR. On 2026-09-29 the agent deleted 21 merged remote branches and the merged local ones, including a duplicate Stripe pre-work branch whose document is already on `develop`, word for word. **Kept:** `research/monetization-architecture-audit` (21 unmerged research documents, useful input for the ads story) and the branches of the open PRs.
