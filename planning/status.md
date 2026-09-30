@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-028 (Technology sections) both slices built; status QA.**
+Last updated: 2026-09-30 — **MVP-028 (Technology sections) is Done, and Release 2 is on `main` (PR #39).**
+- Release 2 contains the design system and the technology sections, both slices.
+- **Next:** researched launch content, with the article plan going to the product owner first.
+
+Last updated (previous): 2026-09-30 — **MVP-028 (Technology sections) both slices built; status QA.**
 - **Six sections, each with four tabs:** Learn, Architecture, Components and KPIs, at `/power-apps` and so on.
 - **Navigation:** a Technologies menu in the header, technology tiles on the home page, and chips on `/learn`.
 - **Search engines:** empty tabs say "Coming soon" and stay out of search; tabs with content are in the sitemap.
@@ -108,10 +112,10 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 1 | MVP-007 (slices 1–2 of 3) |
-| QA | 1 | MVP-028 |
+| QA | 0 | — |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
-| Done | 18 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027 |
+| Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
 | **Total** | **28** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
@@ -206,11 +210,11 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 18 / 28 (64%)
-- Stories in QA: 1 / 28 (MVP-028)
-- Points done: 131 / 196 (67%)
+- Stories done: 19 / 28 (68%)
+- Stories in QA: 0 / 28
+- Points done: 139 / 196 (71%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 28 / 51 (55%)
+- P1 points done: 36 / 51 (71%)
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
@@ -236,7 +240,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
 | 5 | MVP-027 (Design system) | **Done** | 13 (done) |
-| 5 | MVP-028 (Technology sections) | QA (both slices built) | 8 |
+| 5 | MVP-028 (Technology sections) | **Done** | 8 (done) |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
