@@ -4108,3 +4108,28 @@ The product owner approved the launch content plan. Decisions: `docs/final-decis
 **Verified:** the content gate passes (13 tests, 12 files), and the whole-repo format check is clean.
 
 **Next:** Copilot Studio (4 articles). This area changes fast, so each article gets an "as of" date.
+
+## MVP-029 — Launch content: Copilot Studio section complete, 16 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/copilot-studio/`:
+- **"Your first agent: instructions, knowledge and testing"** (TUTORIAL, Learn tab).
+- **"Knowledge sources compared: SharePoint, websites, Dataverse and files"** (COMPARISON, Learn tab).
+- **"Grounding an agent safely: what to connect and what to keep out"** (PATTERN, Architecture tab).
+- **"Agent KPIs: resolution rate, escalation rate and answer quality"** (KPI_GUIDE, KPIs tab).
+
+**Dating:** each article opens with an "As of September 2026" note, as the approved plan requires for this fast-moving area. The notes also say the articles describe the standard-harness experience, because Microsoft is rolling out a second building experience (the GitHub Copilot harness) with different screens.
+
+**Details confirmed on Microsoft Learn that change how makers should design:**
+- **Uploaded files aren't permission-checked.** Anyone who can use the agent can get answers from them. SharePoint and Dataverse knowledge use each user's own permissions.
+- **Uploaded content doesn't sync.** Uploaded files are static copies. The Upload files > SharePoint path syncs every four to six hours.
+- **Some documents can't be indexed.** Documents labelled Confidential or Highly Confidential, or with a password, can't be indexed through the upload path. They show as ready but never produce answers.
+- **A data-policy trap.** Blocking the "documents" connector stops only local uploads, not files added from SharePoint or OneDrive.
+- **Restricted SharePoint Search** blocks SharePoint knowledge entirely.
+- **Analytics denominators.** Resolution, escalation and abandon rates are shares of engaged sessions, not all sessions. "Resolved" includes implied resolutions.
+- **Topic analytics.** Per-topic Monitor analytics exist only in classic mode.
+
+**Our own recommendations**, labelled as such in the articles: the example instructions, the six grounding principles and their order, and the monthly review agenda.
+
+**Verified:** the content gate passes (17 tests, 16 files), and the whole-repo format check is clean.
+
+**Next:** Dataverse (4 articles).
