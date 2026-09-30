@@ -4046,3 +4046,23 @@ The product owner approved the launch content plan. Decisions: `docs/final-decis
 **Process:** before merging #40's branch in, the work was committed first and then merged (not stashed). The only conflict, in the two backlog files, was resolved by keeping both changes. This follows the stash lesson recorded earlier today.
 
 **Next:** the other 23 wave-1 articles, in batches per section.
+
+## MVP-029 — Launch content: Power Apps section complete, 4 of 24 (2026-09-30)
+
+**Written:** three drafts in `content/articles/power-apps/`:
+- **"Canvas app or model-driven app? A decision guide"** (COMPARISON, Learn tab).
+- **"Named formulas and components: a structure that scales"** (PATTERN, Architecture tab).
+- **"Measuring Power Apps adoption: users, retention and time saved"** (KPI_GUIDE, KPIs tab).
+
+**Fact-checking against Microsoft Learn** changed three details before the drafts were finished:
+- **Named formulas.** The first draft counted open tasks with `CountRows(Filter(...))`, which isn't delegated on SharePoint. The examples now use a Dataverse table with `CountIf`, which is delegated and exact up to 50,000 rows, and a tip explains the SharePoint limit.
+- **Adoption KPIs.** Power Apps admin analytics covers canvas apps only and keeps at most 28 days, so retention needs exported history. The article says so, and it points to self-service analytics (preview) and a monthly snapshot.
+- **The CoE Starter Kit** is no longer actively maintained, so the article doesn't build on it.
+
+**Licensing:** the canvas-or-model-driven guide states the licensing rules as Microsoft's FAQ publishes them, including the stricter enforcement announced for February 2027, and tells readers to check the current licensing guide.
+
+**Our own recommendations**, labelled as such in the articles: the KPI definitions and the method for reporting time saved.
+
+**Verified:** the content gate passes (5 tests, 4 files), and the whole-repo format check is clean.
+
+**Next:** Power Automate (4 articles).
