@@ -95,7 +95,8 @@ describe("contrast()", () => {
 });
 
 describe("reduced motion", () => {
-  const reduced = CSS.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  const reduced =
+    CSS.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
 
   it("switches animation and transitions off entirely, never to a tiny duration", () => {
     // A tiny duration on `*` makes every property change animate (transition-property
