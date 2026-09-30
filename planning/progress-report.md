@@ -3825,3 +3825,32 @@ The first CI run of PR #31 failed the accessibility shards: 40+ focus-ring failu
 **Fix.** Reduced motion now switches animation and transitions **off** (`animation: none; transition: none`), which leaves no in-between state to observe and is the more faithful reading of the visitor's request. A regression test in `lib/design-tokens.test.ts` fails if the rule ever goes back to a tiny duration; I checked that its pattern matches the old rule.
 
 The problem was caught before merge, inside the story, so it gets no bug record (CLAUDE.md, "Project management rules" 5). Re-verified: chromium 437/437.
+
+## MVP-027 — Design system, slice 2 of 4: Premium 3 home page (2026-09-30)
+
+**Built:**
+- **`app/HomeHero.tsx`:**
+  - Headline, subtitle and two calls to action (Start learning → `/learn`, Browse components → `/search`).
+  - A decorative illustration: a layered sample Power Apps screen with floating code and evidence cards. It is `aria-hidden` and shown at `lg` and above only.
+  - Entrance motion via `motion-rise` with staggered delays.
+  - The side cards drift with a new `motion-float`. It uses the separate CSS `translate` property, so it composes with each card's rotation.
+- **`app/page.tsx`:**
+  - Hero, then the newest 4 published products (`searchProducts` sorted by recent, rendered as `ProductCard` with hover lift), the newest 6 articles, and all categories.
+  - All three queries run in parallel. Each section is left out when it has nothing to show.
+  - The duplicated Learn · Search · Sign in row is removed.
+- **Tests:**
+  - `pages.test.tsx`: exactly one h1 with the new headline; the illustration is `aria-hidden`; the products section appears only when there are products and uses the recent sort with 4 items. The search fixture now carries the product's category, as real results do.
+  - The a11y `home` state asserts the headline and the components section.
+
+**Verified:**
+- `@ppu/web` 427/427. Playwright chromium 437/437, light and dark.
+- **Visually, against a production build with sample data:**
+  - Desktop, dark and light, matches the Premium 3 mockup.
+  - At 375 px the illustration steps aside, with no horizontal overflow.
+- **Polish found on the visual check:** the highlighted illustration row hid its own icon square (muted on muted). The square now uses a tint of the primary colour.
+
+**Wording:** the mockup's copy was adjusted to be truthful. See `docs/final-decisions.md`, "MVP-027 slice 2".
+
+**Remaining for MVP-027:**
+- Slice 3: the article layout (contents list, code Copy button, callouts, related column).
+- Slice 4: polish of the remaining pages.

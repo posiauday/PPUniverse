@@ -1539,3 +1539,22 @@ The design system is item 2 of the revised work order ("Revised work order; lear
    - A **skip link** is the first keyboard stop (WCAG 2.4.1).
 7. **Motion foundation.** `motion-rise` (entrance) and `motion-lift` (hover) animate only opacity and transform. A global `prefers-reduced-motion: reduce` rule turns off all animation and transitions.
 8. **Brand refresh.** The favicon and share images move to the new palette: a teal tile with amber, mint and white bars, on a near-black card.
+
+### MVP-027 slice 2 — home page (2026-09-30)
+
+Built to the approved Premium 3 layout. Two deliberate deviations from the mockup's **words** (the layout is unchanged), both to keep the page truthful. Decided by the agent; reversible.
+
+1. **Headline and chips.**
+   - The mockup read "Components you can actually ship" under a "FREE · SOURCE INCLUDED · LICENSED" chip, with the claim that every component comes with a tutorial and its tested versions. None of that is true of the catalog yet.
+   - The page now says **"Learn it properly. Ship components that last."**, under a **"FREE POWER PLATFORM LEARNING"** chip.
+   - The subtitle describes what the site actually offers.
+2. **Floating cards.**
+   - The "tested on" card became **"Every product page: Licence, version and compatibility"**. Those sections exist on every product page today, showing "not provided" where evidence is missing.
+   - The code card shows a generic component-input snippet.
+   - The whole illustration is marked decorative (`aria-hidden`), is shown only on wide screens, and names no real product.
+3. **Home sections, each left out when empty:**
+   - The newest 4 published products ("New components and templates").
+   - The newest 6 articles.
+   - All categories.
+   - The old "Learn · Search products · Sign in" row is removed, because the site header now carries those links.
+   - The "What's new" strip is **not** shown yet: there is no digest page for it to link to. It arrives with the maintenance-agent work.

@@ -111,7 +111,9 @@ function givenCategoryWith(total: number): void {
   repository.findCategoryBySlug.mockResolvedValue(category);
   repository.searchProducts.mockImplementation(
     async (options: { page: number; pageSize: number }) => ({
-      items: total > 0 ? [productRow] : [],
+      // Search results always carry the product's category (the home page
+      // shows it on each card), so the fixture does too.
+      items: total > 0 ? [{ ...productRow, category }] : [],
       total,
       page: options.page,
       pageSize: options.pageSize,
@@ -155,6 +157,7 @@ beforeEach(() => {
   repository.listCategories.mockResolvedValue([category]);
   repository.findPublishedProductDetailBySlug.mockResolvedValue(productDetail);
   content.listPublishedArticleSummaries.mockResolvedValue([]);
+  repository.searchProducts.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 4 });
   content.findPublishedArticleBySlug.mockResolvedValue(articleRow);
 });
 
@@ -209,6 +212,41 @@ describe("home page — learning content (SEO story)", () => {
     const metadata = homeMetadata();
     expect(imageOf(metadata)).toBe("https://example.com/og");
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
+  });
+});
+
+describe("home page — Premium 3 layout (MVP-027 slice 2)", () => {
+  it("leads with the hero headline as its only h1, linking to Learn and to the components", async () => {
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup.match(/<h1/g)).toHaveLength(1);
+    expect(markup).toContain("Learn it properly. Ship components that last.");
+    expect(markup).toContain('href="/learn"');
+    expect(markup).toContain('href="/search"');
+  });
+
+  it("keeps the hero illustration out of the accessibility tree", async () => {
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup).toMatch(/<div aria-hidden="true"[^>]*>[\s\S]*Field inspections/);
+  });
+
+  it("shows the newest published products, and leaves the section out when there are none", async () => {
+    repository.searchProducts.mockResolvedValue({
+      items: [{ ...productRow, category }],
+      total: 1,
+      page: 1,
+      pageSize: 4,
+    });
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(repository.searchProducts).toHaveBeenCalledWith({
+      sort: "recent",
+      page: 1,
+      pageSize: 4,
+    });
+    expect(markup).toContain("New components and templates");
+    expect(markup).toContain('href="/products/sample-component"');
+
+    repository.searchProducts.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 4 });
+    expect(renderToStaticMarkup(await HomePage())).not.toContain("New components and templates");
   });
 });
 

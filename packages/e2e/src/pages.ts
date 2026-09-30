@@ -173,6 +173,16 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 200,
     path: () => "/",
+    // MVP-027 slice 2: the Premium 3 layout -- the hero and, since every
+    // worker seeds published products, the newest-components section.
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        "Learn it properly. Ship components that last.",
+      );
+      await expect(
+        page.getByRole("heading", { name: "New components and templates" }),
+      ).toBeVisible();
+    },
   },
   {
     id: "category-populated",
