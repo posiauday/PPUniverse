@@ -1639,3 +1639,14 @@ Decided by the agent; reversible.
    - The header has a **Technologies** disclosure menu. It is the WAI-ARIA disclosure pattern: Escape and a click outside close it, and focus returns to the button.
    - The home page has an "Explore by technology" tile grid, and `/learn` has a chip row. These are the always-present, crawlable links; the menu is a shortcut.
 5. **The Components tab** lists up to 12 newest products per technology category, with an "All N in {category}" link when there are more.
+
+## 2026-09-30 — Launch content plan approved; competitor research rule
+
+Direct product-owner instruction in chat: *"approve the content launch"*.
+
+1. **The launch content plan is approved**, as published in the "LowCodeStacks Launch Content" plan (a private claude.ai artifact):
+   - **Wave 1:** 24 articles, four per technology section (two Learn, one Architecture, one KPI guide).
+   - **Wave 2:** 15 more after launch.
+2. **Workflow.** The agent writes every article as a **draft**, tagged to its section and tab, and the product owner reviews and publishes it. Nothing is published by the agent.
+3. **Testing disclosure.** Examples are checked against Microsoft's documentation, but the agent cannot run them in a Power Platform tenant. Articles say an example follows Microsoft's documented behaviour unless someone has actually tested it.
+4. **Competitor research (agent decision, recorded because the product owner asked to "scrape competitor websites and use their code").** Competitor sites may be **reviewed** for what they offer, how they are organised and where they fall short. Their **code, text and assets are never copied or scraped**: that is their copyright and usually against their terms, and it would contradict the "original writing" rule. Everything LowCodeStacks publishes is original work, citing sources where it relies on them.

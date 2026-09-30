@@ -8,6 +8,11 @@ export {
   isValidArticleType,
 } from "./transitions.js";
 export {
+  parseArticleSource,
+  type ArticleSource,
+  type ArticleSourceResult,
+} from "./article-source.js";
+export {
   TECHNOLOGIES,
   isValidTechnology,
   technologyBySlug,
