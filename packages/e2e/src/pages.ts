@@ -165,7 +165,6 @@ async function submitSignIn(
   });
 }
 
-
 export const GATED_PAGES: readonly GatedPage[] = [
   {
     id: "home",
