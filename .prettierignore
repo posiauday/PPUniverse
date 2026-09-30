@@ -17,3 +17,9 @@ schemas/
 .claude/
 CLAUDE.md
 README.md
+
+# Launch articles (MVP-029) are editorial Markdown: reviewed as prose in pull
+# requests and validated by the content gate (packages/adapters/content/src/
+# content-files.test.ts). Reformatting would change how an article renders
+# (tables, escapes), so the code formatter leaves them alone, like docs/.
+content/
