@@ -4084,3 +4084,27 @@ The product owner approved the launch content plan. Decisions: `docs/final-decis
 **Verified:** the content gate passes (9 tests, 8 files), and the whole-repo format check is clean.
 
 **Next:** Power BI (4 articles).
+
+## MVP-029 — Launch content: Power BI section complete, 12 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/power-bi/`:
+- **"Build a star schema from messy exports"** (TUTORIAL, Learn tab).
+- **"Why are my totals wrong? Filter context explained"** (TUTORIAL, Learn tab).
+- **"One semantic model, many reports"** (PATTERN, Architecture tab).
+- **"Designing a KPI card: target, trend and context"** (KPI_GUIDE, KPIs tab).
+
+**Checked against Microsoft Learn:**
+- star schema and relationship guidance, including surrogate keys through index columns and degenerate dimensions;
+- date table requirements, and when a table must be marked as a date table under calendar-based versus classic time intelligence;
+- the Auto date/time limitations;
+- DAX context, `SUMX`, `CALCULATE`, `HASONEVALUE` and `DIVIDE`;
+- shared semantic models, Build permission, endorsement and its licence requirements;
+- the card and KPI visuals, and the accessibility guidance: 4.5:1 contrast and colour pairs to avoid.
+
+**Accessibility:** the KPI card status measure returns words rather than symbols, so colour never carries the meaning alone and screen readers read the status naturally.
+
+**Labelled as examples or our own recommendations:** the DAX measures, the five-element card structure and the status thresholds.
+
+**Verified:** the content gate passes (13 tests, 12 files), and the whole-repo format check is clean.
+
+**Next:** Copilot Studio (4 articles). This area changes fast, so each article gets an "as of" date.
