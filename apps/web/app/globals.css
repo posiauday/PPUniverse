@@ -9,26 +9,72 @@
    a passing build). */
 @source "../../../packages/ui/src";
 
-/* Design tokens (docs/05-ux-design-system.md): semantic color tokens, 4/8
-   spacing rhythm (Tailwind's default scale already matches), light theme
-   first — dark theme only after parity, not yet built. */
+/* Design tokens (docs/05-ux-design-system.md; MVP-027, docs/final-decisions.md
+   "Design direction: A + B combined" and "Home page design: Premium 3").
+   Semantic colour tokens, a 4/8 spacing rhythm (Tailwind's default scale),
+   and two themes: light (the default, "Studio Light") and dark ("Night
+   Lab"), both at parity because every component uses these tokens and never
+   a raw colour. Every text pairing is at least 4.5:1 in both themes, and
+   control boundaries at least 3:1 (lib/design-tokens.test.ts checks them). */
 @theme {
-  --color-background: oklch(100% 0 0);
-  --color-foreground: oklch(20% 0.01 260);
-  --color-muted: oklch(96% 0.005 260);
-  --color-muted-foreground: oklch(45% 0.01 260);
-  --color-border: oklch(90% 0.005 260);
-  --color-primary: oklch(45% 0.15 260);
-  --color-primary-foreground: oklch(98% 0 0);
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(20% 0.01 260);
+  --color-background: #f7f6f2;
+  --color-foreground: #16181d;
+  --color-muted: #efece5;
+  --color-muted-foreground: #50565f;
+  --color-border: #dedad0;
+  --color-primary: #0b5c5c;
+  --color-primary-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: #16181d;
+  /* Amber "What's new" highlight, and the code panel -- dark in both themes. */
+  --color-highlight: #f5b83d;
+  --color-highlight-foreground: #1a1406;
+  --color-code: #0f1420;
+  --color-code-foreground: #e8ebf2;
+  --color-code-muted: #8a94ab;
+  --color-code-border: #2c3446;
 
-  --radius-card: 0.5rem;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-source-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --radius-card: 0.875rem;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Dark theme: unlayered, so it overrides the @theme defaults (which Tailwind
+   emits inside a cascade layer) whenever <html data-theme="dark">. */
+[data-theme="dark"] {
+  --color-background: #0c0f17;
+  --color-foreground: #e8ebf2;
+  --color-muted: #182030;
+  --color-muted-foreground: #a7afc0;
+  --color-border: #2a3346;
+  --color-primary: #6fd3c4;
+  --color-primary-foreground: #06201d;
+  --color-card: #141a27;
+  --color-card-foreground: #e8ebf2;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Display face for page and section headings only; everything else reads in
+   the body face. */
+h1,
+h2 {
+  font-family: var(--font-display);
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
 }
 
 .sr-only {
@@ -43,10 +89,246 @@ body {
   border: 0;
 }
 
+/* Skip link (WCAG 2.4.1): off-screen until focused, then shown top-left
+   above everything. */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 50;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* The skip link's target is focusable only so focus can land on it; it
+   needs no ring of its own. */
+#main-content:focus {
+  outline: none;
+}
+
 /* The ring must not follow the element's text colour: currentColor made it
    near-white on the white-text Search button over a white page (BUG-003,
-   measured 1.06:1). The foreground token is far above 3:1 against the page. */
+   measured 1.06:1). The foreground token is far above 3:1 against the page
+   in both themes. */
 :focus-visible {
   outline: 2px solid var(--color-foreground);
   outline-offset: 2px;
+}
+
+/* Controls on a code panel's dark bar (the Copy button) sit on the code
+   background in BOTH themes, so their ring uses the light code foreground;
+   the page's foreground would be dark on dark in the light theme. */
+.code-panel-bar :focus-visible {
+  outline-color: var(--color-code-foreground);
+}
+
+/* Defaults for UNSTYLED elements (MVP-027 slice 4; resolves BUG-009).
+   Several pages -- sign-in, account, unsubscribe, the admin forms -- render
+   plain <main>, <h1>, <button>, <input> with no classes, and Tailwind's reset
+   left them unstyled. Rather than add classes across dozens of components
+   (sign-in's markup carries hard-won accessibility fixes: BUG-005/011/014),
+   everything below applies ONLY to elements without a class attribute, in
+   the base layer, so any element with its own classes -- the search form,
+   theme toggle, Copy button, cards -- is untouched, and utilities still win.
+   Every colour is a theme token, so both themes get it; the contrast of each
+   pairing is covered by lib/design-tokens.test.ts. */
+@layer base {
+  main:not([class]) {
+    margin-inline: auto;
+    max-width: 48rem;
+    padding: 2rem 1rem 3rem;
+  }
+  main h1:not([class]) {
+    font-size: 2.25rem;
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  main h2:not([class]) {
+    margin-top: 2.5rem;
+    font-size: 1.5rem;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  main p:not([class]) {
+    margin-top: 0.75rem;
+    line-height: 1.6;
+  }
+  main ul:not([class]) {
+    margin-top: 0.75rem;
+    padding-left: 1.5rem;
+    list-style: disc;
+  }
+  main ul:not([class]) > li:not([class]) + li:not([class]) {
+    margin-top: 0.5rem;
+  }
+  main form:not([class]) {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  main form:not([class]) > div:not([class]) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    width: 100%;
+    max-width: 32rem;
+  }
+  label:not([class]),
+  legend:not([class]) {
+    font-weight: 600;
+  }
+  fieldset:not([class]) {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem 1rem;
+  }
+  legend:not([class]) {
+    padding-inline: 0.25rem;
+  }
+
+  /* Buttons: submit is the primary action, every other button secondary.
+     44px tall (WCAG 2.5.8 with room to spare); the secondary border is
+     muted-foreground, which is at least 3:1 against the card (1.4.11). */
+  button:not([class]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.125rem;
+    border: 1px solid var(--color-muted-foreground);
+    border-radius: 0.625rem;
+    background: var(--color-card);
+    color: var(--color-foreground);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:not([class]):hover {
+    background: var(--color-muted);
+  }
+  button[type="submit"]:not([class]) {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  button[type="submit"]:not([class]):hover {
+    background: var(--color-primary);
+    text-decoration: underline;
+  }
+  /* No fading: an in-flight (aria-disabled) button is still read, and scanned,
+     at full contrast; the cursor and its "…" label carry the state. */
+  button:not([class]):disabled,
+  button:not([class])[aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+  /* A button inline in running text (a list row) keeps a gap from it. */
+  li > button:not([class]) {
+    margin-left: 0.75rem;
+  }
+
+  input:not([class]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select:not([class]),
+  textarea:not([class]) {
+    width: 100%;
+    max-width: 32rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-muted-foreground);
+    border-radius: 0.625rem;
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+  textarea:not([class]) {
+    min-height: 6rem;
+  }
+  input[type="checkbox"]:not([class]),
+  input[type="radio"]:not([class]) {
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: var(--color-primary);
+  }
+
+  th:not([class]),
+  td:not([class]) {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    vertical-align: top;
+  }
+  th:not([class]) {
+    font-weight: 600;
+  }
+}
+
+/* Motion (MVP-027): short, purposeful, and only opacity and transform, which
+   the browser animates without re-laying out the page (Core Web Vitals).
+   Anyone whose system asks for reduced motion gets none of it. */
+@keyframes lcs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.motion-rise {
+  animation: lcs-rise 0.7s var(--ease-out-soft) both;
+}
+
+/* Gentle drift for the hero's decorative floating cards. `translate` is a
+   separate property, so it composes with a card's own rotate utility. */
+@keyframes lcs-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+.motion-float {
+  animation: lcs-float 6s ease-in-out infinite;
+}
+
+.motion-lift {
+  transition:
+    transform 0.2s var(--ease-out-soft),
+    box-shadow 0.2s var(--ease-out-soft);
+}
+.motion-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -24px rgb(11 92 92 / 0.45);
+}
+
+/* Reduced motion switches animation and transitions OFF, not merely short.
+   The common "duration: 0.01ms" shortcut is wrong here: transition-property
+   defaults to `all`, so a tiny duration on every element makes EVERY style
+   change -- a focus ring appearing, say -- animate from its old value, and a
+   check made in that first instant sees the old one. That is exactly what
+   the accessibility gate caught in CI (it runs with reduced motion on):
+   focus rings measured as the element's white text colour at the default
+   3px width, mid-transition. `none` has no in-between state to observe. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .motion-lift:hover {
+    transform: none;
+  }
 }

@@ -3,7 +3,15 @@ import type { ContentRepository } from "@ppu/domain-content";
 import type { LogFields } from "@ppu/telemetry";
 import type { MetadataRoute } from "next";
 import type { SiteUrlResult } from "../site-url";
-import { categoryUrl, homeUrl, learnIndexUrl, learnUrl, productUrl } from "./canonical";
+import { MAX_SECTION_PATHS } from "../technology-sections";
+import {
+  categoryUrl,
+  homeUrl,
+  learnIndexUrl,
+  learnUrl,
+  productUrl,
+  technologySectionUrl,
+} from "./canonical";
 
 /** sitemaps.org limit for one sitemap file; a sitemap index is the documented follow-up beyond it. */
 export const MAX_SITEMAP_URLS = 50_000;
@@ -26,6 +34,8 @@ export function buildSitemap(
   origin: string,
   entries: Pick<SitemapEntries, "categorySlugs" | "productSlugs">,
   articles: ReadonlyArray<{ slug: string; updatedAt: Date }>,
+  /** MVP-028: site-relative paths of technology section tabs that have content. */
+  sectionPaths: readonly string[] = [],
 ): MetadataRoute.Sitemap {
   const newestArticle = articles.reduce<Date | null>(
     (newest, article) => (newest && newest > article.updatedAt ? newest : article.updatedAt),
@@ -33,6 +43,7 @@ export function buildSitemap(
   );
   return [
     { url: homeUrl(origin) },
+    ...sectionPaths.map((path) => ({ url: technologySectionUrl(origin, path) })),
     ...entries.categorySlugs.map((slug) => ({ url: categoryUrl(origin, slug) })),
     ...entries.productSlugs.map((slug) => ({ url: productUrl(origin, slug) })),
     ...(articles.length > 0
@@ -49,6 +60,8 @@ export interface SitemapDeps {
   getSite: () => SiteUrlResult;
   repository: Pick<CatalogRepository, "listSitemapEntries">;
   contentRepository: Pick<ContentRepository, "listPublishedArticleSlugs">;
+  /** MVP-028: technology section tabs with content (at most MAX_SECTION_PATHS). */
+  listSectionPaths: () => Promise<string[]>;
   warn: (event: string, fields: LogFields) => void;
 }
 
@@ -64,7 +77,8 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
   // The home page and the /learn hub take one slot each; split the remaining budget between the
   // catalog entries and Article slugs so one domain's growth cannot silently
   // starve the other's sitemap coverage.
-  const budget = MAX_SITEMAP_URLS - 2;
+  // MVP-028: the technology section tabs are reserved up front too.
+  const budget = MAX_SITEMAP_URLS - 2 - MAX_SECTION_PATHS;
   const catalogBudget = Math.ceil(budget / 2);
   const articleBudget = budget - catalogBudget;
 
@@ -78,5 +92,6 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
       articles: articles.entries.length,
     });
   }
-  return buildSitemap(site.origin, entries, articles.entries);
+  const sectionPaths = (await deps.listSectionPaths()).slice(0, MAX_SECTION_PATHS);
+  return buildSitemap(site.origin, entries, articles.entries, sectionPaths);
 }

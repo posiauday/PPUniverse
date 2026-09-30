@@ -39,3 +39,10 @@ JSON, UTC timestamps, opaque IDs, cursor pagination for activity streams, bounde
 
 ## Error envelope
 `code`, `message`, `fieldErrors`, `correlationId`, and optional safe `retryAfter`. Never expose stack traces, provider secrets or internal storage paths.
+
+### Admin content API: technology sections (MVP-028)
+`POST /api/admin/content` and `PUT /api/admin/content/{id}` accept:
+- an optional `technology`: one of `POWER_APPS`, `POWER_AUTOMATE`, `POWER_BI`, `COPILOT_STUDIO`, `DATAVERSE`, `POWER_PAGES`. Absent, `null` or `""` stores none; any other value is a `400` with `fieldErrors.technology`.
+- the new `type` value `KPI_GUIDE`.
+
+Authorization is unchanged: deny-by-default ADMIN.

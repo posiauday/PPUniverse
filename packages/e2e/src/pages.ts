@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { interceptSignInSend, type SignInInterception } from "./auth-intercept.js";
+import { interceptAndHold } from "./held-requests.js";
 import { type GatedRoute } from "./page-routes.js";
 import { NO_MATCH_TERM, SEARCH_TERM, type FixtureSet } from "./seed.js";
 import {
@@ -164,20 +165,72 @@ async function submitSignIn(
   });
 }
 
-/**
- * Registers a route handler that never resolves — freezes an in-flight
- * request so the client's "submitting" UI state (aria-disabled, "…" label)
- * can be scanned deterministically, rather than trying to catch a
- * genuinely transient state mid-flight. Playwright tears down open routes
- * when the test ends; nothing needs to release this.
- */
-async function interceptAndHold(page: Page, urlGlob: string): Promise<void> {
-  await page.route(urlGlob, () => {
-    // Deliberately never calls fulfill/continue/abort.
-  });
-}
-
 export const GATED_PAGES: readonly GatedPage[] = [
+  {
+    // MVP-028: the header's Technologies menu, opened, so axe and the
+    // keyboard check see its links.
+    id: "home-technologies-menu-open",
+    route: "/",
+    description: "home page with the header's Technologies menu open",
+    auth: "guest",
+    status: 200,
+    path: () => "/",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Technologies" }).click();
+      await expect(page.getByRole("link", { name: "Power Automate" }).first()).toBeVisible();
+    },
+  },
+  {
+    // MVP-028: a technology section's Learn tab with content (the fixture
+    // article is tagged Power Apps).
+    id: "technology-learn",
+    route: "/[technology]",
+    description: "Power Apps section, Learn tab, with a published tutorial",
+    auth: "guest",
+    status: 200,
+    path: () => "/power-apps",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Power Apps");
+      await expect(page.getByRole("link", { name: seed.publishedArticle.title })).toBeVisible();
+      await expect(
+        page
+          .getByRole("navigation", { name: "Power Apps sections" })
+          .getByRole("link", { name: "Learn", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
+    },
+  },
+  {
+    id: "technology-components",
+    route: "/[technology]/[tab]",
+    description: "Power Apps section, Components tab, with a published component",
+    auth: "guest",
+    status: 200,
+    path: () => "/power-apps/components",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("link", { name: seed.technologyProduct.name })).toBeVisible();
+    },
+  },
+  {
+    // Nothing is ever published as a Dataverse KPI guide by the harness, so
+    // this tab is reliably empty under every worker.
+    id: "technology-tab-empty",
+    route: "/[technology]/[tab]",
+    description: "Dataverse section, KPIs tab, empty ('coming soon')",
+    auth: "guest",
+    status: 200,
+    path: () => "/dataverse/kpis",
+    prepare: async (page) => {
+      await expect(page.getByText("Coming soon.")).toBeVisible();
+    },
+  },
+  {
+    id: "technology-not-found",
+    route: null,
+    description: "an unknown technology section is a 404",
+    auth: "guest",
+    status: 404,
+    path: () => "/sharepoint",
+  },
   {
     id: "home",
     route: "/",
@@ -185,6 +238,16 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 200,
     path: () => "/",
+    // MVP-027 slice 2: the Premium 3 layout -- the hero and, since every
+    // worker seeds published products, the newest-components section.
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+        "Learn it properly. Ship components that last.",
+      );
+      await expect(
+        page.getByRole("heading", { name: "New components and templates" }),
+      ).toBeVisible();
+    },
   },
   {
     id: "category-populated",
@@ -685,8 +748,13 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // the same type, which under parallel workers may be another worker's
       // fixtures. The seed guarantees at least one exists.
       await expect(
-        page.getByRole("region", { name: "Keep learning" }).getByRole("link").first(),
+        page.getByRole("complementary", { name: "Keep learning" }).getByRole("link").first(),
       ).toBeVisible();
+      // MVP-027 slice 3: the contents list, a code panel's Copy button and a
+      // tip callout, all from the fixture's Markdown.
+      await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
+      await expect(page.getByRole("note")).toContainText("A fixture tip callout.");
     },
   },
   {

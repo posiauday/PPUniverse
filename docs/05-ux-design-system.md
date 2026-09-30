@@ -4,7 +4,7 @@
 Professional, calm, credible, fast, accessible and content-first. Avoid a generic template-marketplace look. Put preview, compatibility, documentation, license and support evidence before promotional copy.
 
 ## Foundations
-Use semantic color tokens, 4/8 spacing rhythm, responsive type scale, restrained elevation, 44px target guidance for touch controls, visible focus, high-contrast states and reduced-motion support. Light theme first; dark theme only after parity.
+Use semantic color tokens, 4/8 spacing rhythm, responsive type scale, restrained elevation, 44px target guidance for touch controls, visible focus, high-contrast states and reduced-motion support. Light theme first; dark theme only after parity. **Update 2026-09-30 (MVP-027):** the dark theme is built at parity. Every page gets it through the same semantic tokens, and the accessibility gate scans every page state in dark as well as light (`docs/final-decisions.md`, "Design system (MVP-027)").
 
 ## Core components
 Header, mega navigation, command search, breadcrumbs, filter drawer, product card, collection card, ~~creator badge~~ (superseded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model" — no third-party creator to badge; never built), price block, license disclosure, compatibility matrix, screenshot gallery, code/YAML viewer, tabs, changelog, version selector, review summary, alert, toast, modal, drawer, pagination, data table, form controls, uploader, scan status, moderation decision panel and audit timeline.

@@ -10,6 +10,7 @@ import { buildLearnIndexMetadata } from "../../lib/seo/metadata";
 import { LEARN_INDEX_DESCRIPTION, SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
 import { ArticleList } from "./ArticleList";
+import { TechnologyTiles } from "../TechnologyTiles";
 import { Breadcrumbs } from "./Breadcrumbs";
 
 // See apps/web/app/page.tsx for why content pages render per-request.
@@ -63,6 +64,10 @@ export default async function LearnIndexPage() {
       <Breadcrumbs items={[{ name: SITE_NAME, href: "/" }, { name: "Learn" }]} />
       <h1 className="mt-2 text-2xl font-semibold">Learn Power Platform</h1>
       <p className="mt-2 text-muted-foreground">{LEARN_INDEX_DESCRIPTION}</p>
+      {/* MVP-028: straight to one technology. */}
+      <nav aria-label="Technologies">
+        <TechnologyTiles variant="chips" />
+      </nav>
 
       {sections.length === 0 ? (
         <p className="mt-8">

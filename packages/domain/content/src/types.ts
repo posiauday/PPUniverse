@@ -10,7 +10,11 @@
  * this package.
  */
 
-export type ArticleType = "TUTORIAL" | "PATTERN" | "COMPARISON";
+export type ArticleType = "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE";
+
+/** MVP-028: the technology sections. See technology.ts for names and URLs. */
+export type Technology =
+  "POWER_APPS" | "POWER_AUTOMATE" | "POWER_BI" | "COPILOT_STUDIO" | "DATAVERSE" | "POWER_PAGES";
 
 /** Mirrors packages/domain/catalog/src's ProductStatus pattern: DRAFT never
  * renders publicly; PUBLISHED does. `publishedAt` null means draft. */
@@ -27,6 +31,8 @@ export interface ArticleRecord {
   slug: string;
   title: string;
   type: ArticleType;
+  /** MVP-028: the technology section it appears in; null means none (cross-cutting). */
+  technology: Technology | null;
   /** Markdown source. Never rendered as raw HTML — see apps/web's render path. */
   body: string;
   /** Used for the page's meta description; null means none was supplied. */
@@ -46,6 +52,7 @@ export interface ArticleCreateInput {
   slug: string;
   title: string;
   type: ArticleType;
+  technology: Technology | null;
   body: string;
   excerpt: string | null;
   authorUserId: string;
@@ -59,6 +66,7 @@ export interface ArticleUpdateInput {
   slug: string;
   title: string;
   type: ArticleType;
+  technology: Technology | null;
   body: string;
   excerpt: string | null;
 }
@@ -85,6 +93,7 @@ export interface ArticleSummary {
   slug: string;
   title: string;
   type: ArticleType;
+  technology: Technology | null;
   excerpt: string | null;
   publishedAt: Date;
 }
@@ -114,10 +123,13 @@ export interface ContentRepository {
   /** PUBLISHED slugs only, ordered, for sitemap.xml. */
   listPublishedArticleSlugs(maxEntries: number): Promise<ArticleSitemapEntries>;
   /** PUBLISHED Articles, newest first, at most `limit`. Optionally one type
-   * only, and optionally excluding one slug (the article being viewed). */
+   * (`type`) or any of several (`types`), one technology section (MVP-028),
+   * and excluding one slug (the article being viewed). */
   listPublishedArticleSummaries(options: {
     limit: number;
     type?: ArticleType;
+    types?: readonly ArticleType[];
+    technology?: Technology;
     excludeSlug?: string;
   }): Promise<ArticleSummary[]>;
 }

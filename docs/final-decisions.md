@@ -1504,3 +1504,138 @@ Direct product-owner instruction in chat: *"I like premium 3"*. This follows the
   - The mockup's `[VERSION]` placeholder stays a placeholder until real data exists.
 
 **Status:** direction approved. The design-system story will build and verify the tokens and components (contrast in both themes, reduced motion, Core Web Vitals).
+
+## 2026-09-30 — Design system (MVP-027): story and slice 1 implementation decisions
+
+The design system is item 2 of the revised work order ("Revised work order; learning expansion; maintenance agent limits", 2026-09-29) and inherits that approval. The visual direction was decided by the product owner ("Design direction: A + B combined"; "Home page design: Premium 3"). The product owner said "go ahead". The choices below were made by the agent under the standing instruction to decide and move forward. Each is reversible.
+
+1. **Story MVP-027**, "Design system", P1, in four slices:
+   1. Foundations: tokens, fonts, site header and footer, dark mode at parity.
+   2. The Premium 3 home page.
+   3. The article page layout: contents list, code Copy button, callouts, related column.
+   4. Polish of the remaining pages.
+2. **Tokens.** The A + B palette becomes semantic colour tokens in `apps/web/app/globals.css`.
+   - Light theme: ivory ground, teal primary.
+   - Dark theme: near-black ground, mint-teal primary.
+   - Both themes: an amber highlight, and a dark code panel.
+   - Components keep using only tokens, never raw colours, so every page gets both themes.
+   - `lib/design-tokens.test.ts` checks every text pairing at 4.5:1 and every control boundary at 3:1, in both themes, from the CSS itself.
+3. **Fonts.**
+   - Fraunces (display, h1 and h2), Source Sans 3 (body) and IBM Plex Mono (code and labels).
+   - Loaded with `next/font/google`, which **self-hosts them at build time**, so visitors' browsers never contact Google.
+   - The fallback fonts are size-adjusted, so there is no layout shift when the web fonts arrive.
+4. **Theme choice.**
+   - Light by default. The visitor's choice is kept in one first-party cookie, `lcs-theme` (`light`/`dark`, one year, `SameSite=Lax`, `Secure` on https).
+   - The cookie is set only when the visitor presses the toggle. That makes it a functional preference the visitor explicitly asked for, so it is **exempt from consent**, and it is recorded here as such.
+   - The server reads the cookie, so the page renders in the right theme from the first byte, with no flash and no inline script (the no-raw-html guard still holds).
+   - Anything but exactly `dark` is treated as light.
+5. **Dark theme at parity** (`docs/05-ux-design-system.md`, "dark theme only after parity").
+   - Dark ships on every page at once, because it lives entirely in the tokens.
+   - The accessibility gate adds a dark-theme pass: **every gated page state again, dark, at 1280 px, in every browser engine**.
+   - One width is enough, because the themes change colours, never layout.
+6. **Site header and footer on every page.**
+   - The header has the brand, **Learn** (`/learn`), **Components** (`/search`, until a dedicated components page exists) and **Sign in**, or **Account** when signed in, plus the theme toggle.
+   - The footer carries a standing line: *"Independent site. Not affiliated with, endorsed by or certified by Microsoft."* plus the trademark notice. This keeps the no-endorsement rule visibly true on every page.
+   - A **skip link** is the first keyboard stop (WCAG 2.4.1).
+7. **Motion foundation.** `motion-rise` (entrance) and `motion-lift` (hover) animate only opacity and transform. A global `prefers-reduced-motion: reduce` rule turns off all animation and transitions.
+8. **Brand refresh.** The favicon and share images move to the new palette: a teal tile with amber, mint and white bars, on a near-black card.
+
+### MVP-027 slice 2 — home page (2026-09-30)
+
+Built to the approved Premium 3 layout. Two deliberate deviations from the mockup's **words** (the layout is unchanged), both to keep the page truthful. Decided by the agent; reversible.
+
+1. **Headline and chips.**
+   - The mockup read "Components you can actually ship" under a "FREE · SOURCE INCLUDED · LICENSED" chip, with the claim that every component comes with a tutorial and its tested versions. None of that is true of the catalog yet.
+   - The page now says **"Learn it properly. Ship components that last."**, under a **"FREE POWER PLATFORM LEARNING"** chip.
+   - The subtitle describes what the site actually offers.
+2. **Floating cards.**
+   - The "tested on" card became **"Every product page: Licence, version and compatibility"**. Those sections exist on every product page today, showing "not provided" where evidence is missing.
+   - The code card shows a generic component-input snippet.
+   - The whole illustration is marked decorative (`aria-hidden`), is shown only on wide screens, and names no real product.
+3. **Home sections, each left out when empty:**
+   - The newest 4 published products ("New components and templates").
+   - The newest 6 articles.
+   - All categories.
+   - The old "Learn · Search products · Sign in" row is removed, because the site header now carries those links.
+   - The "What's new" strip is **not** shown yet: there is no digest page for it to link to. It arrives with the maintenance-agent work.
+
+### MVP-027 slice 3 — article page (2026-09-30)
+
+Built to the approved "A + B — Article page" mockup. Decided by the agent; reversible.
+
+1. **Layout.**
+   - Title block: type · reading time · updated date, then the headline and excerpt.
+   - Below it, three columns on wide screens: **On this page** | article | **Keep learning**.
+   - One column, in that order, on narrow screens. Each part is in the page once.
+2. **"On this page."**
+   - Links to the article's h2 and h3 headings.
+   - The list and the heading ids come from the same Markdown parse, with the same slug rules: ids are only `[a-z0-9-]`, and repeats get `-1`, `-2`. A link therefore always matches its heading, and author text can never reach an attribute or URL fragment.
+   - Left out when an article has fewer than two headings.
+3. **Code panels.**
+   - A bar shows the fenced block's language (only `[a-z0-9+#-]` is shown) and a **Copy** button.
+   - Copying uses the Clipboard API, falling back to selection-based copy where the API is blocked.
+   - The result is announced in a polite live region.
+   - The button's focus ring uses the light code colour, so it stays visible on the dark bar in both themes.
+4. **Callouts.** GitHub's alert syntax, `> [!TIP]`, `> [!NOTE]` and `> [!WARNING]`, renders as a labelled `role="note"` box. Ordinary blockquotes stay blockquotes. This is the syntax article authors, including the future maintenance agent's drafts, use for tips.
+5. **Reading time:** whole minutes at about 200 words per minute, never below 1.
+6. **Not built, for honesty:**
+   - The mockup's right-column **free component** card needs a real link between an article and a product, which does not exist yet.
+   - The **ad slot** belongs to the ads story.
+7. **Dependencies.** `unified` 11.0.5, `remark-parse` 11.0.0, `mdast-util-to-string` 4.0.0, `@types/mdast` 4.0.4 and `@types/hast` 3.0.5, all MIT. They are declared directly at exactly the versions react-markdown already installs, so nothing new is downloaded.
+
+### MVP-027 slice 4 — remaining pages (2026-09-30)
+
+Decided by the agent; reversible. It completes the design system, whose four slices the product owner approved.
+
+1. **Defaults for unstyled elements, instead of editing every component.**
+   - Six pages render plain `<main>`, headings, buttons and fields with no classes: sign-in, account sessions, account privacy, unsubscribe, the audit log and deletion requests. The admin forms elsewhere are the same.
+   - One `@layer base` block in `globals.css` now styles **only elements without a `class`**: the page width, headings, paragraphs, lists, forms, labels, fieldsets, fields, table cells and buttons.
+   - Buttons: a submit button is the primary (filled) style; every other button is secondary (outlined).
+   - Anything with its own classes is untouched, and a unit test enforces that every selector in the block excludes classed elements.
+   - Sign-in's markup, which carries the BUG-005, BUG-011 and BUG-014 accessibility fixes, is **not changed at all**.
+2. **No fading for in-flight buttons.** A button marked `aria-disabled` while submitting keeps full colour, because fading drops its text below 4.5:1. The cursor and its "…" label carry the state.
+3. **BUG-009 (sign-in and account pages unstyled) is resolved by this slice.** Its record said the fix "needs the product owner"; the product owner's approval of the design system covers it.
+
+## 2026-09-30 — Technology sections (MVP-028)
+
+Direct product-owner instruction in chat, answering the agent's three questions. This is item 3 of the revised work order ("Revised work order; learning expansion; maintenance agent limits").
+
+### Product-owner decisions
+1. **Six sections at launch:** Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages. **SharePoint Online, Dynamics 365 and a Governance & ALM section are not at launch.** They were offered and not chosen, and can be added later: each is one registry entry and one enum value.
+2. **Four tabs per section:** **Learn · Architecture · Components · KPIs.**
+3. **Addresses:** `/power-apps` (the Learn tab), `/power-apps/architecture`, `/power-apps/components` and `/power-apps/kpis`, and the same pattern for each section.
+
+### Implementation decisions (agent, under the standing instruction; reversible)
+4. **Story MVP-028**, P1, in two slices:
+   - **Slice 1, content model:** the technology field, the KPI guide type, and the admin editor.
+   - **Slice 2:** the section pages, the header menu, home tiles, SEO and the sitemap.
+5. **Articles** get an optional `technology`. None means cross-cutting: the article still appears on `/learn`, just in no section.
+   - A new article type, `KPI_GUIDE` ("KPI guide"), feeds the KPIs tab.
+   - Tab mapping: **Learn** = tutorials and comparisons; **Architecture** = patterns; **KPIs** = KPI guides.
+6. **Components tab.** It is fed by **product categories**, mapped in code from each category's fixed asset type:
+   - Power Apps components and templates → Power Apps.
+   - Power Automate templates → Power Automate.
+   - Power BI templates → Power BI.
+   - Architecture blueprints and governance assets are cross-cutting.
+   - There is no new database column, so the mapping cannot drift from the categories. This is built in slice 2.
+7. **One registry** (`TECHNOLOGIES` in `@ppu/domain-content`) holds each section's name and URL segment. The header, pages, sitemap and admin editor all read it.
+8. **Empty tabs** will show a "coming soon" state and stay `noindex` until they have content, so thin pages never hurt search ranking (slice 2).
+
+### MVP-028 slice 2 — the section pages (2026-09-30)
+
+Decided by the agent; reversible.
+
+1. **Routes.**
+   - `app/[technology]/page.tsx` is the Learn tab; `app/[technology]/[tab]/page.tsx` serves `architecture`, `components` and `kpis`.
+   - Any other technology or tab, and `/{technology}/learn`, is a 404, so there is no duplicate of the Learn tab.
+   - Existing top-level routes keep priority.
+   - Because every unknown top-level path now reaches this route, its 404 carries exactly the title `app/not-found.tsx` gives every other 404. That was caught by the BUG-008 regression test.
+2. **Tabs are links, not an ARIA tab widget.** Each tab is its own page, so they are a navigation list with `aria-current="page"`.
+3. **Search engines.**
+   - A tab with content is indexable, with CollectionPage and BreadcrumbList data.
+   - An empty tab shows "Coming soon" with links onward, and is `noindex, follow` with breadcrumbs only.
+   - The sitemap lists section tabs that have content, right after the home page, and reserves 24 slots for them.
+4. **Navigation.**
+   - The header has a **Technologies** disclosure menu. It is the WAI-ARIA disclosure pattern: Escape and a click outside close it, and focus returns to the button.
+   - The home page has an "Explore by technology" tile grid, and `/learn` has a chip row. These are the always-present, crawlable links; the menu is a shortcut.
+5. **The Components tab** lists up to 12 newest products per technology category, with an "All N in {category}" link when there are more.

@@ -3775,3 +3775,242 @@ Item 2 of the product owner's work order. Implementation choices: `docs/final-de
   - The release-to-`main` cadence.
   - The A + B design direction.
 - This entry adds a fifth: the Premium 3 home page.
+
+## MVP-027 — Design system, slice 1 of 4: foundations (2026-09-30)
+
+The work order puts the design system next. The product owner chose A + B plus the Premium 3 home page and said "go ahead". Decisions: `docs/final-decisions.md`, "Design system (MVP-027): story and slice 1 implementation decisions".
+
+**Built:**
+- **Tokens** (`app/globals.css`): the A + B palette for light (the default) and dark themes, plus highlight and code-panel tokens, font tokens and a motion easing. Dark lives in an unlayered `[data-theme="dark"]` block, so it overrides Tailwind's layered theme defaults.
+- **Contrast test** (`lib/design-tokens.test.ts`, 35 checks): parses `globals.css` and checks 13 text pairings at 4.5:1 and 3 boundary pairings at 3:1, in both themes.
+- **Fonts** (`app/fonts.ts`): Fraunces, Source Sans 3 and IBM Plex Mono through `next/font/google`, self-hosted at build time.
+- **Theme:**
+  - `lib/theme.ts` (cookie name, validation, cookie string).
+  - `app/ThemeToggle.tsx`: a real toggle button with `aria-pressed`, an instant switch and the cookie.
+  - The root layout reads the cookie server-side and renders `<html data-theme>`.
+- **Chrome:**
+  - `app/SiteHeader.tsx`: brand, Learn, Components, Sign in or Account, and the toggle.
+  - `app/SiteFooter.tsx`: the non-affiliation and trademark line, plus links.
+  - `app/BrandMark.tsx`.
+  - A skip link and `#main-content` target in the layout.
+- **Code panels:** article code blocks use the dark code-panel tokens in both themes.
+- **Motion:** `motion-rise` and `motion-lift` utilities, and a global reduced-motion override.
+- **Brand:** the favicon and share-image colours move to the new palette.
+- **Accessibility gate:** a dark-theme pass covering every gated page state at 1280 px, with the session cookie chosen per state. It asserts the page really rendered dark. The theme cookie name is paired with the app's constant in `packages/e2e/src/site.ts`.
+- **Tests:**
+  - New files: `lib/theme.test.ts`, `app/ThemeToggle.test.tsx` (jsdom) and `app/SiteHeader.test.tsx` (header and footer).
+  - `pages.test.tsx` mocks `next/font/google`, which only works inside a Next.js build.
+  - `@testing-library/react` and `jsdom` are added to `apps/web` as dev dependencies, at the versions the workspace already uses in `@ppu/ui`.
+
+**Verified locally (real Postgres):**
+- Workspace build, lint, typecheck and test all green (`@ppu/web` 424).
+- Playwright chromium: **437/437**, light and dark.
+- **Visually checked in a browser against a production build:**
+  - The light and dark home page.
+  - The theme persisting across navigation, rendered by the server.
+  - The skip link on the first Tab.
+  - No horizontal overflow.
+- One thing looked wrong but wasn't. A screenshot taken straight after toggling showed white category cards in dark mode, but the computed styles were already dark: the cards animate their colour change. A second screenshot confirmed it.
+
+**Remaining for MVP-027:**
+- Slice 2: the Premium 3 home page, which also removes the home page's now-duplicate Learn, Search and Sign in links.
+- Slice 3: the article layout.
+- Slice 4: polish of the remaining pages.
+
+### MVP-027 slice 1 — fix found by CI before merge (2026-09-30)
+The first CI run of PR #31 failed the accessibility shards: 40+ focus-ring failures across the site (mostly the new skip link and the Search button), plus two dark-theme contrast failures. Every failure measured an element's **pre-change** style: a white 3 px focus ring (the element's text colour at the CSS default width) or black text.
+
+**Root cause (mine).** My reduced-motion rule set `transition-duration: 0.01ms !important` on every element. `transition-property` defaults to `all`, so under reduced motion *every* style change became a tiny animation. The accessibility suite runs with `reducedMotion: "reduce"`, and CI's slower runners read computed styles in the first instant of those animations. The run passed locally 437/437 and 72/72 under stress only because this machine is faster.
+
+**Fix.** Reduced motion now switches animation and transitions **off** (`animation: none; transition: none`), which leaves no in-between state to observe and is the more faithful reading of the visitor's request. A regression test in `lib/design-tokens.test.ts` fails if the rule ever goes back to a tiny duration; I checked that its pattern matches the old rule.
+
+The problem was caught before merge, inside the story, so it gets no bug record (CLAUDE.md, "Project management rules" 5). Re-verified: chromium 437/437.
+
+## MVP-027 — Design system, slice 2 of 4: Premium 3 home page (2026-09-30)
+
+**Built:**
+- **`app/HomeHero.tsx`:**
+  - Headline, subtitle and two calls to action (Start learning → `/learn`, Browse components → `/search`).
+  - A decorative illustration: a layered sample Power Apps screen with floating code and evidence cards. It is `aria-hidden` and shown at `lg` and above only.
+  - Entrance motion via `motion-rise` with staggered delays.
+  - The side cards drift with a new `motion-float`. It uses the separate CSS `translate` property, so it composes with each card's rotation.
+- **`app/page.tsx`:**
+  - Hero, then the newest 4 published products (`searchProducts` sorted by recent, rendered as `ProductCard` with hover lift), the newest 6 articles, and all categories.
+  - All three queries run in parallel. Each section is left out when it has nothing to show.
+  - The duplicated Learn · Search · Sign in row is removed.
+- **Tests:**
+  - `pages.test.tsx`: exactly one h1 with the new headline; the illustration is `aria-hidden`; the products section appears only when there are products and uses the recent sort with 4 items. The search fixture now carries the product's category, as real results do.
+  - The a11y `home` state asserts the headline and the components section.
+
+**Verified:**
+- `@ppu/web` 427/427. Playwright chromium 437/437, light and dark.
+- **Visually, against a production build with sample data:**
+  - Desktop, dark and light, matches the Premium 3 mockup.
+  - At 375 px the illustration steps aside, with no horizontal overflow.
+- **Polish found on the visual check:** the highlighted illustration row hid its own icon square (muted on muted). The square now uses a tint of the primary colour.
+
+**Wording:** the mockup's copy was adjusted to be truthful. See `docs/final-decisions.md`, "MVP-027 slice 2".
+
+**Remaining for MVP-027:**
+- Slice 3: the article layout (contents list, code Copy button, callouts, related column).
+- Slice 4: polish of the remaining pages.
+
+## MVP-027 — Design system, slice 3 of 4: article page (2026-09-30)
+
+Slices 1 and 2 merged first (PRs #31 and #33). Slice 2's original PR, #32, was closed automatically by GitHub when slice 1's branch was deleted on merge. It was replaced by #33, from the same branch, and the lesson is saved to agent memory.
+
+**Built:**
+- **`lib/article-outline.ts`:**
+  - `createSlugger` (ids `[a-z0-9-]`, repeats numbered, never empty).
+  - `remarkArticleStructure`, a remark plugin that gives headings ids and turns `[!TIP]/[!NOTE]/[!WARNING]` blockquotes into callouts, removing the marker.
+  - `outlineOf`: the h2/h3 list from the same parse, remark-parse plus remark-gfm.
+  - `readingMinutes`.
+- **`app/learn/ArticleBody.tsx`:**
+  - Headings carry ids, and callouts render as `role="note"` with a label.
+  - Code sits in a `figure`, with a `figcaption` bar (language and Copy) over the focusable, scrollable `pre`.
+  - Tables get header and cell styling.
+- **`app/learn/CopyCodeButton.tsx`** (client): the Clipboard API with a selection-based fallback, and a live-region result. Its accessible name is "Copy code", which contains the visible "Copy".
+- **`app/learn/ArticleToc.tsx`:** the "On this page" navigation. It is a sticky column on wide screens and a box above the article on narrow ones.
+- **`app/learn/[slug]/page.tsx`:**
+  - The title block (type, reading time, updated date).
+  - The three-column grid.
+  - "Keep learning" as a compact list in an `aside`.
+  - The page's own ids use an underscore, so a heading slug cannot collide with them.
+- **`globals.css`:** the focus ring inside code bars uses the code foreground.
+- **Accessibility gate:** the fixture article gains a `[!TIP]` callout and a `powerfx` code fence. `learn-published` asserts the contents navigation, the Copy button, the callout, and "Keep learning" (now a complementary landmark).
+
+**Tests:**
+- `article-outline.test.ts` covers slugs, dedupe, safety, outline order and ids, Markdown syntax removed from text, and reading time.
+- `ArticleBody.test.tsx` covers ids, callouts, plain blockquotes, the code bar and language, and odd class names.
+- `CopyCodeButton.test.tsx` (jsdom) covers copying and announcing, the fallback (textarea removed, focus restored), and the failure message.
+
+**Verified:**
+- `@ppu/web` 441, `@ppu/e2e` 83.
+- Playwright chromium 437/437, light and dark.
+- **Visually, against a production build with sample articles:**
+  - Desktop in light and dark.
+  - A contents link jumps to its heading, with every id matching.
+  - At 375 px the page is one column, with no overflow.
+  - **Copy worked in a browser where the Clipboard API was blocked, through the fallback.** The first visual check had found that browser's API blocked, which is why the fallback was added.
+
+**Found and fixed during the slice:**
+1. Lint: links in the new column used plain `<a>` instead of Next's `<Link>`.
+2. Formatting: fixed before the push, with the check gating it by exit code.
+3. My test assumed a synthetic click moves focus. It does not; a real click does. The test now focuses the button first.
+
+**Environment note:** the scratchpad's local Postgres install vanished mid-session (it lives under Windows %TEMP%). I reinstalled it, and the agent memory note now covers this.
+
+**Remaining for MVP-027:** slice 4, polish of the remaining pages (catalog, product, search, account and admin surfaces), then the story is done.
+
+## MVP-027 — Design system, slice 4 of 4: remaining pages (2026-09-30)
+
+Slice 3 merged first (PR #34).
+
+**Environment:** the `G:\PPU-mvp007` worktree was removed from outside this session, most likely by the desktop app's worktree cleanup. Its `.git` link and most folders vanished, leaving a partial directory. Nothing was lost, because every change was already merged. Slice 4 was built in a fresh worktree, `G:\PPU-work`.
+
+**Built:**
+- **`app/globals.css`:** a `@layer base` block that styles **only elements without a class**:
+  - a plain `<main>` gets the page width and padding;
+  - h1, h2, paragraphs, lists, forms (with field groups), labels, fieldsets and legends;
+  - buttons: submit is primary (filled), anything else secondary (outlined);
+  - text fields, selects, textareas, checkboxes and radios;
+  - table header and data cells.
+- The block covers sign-in, account sessions, account privacy, unsubscribe, the audit log and deletion requests, plus every admin form, in both themes. **Sign-in's markup is unchanged.**
+- **Contrast:** in-flight (`aria-disabled`) buttons are not faded. Fading would drop their text below 4.5:1, and the gate scans some states mid-submission.
+- **Guard test** in `lib/design-tokens.test.ts`: every selector in the block must target a class-less element. It proved itself straight away by catching a list-spacing rule that did not check its own `li`.
+
+**Verified:**
+- `@ppu/web` 443. Playwright chromium 437/437, light and dark.
+- **Visually, against a production build**, using a throwaway local ADMIN test session that was deleted afterwards:
+  - sign-in in light and dark;
+  - account sessions, with the header now showing "Account";
+  - account privacy;
+  - the new-product admin form;
+  - the audit log.
+
+**Result:** MVP-027 has all 4 slices built and moves to **QA** until this PR is green and merged. BUG-009 is resolved. NFR-005 is Implemented in the traceability matrix.
+
+**Next:** the design-system release, `develop` → `main`, then the per-technology sections story.
+
+### MVP-027 — merged and Done (2026-09-30)
+- **Merged:** slice 4, PR #35 (merge commit `1e8def7`, CI run `36672052912`, 7 of 7 green), after slices 1–3 (#31, #33, #34).
+- **Definition-of-done gate:**
+  - Tests pass locally and in CI on all three browser engines, light and dark.
+  - Documentation and traceability are updated (NFR-005 Implemented).
+  - The security review is in each PR body: no raw-HTML sink, ids and labels built from safe character sets, and self-hosted fonts.
+- **Process lesson:** `gh pr merge --delete-branch=true` also removes a worktree that has the PR branch checked out. That explains both vanished worktrees. From now on the agent detaches its worktree after pushing.
+
+## MVP-028 — Technology sections, slice 1 of 2: content model (2026-09-30)
+
+**Decisions** (product owner, in chat): six sections, four tabs, and short addresses. See `docs/final-decisions.md`, "Technology sections (MVP-028)".
+
+**Built:**
+- **Schema (two additive migrations):**
+  - `KPI_GUIDE` is added to `ArticleType`, in its own migration because Postgres will not use a new enum value in the same transaction.
+  - A new `Technology` enum, a nullable `articles.technology`, and an index on `(technology, status)`.
+  - The rollback steps are in each migration's header.
+  - `prisma migrate diff` reports **no difference** between schema and migrations, checked by Prisma's own exit code.
+- **`@ppu/domain-content`:**
+  - The `Technology` type and `technology` on article records, inputs and summaries.
+  - `technology.ts`: the `TECHNOLOGIES` registry (name and URL segment), `isValidTechnology`, `technologyBySlug` and `technologyInfo`.
+  - `KPI_GUIDE` is a valid type.
+  - `listPublishedArticleSummaries` accepts `types` (several) and `technology`.
+- **`@ppu/adapter-content`:** stores, updates and clears `technology`, and filters summaries by technology and types.
+- **Admin:**
+  - The article editor has a "Technology section (optional)" select, and its type options now come from the shared labels ("KPI guide" included).
+  - Both admin content routes validate `technology` (absent, `null` or `""` means none; anything else outside the six is a 400).
+- **Labels:** `KPI_GUIDE` is "KPI guide", and `/learn` gains a "KPI guides" group.
+
+**Tests:**
+- Domain registry and validation (`technology.test.ts`).
+- Two new adapter integration tests against real Postgres: store, change and clear the technology; filter by technology and types.
+- API route tests: a rejected technology, and absent, empty, `null` or a valid value stored correctly with `KPI_GUIDE`.
+
+**Verified:**
+- `@ppu/domain-content` 19, `@ppu/adapter-content` 9/9 (real Postgres), `@ppu/web` 448.
+- Playwright chromium 437/437, including the admin article editor states.
+
+**Found and fixed:**
+- **BUG-017:** the design-token guard test broke on a Windows CRLF checkout. Fixed by normalising line endings.
+- **Environment:** the `@ppu/db` build alone does not regenerate the Prisma client (Turbo does it in the full build), so I ran `prisma generate` explicitly after the schema change. The per-package test schemas had to be provisioned for this fresh database.
+
+**Next (slice 2):** the section pages, tabs, header menu, home tiles, SEO, sitemap and accessibility states.
+
+## MVP-028 — Technology sections, slice 2 of 2: the section pages (2026-09-30)
+
+Slice 1 merged as PR #37. It was merged about 49 seconds after its CI run started, before checks finished, most likely with `--admin`. `develop`'s own CI then passed on that merge commit (`36e1645`), so the code is confirmed.
+
+**Built:**
+- **`lib/technology-sections.ts`:**
+  - The tabs (`SECTION_TABS`), `tabBySegment` and `sectionPath`.
+  - `ASSET_TECHNOLOGY`, mapping each category asset type to a technology or to none.
+  - Honest one-line summaries per technology.
+  - Tab titles and descriptions.
+  - `loadSection`: articles by tab types and technology, or products grouped by the technology's categories.
+  - `sectionHasContent`, `listSectionPathsWithContent` and `MAX_SECTION_PATHS` (24).
+- **Routes:** `app/[technology]/page.tsx` (Learn) and `app/[technology]/[tab]/page.tsx`, sharing `TechnologySection.tsx`. That component renders the breadcrumbs, title, summary, tab navigation with `aria-current`, content or an empty state, and JSON-LD.
+- **SEO:**
+  - `buildTechnologySectionMetadata`: indexable only with content.
+  - `technologySectionUrl`.
+  - The sitemap lists section tabs with content after the home page; the budget is `MAX_SITEMAP_URLS - 2 - 24`.
+- **Navigation:** `TechnologiesMenu` (the header disclosure) and `TechnologyTiles` (home tiles and `/learn` chips).
+- **Search page:** the "Clear all" link now uses `<Link>`. ESLint began flagging the old `<a>` once the top-level dynamic route existed.
+- **Accessibility gate:**
+  - The two routes are registered.
+  - New states: `home-technologies-menu-open`, `technology-learn`, `technology-components`, `technology-tab-empty` and `technology-not-found`.
+  - The seed tags the fixture article as Power Apps and adds `technologyProduct` in Power Apps Components, so there are 8 products per worker.
+
+**Found by the accessibility gate before any push:**
+1. **A regression:** unknown top-level URLs now reach `[technology]`, whose 404 title lacked the site suffix. The BUG-008 regression test caught it, and it is fixed.
+2. **Mistakes in my own tests:** a "Learn" locator matched the footer instead of the tab (now scoped to the section navigation), and the fixture count needed updating in two places.
+3. **A harness rule:** the "bare site name title" exemption was keyed to the state id `home`. It now keys on the route `/`, so any state of the home page (such as the open menu) qualifies.
+
+**Verified:**
+- `@ppu/web` 464, `@ppu/e2e` 83, chromium **472/472** (light and dark).
+- **Visually, against a production build with sample content:**
+  - the Power Apps Learn tab, and the Components tab grouped by category;
+  - the Technologies menu open;
+  - the home page's technology tiles at phone width;
+  - an empty Dataverse KPIs tab in dark mode (`noindex, follow`, no overflow).
+
+**Next:** merge, then the design-system release to `main`, then launch content.

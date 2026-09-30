@@ -1,8 +1,10 @@
 import { JsonLd } from "@ppu/ui";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { contentRepository } from "../../../lib/content";
+import { outlineOf, readingMinutes } from "../../../lib/article-outline";
 import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
 import { findRelatedArticles } from "../../../lib/related-articles";
 import { homeUrl, learnIndexUrl, learnUrl } from "../../../lib/seo/canonical";
@@ -11,7 +13,7 @@ import { buildLearnMetadata, buildNotFoundMetadata } from "../../../lib/seo/meta
 import { SITE_NAME } from "../../../lib/seo/site";
 import { getSiteUrl } from "../../../lib/site-url";
 import { ArticleBody } from "../ArticleBody";
-import { ArticleList } from "../ArticleList";
+import { ArticleToc } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
 
 interface LearnPageProps {
@@ -21,6 +23,13 @@ interface LearnPageProps {
 // See apps/web/app/page.tsx for why these content pages render per-request
 // rather than being statically generated at build time.
 export const dynamic = "force-dynamic";
+
+const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
 
 // generateMetadata and the page both need the article; cache() shares one
 // query between them for the duration of a request.
@@ -51,6 +60,12 @@ export async function generateMetadata({ params }: LearnPageProps): Promise<Meta
  * Internal links (SEO story): a breadcrumb back to the /learn hub and a
  * "Keep learning" list of related articles, so readers and crawlers can
  * move through the library instead of hitting a dead end.
+ *
+ * Layout (MVP-027 slice 3, the "A + B -- Article page" mockup): the title
+ * block, then "On this page" | the article | "Keep learning" as three
+ * columns on wide screens and one column, in that order, on narrow ones.
+ * Each part is in the page once. The page's own ids contain an underscore,
+ * which heading slugs never do, so an article heading cannot collide.
  */
 export default async function LearnPage({ params }: LearnPageProps) {
   const { slug } = await params;
@@ -79,8 +94,11 @@ export default async function LearnPage({ params }: LearnPageProps) {
       ])
     : null;
 
+  const outline = outlineOf(article.body);
+  const minutes = readingMinutes(article.body);
+
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto max-w-6xl px-4 py-8">
       <Breadcrumbs
         items={[
           { name: SITE_NAME, href: "/" },
@@ -88,20 +106,70 @@ export default async function LearnPage({ params }: LearnPageProps) {
           { name: article.title },
         ]}
       />
-      <p className="mt-4 text-sm text-muted-foreground">{ARTICLE_TYPE_LABEL[article.type]}</p>
-      <h1 className="mt-1 text-2xl font-semibold">{article.title}</h1>
-      {article.excerpt ? <p className="mt-4 text-muted-foreground">{article.excerpt}</p> : null}
+      <header className="mt-6 max-w-3xl">
+        <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+          <span className="font-mono font-medium text-primary">
+            {ARTICLE_TYPE_LABEL[article.type].toLowerCase()}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>{minutes} min read</span>
+          <span aria-hidden="true">·</span>
+          <span>
+            Updated{" "}
+            <time dateTime={article.updatedAt.toISOString()}>
+              {DATE_FORMAT.format(article.updatedAt)}
+            </time>
+          </span>
+        </p>
+        <h1 className="mt-3 text-4xl leading-tight font-semibold tracking-tight">
+          {article.title}
+        </h1>
+        {article.excerpt ? (
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{article.excerpt}</p>
+        ) : null}
+      </header>
 
-      <ArticleBody markdown={article.body} />
-
-      {related.length > 0 ? (
-        <section aria-labelledby="keep-learning" className="mt-12">
-          <h2 id="keep-learning" className="text-lg font-semibold">
-            Keep learning
-          </h2>
-          <ArticleList articles={related} headingLevel={3} />
-        </section>
-      ) : null}
+      <div className="mt-8 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)] xl:grid-cols-[13rem_minmax(0,1fr)_15rem]">
+        <div className="lg:row-span-2 xl:row-span-1">
+          <ArticleToc items={outline} />
+        </div>
+        <div className="max-w-3xl min-w-0">
+          <ArticleBody markdown={article.body} />
+        </div>
+        {related.length > 0 ? (
+          <aside aria-labelledby="related_heading" className="self-start xl:sticky xl:top-6">
+            <div className="rounded-xl border border-border bg-card p-4">
+              <h2
+                id="related_heading"
+                className="font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase"
+              >
+                Keep learning
+              </h2>
+              <ul className="mt-2 space-y-1">
+                {related.map((item) => (
+                  <li key={item.slug}>
+                    <Link
+                      href={`/learn/${encodeURIComponent(item.slug)}`}
+                      className="inline-flex min-h-8 flex-col py-1 font-semibold text-primary no-underline hover:underline"
+                    >
+                      {item.title}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {ARTICLE_TYPE_LABEL[item.type]}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/learn"
+                className="mt-3 inline-flex min-h-8 items-center text-sm font-semibold"
+              >
+                All learning content
+              </Link>
+            </div>
+          </aside>
+        ) : null}
+      </div>
 
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
       {breadcrumbJsonLd ? <JsonLd data={breadcrumbJsonLd} /> : null}

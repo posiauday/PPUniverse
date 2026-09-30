@@ -2,7 +2,53 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-026 (SEO discoverability) is Done.**
+Last updated: 2026-09-30 — **MVP-028 (Technology sections) both slices built; status QA.**
+- **Six sections, each with four tabs:** Learn, Architecture, Components and KPIs, at `/power-apps` and so on.
+- **Navigation:** a Technologies menu in the header, technology tiles on the home page, and chips on `/learn`.
+- **Search engines:** empty tabs say "Coming soon" and stay out of search; tabs with content are in the sitemap.
+- **`develop` CI** passed on the slice 1 merge (#37).
+
+Last updated (previous): 2026-09-30 — **MVP-028 (Technology sections) In Progress, slice 1 of 2 built: the content model.**
+- **Decided by the product owner:** six sections (Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse, Power Pages), four tabs (Learn · Architecture · Components · KPIs), and short addresses (`/power-apps`).
+- **Built:** articles can be tagged with a technology; there is a new KPI guide article type; the admin editor has a Technology picker; the API validates both.
+- **Fixed:** BUG-017, a test that failed on Windows line endings.
+
+Last updated (previous): 2026-09-30 — **MVP-027 (Design system) is Done.**
+- All 4 slices are merged: PRs #31, #33, #34 and #35, each with all 7 checks green.
+- **Next:** the design-system release, `develop` → `main`. Then the per-technology sections, whose section list and structure go to the product owner first.
+
+Last updated (previous): 2026-09-30 — **MVP-027 (Design system) all 4 slices built; status QA.**
+- **Slice 4 gives every remaining page the new look.** A single set of defaults styles unstyled elements (page width, headings, fields, primary and secondary buttons, tables) in both themes.
+- **Pages covered:** sign-in, account, unsubscribe and the admin screens.
+- **BUG-009 resolved.**
+- **Merged:** slices 1–3 (PRs #31, #33, #34).
+- **Next:** once slice 4 merges, a **`develop` → `main` release** for the design-system milestone. Then the per-technology sections.
+
+Last updated (previous): 2026-09-30 — **MVP-027 slice 3 built: the article page.**
+- **Contents:** an "On this page" list built from the same parse as the headings.
+- **Code:** panels with a language label and a Copy button that has a fallback.
+- **Callouts:** `[!TIP]`, `[!NOTE]` and `[!WARNING]` boxes.
+- **Title block:** reading time and updated date.
+- **Layout:** three columns (contents | article | Keep learning) on wide screens, one column on phones.
+- **Merged:** slices 1 and 2 (PRs #31 and #33).
+
+Last updated (previous): 2026-09-30 — **MVP-027 slice 2 built: the Premium 3 home page.**
+- **Hero:** a headline beside a layered, decorative Power Apps illustration, with floating code and evidence cards.
+- **Sections:** the newest components, the newest articles and all categories. Each is left out when empty.
+- **Honesty:** the mockup's wording was made truthful (`docs/final-decisions.md`, "MVP-027 slice 2").
+- **Release 1 is merged to `main`** (PR #30).
+
+Last updated (previous): 2026-09-30 — **MVP-027 (Design system) In Progress, slice 1 of 4 built.**
+- **Tokens:** the A + B palette as semantic tokens, with contrast checked in both themes.
+- **Fonts:** self-hosted Fraunces, Source Sans 3 and IBM Plex Mono.
+- **Dark mode on every page,** switched by a header toggle and remembered in a first-party cookie. The accessibility gate now scans every page state in dark as well.
+- **Site header and footer** with a skip link and the "not affiliated with Microsoft" line.
+- **Motion foundation** that respects reduced motion.
+- **Brand refresh:** new favicon and share-image palette.
+
+Release 1 (`develop` → `main`, PR #30) is open for the product owner.
+
+Last updated (previous): 2026-09-30 — **MVP-026 (SEO discoverability) is Done.**
 - MVP-007 slice 2 merged first, via PR #27.
 - The SEO story merged via PR #28 (merge commit `cb00b6b`) after CI run `36650827876` passed all 7 checks.
 
@@ -62,11 +108,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 1 | MVP-007 (slices 1–2 of 3) |
-| QA | 0 | — |
+| QA | 1 | MVP-028 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
-| Done | 17 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026 |
-| **Total** | **26** | |
+| Done | 18 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027 |
+| **Total** | **28** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -160,12 +206,12 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 17 / 26 (65%)
-- Stories in QA: 0 / 26
-- Points done: 118 / 175 (67%)
+- Stories done: 18 / 28 (64%)
+- Stories in QA: 1 / 28 (MVP-028)
+- Points done: 131 / 196 (67%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 15 / 30 (50%)
-- Open bugs: 4 (BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 9 resolved (BUG-002 resolved by MVP-026) (see `planning/bugs.csv` and `planning/bugs/`)
+- P1 points done: 28 / 51 (55%)
+- Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
 
@@ -189,6 +235,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
+| 5 | MVP-027 (Design system) | **Done** | 13 (done) |
+| 5 | MVP-028 (Technology sections) | QA (both slices built) | 8 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
