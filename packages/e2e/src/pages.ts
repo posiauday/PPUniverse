@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { interceptSignInSend, type SignInInterception } from "./auth-intercept.js";
+import { interceptAndHold } from "./held-requests.js";
 import { type GatedRoute } from "./page-routes.js";
 import { NO_MATCH_TERM, SEARCH_TERM, type FixtureSet } from "./seed.js";
 import {
@@ -161,19 +162,6 @@ async function submitSignIn(
     rectDelta,
     events,
     nativeSubmitLog,
-  });
-}
-
-/**
- * Registers a route handler that never resolves — freezes an in-flight
- * request so the client's "submitting" UI state (aria-disabled, "…" label)
- * can be scanned deterministically, rather than trying to catch a
- * genuinely transient state mid-flight. Playwright tears down open routes
- * when the test ends; nothing needs to release this.
- */
-async function interceptAndHold(page: Page, urlGlob: string): Promise<void> {
-  await page.route(urlGlob, () => {
-    // Deliberately never calls fulfill/continue/abort.
   });
 }
 

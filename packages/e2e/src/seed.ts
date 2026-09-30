@@ -229,6 +229,16 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       await attempt(() =>
         prisma.consentRecord.deleteMany({ where: { userId: { in: fixtureUserIds } } }),
       );
+      // EmailSend (MVP-018) also has a Restrict FK on userId, for the same
+      // audit reason. A test can create one without meaning to: the
+      // privacy-loading state holds its deletion-request POST open, and a
+      // browser engine may still deliver it when the context closes, so the
+      // real route sends DELETION_REQUEST_SUBMITTED. Without this delete the
+      // user delete below fails (BUG-016, first seen in CI on the WebKit
+      // worker, run 36664530308).
+      await attempt(() =>
+        prisma.emailSend.deleteMany({ where: { userId: { in: fixtureUserIds } } }),
+      );
     }
     // ArticlePublishEvent/Article use Restrict FKs on actorUserId/
     // authorUserId (MVP-017, docs/final-decisions.md content.prisma header

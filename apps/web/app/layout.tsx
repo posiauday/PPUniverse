@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth/next";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
+import { authOptions } from "../lib/auth";
 import { NOINDEX_ROBOTS } from "../lib/seo/metadata";
 import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo/site";
+import { THEME_COOKIE, resolveTheme } from "../lib/theme";
+import { fontVariables } from "./fonts";
 import "./globals.css";
+import { SiteFooter } from "./SiteFooter";
+import { SiteHeader } from "./SiteHeader";
 
 // Deny by default (MVP-021, FR-017): every page is noindex unless it opts in.
 // Only the home page, indexable category pages and published product pages
@@ -14,10 +21,29 @@ export const metadata: Metadata = {
   robots: NOINDEX_ROBOTS,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/**
+ * MVP-027: every page gets the site header and footer, the design system's
+ * fonts, and the visitor's theme -- read from its cookie here, on the
+ * server, so the first paint is already in the right theme. A skip link is
+ * the first thing a keyboard reaches (WCAG 2.4.1), jumping past the header
+ * to the page's own content.
+ */
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const session = await getServerSession(authOptions);
+
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" data-theme={theme} style={{ colorScheme: theme }} className={fontVariables}>
+      <body>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        <SiteHeader theme={theme} signedIn={Boolean(session)} />
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
+        <SiteFooter />
+      </body>
     </html>
   );
 }

@@ -9,26 +9,72 @@
    a passing build). */
 @source "../../../packages/ui/src";
 
-/* Design tokens (docs/05-ux-design-system.md): semantic color tokens, 4/8
-   spacing rhythm (Tailwind's default scale already matches), light theme
-   first — dark theme only after parity, not yet built. */
+/* Design tokens (docs/05-ux-design-system.md; MVP-027, docs/final-decisions.md
+   "Design direction: A + B combined" and "Home page design: Premium 3").
+   Semantic colour tokens, a 4/8 spacing rhythm (Tailwind's default scale),
+   and two themes: light (the default, "Studio Light") and dark ("Night
+   Lab"), both at parity because every component uses these tokens and never
+   a raw colour. Every text pairing is at least 4.5:1 in both themes, and
+   control boundaries at least 3:1 (lib/design-tokens.test.ts checks them). */
 @theme {
-  --color-background: oklch(100% 0 0);
-  --color-foreground: oklch(20% 0.01 260);
-  --color-muted: oklch(96% 0.005 260);
-  --color-muted-foreground: oklch(45% 0.01 260);
-  --color-border: oklch(90% 0.005 260);
-  --color-primary: oklch(45% 0.15 260);
-  --color-primary-foreground: oklch(98% 0 0);
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(20% 0.01 260);
+  --color-background: #f7f6f2;
+  --color-foreground: #16181d;
+  --color-muted: #efece5;
+  --color-muted-foreground: #50565f;
+  --color-border: #dedad0;
+  --color-primary: #0b5c5c;
+  --color-primary-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: #16181d;
+  /* Amber "What's new" highlight, and the code panel -- dark in both themes. */
+  --color-highlight: #f5b83d;
+  --color-highlight-foreground: #1a1406;
+  --color-code: #0f1420;
+  --color-code-foreground: #e8ebf2;
+  --color-code-muted: #8a94ab;
+  --color-code-border: #2c3446;
 
-  --radius-card: 0.5rem;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-source-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --radius-card: 0.875rem;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Dark theme: unlayered, so it overrides the @theme defaults (which Tailwind
+   emits inside a cascade layer) whenever <html data-theme="dark">. */
+[data-theme="dark"] {
+  --color-background: #0c0f17;
+  --color-foreground: #e8ebf2;
+  --color-muted: #182030;
+  --color-muted-foreground: #a7afc0;
+  --color-border: #2a3346;
+  --color-primary: #6fd3c4;
+  --color-primary-foreground: #06201d;
+  --color-card: #141a27;
+  --color-card-foreground: #e8ebf2;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Display face for page and section headings only; everything else reads in
+   the body face. */
+h1,
+h2 {
+  font-family: var(--font-display);
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
 }
 
 .sr-only {
@@ -43,10 +89,83 @@ body {
   border: 0;
 }
 
+/* Skip link (WCAG 2.4.1): off-screen until focused, then shown top-left
+   above everything. */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 50;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* The skip link's target is focusable only so focus can land on it; it
+   needs no ring of its own. */
+#main-content:focus {
+  outline: none;
+}
+
 /* The ring must not follow the element's text colour: currentColor made it
    near-white on the white-text Search button over a white page (BUG-003,
-   measured 1.06:1). The foreground token is far above 3:1 against the page. */
+   measured 1.06:1). The foreground token is far above 3:1 against the page
+   in both themes. */
 :focus-visible {
   outline: 2px solid var(--color-foreground);
   outline-offset: 2px;
+}
+
+/* Motion (MVP-027): short, purposeful, and only opacity and transform, which
+   the browser animates without re-laying out the page (Core Web Vitals).
+   Anyone whose system asks for reduced motion gets none of it. */
+@keyframes lcs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.motion-rise {
+  animation: lcs-rise 0.7s var(--ease-out-soft) both;
+}
+
+.motion-lift {
+  transition:
+    transform 0.2s var(--ease-out-soft),
+    box-shadow 0.2s var(--ease-out-soft);
+}
+.motion-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -24px rgb(11 92 92 / 0.45);
+}
+
+/* Reduced motion switches animation and transitions OFF, not merely short.
+   The common "duration: 0.01ms" shortcut is wrong here: transition-property
+   defaults to `all`, so a tiny duration on every element makes EVERY style
+   change -- a focus ring appearing, say -- animate from its old value, and a
+   check made in that first instant sees the old one. That is exactly what
+   the accessibility gate caught in CI (it runs with reduced motion on):
+   focus rings measured as the element's white text colour at the default
+   3px width, mid-transition. `none` has no in-between state to observe. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .motion-lift:hover {
+    transform: none;
+  }
 }

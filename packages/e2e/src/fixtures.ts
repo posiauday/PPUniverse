@@ -1,5 +1,6 @@
 import { test as base, expect } from "@playwright/test";
 import { createFailureEvidenceSink } from "./failure-evidence.js";
+import { abortHeldRequests } from "./held-requests.js";
 import { createFixtures, type FixtureSet } from "./seed.js";
 
 /**
@@ -23,6 +24,11 @@ interface TestFixtures {
    * (workers, retries, timeouts, engines, widths, rules) is changed by this.
    */
   failureEvidence: void;
+  /**
+   * Auto-attached (BUG-016): aborts every request a test held open with
+   * interceptAndHold, before the page closes, so none of them reaches the server.
+   */
+  heldRequests: void;
 }
 
 interface WorkerFixtures {
@@ -51,6 +57,14 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       sink.install(page);
       await use();
       await sink.attachOnFailure(page, testInfo);
+    },
+    { auto: true },
+  ],
+
+  heldRequests: [
+    async ({ page }, use) => {
+      await use();
+      await abortHeldRequests(page);
     },
     { auto: true },
   ],

@@ -21,7 +21,8 @@ import remarkGfm from "remark-gfm";
  * precedent for heading order).
  * Code blocks and tables can be wider than a phone screen, so each scrolls
  * inside its own keyboard-focusable, labelled region rather than widening
- * the page (WCAG 1.4.10 reflow, 2.1.1 keyboard).
+ * the page (WCAG 1.4.10 reflow, 2.1.1 keyboard). Code sits in the design
+ * system's dark code panel in both themes (MVP-027).
  */
 const components: Components = {
   h1: (props) => <h2 className="mt-8 text-xl font-semibold" {...stripNode(props)} />,
@@ -38,7 +39,7 @@ const components: Components = {
     <pre
       tabIndex={0}
       aria-label="Code example, scrollable"
-      className="mt-4 overflow-x-auto rounded-card border border-border p-4 text-sm"
+      className="mt-4 overflow-x-auto rounded-card border border-code-border bg-code p-4 font-mono text-sm leading-relaxed text-code-foreground"
       {...stripNode(props)}
     />
   ),

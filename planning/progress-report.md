@@ -3775,3 +3775,53 @@ Item 2 of the product owner's work order. Implementation choices: `docs/final-de
   - The release-to-`main` cadence.
   - The A + B design direction.
 - This entry adds a fifth: the Premium 3 home page.
+
+## MVP-027 — Design system, slice 1 of 4: foundations (2026-09-30)
+
+The work order puts the design system next. The product owner chose A + B plus the Premium 3 home page and said "go ahead". Decisions: `docs/final-decisions.md`, "Design system (MVP-027): story and slice 1 implementation decisions".
+
+**Built:**
+- **Tokens** (`app/globals.css`): the A + B palette for light (the default) and dark themes, plus highlight and code-panel tokens, font tokens and a motion easing. Dark lives in an unlayered `[data-theme="dark"]` block, so it overrides Tailwind's layered theme defaults.
+- **Contrast test** (`lib/design-tokens.test.ts`, 35 checks): parses `globals.css` and checks 13 text pairings at 4.5:1 and 3 boundary pairings at 3:1, in both themes.
+- **Fonts** (`app/fonts.ts`): Fraunces, Source Sans 3 and IBM Plex Mono through `next/font/google`, self-hosted at build time.
+- **Theme:**
+  - `lib/theme.ts` (cookie name, validation, cookie string).
+  - `app/ThemeToggle.tsx`: a real toggle button with `aria-pressed`, an instant switch and the cookie.
+  - The root layout reads the cookie server-side and renders `<html data-theme>`.
+- **Chrome:**
+  - `app/SiteHeader.tsx`: brand, Learn, Components, Sign in or Account, and the toggle.
+  - `app/SiteFooter.tsx`: the non-affiliation and trademark line, plus links.
+  - `app/BrandMark.tsx`.
+  - A skip link and `#main-content` target in the layout.
+- **Code panels:** article code blocks use the dark code-panel tokens in both themes.
+- **Motion:** `motion-rise` and `motion-lift` utilities, and a global reduced-motion override.
+- **Brand:** the favicon and share-image colours move to the new palette.
+- **Accessibility gate:** a dark-theme pass covering every gated page state at 1280 px, with the session cookie chosen per state. It asserts the page really rendered dark. The theme cookie name is paired with the app's constant in `packages/e2e/src/site.ts`.
+- **Tests:**
+  - New files: `lib/theme.test.ts`, `app/ThemeToggle.test.tsx` (jsdom) and `app/SiteHeader.test.tsx` (header and footer).
+  - `pages.test.tsx` mocks `next/font/google`, which only works inside a Next.js build.
+  - `@testing-library/react` and `jsdom` are added to `apps/web` as dev dependencies, at the versions the workspace already uses in `@ppu/ui`.
+
+**Verified locally (real Postgres):**
+- Workspace build, lint, typecheck and test all green (`@ppu/web` 424).
+- Playwright chromium: **437/437**, light and dark.
+- **Visually checked in a browser against a production build:**
+  - The light and dark home page.
+  - The theme persisting across navigation, rendered by the server.
+  - The skip link on the first Tab.
+  - No horizontal overflow.
+- One thing looked wrong but wasn't. A screenshot taken straight after toggling showed white category cards in dark mode, but the computed styles were already dark: the cards animate their colour change. A second screenshot confirmed it.
+
+**Remaining for MVP-027:**
+- Slice 2: the Premium 3 home page, which also removes the home page's now-duplicate Learn, Search and Sign in links.
+- Slice 3: the article layout.
+- Slice 4: polish of the remaining pages.
+
+### MVP-027 slice 1 — fix found by CI before merge (2026-09-30)
+The first CI run of PR #31 failed the accessibility shards: 40+ focus-ring failures across the site (mostly the new skip link and the Search button), plus two dark-theme contrast failures. Every failure measured an element's **pre-change** style: a white 3 px focus ring (the element's text colour at the CSS default width) or black text.
+
+**Root cause (mine).** My reduced-motion rule set `transition-duration: 0.01ms !important` on every element. `transition-property` defaults to `all`, so under reduced motion *every* style change became a tiny animation. The accessibility suite runs with `reducedMotion: "reduce"`, and CI's slower runners read computed styles in the first instant of those animations. The run passed locally 437/437 and 72/72 under stress only because this machine is faster.
+
+**Fix.** Reduced motion now switches animation and transitions **off** (`animation: none; transition: none`), which leaves no in-between state to observe and is the more faithful reading of the visitor's request. A regression test in `lib/design-tokens.test.ts` fails if the rule ever goes back to a tiny duration; I checked that its pattern matches the old rule.
+
+The problem was caught before merge, inside the story, so it gets no bug record (CLAUDE.md, "Project management rules" 5). Re-verified: chromium 437/437.
