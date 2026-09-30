@@ -1471,3 +1471,20 @@ Direct product-owner instruction in chat, answering the agent's two questions.
 1. **Catch-up release now.** Once #27 and #28 merge, the agent opens one release PR, `develop` → `main`, and CI runs on it. The product owner merges it. Before this, `main` was 173 commits behind `develop` and had nothing of its own. No deployment is wired to `main` yet, so a release updates the stable branch but publishes nothing to users.
 2. **Then one release per milestone.** A `develop` → `main` release PR follows each finished milestone of the work order: design system, per-technology sections, launch content, ads, checkout. Stories keep merging into `develop` as before.
 3. **Branch hygiene.** Merged branches are deleted once their PR merges; GitHub can restore any of them from the PR. On 2026-09-29 the agent deleted 21 merged remote branches and the merged local ones, including a duplicate Stripe pre-work branch whose document is already on `develop`, word for word. **Kept:** `research/monetization-architecture-audit` (21 unmerged research documents, useful input for the ads story) and the branches of the open PRs.
+
+## 2026-09-29 — Design direction: A + B combined (not C)
+
+Direct product-owner instruction in chat: *"Combination of A and B not c"*, choosing from the three directions in the design canvas "LowCodeStacks design directions" (a private claude.ai artifact).
+
+- **Light theme (the default), from A "Studio Light":**
+  - Ivory ground, teal accent.
+  - Serif display headlines (Fraunces) over a sans body (Source Sans 3).
+  - A learning-path panel on the home page.
+- **Dark theme, a visitor toggle, from B "Night Lab":** the dark ground, the same layout and a lighter teal accent.
+- **From B, in both themes:**
+  - Dark code panels, with a file label and a Copy button.
+  - Monospace labels (IBM Plex Mono) for eyebrows and content types.
+  - An amber "What's new" digest strip. This is where the maintenance agent's release summaries will appear once you've reviewed and published them.
+- **Direction C (Blueprint) is not used.**
+
+Exact colour and spacing tokens are provisional until the design-system story builds and checks them. That check covers WCAG 2.2 AA contrast in both themes, honouring reduced-motion preferences, and Core Web Vitals.
