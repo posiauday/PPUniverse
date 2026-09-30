@@ -1,0 +1,123 @@
+// Privacy domain (docs/06-data-model.md "Privacy"; MVP-020, FR-004).
+// Consent capture, versioned-policy references, and a deletion *request*
+// workflow with an audit trail. This story executes no erasure,
+// anonymisation, pseudonymisation or scheduled retention of any kind — it
+// only records a request and moves it through a reviewable state
+// (docs/final-decisions.md, "MVP-020 open questions 46, 47 and 48", question
+// 46: that treatment is a *direction*, not a decision, for a future story).
+//
+// Every table here is append-only by construction: no repository method in
+// packages/adapters/privacy issues an UPDATE against any of these four
+// tables. A change of mind (withdrawing consent, moving a deletion request
+// to a new state) always inserts a new row; nothing already written is ever
+// mutated. This is what makes each table its own audit trail.
+//
+// FK onDelete is Restrict (not Cascade) on every userId/actorUserId
+// reference — a deliberate divergence from entitlements.prisma's
+// Entitlement.userId Cascade (MVP-010), decided 2026-09-22: a cascade would
+// let a future user-deletion destroy the very records that prove what was
+// consented to and what was requested. A future erasure implementation has
+// to handle these FKs explicitly; that is the intended outcome, not an
+// oversight to "fix" for consistency with the entitlements table.
+//
+// No legal-document text lives in this schema (question 5): PolicyVersion is
+// metadata about a version, never the operative policy. No jurisdiction name
+// (GDPR, PIPEDA, CCPA or any other) appears anywhere in this file (question
+// 47) — timelines, where they exist at all, are read from configuration, not
+// modeled as schema.
+
+enum PolicyDocumentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+}
+
+enum ConsentCategory {
+  TERMS_OF_SERVICE
+  MARKETING_EMAIL
+}
+
+enum DeletionRequestState {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  DENIED
+  WITHDRAWN
+  COMPLETED
+}
+
+/// Metadata about one version of a legal document — never the document text
+/// itself (question 5: operative policy copy is product-owner-authored, not
+/// generated, and does not live in this database). ConsentRecord references
+/// a row here so a historical consent stays interpretable after the policy
+/// text later changes.
+model PolicyVersion {
+  id           String             @id @default(cuid())
+  documentType PolicyDocumentType
+  version      String
+  effectiveAt  DateTime
+  createdAt    DateTime           @default(now())
+
+  consentRecords ConsentRecord[]
+
+  @@unique([documentType, version])
+  @@map("policy_versions")
+}
+
+/// One immutable row per consent decision. Withdrawing consent, or accepting
+/// a new policy version, always inserts a new row — never updates an
+/// earlier one. The user's current state for a category is the row with the
+/// latest recordedAt. policyVersionId is nullable because not every category
+/// is tied to a specific legal-document version the same way
+/// TERMS_OF_SERVICE acceptance is.
+model ConsentRecord {
+  id              String          @id @default(cuid())
+  userId          String
+  category        ConsentCategory
+  granted         Boolean
+  policyVersionId String?
+  recordedAt      DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  policyVersion PolicyVersion? @relation(fields: [policyVersionId], references: [id], onDelete: Restrict)
+
+  @@index([userId, category, recordedAt])
+  @@map("consent_records")
+}
+
+/// One row per deletion request. Deliberately near-empty and never updated
+/// after creation — no status column. Current state is derived from the
+/// latest DeletionRequestEvent for this request, never stored redundantly,
+/// so nothing about this row is ever mutated.
+model DeletionRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  user   User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  events DeletionRequestEvent[]
+
+  @@index([userId])
+  @@map("deletion_requests")
+}
+
+/// Append-only — this *is* the audit trail for a deletion request. One row
+/// per state transition: who caused it (actorUserId — the requester for
+/// self-service SUBMITTED/WITHDRAWN, an ADMIN for review transitions), what
+/// state it moved to, when, and why (reason is required by application logic
+/// for DENIED, optional otherwise).
+model DeletionRequestEvent {
+  id                String               @id @default(cuid())
+  deletionRequestId String
+  toState           DeletionRequestState
+  actorUserId       String
+  reason            String?
+  occurredAt        DateTime             @default(now())
+  createdAt         DateTime             @default(now())
+
+  deletionRequest DeletionRequest @relation(fields: [deletionRequestId], references: [id], onDelete: Restrict)
+  actor           User            @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([deletionRequestId, occurredAt])
+  @@map("deletion_request_events")
+}

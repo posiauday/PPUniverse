@@ -5,9 +5,11 @@ import {
   sanitizeFilename,
 } from "@ppu/domain-files";
 import { createErrorEnvelope } from "@ppu/shared";
+import { getCorrelationId } from "@ppu/telemetry";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../../lib/auth";
+import { withObservability } from "../../../../lib/observability";
 import { storageAdapter } from "../../../../lib/storage";
 
 interface UploadRequestBody {
@@ -26,8 +28,8 @@ function isUploadRequestBody(value: unknown): value is UploadRequestBody {
   );
 }
 
-export async function POST(request: Request) {
-  const correlationId = randomUUID();
+export const POST = withObservability("POST /api/files/uploads", async (request: Request) => {
+  const correlationId = getCorrelationId() ?? "unknown";
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json(
@@ -71,4 +73,4 @@ export async function POST(request: Request) {
   );
 
   return NextResponse.json({ storageKey, uploadUrl });
-}
+});

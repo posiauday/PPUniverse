@@ -1,5 +1,12 @@
-# @ppu/ui (placeholder)
+# @ppu/ui
 
-Design-token-driven component library implementing `docs/05-ux-design-system.md` (header, mega nav, product card, filter drawer, etc.). Structural placeholder only — no code yet.
+Design-token-driven components (MVP-003, `docs/05-ux-design-system.md`). Tailwind v4 (`apps/web/app/globals.css`'s `@theme` block defines the actual token values — colors, spacing — this package's components only reference the semantic Tailwind classes, e.g. `bg-primary`) + shadcn/ui conventions (`class-variance-authority`, `clsx`/`tailwind-merge` via `cn()`), written by hand rather than via the `shadcn` CLI (non-interactive environment).
 
-Owning story: MVP-003 (Taxonomy and catalog pages), the first story needing rendered UI components beyond a bare page shell. See `docs/13-implementation-readiness-plan.md` §1.
+- `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `Badge` — generic primitives.
+- `CategoryCard`, `ProductCard` — catalog-specific composites (MVP-003).
+- `SearchForm`, `SortLinks`, `Pagination` — catalog search controls (MVP-004).
+- `ProductEvidence` — the product detail page's License / Version / Support / Compatibility sections (MVP-005, FR-003). Presentational only: it renders the `ProductEvidenceView` produced by `presentProductEvidence` in `@ppu/domain-catalog`, so every label, date format, empty-state sentence and link decision lives (and is unit-tested) in the domain package rather than here. Accessibility: one `<h2>` per section; the compatibility matrix is a real `<table>` with a caption, scoped column headers and the platform area as the row header; evidence status is always written out as text (never colour alone); status definitions are visible text, not tooltips; and on narrow screens the table scrolls inside a labelled, keyboard-focusable `role="region"`. It renders no certification-style wording ("Certified", "Approved", "Officially Supported", "Marketplace Verified") — those need a separate documented process (`docs/final-decisions.md`, 2026-09-21).
+
+Renders a plain `<a href>`, not `next/link` — this package has no dependency on Next.js (or any framework beyond React), so it stays usable if a non-Next.js consumer ever needs it. Light theme only for now (`docs/05-ux-design-system.md`: "dark theme only after parity"). The filter drawer, header/mega-nav, and other components named in the design system doc are added by the stories that need them (filter drawer is explicitly MVP-004's scope, not MVP-003's).
+
+`JsonLd` and `serializeJsonLd` (MVP-021, FR-017) render schema.org structured data as `<script type="application/ld+json">`. `json-ld.tsx` is the **only** file in the codebase allowed to use `dangerouslySetInnerHTML` (a source-scan test in `apps/web` enforces it). It accepts a typed object, never a string, and escapes every `<`, `>`, `&`, U+2028 and U+2029 in the serialized JSON so creator-supplied text cannot terminate the script element or create another element; the tests check this with the HTML parser, not just by inspecting the string.

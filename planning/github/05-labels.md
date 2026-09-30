@@ -23,7 +23,7 @@ Content for `gh label create` (or manual setup) once a GitHub remote exists. Col
 | `priority:P3` | `#C2E0C6` | Minor (bug severity only) |
 
 ## Epic (one per `01-epics.md` entry)
-`epic:foundation`, `epic:identity`, `epic:catalog`, `epic:files`, `epic:commerce`, `epic:entitlements`, `epic:creator`, `epic:moderation`, `epic:publishing`, `epic:account`, `epic:reviews`, `epic:content`, `epic:notifications`, `epic:admin`, `epic:privacy`, `epic:seo`, `epic:observability`, `epic:accessibility`, `epic:support`, `epic:launch`
+`epic:foundation`, `epic:identity`, `epic:catalog`, `epic:files`, `epic:commerce`, `epic:entitlements`, ~~`epic:creator`~~ (reworded 2026-09-24, `docs/final-decisions.md`, "First-party-only publishing model" — see `epic:publishing` below), `epic:moderation` (scope under review, same decision), `epic:publishing`, `epic:account`, `epic:reviews`, `epic:content`, `epic:notifications`, `epic:admin`, `epic:privacy`, `epic:seo`, `epic:observability`, `epic:accessibility`, `epic:support`, `epic:launch`
 Color: `#E4E6EB` for all (grouping label; priority/type labels carry the emphasis).
 
 ## Requirement (applied per issue, values from PRD/TRD)

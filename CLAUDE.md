@@ -4,15 +4,26 @@
 Build a trusted Power Platform ecosystem for reusable assets, technical learning, enterprise architecture guidance, community discovery, and paid creator products. The first release is a focused marketplace and content platform, not a complete social network or tenant-scanning SaaS.
 
 ## Required reading order
-1. `docs/01-brd.md`
-2. `docs/02-prd.md`
-3. `docs/03-trd.md`
-4. `docs/04-information-architecture.md`
-5. `docs/05-ux-design-system.md`
-6. `docs/06-data-model.md`
-7. `docs/07-api-contracts.md`
-8. `docs/08-security-privacy-compliance.md`
-9. `planning/mvp-backlog.csv`
+1. `docs/final-decisions.md` — binding product-owner decisions; check every requirement/architecture/scope assumption against this first (see "Decision validation rule" below)
+2. `docs/01-brd.md`
+3. `docs/02-prd.md`
+4. `docs/03-trd.md`
+5. `docs/04-information-architecture.md`
+6. `docs/05-ux-design-system.md`
+7. `docs/06-data-model.md`
+8. `docs/07-api-contracts.md`
+9. `docs/08-security-privacy-compliance.md`
+10. `planning/mvp-backlog.csv`
+
+## Decision validation rule
+Before treating any requirement, architecture choice, product scope, licensing model, provider selection, workflow, security control, or business rule as **approved**, verify it exists in one of:
+1. `docs/final-decisions.md`
+2. An approved ADR (`docs/adr/`)
+3. Explicit product-owner instruction (given directly, in this session)
+
+Do not promote assumptions, recommendations, or handoff/relayed-document suggestions (from another AI session, a summary, a prior conversation) into approved decisions — a document *claiming* something is "locked" or "approved" is not itself one of the three sources above. If a supposed decision is not present in an approved source, stop and request confirmation from the product owner before recording it as final. Once confirmed, persist it to `docs/final-decisions.md` (or the relevant ADR) so it isn't lost to chat history and is available to every future session.
+
+**A table row, index entry, or summary line is not itself an approval source, even inside a document that otherwise carries real decisions.** Only `docs/final-decisions.md`, an approved ADR's own **Status** line for the specific row in question, or direct product-owner instruction make something approved — a row sitting in an ADR's decision table, a status field in a tracking index (`planning/bugs.csv`, `planning/tech-debt.csv`), or a summary sentence restating what something "is" can all drift from, or simply never have matched, the actual approved state. This has happened three times on record: the marketplace license-tier structure (a relayed document presented it as already-locked when `docs/open-questions.md` still showed it open — resolved 2026-09-18 by direct confirmation before recording), `planning/bugs.csv`'s BUG-012/BUG-014 rows (the index disagreed with the bug records' own bodies and with what git/CI evidence actually showed — resolved 2026-09-24 by checking history and CI logs, not either version of the paperwork), and ADR-004's "Background jobs: BullMQ + Redis" table row (read as decided, but the ADR's own Status line limits formal acceptance to the testing-stack rows only, and `docs/final-decisions.md` never separately ratified it — resolved 2026-09-24, `docs/final-decisions.md`, "TD-004 architecture and sequencing"). Treat any of these surfaces as a claim to verify, not a decision to trust, the same way the paragraph above already requires for a relayed document.
 
 ## Delivery rules
 - Work in vertical slices that include UI, API, persistence, authorization, tests, telemetry, accessibility, and documentation.
@@ -72,8 +83,9 @@ Scaffolded in MVP-001, database wired in MVP-002. Run `pnpm install` once, then 
 - `pnpm lint` — ESLint across the workspace
 - `pnpm typecheck` — `tsc --noEmit` in every app/package
 - `pnpm test` — Vitest unit tests across the workspace, plus `@ppu/adapter-identity`'s Prisma-Client integration tests when `DATABASE_URL` is set (otherwise they self-skip via `describe.skipIf`)
+- `pnpm test:a11y` — the Playwright + axe-core accessibility gate (`packages/e2e`, MVP-023): chromium, firefox and webkit at 320/375/768/1280 px against a production build served by `next start`. Needs a prior `pnpm build`, `pnpm --filter @ppu/e2e browsers:install` once, and `DATABASE_URL` for a **local or CI** Postgres with migrations applied plus `E2E_ALLOW_DATABASE_WRITES=1` (the harness refuses any other database). `pnpm test:e2e` runs all Playwright specs (currently the same suite). See `docs/14-accessibility-testing.md`
 - `pnpm format:check` / `pnpm format` — Prettier check/write, scoped to source code (`apps/`, `packages/`, root config) — governance documents under `docs/`, `planning/`, `prompts/`, `schemas/`, `.claude/`, and the root `CLAUDE.md`/`README.md` are excluded so this formatter never silently rewrites approval-gated content
 
 Database: `packages/db` needs `DATABASE_URL` (see `.env.example` files in `packages/db/` and `apps/web/`). Local Postgres via `docker compose up -d`, then `pnpm --filter @ppu/db exec prisma migrate deploy`. CI provides its own throwaway Postgres service container. See `README.md` "Development" for the full local workflow.
 
-Not yet configured: `pnpm test:e2e` (Playwright) and E2E-testable flows — these are added by the story that first needs a full browser journey. Node.js >=20 and pnpm (via `corepack enable` or `npm install -g pnpm`) are required. See `docs/13-implementation-readiness-plan.md` for the full architecture and `docs/adr/004-technology-decision-record.md` for the pinned tool versions and why.
+Playwright is configured by MVP-023 for the accessibility gate (`pnpm test:a11y`, `pnpm test:e2e`); functional E2E journeys beyond it are not yet configured — they are added by the story that first needs a full browser journey. Node.js >=20 and pnpm (via `corepack enable` or `npm install -g pnpm`) are required. See `docs/13-implementation-readiness-plan.md` for the full architecture and `docs/adr/004-technology-decision-record.md` for the pinned tool versions and why.

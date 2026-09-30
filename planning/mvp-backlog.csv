@@ -1,26 +1,27 @@
 ID,Epic,Story,Priority,Status,Requirement,Acceptance Summary,Dependencies
 MVP-001,Foundation,Repository and CI baseline,P0,Done,NFR-007,"Build, lint, type, test and scan run in CI",None
-MVP-002,Identity,Account registration and session,P0,QA,FR-004,"Verified account can sign in/out and manage sessions",MVP-001
-MVP-003,Catalog,Taxonomy and catalog pages,P0,Ready,FR-001,"Indexable category and product listing pages render",MVP-001
-MVP-004,Catalog,Search filter sort and zero results,P0,Backlog,FR-002,"Filters are shareable, accessible and analytically tracked",MVP-003
-MVP-005,Catalog,Product detail evidence model,P0,Backlog,FR-003,"All required license/version/support/compatibility fields display",MVP-003
-MVP-006,Files,Quarantine scan and private storage,P0,QA,FR-007,"Unscanned or rejected file cannot be delivered",MVP-001
-MVP-007,Commerce,Checkout session,P0,Backlog,FR-006,"Price is server-derived and checkout is idempotent",MVP-002;MVP-005
+MVP-002,Identity,Account registration and session,P0,Done,FR-004,"Verified account can sign in/out and manage sessions",MVP-001
+MVP-003,Catalog,Taxonomy and catalog pages,P0,Done,FR-001,"Indexable category and product listing pages render",MVP-001
+MVP-004,Catalog,Search filter sort and zero results,P0,Done,FR-002,"Filters are shareable, accessible and analytically tracked",MVP-003
+MVP-005,Catalog,Product detail evidence model,P0,Done,FR-003,"All required license/version/support/compatibility fields display",MVP-003
+MVP-006,Files,Quarantine scan and private storage,P0,Done,FR-007,"Unscanned or rejected file cannot be delivered",MVP-001
+MVP-007,Commerce,Checkout session,P0,In Progress,FR-006,"Price is server-derived and checkout is idempotent",MVP-002;MVP-005
 MVP-008,Commerce,Verified webhook fulfillment,P0,Backlog,FR-006,"Signature and duplicate event tests pass",MVP-007
 MVP-009,Entitlements,Authorized signed downloads,P0,Backlog,FR-007,"Only entitled users receive expiring URL",MVP-006;MVP-008
-MVP-010,Free assets,Free entitlement flow,P0,Backlog,FR-005,"Policy creates entitlement and download record",MVP-002;MVP-006
-MVP-011,Creator,Creator application,P0,Backlog,FR-008,"Applicant accepts agreement and enters review",MVP-002
-MVP-012,Creator,Product and release editor,P0,Backlog,FR-009,"Draft validates all mandatory submission fields",MVP-006;MVP-011
-MVP-013,Moderation,Submission review queue,P0,Backlog,FR-010,"Reviewer can approve/request changes/reject with reason",MVP-012
-MVP-014,Publishing,Immutable published releases,P0,Backlog,FR-011,"Published files cannot be replaced",MVP-013
+MVP-010,Free assets,Free entitlement flow,P0,Done,FR-005,"Policy creates entitlement and download record",MVP-002;MVP-006
+MVP-011,Creator,Creator application,P0,Superseded,FR-008,"SUPERSEDED 2026-09-24 by the first-party-only publishing decision (docs/final-decisions.md) - third-party creator onboarding is no longer part of the approved business model. Not renamed into a suggestion story; see PROP-009.",MVP-002
+MVP-012,Publishing,Product and release editor,P0,Done,FR-009,"Draft validates all mandatory submission fields (first-party ADMIN authoring, not a creator portal)",MVP-006
+MVP-013,Moderation,Submission review queue,P0,Superseded,FR-010,"SUPERSEDED 2026-09-24 by the first-party-only publishing decision (docs/final-decisions.md) - reviewing a third-party submission presumes a submitter distinct from the reviewer, which does not exist. Quality requirements redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008 and MVP-019 - see docs/final-decisions.md section 5.",MVP-012
+MVP-014,Publishing,Immutable published releases,P0,Done,FR-011,"Published files cannot be replaced. Implemented 2026-09-25: ReleasePublishEvent audit trail, atomic conditional-update concurrency guarantee (publishSubsequentRelease + a matching fix to publishProductWithRelease), new POST /api/admin/products/{id}/releases/{releaseId}/publish route, ReleasesEditor extended. Status QA (not Done) - PR open, pending real-CI accessibility confirmation and merge.",MVP-012
 MVP-015,Account,Library orders and saved items,P1,Backlog,FR-013,"User can access entitled products and preferences",MVP-009
 MVP-016,Reviews,Verified reviews and replies,P1,Backlog,FR-012,"Only qualifying users can review; moderation exists",MVP-009
-MVP-017,Content,Tutorials collections learning paths,P1,Backlog,FR-014,"Editor can publish indexable structured content",MVP-003
-MVP-018,Notifications,Transactional email and preferences,P1,Backlog,FR-013,"Required messages send and optional messages respect preference",MVP-002
-MVP-019,Admin,Operations console and audit,P0,Backlog,FR-015,"Sensitive actions are authorized and auditable",MVP-013
-MVP-020,Privacy,Consent legal deletion workflow,P0,Backlog,FR-004,"Consent and deletion request are recorded",MVP-002
-MVP-021,SEO,Metadata sitemap canonical structured data,P0,Backlog,FR-017,"Indexable pages emit valid metadata and sitemap",MVP-005
-MVP-022,Observability,Logs traces metrics and alerts,P0,Ready,NFR-007,"Critical journeys have correlation and runbooks",MVP-001
-MVP-023,Accessibility,Manual and automated accessibility gate,P0,Backlog,NFR-001,"Core journeys meet defined WCAG gate",MVP-003
+MVP-017,Content,Tutorials collections learning paths,P1,Done,FR-014,"Editor can publish indexable structured content",MVP-003
+MVP-018,Notifications,Transactional email and preferences,P1,Done,FR-013,"Required messages send and optional messages respect preference",MVP-002
+MVP-019,Admin,Operations console and audit,P0,Done,FR-015,"Sensitive actions are authorized and auditable. Implemented 2026-09-26: Product suspend/archive/reinstate (ProductStatusEvent audit trail, reason required for every transition, atomic conditional-update concurrency guarantee) and a unified read-only admin audit-log view merging ProductStatusEvent/DeletionRequestEvent/ArticlePublishEvent. Status QA (not Done) - PR open, pending real-CI accessibility confirmation and merge. User management, taxonomy admin CRUD, and Entitlement revocation remain explicitly out of scope.",MVP-012
+MVP-020,Privacy,Consent legal deletion workflow,P0,Done,FR-004,"Consent and deletion request are recorded",MVP-002
+MVP-021,SEO,Metadata sitemap canonical structured data,P0,Done,FR-017,"Indexable pages emit valid metadata and sitemap",MVP-005
+MVP-022,Observability,Logs traces metrics and alerts,P0,Done,NFR-007,"Critical journeys have correlation and runbooks",MVP-001
+MVP-023,Accessibility,Manual and automated accessibility gate,P0,Done,NFR-001;NFR-008,"Core journeys meet defined WCAG gate",MVP-003
 MVP-024,Support,Support case workflow,P1,Backlog,FR-018,"Case links to user/product/order/version",MVP-019
 MVP-025,Launch,End-to-end launch gate,P0,Backlog,MVP Release,"Free and paid golden paths, restore and incident tests pass",All P0
+MVP-026,SEO,SEO discoverability: rendered articles /learn hub internal links share images,P1,Done,FR-017;FR-014;FR-002,"Articles render as structured HTML; /learn hub and internal links; generated share images and favicon; brand publisher and breadcrumb JSON-LD; sitemap lastmod for articles; repeated query parameters no longer 500 (BUG-002). Done 2026-09-30: PR #28 merged (merge commit cb00b6b) after CI run 36650827876 passed all 7 checks.",MVP-017;MVP-021

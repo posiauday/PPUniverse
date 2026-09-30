@@ -1,0 +1,89 @@
+// Content domain (docs/06-data-model.md "Engagement and content"; MVP-017,
+// FR-014). This pass builds `Article` only — tutorials, patterns and
+// comparison pages, discriminated by `type` — plus its append-only
+// `ArticlePublishEvent` audit trail. `LearningPath`/`LearningPathItem` and
+// `SEORecord` remain unbuilt placeholders, deferred as a fast-follow
+// (docs/final-decisions.md, "MVP-017 implementation: `Article` only this
+// pass..."; docs/open-questions.md item 50). `Collection`/`CollectionItem`
+// are out of scope of MVP-017 entirely (docs/final-decisions.md, "MVP-017 /
+// `/collections/[slug]` scope conflict...") and nothing here references them.
+//
+// `body` is stored as Markdown TEXT, never raw HTML — apps/web's render path
+// never uses raw-HTML passthrough for it (defense in depth per CLAUDE.md's
+// OWASP note: this is user-authored content rendered to every visitor, a
+// real stored-XSS surface even though only ADMINs can author it today).
+//
+// `status`/`publishedAt` mirror catalog.prisma's ProductStatus /
+// evidence.prisma's Release.publishedAt pattern exactly: PUBLISHED/non-null
+// publishedAt is the only publicly-visible state, and publishedAt is never
+// rewritten once set (FR-011's "corrections create another version" spirit —
+// a correction here is a new ArticlePublishEvent, not a mutated timestamp;
+// full content versioning/snapshotting is out of scope for this first pass,
+// see TD candidate recorded in the story's progress report).
+//
+// authorUserId/actorUserId FKs are Restrict, not Cascade — the same
+// audit-trail-adjacent rationale privacy.prisma documents: a cascade would
+// let a future user-deletion destroy the record of who authored or
+// published content. ArticlePublishEvent is append-only by construction: no
+// repository method in packages/adapters/content issues an UPDATE against
+// it, exactly like DeletionRequestEvent/EmailSend.
+//
+// Content-publishing authority reuses the existing ADMIN role — no EDITOR
+// role exists or is introduced here (docs/final-decisions.md, "MVP-017
+// implementation: content-publishing authorization reuses ADMIN").
+
+enum ArticleType {
+  TUTORIAL
+  PATTERN
+  COMPARISON
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ArticlePublishAction {
+  PUBLISHED
+}
+
+model Article {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  type         ArticleType
+  /// Markdown source — never rendered as raw HTML (see the file header comment).
+  body         String        @db.Text
+  /// Used for the page's meta description; null means none was supplied.
+  excerpt      String?
+  status       ArticleStatus @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten — see the file header comment.
+  publishedAt  DateTime?
+  authorUserId String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  author User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events ArticlePublishEvent[]
+
+  @@index([status])
+  @@index([type])
+  @@map("articles")
+}
+
+/// Append-only — this IS the audit trail for Article publishing. One row per
+/// publish action: who caused it, what article, when. See the file header
+/// comment for why onDelete is Restrict, not Cascade.
+model ArticlePublishEvent {
+  id          String               @id @default(cuid())
+  articleId   String
+  actorUserId String
+  action      ArticlePublishAction
+  createdAt   DateTime             @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([articleId, createdAt])
+  @@map("article_publish_events")
+}

@@ -1,7 +1,10 @@
 # Document Index and Governance
 
+**Source-of-truth priority order**: `CLAUDE.md` → `docs/final-decisions.md` → BRD → PRD → TRD → ADRs → Backlog. Where documents conflict, the higher-priority one wins; lower documents should be brought into alignment opportunistically rather than blocking work on the update.
+
 | Document | Purpose | Approval gate |
 |---|---|---|
+| Final Decisions | Binding product-owner decisions that resolve open questions or narrow/finalize a baseline choice — sits above BRD/PRD/TRD/ADRs | Product owner |
 | BRD | Business outcomes, scope, stakeholders, rules | Product sponsor |
 | PRD | Users, journeys, functional and non-functional requirements | Product owner |
 | TRD | Architecture, integrations, quality attributes | Technical lead |

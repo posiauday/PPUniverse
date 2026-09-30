@@ -1,0 +1,59 @@
+# Gitleaks fingerprint suppressions.
+#
+# This is this repository's FIRST suppression of any kind (decision, 2026-09-22,
+# "Secret scan false positive" — recorded in docs/final-decisions.md). Any future
+# suppression requires its own separate decision; adding an entry here is not routine
+# maintenance.
+#
+# Scope, deliberately narrow, per that decision:
+#   - Exact fingerprints only, copied verbatim from `gitleaks detect` output — never
+#     hand-constructed, never a path glob, never a rule-wide exclusion.
+#   - No change to any gitleaks config file, rule set, or entropy threshold anywhere
+#     in this repository.
+#   - No inline `gitleaks:allow` comments — they cannot affect commits already in
+#     history, and would add a second suppression mechanism alongside this file.
+#
+# Every entry below is the SAME underlying false positive: gitleaks' generic-api-key
+# rule flags a module-scope string constant in the accessibility-gate's e2e test
+# harness — the name of a `window` property the sign-in click-diagnostics tracer uses
+# to carry evidence between the test and the page it drives (see
+# packages/e2e/src/signin-click-diagnostics.ts). It is not a credential, API key,
+# token, password, or any other secret: it never touches a real credential,
+# environment variable, or external call, and its value is dev-only test-harness
+# state, never shipped in the application bundle. The rule was triggered by an
+# identifier the constant used to be named (a single all-caps word matching the
+# rule's own keyword heuristic), not by the value — confirmed because two
+# structurally identical `const KEY = "..."` declarations elsewhere in the same file
+# family, holding shorter strings, were never flagged. The identifier has since been
+# renamed (packages/e2e/src/signin-click-diagnostics.ts, commit cf28b33) so no NEW
+# commit should reproduce this pattern; the entries below cover commits already in
+# this branch's history, which a rename cannot retroactively change.
+#
+# Verified 2026-09-22: a local gitleaks 8.24.3 run (the version this repository's CI
+# pins) over this branch's full commit range found exactly these 5 findings, all the
+# same rule and identical entropy value (3.784942 — the same 21-character string every
+# time), and no others.
+
+# packages/e2e/src/signin-click-diagnostics.ts:129 (commit 424049f) — the original
+# declaration, before the rename. Test-harness-only window-property name; not a secret.
+424049f66acf986f19bcce881524180202d8cff0:packages/e2e/src/signin-click-diagnostics.ts:generic-api-key:129
+
+# planning/progress-report.md:1092 (commit 7529f73) — this session's own progress
+# notes, quoting the declaration above verbatim while documenting the false positive.
+# Quoting it regenerated the same finding in this commit; not a secret.
+7529f73c1038be753bcc0ae5325cd2c833b6245d:planning/progress-report.md:generic-api-key:1092
+
+# planning/progress-report.md:1135 (commit 8d4c724) — the same progress notes,
+# quoted again in a later entry. Same underlying false positive, not a secret.
+8d4c724c58dded0e8bb668115d059e2c017b15e7:planning/progress-report.md:generic-api-key:1135
+
+# packages/e2e/src/signin-click-diagnostics.ts:223 (commit cf28b33) — the rename
+# commit's own doc-comment explaining the rename quoted the pre-rename declaration
+# verbatim, regenerating the same finding in the very commit meant to fix it. The
+# comment has since been rewritten to describe the construct without quoting it.
+# Not a secret.
+cf28b334a6212718762b7a26b827169c6aca8f1c:packages/e2e/src/signin-click-diagnostics.ts:generic-api-key:223
+
+# planning/progress-report.md:1299 (commit cf28b33) — the same rename commit's
+# progress-report entry, which also quoted the declaration verbatim. Not a secret.
+cf28b334a6212718762b7a26b827169c6aca8f1c:planning/progress-report.md:generic-api-key:1299

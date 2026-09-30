@@ -1,0 +1,177 @@
+// Product detail evidence model (MVP-005, FR-003): license, version,
+// support and compatibility. Compatibility fields and states are the
+// product-owner-approved model in docs/final-decisions.md (2026-09-21).
+// Everything here is additive — no existing table changes, so products
+// with no evidence rows simply show "not provided" states.
+//
+// CHECK constraints (release year/wave ranges, notes/summary length,
+// "Tested requires evidence", support-channel rule) are hand-written in
+// migration 20260921000000_add_product_evidence — Prisma's schema language
+// can't express them. Prisma Migrate does not introspect CHECKs, so they
+// won't show up in `migrate diff`; don't remove them thinking they're stray.
+
+enum PlatformArea {
+  POWER_APPS
+  POWER_AUTOMATE
+  POWER_BI
+  DATAVERSE
+  POWER_PAGES
+  COPILOT_STUDIO
+  MICROSOFT_FABRIC
+}
+
+// Vocabulary corrected 2026-09-24 (TD-008; docs/final-decisions.md, 2026-09-21
+// "Product-owner responses to MVP-005 open items" section B). Only
+// CREATOR_DECLARED and MARKETPLACE_REVIEWED are assignable. TESTED and
+// NOT_VERIFIED are reserved/legacy: never assignable, never migrated to,
+// never removed (Postgres cannot drop an enum value without a table
+// rebuild, and no destructive removal was approved regardless).
+enum CompatibilityEvidenceStatus {
+  TESTED
+  CREATOR_DECLARED
+  NOT_VERIFIED
+  MARKETPLACE_REVIEWED
+}
+
+enum SupportStatus {
+  CREATOR_SUPPORTED
+  PLATFORM_SUPPORTED
+  COMMUNITY_SUPPORTED
+  UNSUPPORTED
+}
+
+/// Reference data: the three locked license tiers (docs/final-decisions.md
+/// 2026-09-18). Pricing, seat limits and contract terms are deliberately
+/// not modeled — still open (open question 7).
+model LicenseDefinition {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products ProductLicense[]
+  orders   Order[]
+
+  @@map("license_definitions")
+}
+
+model ProductLicense {
+  productId           String
+  licenseDefinitionId String
+  createdAt           DateTime @default(now())
+
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  licenseDefinition LicenseDefinition @relation(fields: [licenseDefinitionId], references: [id], onDelete: Restrict)
+
+  @@id([productId, licenseDefinitionId])
+  @@index([licenseDefinitionId])
+  @@map("product_licenses")
+}
+
+/// Minimal on purpose: version is release-scoped (FR-011: corrections
+/// create another version). `publishedAt` null means not yet published.
+/// Immutability enforcement is MVP-012 (initial publish) and MVP-014
+/// (subsequent publish); once non-null, set only by
+/// CatalogRepository.publishProductWithRelease/publishSubsequentRelease, via
+/// an atomic conditional update, never cleared or changed afterward.
+/// ChangelogEntry does not exist — direct product-owner decision, "MVP-014
+/// implementation authorization" section 2.D: no story adds it; Release has
+/// no notes/description field, so none is required at publish time either.
+model Release {
+  id          String    @id @default(cuid())
+  productId   String
+  version     String
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product       Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  files         ReleaseFile[]
+  publishEvents ReleasePublishEvent[]
+
+  @@unique([productId, version])
+  @@index([productId, publishedAt])
+  @@map("releases")
+}
+
+/// MVP-014's only action is `action = "PUBLISHED"` (direct product-owner
+/// decision, "MVP-014 implementation authorization" section 2.B) —
+/// SUPERSEDED/WITHDRAWN/ROLLED_BACK/SUSPENDED/ARCHIVED/DELETED are
+/// explicitly not approved and must not be added without a separate
+/// decision. Mirrors ArticlePublishEvent exactly (content.prisma): a bare,
+/// append-only action log, Restrict FKs on both the release and the actor so
+/// this audit trail can never be cascaded away by a release or user delete.
+/// `productId` is denormalized (matches FileScan.uploadedByUserId's existing
+/// pattern) so a query never needs to join through Release to filter by
+/// product. Written only inside the same transaction that sets
+/// Release.publishedAt — never on its own, never if that transaction rolls
+/// back.
+enum ReleasePublishAction {
+  PUBLISHED
+}
+
+model ReleasePublishEvent {
+  id          String               @id @default(cuid())
+  releaseId   String
+  productId   String
+  actorUserId String
+  action      ReleasePublishAction
+  createdAt   DateTime             @default(now())
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([releaseId, createdAt])
+  @@index([productId, createdAt])
+  @@map("release_publish_events")
+}
+
+/// One declaration per product (docs/09-marketplace-operations.md "Support
+/// model"). No response-time targets: those are published only after
+/// operational validation.
+model SupportPolicy {
+  productId String        @id
+  status    SupportStatus
+  channel   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("support_policies")
+}
+
+/// The earliest release wave the product *claims* compatibility with —
+/// never proof of compatibility with later releases. Year and wave are
+/// separate typed columns (not a display string) so future filtering works
+/// and a new year never needs a migration.
+model CompatibilityRecord {
+  id              String                      @id @default(cuid())
+  productId       String
+  platformArea    PlatformArea
+  minReleaseYear  Int
+  minReleaseWave  Int
+  notes           String?
+  evidenceStatus  CompatibilityEvidenceStatus
+  evidenceSummary String?
+  lastVerifiedAt  DateTime?                   @db.Date
+  /// Set only when evidenceStatus transitions to MARKETPLACE_REVIEWED, only by
+  /// the trusted server-side moderation workflow (not built yet - MVP-013),
+  /// using the server clock. Null for every other status, including
+  /// CREATOR_DECLARED. Never accepted from a client. A CHECK constraint
+  /// (migration 20260924010000) keeps the two in lockstep so they cannot
+  /// drift apart (TD-008).
+  reviewedAt      DateTime?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, platformArea])
+  @@index([platformArea, minReleaseYear, minReleaseWave])
+  @@map("compatibility_records")
+}

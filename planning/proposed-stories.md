@@ -1,0 +1,122 @@
+# Proposed stories (not approved)
+
+**Status of everything in this file: Proposed.** Not approved, not Ready, not counted on the board in `planning/status.md`, and not in `planning/mvp-backlog.csv` or `planning/backlog.csv`. A proposal becomes a backlog story only when the product owner directly approves it. Nothing here is a decision.
+
+Origin: the product owner's 2026-09-21 disposition of the remaining FR-003 product-detail items (`docs/final-decisions.md`, section C; `docs/open-questions.md` item 26; `planning/tech-debt/TD-007.md`). Priorities and estimates are suggestions on the same Fibonacci scale as `planning/backlog.csv`.
+
+| ID | Proposed story | FR-003 items | Suggested priority | Suggested estimate | Status |
+|---|---|---|---|---|---|
+| PROP-001 | Product Media and Screenshots | screenshots, demo | P1 | 8 | Proposed |
+| PROP-002 | Product Documentation and Prerequisites | prerequisites, setup instructions | P1 | 5 | Proposed |
+| PROP-003 | Product Accessibility Disclosure | accessibility statement | P2 | 5 | Proposed |
+| PROP-004 | Product Releases and Changelog | changelog, version history | P1 | 5 | Proposed |
+| PROP-005 | Related Assets | related assets | P2 | 3 | Proposed — **deferred** |
+| PROP-006 | Repeated Query Parameter Handling (BUG-002 corrective) | — (FR-002; not an FR-003 item) | P3 | not estimated (expected small) | **Done inside MVP-026 (2026-09-28)** |
+| PROP-007 | Job Queue Foundation | — (cross-cutting infrastructure; TD-004, TD-015; not an FR-003 item) | not assigned | ~13 (anchor: comparable to MVP-006) | Proposed — blocked on BUG-015 and its own approval |
+| PROP-008 | Power Apps Component Generator / Library | — (new product scope; not in BRD/PRD/backlog) | not assigned | not estimated | **Declined for now (2026-09-24)** — see `docs/final-decisions.md` |
+| PROP-009 | Asset and Content Suggestions | — (new product scope; not in BRD/PRD/backlog; not MVP-013 continued under a new name) | not assigned | not estimated (research level only) | Proposed — not approved, not scheduled, not an MVP-012 dependency |
+
+## Items assigned to existing approved stories (not proposals)
+- **Price** → MVP-007 (Checkout): together with the pricing, currency, tax and refund decisions required first (open questions 3, 7). No `offers`, `price` or `priceCurrency` in structured data until price is modeled and approved.
+
+**Note (2026-09-24):** the earlier "Creator → MVP-011" assignment above is removed. MVP-011 is Superseded (`docs/final-decisions.md`, "First-party-only publishing model") — there is no third-party creator identity or creator-profile ownership to assign. A product's publisher is LowCodeStacks itself.
+
+---
+
+## PROP-001 — Product Media and Screenshots
+- **Proposed scope:** a `ProductMedia` model (the entity `docs/06-data-model.md` names and is still unbuilt); screenshots displayed on the product page with required alt text and a defined order; a product demo, which may be a supported external link or an approved media type. Uploads reuse the MVP-006 quarantine/scan pipeline. Authoring UI is creator-portal work (MVP-012).
+- **Requirement relationship:** FR-003 (screenshots, demo); FR-009 (creator portal supports media); FR-017 (a social-preview image becomes possible); FR-007 / MVP-006 (untrusted uploads).
+- **Dependencies:** MVP-005 (Done), MVP-006 (Done); authoring depends on MVP-012. **Product-owner decisions needed first:** the allowed demo format(s), and how scanned public images are delivered (storage paths must never be public).
+- **Acceptance criteria:** only scan-CLEAN images are ever shown; alt text is required and reviewed by a moderator; type and size limits follow the upload policy; a missing-media state says the information has not been provided; demo links accept only approved schemes and formats; nothing is fetched from third parties on page load without an approved decision; images are responsive and do not shift layout.
+- **Security impact:** highest of the set — untrusted image uploads (SVG excluded or sanitized, metadata stripped, content sniffed, malware-scanned, quarantined), external demo links (scheme allow-list, safe `rel`), no public storage paths, possible CSP change.
+- **Accessibility impact:** alt text required and reviewed; no essential information conveyed only inside an image; any gallery is keyboard-operable with visible focus and respects reduced-motion; captions where a demo is video.
+- **Suggested priority / estimate:** P1 / 8.
+
+## PROP-002 — Product Documentation and Prerequisites
+- **Proposed scope:** structured prerequisites (short factual items) and setup instructions in a safely rendered, restricted format; the `Prerequisite` and `ProductDocument` entities named in `docs/06-data-model.md`. Clarify how prerequisites relate to compatibility notes so the same requirement is not stated twice.
+- **Requirement relationship:** FR-003 (prerequisites, setup); FR-009 (creator portal supports documentation).
+- **Dependencies:** MVP-005 (Done); authoring depends on MVP-012, moderation on MVP-013. **Decision needed first:** the permitted format for setup instructions (for example a Markdown subset) and length limits.
+- **Acceptance criteria:** prerequisites and setup render on the product page in a stable order; formatting is rendered through an allow-list (no raw HTML); empty states say the information has not been provided; text is length-limited and moderated; nothing exposes credentials, tenant identifiers or customer data (reuse the TD-006 screening approach).
+- **Security impact:** stored-XSS surface from creator-authored formatted text (allow-list renderer, no raw HTML, safe links); private-data leakage in instructions (moderator review plus heuristic screening).
+- **Accessibility impact:** correct heading levels nested under the page's `h2` sections; list semantics; code blocks scrollable with a keyboard-focusable region; link text meaningful.
+- **Suggested priority / estimate:** P1 / 5.
+
+## PROP-003 — Product Accessibility Disclosure
+- **Proposed scope:** a creator-supplied accessibility statement per product describing what the creator declares about their asset's accessibility. It is **not** platform accessibility validation, which MVP-023 owns. A structured "accessibility status" value here could later feed the FR-002 accessibility filter deferred in TD-005.
+- **Requirement relationship:** FR-003 (accessibility statement); FR-002 (accessibility-status filter, TD-005); brand rule that no certification or guarantee is implied.
+- **Dependencies:** MVP-005 (Done); authoring MVP-012; moderation MVP-013. **Decisions needed first:** the vocabulary of declared statuses (in keeping with the Creator Declared / Marketplace Reviewed approach), and whether a statement is mandatory for submission.
+- **Acceptance criteria:** an optional or required statement (per the decision) renders on the product page; every claim is labelled as creator-declared; nothing implies certification, a guarantee or Microsoft approval; empty state says the information has not been provided; moderated before publication.
+- **Security impact:** low — sanitized text only; no PII. Moderation prevents false or misleading conformance claims.
+- **Accessibility impact:** the statement itself must meet WCAG 2.2 AA; conformance claims must not be conveyed by colour alone.
+- **Suggested priority / estimate:** P2 / 5.
+
+## PROP-004 — Product Releases and Changelog
+- **Proposed scope:** a version-history list and per-release changelog on the product page, building on the minimal `Release` record delivered in MVP-005. Overlaps MVP-014 ("Immutable published releases"), which owns immutability and file replacement; the product owner may prefer to fold the display work into MVP-014.
+- **Requirement relationship:** FR-003 (changelog, version history); FR-011 (releases immutable after publication; corrections create another version); FR-009 (creator portal supports releases).
+- **Dependencies:** MVP-005 (Done); MVP-012 (release editor); MVP-014 (immutable releases).
+- **Acceptance criteria:** the page lists published releases newest first with their publish date; each release shows its changelog text; unpublished releases are never shown; the current version shown elsewhere on the page matches the newest published release; changelog text is sanitized and length-limited; empty state says the information has not been provided.
+- **Security impact:** stored-XSS surface from changelog text; a published release must stay immutable (a correction is a new version).
+- **Accessibility impact:** list semantics, `<time datetime>` for dates, headings that preserve the outline.
+- **Suggested priority / estimate:** P1 / 5.
+
+## PROP-005 — Related Assets (deferred)
+- **Proposed scope (when un-deferred):** explicit, curated relationships only (creator- or editor-defined links, moderated), displayed with the existing product-card presentation. No algorithmic or behavioral recommendation.
+- **Requirement relationship:** FR-003 (related assets).
+- **Dependencies:** enough real published inventory to relate; an approved relationship rule; MVP-012–014 for authoring and moderation.
+- **Acceptance criteria:** only PUBLISHED products can be related; no relationship is fabricated or inferred; the section is absent or shows an approved empty state when none exist; links are moderated against spam.
+- **Security impact:** low — link-integrity and spam abuse between creators; no untrusted markup.
+- **Accessibility impact:** list and card semantics reuse the existing accessible `ProductCard`.
+- **Suggested priority / estimate:** P2 / 3.
+
+## PROP-006 — Repeated Query Parameter Handling (BUG-002 corrective)
+- **Origin:** MVP-023 product-owner decision Q32 (2026-09-21, `docs/final-decisions.md`). Not an FR-003 proposal; recorded in this register because `planning/mvp-backlog.csv` and `planning/backlog.csv` have no Proposed status.
+- **Proposed scope:** `normalizeQuery` (MVP-004) handles repeated or array query parameters safely on `/search` and the category routes, so `?q=a&q=b` no longer returns HTTP 500. No other search-behavior change. The handling choice (first value, or no query) is to be confirmed when the story is scheduled; open question 32 records the safest reversible default.
+- **Requirement relationship:** FR-002 (search and filtering).
+- **Reference:** BUG-002 (`planning/bugs/BUG-002.md`).
+- **Sequencing:** after MVP-023, and before any story that expands search.
+- **Dependencies:** MVP-004 (Done).
+- **Acceptance criteria:** to be written when scheduled; the minimum is that a repeated `q` no longer returns HTTP 500 and that the chosen handling is covered by a unit test and an integration check.
+- **Security impact:** low — removes an unhandled-exception path reachable by any anonymous request.
+- **Accessibility impact:** none expected.
+- **Suggested priority / estimate:** P3 / not estimated.
+- **Status:** Done, 2026-09-28, inside MVP-026 (the SEO story), which the product owner's work order scheduled. The handling is first value. See `planning/bugs/BUG-002.md`.
+
+## PROP-007 — Job Queue Foundation
+
+- **Origin:** `planning/prework/TD-004-prework-analysis.md` (2026-09-24), and the product-owner decision "TD-004 architecture and sequencing" (`docs/final-decisions.md`, 2026-09-24) that followed it. Not an FR-003 proposal; cross-cutting infrastructure named directly by TD-004 and TD-015.
+- **Proposed scope (unchanged from the pre-work analysis §7):** a minimal, generic job-enqueue/claim/complete/retry mechanism — a Postgres-backed queue (`SELECT ... FOR UPDATE SKIP LOCKED`, decided architecture, `docs/final-decisions.md`) — plus the `apps/worker` runtime to consume it, with **no specific job handler migrated onto it as part of this story**. TD-004's file scan and TD-015's email sends migrate afterward, each as its own small follow-up, so this foundation story's own surface area stays small and reviewable.
+- **Proposed acceptance criteria (unchanged from the pre-work analysis §7):**
+  - A job can be enqueued with a typed payload, claimed by exactly one worker at a time, marked complete or failed, and a failed job is retried per a defined backoff policy up to a defined attempt limit, then dead-lettered.
+  - A crashed worker's claimed-but-incomplete job becomes reclaimable after a defined lease timeout (no job is lost to a worker crash).
+  - The correlation ID present at enqueue time is present in every log line the worker emits while processing that job.
+  - Local and CI test suites exercise the queue mechanics without any real external vendor call.
+  - New table(s) carry a reversible migration and RLS per the standing convention.
+  - Documentation states, explicitly, which of TD-004/TD-015/MVP-012's needs this foundation does *not* yet solve (the actual migration of those handlers onto it), so a reader doesn't assume this story silently fixes those tech-debt records.
+- **Requirement relationship:** cross-cutting; supports TD-004 (FR-007-adjacent, file scanning), TD-015 (FR-013, transactional email), and MVP-012's release-file submission path (FR-009). MVP-009 and MVP-019 are recorded as **under-specified** consumers — no requirement is invented for either.
+- **Dependencies:** **BUG-015 must be resolved and merged first** (`docs/final-decisions.md`, "TD-004 architecture and sequencing", section 3) — a job table is exactly the shared, mutable, cross-package CI state BUG-015 is about, and landing this before BUG-015's isolation strategy is settled creates a second surface for the identical flake. A new ADR is also required before implementation (architecture is decided in principle — Postgres-backed — but not yet written up as its own ADR).
+- **Security impact:** a new table (RLS + reversible migration, standing convention); job payloads must carry identifiers and minimal re-derivation parameters only, never secrets, file contents, or rendered message bodies with PII; a worker runs with a fixed, narrowly-scoped service identity, not the app's full request-time authorization surface; a malformed/poisoned job must fail fast and not block other queued jobs. Full detail: pre-work analysis §5.
+- **Testing impact:** job handler logic is plain-function unit-testable (no real queue involved); queue mechanics themselves (claim/lock/complete/retry) are DB-gated integration tests following this repo's existing `describe.skipIf(!process.env.DATABASE_URL)` convention; worker timing (poll interval, lease expiry, retry delay) needs to be injectable/fake-clock-driven, not tested by waiting out real delays. Full detail: pre-work analysis §6.
+- **Suggested priority / estimate:** not assigned / **~13 points**, an anchor (comparable to MVP-006, the largest single-story estimate on the current board), offered because no existing partial implementation exists to build on (`apps/worker` is genuinely empty), real queue-mechanics testing requirements apply, and the architecture choice — while now decided — still needs its own ADR before implementation.
+- **Status:** Proposed. **Not added to `planning/mvp-backlog.csv`. Not started.** Blocked on BUG-015 (its own separate authorization, not yet given) and on this proposal's own approval as a scheduled story.
+
+## PROP-008 — Power Apps Component Generator / Library (Declined for now)
+
+- **Origin:** raised directly by the product owner in this session (2026-09-24), not from `docs/01-brd.md`, `docs/02-prd.md`, or any existing FR. This was genuinely new product scope — a tool or library to help creators produce Power Apps (PCF/Canvas) components, positioned to compete with existing component libraries such as powerappsui.com.
+- **Research performed:** two rounds. First, an informal in-session pass on generator-tooling differentiation (weak — Microsoft's free `pac pcf init` already scaffolds; the most-installed community tool, "PCF Builder," 24,687 installs, abandoned since 2021). Second, a full research package, `docs/research/power-apps-components/` (README, 11 numbered files, a 38-row sourced claims register, licensing/pricing/adoption findings for PowerAppsUI, PowerLibs, and Microsoft's own MIT-licensed repos), extended with a follow-up finding on `pcf.gallery` (a long-running, MVP-operated PCF community directory with an existing commercial-listing channel).
+- **Decision (2026-09-24, direct product-owner instruction — "You decide and let's finish this," delegating the build-or-not call):** **not pursued at this time.** Full reasoning: `docs/final-decisions.md`, "PROP-008 (Power Apps component generator/library): not pursued." Summary: both the Canvas and PCF sides of this market already have real, ongoing competitors/infrastructure (PowerAppsUI, PowerLibs, `pcf.gallery`); the one real differentiation angle found (verified accessibility/performance/compatibility evidence) is unproven as an actual demand driver, not just undelivered by competitors; every credible precedent in this space is a single-operator effort, including one abandoned despite real install numbers; no live creator pipeline exists yet to consume anything built here; and it would compete for effort against this project's still-incomplete core marketplace scope.
+- **Not closed off permanently.** The full evidence trail stays in the repository (`docs/research/power-apps-components/`) so a future re-evaluation, if conditions change, doesn't start from nothing.
+- **Requirement relationship:** none — no requirement was ever added to `docs/02-prd.md`, and none is added now.
+- **Status:** **Declined for now.** Not added to `planning/mvp-backlog.csv`. Not started. `docs/open-questions.md` item 60 closed accordingly.
+
+## PROP-009 — Asset and Content Suggestions
+
+- **Origin:** `docs/final-decisions.md`, "First-party-only publishing model", section 10, itself following the product-owner's reversal of the earlier third-party-creator decision (2026-09-24). A visitor suggestion inbox is the named successor concept for external contribution under the first-party-only model — **a separate capability with its own requirements, data, risks, and acceptance criteria, explicitly not MVP-013 (Submission review queue) continued under a new name.**
+- **Proposed scope (research level only — no field, status, or schema is approved by this entry):** visitors may submit a suggestion for a product, component, template, tool, tutorial, article, fix, or improvement. A suggestion creates no ownership right, no creator or seller relationship, no entitlement to payment or commission, no promise of implementation, and no permission to submit confidential or third-party-owned material.
+- **Candidate categories to evaluate** (research candidates, not approved): Canvas component, PCF control, app template, Power Automate toolkit, Power BI asset, architecture/governance pack, tutorial, troubleshooting article, existing-product improvement, compatibility request, accessibility improvement, bug report, integration request.
+- **Candidate minimum fields to evaluate** (research candidates, not approved schema): title, category, problem to solve, description, example use case, optional reference URL, optional contact email, consent to be contacted.
+- **Safest initial boundary, recorded as a real constraint to preserve into any future approval:** text and optional URLs only; no file uploads; no source-code submissions; no confidential information; no client or employer materials; no ownership transfer; no compensation promise. This boundary means a future approved version would not need the MVP-006 quarantine/scan pipeline at all, since no file ever enters the system through this path.
+- **Candidate lifecycle to evaluate** (research candidates, not approved enum values): SUBMITTED, UNDER_REVIEW, PLANNED, DECLINED, DUPLICATE, COMPLETED.
+- **Architectural observation (not a design decision):** this session's separate monetization architecture audit (`docs/research/monetization/10-current-architecture-inventory.md`) found the notification/consent architecture (`ConsentRecord`, `EmailSend`, both real, working, append-only) to be the most-ready piece of infrastructure in the platform for exactly this kind of "capture an optional contact and a consent-to-be-contacted flag" pattern — worth a future scoping pass to consider reusing the existing `ConsentCategory` pattern rather than building new consent infrastructure, if this capability is ever approved.
+- **Requirement relationship:** none yet — new product scope, not a gap in an existing FR. If pursued, a requirement ID would need to be added to `docs/02-prd.md` through the normal process, not invented here.
+- **Dependencies:** none — explicitly **not an MVP-012 dependency**, and not built on top of the superseded MVP-013.
+- **Status:** Proposed. Not approved. Not scheduled. Not added to `planning/mvp-backlog.csv`. Not started.

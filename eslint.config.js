@@ -33,4 +33,13 @@ export default tseslint.config(
       ...nextPlugin.configs["core-web-vitals"].rules,
     },
   },
+  {
+    // Plain Node scripts (e.g. packages/db/scripts/*.mjs) run outside any
+    // bundler/tsconfig, so they need Node's own globals declared explicitly —
+    // TS files get them from tsconfig's "types", which doesn't apply here.
+    files: ["**/scripts/**/*.mjs"],
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", URL: "readonly" },
+    },
+  },
 );

@@ -1,0 +1,103 @@
+import { randomBytes } from "node:crypto";
+import { defineConfig, devices } from "@playwright/test";
+
+/**
+ * Accessibility gate configuration (MVP-023; decisions Q33, Q34, Q39 in
+ * docs/final-decisions.md).
+ *
+ * - Three engine projects on Playwright's PINNED, bundled browser builds:
+ *   chromium, firefox, webkit. No `channel` is set anywhere, so no moving or
+ *   branded build can gate a merge.
+ * - Viewport widths (320, 375, 768, 1280) are exercised inside the specs, from
+ *   src/matrix.ts, so tests that do not depend on width are not repeated four times.
+ * - No retries: a flaky accessibility test is a defect, not something to mask.
+ * - The application under test is a production build served by `next start`
+ *   (E2E_SERVER_MODE=dev is for fast local iteration only and is never used in CI).
+ */
+
+const PORT = Number.parseInt(process.env["E2E_PORT"] ?? "3100", 10);
+const BASE_URL = `http://localhost:${PORT}`;
+const isCi = process.env["CI"] === "true";
+const devServer = process.env["E2E_SERVER_MODE"] === "dev";
+
+if (!process.env["DATABASE_URL"]) {
+  console.warn(
+    "[e2e] DATABASE_URL is not set: the application server cannot reach a database and the specs will fail.",
+  );
+}
+
+// A throwaway per-run secret (MVP-018, FR-013), mutated onto this process's
+// own env — not just passed to the spawned webServer below — so
+// src/seed.ts (which runs later, in the same test-runner process, not the
+// server's) can mint unsubscribe tokens the running server will accept.
+// Never committed, never reused. RESEND_API_KEY is deliberately never set
+// here: the server under test always falls back to ConsoleEmailAdapter, so
+// no test ever attempts a real vendor call (question 6 of the pre-work
+// analysis).
+process.env["EMAIL_UNSUBSCRIBE_SECRET"] =
+  process.env["EMAIL_UNSUBSCRIBE_SECRET"] ?? randomBytes(32).toString("hex");
+
+// Accessibility-suite sharding (docs/final-decisions.md, "Accessibility suite
+// mitigation", 2026-09-23): a shard's CI job runs TWO separate `playwright
+// test` invocations — its slice of the main matrix, then the unconditional
+// self-check (every shard, every engine — see ci.yml). Both would otherwise
+// write to the SAME fixed output paths and the second would silently clobber
+// the first's report/results (confirmed locally, not assumed: running two
+// invocations back to back overwrote results/summary.md's content outright).
+// E2E_OUTPUT_SUFFIX namespaces every output path so the two invocations in
+// one job never collide; E2E_SUMMARY_PATH (summary-reporter.ts's own,
+// pre-existing env var) is set explicitly per invocation in ci.yml for the
+// same reason. Empty/unset in every other context (local dev, `pnpm test:a11y`,
+// the unsharded build-and-test job), so this is invisible outside CI's
+// sharded runs.
+const outputSuffix = process.env["E2E_OUTPUT_SUFFIX"] ?? "";
+
+export default defineConfig({
+  testDir: "./tests",
+  outputDir: `./test-results${outputSuffix}`,
+  fullyParallel: true,
+  forbidOnly: isCi,
+  retries: 0,
+  workers: isCi ? 3 : undefined,
+  timeout: 45_000,
+  expect: { timeout: 7_500 },
+  reporter: isCi
+    ? [
+        ["list"],
+        ["html", { outputFolder: `playwright-report${outputSuffix}`, open: "never" }],
+        ["junit", { outputFile: `results/junit${outputSuffix}.xml` }],
+        ["json", { outputFile: `results/results${outputSuffix}.json` }],
+        ["./src/summary-reporter.ts"],
+      ]
+    : [["list"], ["./src/summary-reporter.ts"]],
+  use: {
+    baseURL: BASE_URL,
+    colorScheme: "light",
+    locale: "en-US",
+    timezoneId: "UTC",
+    reducedMotion: "reduce",
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+  },
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+    { name: "webkit", use: { ...devices["Desktop Safari"] } },
+  ],
+  webServer: {
+    command: `pnpm --filter @ppu/web exec next ${devServer ? "dev" : "start"} -p ${PORT}`,
+    url: `${BASE_URL}/api/health`,
+    timeout: 180_000,
+    reuseExistingServer: false,
+    stdout: "pipe",
+    stderr: "pipe",
+    env: {
+      ...(process.env as Record<string, string>),
+      NEXTAUTH_URL: BASE_URL,
+      // A throwaway per-run secret: never committed, never reused.
+      NEXTAUTH_SECRET: process.env["NEXTAUTH_SECRET"] ?? randomBytes(32).toString("hex"),
+      // Only used to build canonical URLs and structured data; nothing is fetched from it.
+      NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://e2e.example.org",
+    },
+  },
+});

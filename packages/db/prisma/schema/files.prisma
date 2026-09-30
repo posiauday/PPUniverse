@@ -1,7 +1,7 @@
-// Versioning and files domain (docs/06-data-model.md). Only FileScan is
-// modeled for MVP-006 — ReleaseFile/Release/ChangelogEntry/Download/
-// SignedDownloadGrant belong to the stories that need them (MVP-009,
-// MVP-012, MVP-014), which attach an already-CLEAN FileScan to a release.
+// Versioning and files domain (docs/06-data-model.md). FileScan (MVP-006)
+// and ReleaseFile (MVP-012, joining Release and an already-CLEAN FileScan)
+// are modeled here. ChangelogEntry/Download/SignedDownloadGrant belong to
+// the stories that still need them (MVP-014 and later).
 
 enum FileScanStatus {
   UPLOADED
@@ -28,6 +28,27 @@ model FileScan {
   scanStartedAt    DateTime?
   scanCompletedAt  DateTime?
 
+  releaseFiles ReleaseFile[]
+
   @@index([uploadedByUserId])
   @@map("file_scans")
+}
+
+/// Joins a Release to an already-CLEAN FileScan (MVP-012, FR-009). Written
+/// only by PrismaCatalogRepository.attachReleaseFile, which re-verifies
+/// FileScan.status === "CLEAN" server-side before creating this row — never
+/// trusts a client-supplied "this file is clean" claim. onDelete: Restrict
+/// on fileScan mirrors Category on Product: a scanned file already attached
+/// to a release must not be deletable out from under it.
+model ReleaseFile {
+  releaseId  String
+  fileScanId String
+  createdAt  DateTime @default(now())
+
+  release  Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  fileScan FileScan @relation(fields: [fileScanId], references: [id], onDelete: Restrict)
+
+  @@id([releaseId, fileScanId])
+  @@index([fileScanId])
+  @@map("release_files")
 }
