@@ -7,7 +7,7 @@ import type { ArticleStatus, ArticleType } from "./types.js";
  * content-publishing authorization reuses ADMIN").
  */
 
-const ARTICLE_TYPES: readonly ArticleType[] = ["TUTORIAL", "PATTERN", "COMPARISON"];
+const ARTICLE_TYPES: readonly ArticleType[] = ["TUTORIAL", "PATTERN", "COMPARISON", "KPI_GUIDE"];
 
 export function isValidArticleType(value: string): value is ArticleType {
   return (ARTICLE_TYPES as readonly string[]).includes(value);

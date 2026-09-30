@@ -5,6 +5,7 @@ export const ARTICLE_TYPE_LABEL: Record<ArticleType, string> = {
   TUTORIAL: "Tutorial",
   PATTERN: "Pattern",
   COMPARISON: "Comparison",
+  KPI_GUIDE: "KPI guide",
 };
 
 /** Section headings on the /learn hub, in display order. */
@@ -12,4 +13,5 @@ export const ARTICLE_TYPE_SECTIONS: ReadonlyArray<{ type: ArticleType; heading: 
   { type: "TUTORIAL", heading: "Tutorials" },
   { type: "PATTERN", heading: "Patterns" },
   { type: "COMPARISON", heading: "Comparisons" },
+  { type: "KPI_GUIDE", heading: "KPI guides" },
 ];

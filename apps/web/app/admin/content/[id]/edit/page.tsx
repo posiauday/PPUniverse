@@ -45,6 +45,7 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
           slug: article.slug,
           title: article.title,
           type: article.type,
+          technology: article.technology ?? "",
           excerpt: article.excerpt ?? "",
           body: article.body,
         }}

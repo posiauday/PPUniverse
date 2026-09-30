@@ -9,6 +9,7 @@ import {
   type ArticleType,
   type ArticleUpdateInput,
   type ContentRepository,
+  type Technology,
 } from "@ppu/domain-content";
 
 export class PrismaContentRepository implements ContentRepository {
@@ -22,6 +23,7 @@ export class PrismaContentRepository implements ContentRepository {
         slug: input.slug,
         title: input.title,
         type: input.type,
+        technology: input.technology,
         body: input.body,
         excerpt: input.excerpt,
         authorUserId: input.authorUserId,
@@ -39,6 +41,7 @@ export class PrismaContentRepository implements ContentRepository {
         slug: input.slug,
         title: input.title,
         type: input.type,
+        technology: input.technology,
         body: input.body,
         excerpt: input.excerpt,
       },
@@ -121,15 +124,26 @@ export class PrismaContentRepository implements ContentRepository {
   async listPublishedArticleSummaries(options: {
     limit: number;
     type?: ArticleType;
+    types?: readonly ArticleType[];
+    technology?: Technology;
     excludeSlug?: string;
   }): Promise<ArticleSummary[]> {
     const rows = await this.db.article.findMany({
       where: {
         status: "PUBLISHED",
         ...(options.type ? { type: options.type } : {}),
+        ...(options.types ? { type: { in: [...options.types] } } : {}),
+        ...(options.technology ? { technology: options.technology } : {}),
         ...(options.excludeSlug ? { slug: { not: options.excludeSlug } } : {}),
       },
-      select: { slug: true, title: true, type: true, excerpt: true, publishedAt: true },
+      select: {
+        slug: true,
+        title: true,
+        type: true,
+        technology: true,
+        excerpt: true,
+        publishedAt: true,
+      },
       orderBy: [{ publishedAt: "desc" }, { slug: "asc" }],
       take: options.limit,
     });
@@ -137,6 +151,7 @@ export class PrismaContentRepository implements ContentRepository {
       slug: row.slug,
       title: row.title,
       type: row.type as ArticleType,
+      technology: row.technology as Technology | null,
       excerpt: row.excerpt,
       // PUBLISHED rows always have publishedAt set.
       publishedAt: row.publishedAt as Date,
@@ -149,6 +164,7 @@ function toArticleRecord(row: {
   slug: string;
   title: string;
   type: string;
+  technology: string | null;
   body: string;
   excerpt: string | null;
   status: string;
@@ -162,6 +178,7 @@ function toArticleRecord(row: {
     slug: row.slug,
     title: row.title,
     type: row.type as ArticleType,
+    technology: row.technology as Technology | null,
     body: row.body,
     excerpt: row.excerpt,
     status: row.status as ArticleStatus,

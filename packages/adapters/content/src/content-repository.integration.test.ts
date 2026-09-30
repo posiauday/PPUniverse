@@ -45,6 +45,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-create-slug",
       title: "A tutorial",
       type: "TUTORIAL",
+      technology: null,
       body: "# Heading\n\nBody text.",
       excerpt: "An excerpt.",
       authorUserId: author.id,
@@ -62,6 +63,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-update-slug",
       title: "Original title",
       type: "PATTERN",
+      technology: null,
       body: "Original body.",
       excerpt: null,
       authorUserId: author.id,
@@ -72,6 +74,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-update-slug",
       title: "Updated title",
       type: "COMPARISON",
+      technology: null,
       body: "Updated body.",
       excerpt: "Now has an excerpt.",
     });
@@ -90,6 +93,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-publish-slug",
       title: "Publish me",
       type: "TUTORIAL",
+      technology: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -113,6 +117,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-double-publish-slug",
       title: "Publish twice?",
       type: "TUTORIAL",
+      technology: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -132,6 +137,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-draft-hidden-slug",
       title: "Still a draft",
       type: "PATTERN",
+      technology: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -153,6 +159,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-list-draft-slug",
       title: "Draft listing",
       type: "TUTORIAL",
+      technology: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -162,6 +169,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       slug: "content-repo-list-published-slug",
       title: "Published listing",
       type: "TUTORIAL",
+      technology: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -194,12 +202,98 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
     expect(excluding.map((a) => a.slug)).not.toContain(toPublish.slug);
   });
 
+  it("stores an article's technology section, and changes or clears it on update (MVP-028)", async () => {
+    const author = await createTestUser("content-repo-tech@example.test");
+    const created = await repo.createArticle({
+      slug: "content-repo-tech-slug",
+      title: "Technology",
+      type: "KPI_GUIDE",
+      technology: "POWER_BI",
+      body: "Body.",
+      excerpt: null,
+      authorUserId: author.id,
+    });
+    createdArticleIds.push(created.id);
+    expect(created.type).toBe("KPI_GUIDE");
+    expect(created.technology).toBe("POWER_BI");
+    const moved = await repo.updateArticle(created.id, {
+      slug: created.slug,
+      title: created.title,
+      type: "KPI_GUIDE",
+      technology: "POWER_APPS",
+      body: created.body,
+      excerpt: null,
+    });
+    expect(moved.technology).toBe("POWER_APPS");
+    const cleared = await repo.updateArticle(created.id, {
+      slug: created.slug,
+      title: created.title,
+      type: "KPI_GUIDE",
+      technology: null,
+      body: created.body,
+      excerpt: null,
+    });
+    expect(cleared.technology).toBeNull();
+  });
+
+  it("filters published summaries by technology and by several types (MVP-028)", async () => {
+    const author = await createTestUser("content-repo-techfilter@example.test");
+    const make = async (
+      slug: string,
+      type: "TUTORIAL" | "PATTERN" | "KPI_GUIDE",
+      technology: "POWER_APPS" | "POWER_BI" | null,
+    ) => {
+      const article = await repo.createArticle({
+        slug,
+        title: slug,
+        type,
+        technology,
+        body: "Body.",
+        excerpt: null,
+        authorUserId: author.id,
+      });
+      createdArticleIds.push(article.id);
+      await repo.publishArticle(article.id, author.id);
+    };
+    await make("content-repo-tf-apps-tutorial", "TUTORIAL", "POWER_APPS");
+    await make("content-repo-tf-apps-pattern", "PATTERN", "POWER_APPS");
+    await make("content-repo-tf-bi-kpi", "KPI_GUIDE", "POWER_BI");
+    await make("content-repo-tf-none", "TUTORIAL", null);
+
+    const apps = await repo.listPublishedArticleSummaries({ limit: 50, technology: "POWER_APPS" });
+    const appSlugs = apps.map((a) => a.slug).filter((slug) => slug.startsWith("content-repo-tf-"));
+    expect(appSlugs.sort()).toEqual([
+      "content-repo-tf-apps-pattern",
+      "content-repo-tf-apps-tutorial",
+    ]);
+    expect(apps.every((a) => a.technology === "POWER_APPS")).toBe(true);
+
+    const learnTab = await repo.listPublishedArticleSummaries({
+      limit: 50,
+      technology: "POWER_APPS",
+      types: ["TUTORIAL", "COMPARISON"],
+    });
+    expect(
+      learnTab.map((a) => a.slug).filter((slug) => slug.startsWith("content-repo-tf-")),
+    ).toEqual(["content-repo-tf-apps-tutorial"]);
+
+    const kpis = await repo.listPublishedArticleSummaries({
+      limit: 50,
+      technology: "POWER_BI",
+      types: ["KPI_GUIDE"],
+    });
+    expect(kpis.map((a) => a.slug).filter((slug) => slug.startsWith("content-repo-tf-"))).toEqual([
+      "content-repo-tf-bi-kpi",
+    ]);
+  });
+
   it("an authorUserId cannot be hard-deleted while an Article references it (Restrict FK)", async () => {
     const author = await createTestUser("content-repo-restrict@example.test");
     const created = await repo.createArticle({
       slug: "content-repo-restrict-slug",
       title: "Restrict check",
       type: "TUTORIAL",
+      technology: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
