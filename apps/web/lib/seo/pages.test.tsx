@@ -52,8 +52,17 @@ vi.mock("next/font/google", () => {
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
   return {
-    default: (props: { href: string; children?: unknown; className?: string }) =>
-      createElement("a", { href: props.href, className: props.className }, props.children as never),
+    default: (props: {
+      href: string;
+      children?: unknown;
+      className?: string;
+      "aria-current"?: "page";
+    }) =>
+      createElement(
+        "a",
+        { href: props.href, className: props.className, "aria-current": props["aria-current"] },
+        props.children as never,
+      ),
   };
 });
 
@@ -67,6 +76,12 @@ import LearnArticlePage, {
 } from "../../app/learn/[slug]/page";
 import LearnIndexPage, { generateMetadata as learnIndexMetadata } from "../../app/learn/page";
 import HomePage, { generateMetadata as homeMetadata } from "../../app/page";
+import TechnologyPage, {
+  generateMetadata as technologyMetadata,
+} from "../../app/[technology]/page";
+import TechnologyTabPage, {
+  generateMetadata as technologyTabMetadata,
+} from "../../app/[technology]/[tab]/page";
 import ProductPage, { generateMetadata as productMetadata } from "../../app/products/[slug]/page";
 import robots from "../../app/robots";
 import sitemap from "../../app/sitemap";
@@ -325,6 +340,71 @@ describe("article page (SEO story)", () => {
   it("carries its own share image, built from the slug, as an absolute URL", async () => {
     const metadata = await learnArticleMetadata(articleProps());
     expect(imageOf(metadata)).toBe("https://example.com/og/learn/intro-tutorial");
+  });
+});
+
+describe("technology sections (MVP-028)", () => {
+  const tech = (technology: string) => ({ params: Promise.resolve({ technology }) });
+  const tab = (technology: string, t: string) => ({
+    params: Promise.resolve({ technology, tab: t }),
+  });
+
+  it("an empty tab renders a 'coming soon' state, stays noindex-follow, and emits no CollectionPage", async () => {
+    const metadata = await technologyMetadata(tech("power-apps"));
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(canonicalOf(metadata)).toBe("https://example.com/power-apps");
+    const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
+    expect(markup).toContain("Coming soon.");
+    expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual(["BreadcrumbList"]);
+  });
+
+  it("a tab with content is indexable, lists it, and marks the current tab", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("pa-guide")]);
+    const metadata = await technologyMetadata(tech("power-apps"));
+    expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(metadata.title).toBe(`Power Apps tutorials | ${SITE_NAME}`);
+    const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
+    expect(markup).toContain('href="/learn/pa-guide"');
+    expect(markup).toMatch(/<a[^>]*aria-current="page"[^>]*>Learn<\/a>/);
+    expect(markup).toContain('href="/power-apps/architecture"');
+    expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
+      "CollectionPage",
+      "BreadcrumbList",
+    ]);
+    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith(
+      expect.objectContaining({ technology: "POWER_APPS", types: ["TUTORIAL", "COMPARISON"] }),
+    );
+  });
+
+  it("the Components tab shows the technology's own categories' products", async () => {
+    repository.listCategories.mockResolvedValue([category]);
+    repository.searchProducts.mockResolvedValue({
+      items: [{ ...productRow, category }],
+      total: 1,
+      page: 1,
+      pageSize: 12,
+    });
+    const markup = renderToStaticMarkup(await TechnologyTabPage(tab("power-apps", "components")));
+    expect(markup).toContain('href="/products/sample-component"');
+    expect(markup).toContain(">Power Apps Components</h3>");
+    expect((await technologyTabMetadata(tab("power-apps", "components"))).robots).toEqual({
+      index: true,
+      follow: true,
+    });
+    // The same category belongs to no other technology.
+    const bi = renderToStaticMarkup(await TechnologyTabPage(tab("power-bi", "components")));
+    expect(bi).toContain("Coming soon.");
+  });
+
+  it("an unknown technology or tab is noindex metadata and a 404", async () => {
+    expect((await technologyMetadata(tech("sharepoint"))).robots).toEqual({
+      index: false,
+      follow: false,
+    });
+    await expect(TechnologyPage(tech("sharepoint"))).rejects.toThrow();
+    await expect(TechnologyTabPage(tab("power-apps", "learn"))).rejects.toThrow();
+    await expect(TechnologyTabPage(tab("power-apps", "pricing"))).rejects.toThrow();
+    await expect(TechnologyTabPage(tab("nope", "kpis"))).rejects.toThrow();
   });
 });
 
@@ -605,10 +685,12 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/learn/intro-tutorial", lastModified: updatedAt },
     ]);
     // The home page and the /learn hub take one each of MAX_SITEMAP_URLS
-    // (50,000); the remaining 49,998 is split between the catalog and content repositories (see
-    // lib/seo/sitemap.ts's generateSitemap).
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_999);
-    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_999);
+    // (50,000) and the 24 technology section tabs are reserved (MVP-028); the
+    // remaining 49,974 is split between the catalog and content repositories
+    // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
+    // so none is listed.
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_987);
+    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_987);
   });
 });
 

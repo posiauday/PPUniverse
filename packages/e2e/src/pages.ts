@@ -167,6 +167,71 @@ async function submitSignIn(
 
 export const GATED_PAGES: readonly GatedPage[] = [
   {
+    // MVP-028: the header's Technologies menu, opened, so axe and the
+    // keyboard check see its links.
+    id: "home-technologies-menu-open",
+    route: "/",
+    description: "home page with the header's Technologies menu open",
+    auth: "guest",
+    status: 200,
+    path: () => "/",
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Technologies" }).click();
+      await expect(page.getByRole("link", { name: "Power Automate" }).first()).toBeVisible();
+    },
+  },
+  {
+    // MVP-028: a technology section's Learn tab with content (the fixture
+    // article is tagged Power Apps).
+    id: "technology-learn",
+    route: "/[technology]",
+    description: "Power Apps section, Learn tab, with a published tutorial",
+    auth: "guest",
+    status: 200,
+    path: () => "/power-apps",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Power Apps");
+      await expect(page.getByRole("link", { name: seed.publishedArticle.title })).toBeVisible();
+      await expect(
+        page
+          .getByRole("navigation", { name: "Power Apps sections" })
+          .getByRole("link", { name: "Learn", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
+    },
+  },
+  {
+    id: "technology-components",
+    route: "/[technology]/[tab]",
+    description: "Power Apps section, Components tab, with a published component",
+    auth: "guest",
+    status: 200,
+    path: () => "/power-apps/components",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("link", { name: seed.technologyProduct.name })).toBeVisible();
+    },
+  },
+  {
+    // Nothing is ever published as a Dataverse KPI guide by the harness, so
+    // this tab is reliably empty under every worker.
+    id: "technology-tab-empty",
+    route: "/[technology]/[tab]",
+    description: "Dataverse section, KPIs tab, empty ('coming soon')",
+    auth: "guest",
+    status: 200,
+    path: () => "/dataverse/kpis",
+    prepare: async (page) => {
+      await expect(page.getByText("Coming soon.")).toBeVisible();
+    },
+  },
+  {
+    id: "technology-not-found",
+    route: null,
+    description: "an unknown technology section is a 404",
+    auth: "guest",
+    status: 404,
+    path: () => "/sharepoint",
+  },
+  {
     id: "home",
     route: "/",
     description: "home page",

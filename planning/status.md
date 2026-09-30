@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-028 (Technology sections) In Progress, slice 1 of 2 built: the content model.**
+Last updated: 2026-09-30 — **MVP-028 (Technology sections) both slices built; status QA.**
+- **Six sections, each with four tabs:** Learn, Architecture, Components and KPIs, at `/power-apps` and so on.
+- **Navigation:** a Technologies menu in the header, technology tiles on the home page, and chips on `/learn`.
+- **Search engines:** empty tabs say "Coming soon" and stay out of search; tabs with content are in the sitemap.
+- **`develop` CI** passed on the slice 1 merge (#37).
+
+Last updated (previous): 2026-09-30 — **MVP-028 (Technology sections) In Progress, slice 1 of 2 built: the content model.**
 - **Decided by the product owner:** six sections (Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse, Power Pages), four tabs (Learn · Architecture · Components · KPIs), and short addresses (`/power-apps`).
 - **Built:** articles can be tagged with a technology; there is a new KPI guide article type; the admin editor has a Technology picker; the API validates both.
 - **Fixed:** BUG-017, a test that failed on Windows line endings.
@@ -101,8 +107,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-028 (slice 1 of 2) |
-| QA | 0 | — |
+| In Progress | 1 | MVP-007 (slices 1–2 of 3) |
+| QA | 1 | MVP-028 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 18 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027 |
@@ -201,7 +207,7 @@ Full detail on every story is in `planning/progress-report.md`.
 ## Progress metrics
 
 - Stories done: 18 / 28 (64%)
-- Stories in QA: 0 / 28
+- Stories in QA: 1 / 28 (MVP-028)
 - Points done: 131 / 196 (67%)
 - P0 points done: 103 / 145 (71%)
 - P1 points done: 28 / 51 (55%)
@@ -230,7 +236,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
 | 5 | MVP-027 (Design system) | **Done** | 13 (done) |
-| 5 | MVP-028 (Technology sections) | In Progress (slice 1 of 2) | 8 |
+| 5 | MVP-028 (Technology sections) | QA (both slices built) | 8 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |

@@ -1,8 +1,16 @@
+import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
 import type { Theme } from "../lib/theme";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
+import { TechnologiesMenu } from "./TechnologiesMenu";
 import { ThemeToggle } from "./ThemeToggle";
+
+/** MVP-028: the six technology sections, from the one registry. */
+const TECHNOLOGY_LINKS = TECHNOLOGIES.map((entry) => ({
+  name: entry.name,
+  href: `/${entry.slug}`,
+}));
 
 /**
  * Site-wide header (MVP-027): the brand, the main sections, and the theme
@@ -31,6 +39,7 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
           >
             Learn
           </Link>
+          <TechnologiesMenu items={TECHNOLOGY_LINKS} />
           <Link
             href="/search"
             className="inline-flex min-h-11 items-center text-foreground no-underline hover:underline"

@@ -8,6 +8,7 @@ import { buildWebSiteJsonLd } from "../lib/seo/json-ld";
 import { buildHomeMetadata } from "../lib/seo/metadata";
 import { getSiteUrl } from "../lib/site-url";
 import { HomeHero } from "./HomeHero";
+import { TechnologyTiles } from "./TechnologyTiles";
 import { ArticleList } from "./learn/ArticleList";
 
 /** Newest articles shown on the home page (SEO story). */
@@ -46,6 +47,14 @@ export default async function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 lg:py-14">
       <HomeHero />
+
+      {/* MVP-028: the six technology sections. */}
+      <section aria-labelledby="home-technologies" className="mt-14">
+        <h2 id="home-technologies" className="text-2xl font-semibold">
+          Explore by technology
+        </h2>
+        <TechnologyTiles variant="tiles" />
+      </section>
 
       {products.items.length > 0 ? (
         <section aria-labelledby="home-components" className="mt-14">

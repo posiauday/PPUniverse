@@ -9,6 +9,7 @@ import {
 import { Pagination, ProductCard, SearchForm, SortLinks } from "@ppu/ui";
 import { logger } from "@ppu/telemetry";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { buildCatalogUrl } from "../../lib/catalog-url";
 import { catalogRepository } from "../../lib/catalog";
 import { SITE_NAME } from "../../lib/seo/site";
@@ -62,9 +63,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <p className="text-sm text-muted-foreground" aria-live="polite">
             {result.total} result{result.total === 1 ? "" : "s"} for &ldquo;{query}&rdquo;
           </p>
-          <a href="/search" className="text-sm text-muted-foreground underline">
+          <Link href="/search" className="text-sm text-muted-foreground underline">
             Clear all
-          </a>
+          </Link>
         </div>
       ) : null}
 

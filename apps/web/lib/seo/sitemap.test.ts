@@ -3,6 +3,7 @@ import type { ArticleSitemapEntries } from "@ppu/domain-content";
 import { describe, expect, it, vi } from "vitest";
 import type { SiteUrlResult } from "../site-url.js";
 import { MAX_SITEMAP_URLS, buildSitemap, generateSitemap } from "./sitemap.js";
+import { MAX_SECTION_PATHS } from "../technology-sections.js";
 
 const SITE: SiteUrlResult = { ok: true, origin: "https://example.com" };
 const ENTRIES: SitemapEntries = {
@@ -17,8 +18,10 @@ const ARTICLES: ArticleSitemapEntries = {
 };
 
 // The home page and the /learn hub take one slot each.
-const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 2) / 2);
-const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 2 - CATALOG_BUDGET;
+// The home page and /learn hub take one slot each, and MVP-028's technology
+// section tabs (MAX_SECTION_PATHS) are reserved up front.
+const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 2 - MAX_SECTION_PATHS) / 2);
+const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 2 - MAX_SECTION_PATHS - CATALOG_BUDGET;
 
 describe("buildSitemap", () => {
   it("lists the home page, category base URLs, product URLs, the /learn hub and Article URLs — as absolute URLs", () => {
@@ -84,15 +87,18 @@ describe("generateSitemap", () => {
   const make = (overrides: Partial<Parameters<typeof generateSitemap>[0]> = {}) => {
     const listSitemapEntries = vi.fn().mockResolvedValue(ENTRIES);
     const listPublishedArticleSlugs = vi.fn().mockResolvedValue(ARTICLES);
+    const listSectionPaths = vi.fn().mockResolvedValue([]);
     const warn = vi.fn();
     return {
       listSitemapEntries,
       listPublishedArticleSlugs,
+      listSectionPaths,
       warn,
       deps: {
         getSite: () => SITE,
         repository: { listSitemapEntries },
         contentRepository: { listPublishedArticleSlugs },
+        listSectionPaths,
         warn,
         ...overrides,
       },
@@ -105,6 +111,23 @@ describe("generateSitemap", () => {
     expect(sitemap).toHaveLength(7);
     expect(listSitemapEntries).toHaveBeenCalledWith(CATALOG_BUDGET);
     expect(listPublishedArticleSlugs).toHaveBeenCalledWith(ARTICLE_BUDGET);
+  });
+
+  it("lists technology section tabs with content right after the home page, capped at MAX_SECTION_PATHS (MVP-028)", async () => {
+    const { deps, listSectionPaths } = make();
+    listSectionPaths.mockResolvedValue(["/power-apps", "/power-apps/components"]);
+    const sitemap = await generateSitemap(deps);
+    expect(sitemap.slice(0, 3)).toEqual([
+      { url: "https://example.com/" },
+      { url: "https://example.com/power-apps" },
+      { url: "https://example.com/power-apps/components" },
+    ]);
+
+    listSectionPaths.mockResolvedValue(
+      Array.from({ length: MAX_SECTION_PATHS + 5 }, (_, i) => `/x${i}`),
+    );
+    const capped = await generateSitemap(deps);
+    expect(capped.filter((entry) => /\/x\d+$/.test(entry.url))).toHaveLength(MAX_SECTION_PATHS);
   });
 
   it("returns an empty sitemap — and never touches the database — when the origin is unavailable", async () => {

@@ -3975,3 +3975,42 @@ Slice 3 merged first (PR #34).
 - **Environment:** the `@ppu/db` build alone does not regenerate the Prisma client (Turbo does it in the full build), so I ran `prisma generate` explicitly after the schema change. The per-package test schemas had to be provisioned for this fresh database.
 
 **Next (slice 2):** the section pages, tabs, header menu, home tiles, SEO, sitemap and accessibility states.
+
+## MVP-028 — Technology sections, slice 2 of 2: the section pages (2026-09-30)
+
+Slice 1 merged as PR #37. It was merged about 49 seconds after its CI run started, before checks finished, most likely with `--admin`. `develop`'s own CI then passed on that merge commit (`36e1645`), so the code is confirmed.
+
+**Built:**
+- **`lib/technology-sections.ts`:**
+  - The tabs (`SECTION_TABS`), `tabBySegment` and `sectionPath`.
+  - `ASSET_TECHNOLOGY`, mapping each category asset type to a technology or to none.
+  - Honest one-line summaries per technology.
+  - Tab titles and descriptions.
+  - `loadSection`: articles by tab types and technology, or products grouped by the technology's categories.
+  - `sectionHasContent`, `listSectionPathsWithContent` and `MAX_SECTION_PATHS` (24).
+- **Routes:** `app/[technology]/page.tsx` (Learn) and `app/[technology]/[tab]/page.tsx`, sharing `TechnologySection.tsx`. That component renders the breadcrumbs, title, summary, tab navigation with `aria-current`, content or an empty state, and JSON-LD.
+- **SEO:**
+  - `buildTechnologySectionMetadata`: indexable only with content.
+  - `technologySectionUrl`.
+  - The sitemap lists section tabs with content after the home page; the budget is `MAX_SITEMAP_URLS - 2 - 24`.
+- **Navigation:** `TechnologiesMenu` (the header disclosure) and `TechnologyTiles` (home tiles and `/learn` chips).
+- **Search page:** the "Clear all" link now uses `<Link>`. ESLint began flagging the old `<a>` once the top-level dynamic route existed.
+- **Accessibility gate:**
+  - The two routes are registered.
+  - New states: `home-technologies-menu-open`, `technology-learn`, `technology-components`, `technology-tab-empty` and `technology-not-found`.
+  - The seed tags the fixture article as Power Apps and adds `technologyProduct` in Power Apps Components, so there are 8 products per worker.
+
+**Found by the accessibility gate before any push:**
+1. **A regression:** unknown top-level URLs now reach `[technology]`, whose 404 title lacked the site suffix. The BUG-008 regression test caught it, and it is fixed.
+2. **Mistakes in my own tests:** a "Learn" locator matched the footer instead of the tab (now scoped to the section navigation), and the fixture count needed updating in two places.
+3. **A harness rule:** the "bare site name title" exemption was keyed to the state id `home`. It now keys on the route `/`, so any state of the home page (such as the open menu) qualifies.
+
+**Verified:**
+- `@ppu/web` 464, `@ppu/e2e` 83, chromium **472/472** (light and dark).
+- **Visually, against a production build with sample content:**
+  - the Power Apps Learn tab, and the Components tab grouped by category;
+  - the Technologies menu open;
+  - the home page's technology tiles at phone width;
+  - an empty Dataverse KPIs tab in dark mode (`noindex, follow`, no overflow).
+
+**Next:** merge, then the design-system release to `main`, then launch content.
