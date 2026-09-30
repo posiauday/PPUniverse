@@ -1,4 +1,5 @@
 import {
+  firstParam,
   normalizeQuery,
   parsePage,
   parsePageSize,
@@ -18,7 +19,9 @@ import { getSiteUrl } from "../../../lib/site-url";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  // A repeated parameter arrives as an array (BUG-002); every value is read
+  // through firstParam/normalizeQuery.
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 // See apps/web/app/page.tsx for why these catalog pages render
@@ -55,9 +58,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   const rawParams = await searchParams;
   const query = normalizeQuery(rawParams["q"]);
-  const sort = resolveSortOption(rawParams["sort"], Boolean(query));
-  const page = parsePage(rawParams["page"]);
-  const pageSize = parsePageSize(rawParams["pageSize"]);
+  const sort = resolveSortOption(firstParam(rawParams["sort"]), Boolean(query));
+  const page = parsePage(firstParam(rawParams["page"]));
+  const pageSize = parsePageSize(firstParam(rawParams["pageSize"]));
 
   const result = await getCategoryListing(category.slug, query, sort, page, pageSize);
 
@@ -71,7 +74,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   });
 
   const basePath = `/categories/${category.slug}`;
-  const currentParams = { q: query, sort, pageSize: rawParams["pageSize"] };
+  const currentParams = { q: query, sort, pageSize: firstParam(rawParams["pageSize"]) };
   const hasActiveFilter = Boolean(query) || sort !== "recent";
 
   // CollectionPage structured data only on the clean, indexable base URL. When

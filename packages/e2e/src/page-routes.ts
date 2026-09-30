@@ -16,6 +16,7 @@ export const GATED_ROUTES = [
   "/account/privacy",
   "/admin/deletion-requests",
   "/unsubscribe",
+  "/learn",
   "/learn/[slug]",
   "/admin/content",
   "/admin/content/new",

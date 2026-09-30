@@ -23,8 +23,19 @@ export function resolveSortOption(raw: string | undefined, hasQuery: boolean): S
   return candidate ?? (hasQuery ? "relevance" : "recent");
 }
 
-export function normalizeQuery(raw: string | undefined): string | undefined {
-  const trimmed = raw?.trim();
+/** One query-string value: the first of a repeated parameter (BUG-002). */
+export function firstParam(raw: string | readonly string[] | undefined): string | undefined {
+  return typeof raw === "string" ? raw : raw?.[0];
+}
+
+/**
+ * A repeated parameter (`?q=a&q=b`) arrives from Next.js as an array; the
+ * first value is used, the same way a browser form would read it. Before the
+ * SEO story this threw and the page returned HTTP 500 (BUG-002), which
+ * crawlers following malformed links would record as a server error.
+ */
+export function normalizeQuery(raw: string | readonly string[] | undefined): string | undefined {
+  const trimmed = firstParam(raw)?.trim();
   return trimmed ? trimmed : undefined;
 }
 

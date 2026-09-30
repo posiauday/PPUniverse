@@ -25,7 +25,7 @@ import { SITE_NAME } from "./site";
 
 const SCHEMA_CONTEXT = "https://schema.org";
 
-/** Home page. `name` is the working site name (open question 1); no Organization/Brand. */
+/** Home page. `name` is the approved product name (open question 1 narrowed to trademark clearance). */
 export function buildWebSiteJsonLd(origin: string): JsonLdObject {
   return {
     "@context": SCHEMA_CONTEXT,
@@ -94,6 +94,8 @@ export function buildProductJsonLd(input: ProductJsonLdInput): JsonLdObject | nu
 }
 
 export interface ArticleJsonLdInput {
+  /** The validated site origin; the brand Organization links to its home page. */
+  origin: string;
   /** The canonical absolute /learn/[slug] URL. */
   url: string;
   title: string;
@@ -106,11 +108,12 @@ export interface ArticleJsonLdInput {
 
 /**
  * Published Article pages (MVP-017, FR-014). `TechArticle` fits tutorials,
- * patterns and comparison pages about Power Platform assets. No `author` —
- * this codebase has no approved way to expose a user's identity in public
- * structured data (the same restriction buildProductJsonLd's doc comment
- * states for creator identity), and every Article's author today is an
- * internal ADMIN, not a public byline.
+ * patterns and comparison pages about Power Platform assets.
+ *
+ * `author` and `publisher` are the LowCodeStacks brand as an Organization
+ * (docs/final-decisions.md, "Business model: free learning first; one price
+ * per product; work order", decision 4) -- never the ADMIN who wrote it: no
+ * personal identity is ever exposed in public structured data.
  */
 export function buildArticleJsonLd(input: ArticleJsonLdInput): JsonLdObject | null {
   const headline = normalizeDisplayText(input.title);
@@ -126,5 +129,30 @@ export function buildArticleJsonLd(input: ArticleJsonLdInput): JsonLdObject | nu
   document["url"] = input.url;
   document["datePublished"] = input.publishedAt.toISOString();
   document["dateModified"] = input.updatedAt.toISOString();
+  document["author"] = buildBrandOrganization(input.origin);
+  document["publisher"] = buildBrandOrganization(input.origin);
   return document;
+}
+
+/** The LowCodeStacks brand, as article author and publisher. */
+export function buildBrandOrganization(origin: string): JsonLdObject {
+  return { "@type": "Organization", name: SITE_NAME, url: homeUrl(origin) };
+}
+
+/**
+ * Breadcrumb trail (SEO story): lets search results show
+ * "LowCodeStacks > Learn > Title" instead of a raw URL. Each item is an
+ * absolute canonical URL; the last one is the current page. Returns null if
+ * any name is empty after normalization.
+ */
+export function buildBreadcrumbJsonLd(
+  items: ReadonlyArray<{ name: string; url: string }>,
+): JsonLdObject | null {
+  const itemListElement: JsonLdValue[] = [];
+  for (const [index, item] of items.entries()) {
+    const name = normalizeDisplayText(item.name);
+    if (!name) return null;
+    itemListElement.push({ "@type": "ListItem", position: index + 1, name, item: item.url });
+  }
+  return { "@context": SCHEMA_CONTEXT, "@type": "BreadcrumbList", itemListElement };
 }

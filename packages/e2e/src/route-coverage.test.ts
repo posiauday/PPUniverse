@@ -98,9 +98,15 @@ describe("route coverage: negative controls (the guard can fail)", () => {
     expect(unacknowledgedSpecialFiles([...base, "not-found.tsx"], ["not-found.tsx"])).toEqual([]);
   });
 
-  it("flags a route handler outside /api", () => {
+  it("flags a route handler outside /api, including a JSX one", () => {
     expect(handlersOutsideApi([...base, "api/health/route.ts", "widgets/route.ts"])).toEqual([
       "widgets/route.ts",
     ]);
+    expect(handlersOutsideApi([...base, "widgets/route.tsx"])).toEqual(["widgets/route.tsx"]);
+  });
+
+  it("allows only the listed share-image routes outside /api", () => {
+    expect(handlersOutsideApi([...base, "og/route.tsx", "og/learn/[slug]/route.tsx"])).toEqual([]);
+    expect(handlersOutsideApi([...base, "og/other/route.tsx"])).toEqual(["og/other/route.tsx"]);
   });
 });

@@ -13,6 +13,7 @@ export type {
   ArticlePublishEventRecord,
   ArticleRecord,
   ArticleSitemapEntries,
+  ArticleSummary,
   ArticleStatus,
   ArticleType,
   ArticleUpdateInput,

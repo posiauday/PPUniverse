@@ -1406,3 +1406,85 @@ The product owner chose this order, keeping the smaller pricing slice ahead of S
 2. SEO story: proper article rendering (TD-017), a `/learn` hub with internal links, share images and favicon, the BUG-002 crawl error and sitemap `lastmod` (TD-010), and brand publisher data.
 3. Ads story: AdSense on learning pages only, with a consent banner and placements that respect performance and accessibility.
 4. MVP-007 slice 3 (checkout) and MVP-008 (fulfilment).
+
+## 2026-09-28 — SEO story (MVP-026): implementation decisions
+
+The SEO story is item 2 of the product owner's agreed work order ("Business model: free learning first; one price per product; work order", decision 5) and inherits that approval. The choices below were made by the agent under the product owner's standing instruction to decide and move forward ("do what you think is right as developers"). Each is reversible.
+
+1. **Story ID MVP-026**, epic SEO, P1. It was approved as a story, but it had no backlog row; this adds one.
+2. **Article rendering (closes TD-017).** Markdown is rendered with react-markdown 10.1.0 and remark-gfm 4.0.1 (MIT, pinned). Raw HTML is never rendered, so there is no rehype-raw and no sanitizer. `#` and `##` both become h2, below the page's own h1, and deeper levels keep their own number. Wide code blocks and tables scroll inside their own focusable, labelled regions.
+3. **`/learn` hub.** It lists every published article, grouped as Tutorials, Patterns and Comparisons, with CollectionPage and BreadcrumbList JSON-LD. It is indexable once one article is published; while it is empty it is `noindex, follow`. It lists at most 500 articles, with pagination deferred (TD-023).
+4. **Internal links.**
+   - A breadcrumb (visible, plus BreadcrumbList JSON-LD) on the hub and on every article.
+   - A "Keep learning" list on every article: up to 4 related articles, same type first, topped up with the newest of any type.
+   - A "Latest from Learn" section (6 newest) and a Learn link on the home page.
+5. **Share images.** Generated 1200x630 cards (`next/og`) carry the page title and the LowCodeStacks name. They are served from `/og`, `/og/learn/{slug}` and `/og/products/{slug}`, deliberately **not** under `/api/`: robots.txt disallows `/api/` and X's crawler honours it. The text comes only from PUBLISHED rows looked up by slug, never from the URL, so nobody can mint a branded image with arbitrary text. An unknown or draft slug is a plain 404. `og:image` and the large Twitter card are emitted only when the site origin is valid, never as a relative URL. These cards are generated text, not uploaded media; the product screenshots proposal (PROP-001) is unaffected. The route-coverage guard now also recognises `route.tsx` handlers and allows exactly these three outside `/api`.
+6. **Favicon.** `app/icon.svg`, a simple stacked-bars mark in the site colours. It is a placeholder until a designed logo exists.
+7. **Brand in structured data.** Article `author` and `publisher` are the Organization "LowCodeStacks" (decision 4 of the business-model entry). No person is ever named.
+8. **Sitemap `lastmod` (TD-010, partial).** Articles carry their real `updatedAt`, and the `/learn` hub carries the newest of them. Products and categories still carry none, because evidence edits do not bump `products.updatedAt` and an inaccurate date is worse than none. The home page and hub now take one slot each, leaving 49,998 URLs to split between the catalog and articles.
+9. **BUG-002 (was PROP-006).** A repeated query parameter now uses its **first value**, the way a browser reads a form, instead of throwing and returning HTTP 500. This applies to `q`, `sort`, `page` and `pageSize` on `/search` and category pages. Nothing else about search changed.
+
+## 2026-09-29 — Revised work order; learning expansion; maintenance agent limits
+
+Direct product-owner instruction in chat (2026-09-28/29), answering the agent's two questions.
+
+### 1. What the product owner asked for (direction approved; details still to be researched and confirmed)
+- **Researched launch content.** The agent researches what works in each niche, writes original content and posts it before launch.
+- **Sections per technology.** Each Power Platform technology has its own section: Power Apps, Power Automate, Power BI and the rest, plus SharePoint Online and Dynamics 365. Each covers learning topics, best architecture practices, free components and KPIs.
+- **A daily maintenance agent.** It watches what visitors view, click and look for, and it tracks new updates across these products.
+- **A top-tier UI.** Modern, clean, with graphics and motion, chosen by researching and comparing proven design approaches.
+
+**Not yet decided, and to come back as a researched roadmap for confirmation:**
+- The exact technology list.
+- The section structure.
+- The content plan and volume.
+- The analytics tool (and its consent and privacy handling).
+- The design direction.
+
+### 2. Work order (revises decision 5 of "Business model: free learning first; one price per product; work order")
+1. MVP-026, the SEO story (built; PR #28).
+2. **New design system with motion**, meeting WCAG 2.2 AA, respecting reduced-motion preferences, and without hurting Core Web Vitals.
+3. **Per-technology sections.**
+4. **Researched launch content.**
+5. Ads story (AdSense on learning pages, consent banner).
+6. MVP-007 slice 3 (checkout) and MVP-008 (fulfilment).
+
+The product owner chose this order over keeping ads next: ads earn little until there is content and traffic.
+
+### 3. Maintenance agent: report and draft only
+The agent may:
+- Read analytics.
+- Produce a daily report: traffic, top pages and clicks, what visitors search for, new Microsoft release notes.
+- Create **unpublished drafts** of new or updated articles.
+
+It **never publishes**. The product owner reviews each draft and publishes it through the existing admin editor, so nothing inaccurate or stale goes live unreviewed. Any analytics it reads must respect the consent and privacy rules in `docs/08-security-privacy-compliance.md`.
+
+### 4. Content rules (restating standing rules that apply to all of this)
+- All content is original writing. Microsoft documentation is linked and cited, never copied.
+- No claim of Microsoft endorsement, certification or partnership.
+- No Government of Saskatchewan names or material.
+
+## 2026-09-29 — Releasing to `main`; branch hygiene
+
+Direct product-owner instruction in chat, answering the agent's two questions.
+
+1. **Catch-up release now.** Once #27 and #28 merge, the agent opens one release PR, `develop` → `main`, and CI runs on it. The product owner merges it. Before this, `main` was 173 commits behind `develop` and had nothing of its own. No deployment is wired to `main` yet, so a release updates the stable branch but publishes nothing to users.
+2. **Then one release per milestone.** A `develop` → `main` release PR follows each finished milestone of the work order: design system, per-technology sections, launch content, ads, checkout. Stories keep merging into `develop` as before.
+3. **Branch hygiene.** Merged branches are deleted once their PR merges; GitHub can restore any of them from the PR. On 2026-09-29 the agent deleted 21 merged remote branches and the merged local ones, including a duplicate Stripe pre-work branch whose document is already on `develop`, word for word. **Kept:** `research/monetization-architecture-audit` (21 unmerged research documents, useful input for the ads story) and the branches of the open PRs.
+
+## 2026-09-29 — Design direction: A + B combined (not C)
+
+Direct product-owner instruction in chat: *"Combination of A and B not c"*, choosing from the three directions in the design canvas "LowCodeStacks design directions" (a private claude.ai artifact).
+
+- **Light theme (the default), from A "Studio Light":**
+  - Ivory ground, teal accent.
+  - Serif display headlines (Fraunces) over a sans body (Source Sans 3).
+  - A learning-path panel on the home page.
+- **Dark theme, a visitor toggle, from B "Night Lab":** the dark ground, the same layout and a lighter teal accent.
+- **From B, in both themes:**
+  - Dark code panels, with a file label and a Copy button.
+  - Monospace labels (IBM Plex Mono) for eyebrows and content types.
+  - An amber "What's new" digest strip. This is where the maintenance agent's release summaries will appear once you've reviewed and published them.
+- **Direction C (Blueprint) is not used.**
+
+Exact colour and spacing tokens are provisional until the design-system story builds and checks them. That check covers WCAG 2.2 AA contrast in both themes, honouring reduced-motion preferences, and Core Web Vitals.

@@ -10,31 +10,48 @@ const ENTRIES: SitemapEntries = {
   productSlugs: ["alpha", "beta"],
   truncated: false,
 };
-const ARTICLES: ArticleSitemapEntries = { slugs: ["intro-tutorial"], truncated: false };
+const UPDATED = new Date("2026-09-20T10:00:00.000Z");
+const ARTICLES: ArticleSitemapEntries = {
+  entries: [{ slug: "intro-tutorial", updatedAt: UPDATED }],
+  truncated: false,
+};
 
-const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 1) / 2);
-const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 1 - CATALOG_BUDGET;
+// The home page and the /learn hub take one slot each.
+const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 2) / 2);
+const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 2 - CATALOG_BUDGET;
 
 describe("buildSitemap", () => {
-  it("lists the home page, category base URLs, product URLs and Article URLs — as absolute URLs", () => {
-    expect(buildSitemap("https://example.com", ENTRIES, ARTICLES.slugs)).toEqual([
+  it("lists the home page, category base URLs, product URLs, the /learn hub and Article URLs — as absolute URLs", () => {
+    expect(buildSitemap("https://example.com", ENTRIES, ARTICLES.entries)).toEqual([
       { url: "https://example.com/" },
       { url: "https://example.com/categories/power-apps-components" },
       { url: "https://example.com/categories/power-bi-templates" },
       { url: "https://example.com/products/alpha" },
       { url: "https://example.com/products/beta" },
-      { url: "https://example.com/learn/intro-tutorial" },
+      { url: "https://example.com/learn", lastModified: UPDATED },
+      { url: "https://example.com/learn/intro-tutorial", lastModified: UPDATED },
     ]);
   });
 
-  it("lists only the home page for an empty catalog and no Articles", () => {
+  it("lists only the home page for an empty catalog and no Articles (no empty /learn hub)", () => {
     expect(
       buildSitemap("https://example.com", { categorySlugs: [], productSlugs: [] }, []),
     ).toEqual([{ url: "https://example.com/" }]);
   });
 
+  it("dates the /learn hub by its most recently updated Article", () => {
+    const older = new Date("2026-01-01T00:00:00.000Z");
+    const newer = new Date("2026-06-01T00:00:00.000Z");
+    const result = buildSitemap("https://example.com", { categorySlugs: [], productSlugs: [] }, [
+      { slug: "a", updatedAt: older },
+      { slug: "b", updatedAt: newer },
+      { slug: "c", updatedAt: older },
+    ]);
+    expect(result[1]).toEqual({ url: "https://example.com/learn", lastModified: newer });
+  });
+
   it("never includes a paginated, search, sort or filter URL", () => {
-    const urls = buildSitemap("https://example.com", ENTRIES, ARTICLES.slugs).map(
+    const urls = buildSitemap("https://example.com", ENTRIES, ARTICLES.entries).map(
       (entry) => entry.url,
     );
     for (const url of urls) {
@@ -42,9 +59,13 @@ describe("buildSitemap", () => {
     }
   });
 
-  it("carries no lastmod, priority or changefreq", () => {
-    for (const entry of buildSitemap("https://example.com", ENTRIES, ARTICLES.slugs)) {
-      expect(Object.keys(entry)).toEqual(["url"]);
+  it("gives Articles and the /learn hub a real lastmod, and catalog pages none; never priority or changefreq", () => {
+    for (const entry of buildSitemap("https://example.com", ENTRIES, ARTICLES.entries)) {
+      if (entry.url.startsWith("https://example.com/learn")) {
+        expect(Object.keys(entry)).toEqual(["url", "lastModified"]);
+      } else {
+        expect(Object.keys(entry)).toEqual(["url"]);
+      }
     }
   });
 
@@ -52,10 +73,10 @@ describe("buildSitemap", () => {
     const result = buildSitemap(
       "https://example.com",
       { categorySlugs: [], productSlugs: ["a b/c"] },
-      ["d e/f"],
+      [{ slug: "d e/f", updatedAt: UPDATED }],
     );
     expect(result[1]?.url).toBe("https://example.com/products/a%20b%2Fc");
-    expect(result[2]?.url).toBe("https://example.com/learn/d%20e%2Ff");
+    expect(result[3]?.url).toBe("https://example.com/learn/d%20e%2Ff");
   });
 });
 
@@ -78,10 +99,10 @@ describe("generateSitemap", () => {
     };
   };
 
-  it("splits the remaining budget between catalog entries and Article slugs (the home page takes one)", async () => {
+  it("splits the remaining budget between catalog entries and Article slugs (the home page and /learn hub take one each)", async () => {
     const { deps, listSitemapEntries, listPublishedArticleSlugs } = make();
     const sitemap = await generateSitemap(deps);
-    expect(sitemap).toHaveLength(6);
+    expect(sitemap).toHaveLength(7);
     expect(listSitemapEntries).toHaveBeenCalledWith(CATALOG_BUDGET);
     expect(listPublishedArticleSlugs).toHaveBeenCalledWith(ARTICLE_BUDGET);
   });
@@ -99,7 +120,7 @@ describe("generateSitemap", () => {
     const { deps, warn, listSitemapEntries } = make();
     listSitemapEntries.mockResolvedValue({ ...ENTRIES, truncated: true });
     const sitemap = await generateSitemap(deps);
-    expect(sitemap).toHaveLength(6);
+    expect(sitemap).toHaveLength(7);
     expect(warn).toHaveBeenCalledWith("seo.sitemap_truncated", {
       limit: MAX_SITEMAP_URLS,
       categories: 2,

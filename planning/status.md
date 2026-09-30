@@ -2,7 +2,18 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-28 — **MVP-007 slice 2 built: one optional price per product.** The product owner clarified the business model: mostly free learning content, ads as the main revenue, only a few priced items, one USD price per product (`docs/final-decisions.md`, "Business model: free learning first; one price per product; work order"). Built: `Price` (RLS, positive-amount CHECK), exact string-based price parsing, the admin price editor, a product page showing the price, "All sales are final" and "Purchasing opens soon", and a **security fix**: the free-download route now refuses priced products (409), so a paid item can never be claimed free. Agreed order next: SEO story, then ads, then checkout (slice 3). Full detail: `planning/progress-report.md`.
+Last updated: 2026-09-28 — **MVP-026 (SEO discoverability) built, status QA.**
+- Articles now render as real formatted pages (TD-017 resolved).
+- A new `/learn` hub lists every published article.
+- Breadcrumbs and "Keep learning" links tie articles together, and the home page shows the latest articles.
+- Every indexable page has a generated share image; the site has a favicon.
+- Articles carry LowCodeStacks as author and publisher in structured data.
+- The sitemap dates articles (TD-010 partial).
+- A repeated query parameter no longer returns HTTP 500 (BUG-002 resolved).
+
+Decisions: `docs/final-decisions.md`, "SEO story (MVP-026): implementation decisions". The product owner has also asked for a content programme, a daily maintenance agent, per-technology sections and a UI overhaul. These are being turned into a researched roadmap to decide on; none of it is built or approved in detail yet. Full detail: `planning/progress-report.md`.
+
+Last updated (previous): 2026-09-28 — **MVP-007 slice 2 built: one optional price per product.** The product owner clarified the business model: mostly free learning content, ads as the main revenue, only a few priced items, one USD price per product (`docs/final-decisions.md`, "Business model: free learning first; one price per product; work order"). Built: `Price` (RLS, positive-amount CHECK), exact string-based price parsing, the admin price editor, a product page showing the price, "All sales are final" and "Purchasing opens soon", and a **security fix**: the free-download route now refuses priced products (409), so a paid item can never be claimed free. Agreed order next: SEO story, then ads, then checkout (slice 3). Full detail: `planning/progress-report.md`.
 
 Last updated (previous): 2026-09-28 — **MVP-007 (Checkout, FR-006) In Progress, slice 1 of 3 built.** The product owner answered the questions blocking checkout: launch currency USD only; all sales final (no refunds); prices set by the owner per product and licence tier in the admin editor; slice 1 authorized (`docs/final-decisions.md`, "MVP-007 slice 1 authorized; launch currency; refund policy; pricing mechanism"). Slice 1 adds the `Order` and `PaymentEvent` tables (RLS, `Restrict` FKs, a positive-amount CHECK so a free product can never be a false paid order), `@ppu/domain-commerce` (order state machine), `@ppu/adapter-commerce` (compare-and-swap transitions, duplicate-safe event ledger) and `@ppu/adapter-payments` (Stripe webhook signature verification with Stripe's official library, pinned at 22.6.2). No webhook route, prices, checkout or UI yet. Next: slice 2 (prices and the admin price editor); slice 3 (checkout) waits on the sales-tax decision. Full detail: `planning/progress-report.md`.
 
@@ -41,11 +52,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 1 | MVP-007 (slices 1–2 of 3) |
-| QA | 0 | — |
+| QA | 1 | MVP-026 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 16 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023 |
-| **Total** | **25** | |
+| **Total** | **26** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -139,13 +150,13 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 16 / 25 (64%)
-- Stories in QA: 0 / 25
-- Points done: 113 / 170 (66%)
+- Stories done: 16 / 26 (62%)
+- Stories in QA: 1 / 26 (MVP-026)
+- Points done: 113 / 175 (65%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 10 / 25 (40%)
-- Open bugs: 5 (BUG-002, BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 8 resolved (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — includes new [TD-021](tech-debt/TD-021.md) and [TD-022](tech-debt/TD-022.md)
+- P1 points done: 10 / 30 (33%)
+- Open bugs: 4 (BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 9 resolved (BUG-002 resolved by MVP-026) (see `planning/bugs.csv` and `planning/bugs/`)
+- Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
@@ -166,7 +177,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-018 | **Done** | 5 (done) |
 | 3 | MVP-020 | **Done** | 8 (done) |
 | 4 | MVP-021 | **Done** | 3 (done) |
-| 4 | MVP-007 | Ready | 8 |
+| 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
+| 4 | MVP-026 (SEO discoverability) | QA | 5 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
@@ -183,7 +195,9 @@ MVP-025 cannot start until every P0 story above it is Done.
 
 **MVP-011 (Creator application) stays Superseded and is not a candidate** — its underlying business model no longer exists.
 
-One thing still needs the product owner rather than a story: **BUG-002** (a repeated `q` returns HTTP 500 — MVP-004 code) is now the proposed corrective story PROP-006 (Proposed, sequenced after MVP-023, not scheduled; open question 32).
+**BUG-002 is resolved** (inside MVP-026, 2026-09-28; PROP-006 done).
+
+**Next, per the product owner's work order:** once MVP-026 merges, the ads story, then MVP-007 slice 3 (checkout) and MVP-008. The product owner's new requests (researched launch content, per-technology sections, a daily maintenance and analytics agent, and a UI overhaul) will come back as a roadmap with decisions to confirm before any of them is scheduled.
 
 Dependency-Ready but gated by unanswered product decisions, so not recommended until those are answered: **MVP-007 (Checkout)** — open questions 3 (countries/currencies/tax/refunds) and 7 (pricing); open question 8 (creator payout model) is now closed as obsolete and no longer gates it. **MVP-013 (Submission review queue) is Superseded** — not a candidate; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (`docs/final-decisions.md`, section 5).
 
@@ -191,7 +205,7 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 6 open, 1 mitigated (not root-fixed), 8 resolved:
 - [BUG-001](bugs/BUG-001.md) — **Resolved** by MVP-021 (PR #5, 2026-09-21): delivered pages emitted relative canonical/`og:url` tags and sign-in/account pages were indexable. No production deployment existed, so nothing was exposed.
-- [BUG-002](bugs/BUG-002.md) (P3, found 2026-09-21 while verifying MVP-021) — a repeated `q` parameter (`?q=a&q=b`) makes `/search` and category pages return HTTP 500 (`normalizeQuery` calls `.trim()` on an array). MVP-004 code; MVP-021 may not change MVP-004 search behavior, so it is recorded, not fixed — see open question 32.
+- [BUG-002](bugs/BUG-002.md) — **Resolved** by MVP-026 (2026-09-28): a repeated query parameter now uses its first value instead of returning HTTP 500.
 
 - **BUG-003 to BUG-008** — **Resolved** by MVP-023 (F1–F10): [BUG-003](bugs/BUG-003.md) invisible keyboard focus ring on the Search button (was 1.06:1, now 18.13:1); [BUG-004](bugs/BUG-004.md) search input border and placeholder contrast (was 1.35:1/3.46:1, now 7.48:1/7.48:1); [BUG-005](bugs/BUG-005.md) sign-in error identification, focus and title; [BUG-006](bugs/BUG-006.md) session-revoke focus, announcement and title; [BUG-007](bugs/BUG-007.md) skipped heading levels; [BUG-008](bugs/BUG-008.md) 404 landmark and title. Each shipped as its own commit with a regression test shown failing before the fix.
 
@@ -216,14 +230,15 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - **[TD-018](tech-debt/TD-018.md)** — **Open** (new, 2026-09-24, Low): `CREATOR_DECLARED`/`CREATOR_SUPPORTED` compatibility-evidence display labels still read "Creator" after the first-party-only decision; `CREATOR_DECLARED`'s replacement wording ("Publisher declared") is decided, `CREATOR_SUPPORTED`'s is not. No enum, validator, or production code changed.
 - [TD-008](tech-debt/TD-008.md) — **Partially Resolved (2026-09-24)**: the schema/validator/presentation correction landed first — `MARKETPLACE_REVIEWED` enum value and nullable `reviewedAt` column (two migrations, CHECK constraint verified against a real database both directions), the validator now rejects `TESTED`/`NOT_VERIFIED` as reserved/legacy, and the public legend/matrix show only the two assignable statuses (fail closed for any legacy row). **Then MVP-012 (same day) landed the write path and ADMIN-only authorization enforcement** this record's own hard gate (section 9) required to wait for. **Still open, deliberately**: the `MARKETPLACE_REVIEWED` moderation workflow itself and the `ModerationReview`/`AuditEvent` entities have no owner — MVP-013, which was going to build them, is Superseded with no approved successor.
 - [TD-009](tech-debt/TD-009.md) — **Open** (new, 2026-09-21): no environment-level noindex switch for staging/preview deployments; needs the hosting decision (open question 5).
-- [TD-010](tech-debt/TD-010.md) — **Open** (new, 2026-09-21, Low): the sitemap is one file capped at 50,000 URLs (no sitemap index, no `lastmod`).
+- [TD-010](tech-debt/TD-010.md) — **Partially Resolved** (2026-09-28, MVP-026): articles and the `/learn` hub carry a real `lastmod`; products/categories still none, and no sitemap index.
 - [TD-011](tech-debt/TD-011.md) — **Open** (new, 2026-09-21): `main` is unprotected and no reviewer or approval rules exist; `develop` protection is decided for MVP-023 but the rest of open question 17 is not (Medium).
 - [TD-012](tech-debt/TD-012.md) — **Open** (new, 2026-09-21, Low): a root `.pnpmfile.cjs` removes Next.js's optional `@playwright/test` peer declaration so dev-only Playwright cannot be linked into the web app's production tree.
 - [TD-013](tech-debt/TD-013.md) — **Open** (new, 2026-09-21, Medium): `router.refresh()` can briefly leave `<title>` absent from `<head>`; only `/account/sessions` has a mitigation, the underlying framework gap is not understood or fixed.
 - [TD-014](tech-debt/TD-014.md) — **Open** (new, 2026-09-22, Low): the admin deletion-request queue (`/admin/deletion-requests`, MVP-020) has no pagination, filtering or sorting — a deliberate scope narrowing, not a defect at current/near-term scale.
 - [TD-015](tech-debt/TD-015.md) — **Open** (new, 2026-09-22, Medium): transactional email (MVP-018) is sent synchronously in the request path with no retry — the same class of gap as TD-004, pending real job-queue infrastructure.
 - [TD-016](tech-debt/TD-016.md) — **Open** (new, 2026-09-23, Low): `ArticlePublishEvent` (MVP-017) is a bare publish-action log, not full content-version snapshotting — nothing to snapshot yet, since no correction/republish path exists either.
-- [TD-017](tech-debt/TD-017.md) — **Open** (new, 2026-09-23, Low): `Article.body` (MVP-017) is stored as Markdown but rendered as plain, preformatted text, not converted to HTML — a deliberate security-first choice to avoid a new sanitizer/renderer dependency.
+- [TD-017](tech-debt/TD-017.md) — **Resolved** (2026-09-28, MVP-026): article Markdown renders as structured HTML (react-markdown + remark-gfm, no raw HTML).
+- [TD-023](tech-debt/TD-023.md) — **Open** (new, 2026-09-28, Low): the `/learn` hub has no pagination — capped at the 500 newest articles.
 - [TD-021](tech-debt/TD-021.md) — **Open** (new, 2026-09-25, Medium): MVP-014 does not snapshot license/compatibility/support-policy evidence at each release's publish time — an explicit scope exclusion, not an oversight; the `Release`/`ReleaseFile` immutability guarantee itself is unaffected, only the surrounding evidence display is not point-in-time.
 
 ## Proposed stories (not approved — not on the board, not counted above)

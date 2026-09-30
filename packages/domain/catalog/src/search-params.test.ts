@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
+  firstParam,
   normalizeQuery,
   parsePage,
   parsePageSize,
@@ -40,6 +41,21 @@ describe("normalizeQuery", () => {
     expect(normalizeQuery("   ")).toBeUndefined();
     expect(normalizeQuery("")).toBeUndefined();
     expect(normalizeQuery(undefined)).toBeUndefined();
+  });
+
+  it("uses the first value of a repeated parameter instead of throwing (BUG-002)", () => {
+    expect(normalizeQuery(["  a  ", "b"])).toBe("a");
+    expect(normalizeQuery(["   ", "b"])).toBeUndefined();
+    expect(normalizeQuery([])).toBeUndefined();
+  });
+});
+
+describe("firstParam", () => {
+  it("returns a single value as-is, and the first of a repeated one", () => {
+    expect(firstParam("2")).toBe("2");
+    expect(firstParam(["2", "3"])).toBe("2");
+    expect(firstParam([])).toBeUndefined();
+    expect(firstParam(undefined)).toBeUndefined();
   });
 });
 

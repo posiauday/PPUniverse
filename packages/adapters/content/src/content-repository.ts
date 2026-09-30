@@ -4,6 +4,7 @@ import {
   type ArticleCreateInput,
   type ArticleRecord,
   type ArticleSitemapEntries,
+  type ArticleSummary,
   type ArticleStatus,
   type ArticleType,
   type ArticleUpdateInput,
@@ -105,14 +106,41 @@ export class PrismaContentRepository implements ContentRepository {
     }
     const rows = await this.db.article.findMany({
       where: { status: "PUBLISHED" },
-      select: { slug: true },
+      select: { slug: true, updatedAt: true },
       orderBy: { slug: "asc" },
       take: maxEntries + 1,
     });
     return {
-      slugs: rows.slice(0, maxEntries).map((row) => row.slug),
+      entries: rows
+        .slice(0, maxEntries)
+        .map((row) => ({ slug: row.slug, updatedAt: row.updatedAt })),
       truncated: rows.length > maxEntries,
     };
+  }
+
+  async listPublishedArticleSummaries(options: {
+    limit: number;
+    type?: ArticleType;
+    excludeSlug?: string;
+  }): Promise<ArticleSummary[]> {
+    const rows = await this.db.article.findMany({
+      where: {
+        status: "PUBLISHED",
+        ...(options.type ? { type: options.type } : {}),
+        ...(options.excludeSlug ? { slug: { not: options.excludeSlug } } : {}),
+      },
+      select: { slug: true, title: true, type: true, excerpt: true, publishedAt: true },
+      orderBy: [{ publishedAt: "desc" }, { slug: "asc" }],
+      take: options.limit,
+    });
+    return rows.map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      type: row.type as ArticleType,
+      excerpt: row.excerpt,
+      // PUBLISHED rows always have publishedAt set.
+      publishedAt: row.publishedAt as Date,
+    }));
   }
 }
 
