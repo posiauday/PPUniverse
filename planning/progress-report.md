@@ -3765,3 +3765,13 @@ Item 2 of the product owner's work order. Implementation choices: `docs/final-de
 - Product and category `lastmod` is still absent (TD-010).
 
 **Remaining:** CI on all browsers, then merge. After that the ads story, then MVP-007 slice 3.
+
+### MVP-026 — merged and Done (2026-09-30)
+- PR #28 was merged into `develop` (merge commit `cb00b6b`) after CI run `36650827876` passed all 7 checks on head `394e5ce`. MVP-007 slice 2 (PR #27) merged first, and #28 was retargeted to `develop` after it.
+- Definition-of-done gate: tests pass (local plus CI on all browsers), documentation and traceability are updated, and the security review was completed before merge (see the PR body).
+- The same PR also carried four product-owner decisions recorded along the way:
+  - The revised work order.
+  - The maintenance agent's limits (report and draft only).
+  - The release-to-`main` cadence.
+  - The A + B design direction.
+- This entry adds a fifth: the Premium 3 home page.

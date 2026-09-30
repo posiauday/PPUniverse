@@ -1488,3 +1488,19 @@ Direct product-owner instruction in chat: *"Combination of A and B not c"*, choo
 - **Direction C (Blueprint) is not used.**
 
 Exact colour and spacing tokens are provisional until the design-system story builds and checks them. That check covers WCAG 2.2 AA contrast in both themes, honouring reduced-motion preferences, and Core Web Vitals.
+
+## 2026-09-30 — Home page design: Premium 3 "Component showcase"
+
+Direct product-owner instruction in chat: *"I like premium 3"*. This follows the A + B direction chosen the day before. Premium 3 is one of three premium explorations on the same design canvas; it was chosen over Bento and Editorial.
+
+- **Home page layout** follows Premium 3:
+  - A large serif headline beside a realistic, layered Power Apps screen, with a floating code card and a floating "tested on / licence" card.
+  - A row of free-component cards underneath, each lifting on hover.
+- **Everything else stays as decided on 2026-09-29.** That covers the A + B theme and fonts, the dark-mode toggle, the dark code panels and the "What's new" strip. The article page follows the "A + B — Article page" mockup.
+- **Motion:** entrance fades, gentle floating cards and hover lifts. Only opacity and position animate. **All of it is off when the visitor's device asks for reduced motion.**
+- **Content honesty:**
+  - The "tested on" card shows only a version actually recorded for that component (the existing compatibility evidence).
+  - It never shows an invented number.
+  - The mockup's `[VERSION]` placeholder stays a placeholder until real data exists.
+
+**Status:** direction approved. The design-system story will build and verify the tokens and components (contrast in both themes, reduced motion, Core Web Vitals).
