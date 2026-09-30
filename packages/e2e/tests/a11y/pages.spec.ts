@@ -2,11 +2,11 @@ import type { Page, TestInfo } from "@playwright/test";
 import { expectNoBlockingViolations } from "../../src/axe.js";
 import { expectNoHorizontalOverflow } from "../../src/browser.js";
 import { expect, SESSION_COOKIE, test } from "../../src/fixtures.js";
-import { VIEWPORT_HEIGHT, VIEWPORT_WIDTHS } from "../../src/matrix.js";
+import { VIEWPORT_HEIGHT, VIEWPORT_WIDTHS, type ViewportWidth } from "../../src/matrix.js";
 import { GATED_ROUTES } from "../../src/page-routes.js";
 import { GATED_PAGES, type GatedPage } from "../../src/pages.js";
 import type { FixtureSet } from "../../src/seed.js";
-import { SITE_NAME } from "../../src/site.js";
+import { SITE_NAME, THEME_COOKIE } from "../../src/site.js";
 
 /**
  * The page matrix (decisions Q33, Q34, Q35, Q42): every gated page state, at every
@@ -80,6 +80,47 @@ test.describe("page matrix: axe blocking rules, overflow and titles", () => {
         await scan(page, seed, testInfo, state, width);
       });
     }
+  }
+});
+
+/**
+ * Dark theme at parity (MVP-027; docs/05-ux-design-system.md, "dark theme only
+ * after parity"): every page state again, with the theme cookie set, so axe
+ * checks contrast and structure in the dark palette too. One width is
+ * enough: the themes change colours, never layout, and the light pass above
+ * already covers reflow at every width.
+ */
+const DARK_WIDTH: ViewportWidth = 1280;
+
+test.describe("page matrix, dark theme: axe blocking rules, overflow and titles", () => {
+  for (const state of GATED_PAGES) {
+    test(`${state.id} @ ${DARK_WIDTH}px, dark: ${state.description}`, async ({
+      page,
+      seed,
+      context,
+      baseURL,
+    }, testInfo) => {
+      const url = baseURL ?? "http://localhost:3100";
+      await context.addCookies([{ name: THEME_COOKIE, value: "dark", url }]);
+      // One test covers guest, member and admin states, so the session
+      // cookie is chosen per state here rather than through a fixture.
+      const token =
+        state.auth === "member"
+          ? seed.currentSession.token
+          : state.auth === "admin"
+            ? seed.adminSession.token
+            : null;
+      if (token) {
+        await context.addCookies([
+          { name: SESSION_COOKIE, value: token, url, httpOnly: true, sameSite: "Lax" },
+        ]);
+      }
+      await scan(page, seed, testInfo, state, DARK_WIDTH);
+      expect(
+        await page.locator("html").getAttribute("data-theme"),
+        `${state.id}: rendered dark`,
+      ).toBe("dark");
+    });
   }
 });
 

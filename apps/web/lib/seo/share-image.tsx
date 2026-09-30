@@ -44,11 +44,11 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "72px",
-        background: "#0b1f3a",
+        background: "#0c0f17",
         color: "#ffffff",
       }}
     >
-      <div style={{ display: "flex", fontSize: 32, color: "#9cc3ff" }}>{eyebrow}</div>
+      <div style={{ display: "flex", fontSize: 32, color: "#f5b83d" }}>{eyebrow}</div>
       <div
         style={{
           display: "flex",
@@ -64,7 +64,7 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
             width: 20,
             height: 20,
             borderRadius: 4,
-            background: "#4f9dff",
+            background: "#6fd3c4",
             marginRight: 16,
           }}
         />

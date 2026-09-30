@@ -1504,3 +1504,38 @@ Direct product-owner instruction in chat: *"I like premium 3"*. This follows the
   - The mockup's `[VERSION]` placeholder stays a placeholder until real data exists.
 
 **Status:** direction approved. The design-system story will build and verify the tokens and components (contrast in both themes, reduced motion, Core Web Vitals).
+
+## 2026-09-30 — Design system (MVP-027): story and slice 1 implementation decisions
+
+The design system is item 2 of the revised work order ("Revised work order; learning expansion; maintenance agent limits", 2026-09-29) and inherits that approval. The visual direction was decided by the product owner ("Design direction: A + B combined"; "Home page design: Premium 3"). The product owner said "go ahead". The choices below were made by the agent under the standing instruction to decide and move forward. Each is reversible.
+
+1. **Story MVP-027**, "Design system", P1, in four slices:
+   1. Foundations: tokens, fonts, site header and footer, dark mode at parity.
+   2. The Premium 3 home page.
+   3. The article page layout: contents list, code Copy button, callouts, related column.
+   4. Polish of the remaining pages.
+2. **Tokens.** The A + B palette becomes semantic colour tokens in `apps/web/app/globals.css`.
+   - Light theme: ivory ground, teal primary.
+   - Dark theme: near-black ground, mint-teal primary.
+   - Both themes: an amber highlight, and a dark code panel.
+   - Components keep using only tokens, never raw colours, so every page gets both themes.
+   - `lib/design-tokens.test.ts` checks every text pairing at 4.5:1 and every control boundary at 3:1, in both themes, from the CSS itself.
+3. **Fonts.**
+   - Fraunces (display, h1 and h2), Source Sans 3 (body) and IBM Plex Mono (code and labels).
+   - Loaded with `next/font/google`, which **self-hosts them at build time**, so visitors' browsers never contact Google.
+   - The fallback fonts are size-adjusted, so there is no layout shift when the web fonts arrive.
+4. **Theme choice.**
+   - Light by default. The visitor's choice is kept in one first-party cookie, `lcs-theme` (`light`/`dark`, one year, `SameSite=Lax`, `Secure` on https).
+   - The cookie is set only when the visitor presses the toggle. That makes it a functional preference the visitor explicitly asked for, so it is **exempt from consent**, and it is recorded here as such.
+   - The server reads the cookie, so the page renders in the right theme from the first byte, with no flash and no inline script (the no-raw-html guard still holds).
+   - Anything but exactly `dark` is treated as light.
+5. **Dark theme at parity** (`docs/05-ux-design-system.md`, "dark theme only after parity").
+   - Dark ships on every page at once, because it lives entirely in the tokens.
+   - The accessibility gate adds a dark-theme pass: **every gated page state again, dark, at 1280 px, in every browser engine**.
+   - One width is enough, because the themes change colours, never layout.
+6. **Site header and footer on every page.**
+   - The header has the brand, **Learn** (`/learn`), **Components** (`/search`, until a dedicated components page exists) and **Sign in**, or **Account** when signed in, plus the theme toggle.
+   - The footer carries a standing line: *"Independent site. Not affiliated with, endorsed by or certified by Microsoft."* plus the trademark notice. This keeps the no-endorsement rule visibly true on every page.
+   - A **skip link** is the first keyboard stop (WCAG 2.4.1).
+7. **Motion foundation.** `motion-rise` (entrance) and `motion-lift` (hover) animate only opacity and transform. A global `prefers-reduced-motion: reduce` rule turns off all animation and transitions.
+8. **Brand refresh.** The favicon and share images move to the new palette: a teal tile with amber, mint and white bars, on a near-black card.

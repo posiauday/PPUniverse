@@ -13,3 +13,10 @@
 export const SITE_NAME = "LowCodeStacks";
 
 export const titleFor = (pageName: string): string => `${pageName} | ${SITE_NAME}`;
+
+/**
+ * The theme cookie (MVP-027). Paired with apps/web/lib/theme.ts's THEME_COOKIE
+ * for the same reason as SITE_NAME above: duplicated on purpose, changed
+ * together by hand. The dark-theme pass in tests/a11y/pages.spec.ts sets it.
+ */
+export const THEME_COOKIE = "lcs-theme";

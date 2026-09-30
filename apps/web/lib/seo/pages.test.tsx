@@ -43,6 +43,12 @@ vi.mock("@ppu/telemetry", () => ({
 // entitlement lookup branch never executes, so no @ppu/db mock is needed
 // either.
 vi.mock("next-auth/next", () => ({ getServerSession: vi.fn().mockResolvedValue(null) }));
+// MVP-027: the root layout loads next/font, which only works inside a
+// Next.js build; these tests read the layout's metadata, not its fonts.
+vi.mock("next/font/google", () => {
+  const font = () => ({ className: "font", variable: "--font", style: {} });
+  return { Fraunces: font, Source_Sans_3: font, IBM_Plex_Mono: font };
+});
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
   return {
