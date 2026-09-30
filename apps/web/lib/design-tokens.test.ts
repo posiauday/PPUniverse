@@ -93,3 +93,15 @@ describe("contrast()", () => {
     expect(contrast("#777777", "#ffffff")).toBeCloseTo(4.48, 2);
   });
 });
+
+describe("reduced motion", () => {
+  const reduced = CSS.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+
+  it("switches animation and transitions off entirely, never to a tiny duration", () => {
+    // A tiny duration on `*` makes every property change animate (transition-property
+    // defaults to `all`), so focus rings were caught mid-transition in CI. See globals.css.
+    expect(reduced).toMatch(/animation:\s*none\s*!important/);
+    expect(reduced).toMatch(/transition:\s*none\s*!important/);
+    expect(reduced).not.toMatch(/duration:\s*0?\.0*1ms/);
+  });
+});

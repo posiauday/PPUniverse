@@ -3816,3 +3816,12 @@ The work order puts the design system next. The product owner chose A + B plus t
 - Slice 2: the Premium 3 home page, which also removes the home page's now-duplicate Learn, Search and Sign in links.
 - Slice 3: the article layout.
 - Slice 4: polish of the remaining pages.
+
+### MVP-027 slice 1 — fix found by CI before merge (2026-09-30)
+The first CI run of PR #31 failed the accessibility shards: 40+ focus-ring failures across the site (mostly the new skip link and the Search button), plus two dark-theme contrast failures. Every failure measured an element's **pre-change** style: a white 3 px focus ring (the element's text colour at the CSS default width) or black text.
+
+**Root cause (mine).** My reduced-motion rule set `transition-duration: 0.01ms !important` on every element. `transition-property` defaults to `all`, so under reduced motion *every* style change became a tiny animation. The accessibility suite runs with `reducedMotion: "reduce"`, and CI's slower runners read computed styles in the first instant of those animations. The run passed locally 437/437 and 72/72 under stress only because this machine is faster.
+
+**Fix.** Reduced motion now switches animation and transitions **off** (`animation: none; transition: none`), which leaves no in-between state to observe and is the more faithful reading of the visitor's request. A regression test in `lib/design-tokens.test.ts` fails if the rule ever goes back to a tiny duration; I checked that its pattern matches the old rule.
+
+The problem was caught before merge, inside the story, so it gets no bug record (CLAUDE.md, "Project management rules" 5). Re-verified: chromium 437/437.
