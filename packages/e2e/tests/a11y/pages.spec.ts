@@ -37,7 +37,9 @@ async function scan(
   const label = `${state.id}@${width}`;
   const title = await page.title();
   expect(title.trim(), `${label}: the page needs a title`).not.toBe("");
-  if (state.id !== "home") {
+  // Only the home page (any of its states, e.g. with the Technologies menu
+  // open) is titled with the bare site name.
+  if (state.route !== "/") {
     expect(title, `${label}: the title must describe the page, not just name the site`).not.toBe(
       SITE_NAME,
     );

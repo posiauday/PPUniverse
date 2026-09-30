@@ -47,3 +47,9 @@ export function learnShareImageUrl(origin: string, slug: string): string {
 export function productShareImageUrl(origin: string, slug: string): string {
   return `${origin}/og/products/${encodeURIComponent(slug)}`;
 }
+
+/** A technology section tab (MVP-028), from its site-relative path
+ * (lib/technology-sections.ts's sectionPath: only fixed slugs and segments). */
+export function technologySectionUrl(origin: string, path: string): string {
+  return `${origin}${path}`;
+}

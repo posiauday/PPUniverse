@@ -1620,3 +1620,22 @@ Direct product-owner instruction in chat, answering the agent's three questions.
    - There is no new database column, so the mapping cannot drift from the categories. This is built in slice 2.
 7. **One registry** (`TECHNOLOGIES` in `@ppu/domain-content`) holds each section's name and URL segment. The header, pages, sitemap and admin editor all read it.
 8. **Empty tabs** will show a "coming soon" state and stay `noindex` until they have content, so thin pages never hurt search ranking (slice 2).
+
+### MVP-028 slice 2 — the section pages (2026-09-30)
+
+Decided by the agent; reversible.
+
+1. **Routes.**
+   - `app/[technology]/page.tsx` is the Learn tab; `app/[technology]/[tab]/page.tsx` serves `architecture`, `components` and `kpis`.
+   - Any other technology or tab, and `/{technology}/learn`, is a 404, so there is no duplicate of the Learn tab.
+   - Existing top-level routes keep priority.
+   - Because every unknown top-level path now reaches this route, its 404 carries exactly the title `app/not-found.tsx` gives every other 404. That was caught by the BUG-008 regression test.
+2. **Tabs are links, not an ARIA tab widget.** Each tab is its own page, so they are a navigation list with `aria-current="page"`.
+3. **Search engines.**
+   - A tab with content is indexable, with CollectionPage and BreadcrumbList data.
+   - An empty tab shows "Coming soon" with links onward, and is `noindex, follow` with breadcrumbs only.
+   - The sitemap lists section tabs that have content, right after the home page, and reserves 24 slots for them.
+4. **Navigation.**
+   - The header has a **Technologies** disclosure menu. It is the WAI-ARIA disclosure pattern: Escape and a click outside close it, and focus returns to the button.
+   - The home page has an "Explore by technology" tile grid, and `/learn` has a chip row. These are the always-present, crawlable links; the menu is a shortcut.
+5. **The Components tab** lists up to 12 newest products per technology category, with an "All N in {category}" link when there are more.

@@ -25,6 +25,8 @@ export const GATED_ROUTES = [
   "/admin/products/new",
   "/admin/products/[id]/edit",
   "/admin/audit",
+  "/[technology]",
+  "/[technology]/[tab]",
 ] as const;
 
 export type GatedRoute = (typeof GATED_ROUTES)[number];

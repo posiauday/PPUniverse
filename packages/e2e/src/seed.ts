@@ -112,6 +112,8 @@ export interface FixtureSet {
    * exercises the public page's price and "Purchasing opens soon" state and
    * the admin editor's "current price / Make free" state. */
   pricedProduct: AdminProductRef;
+  /** MVP-028: a published product in the Power Apps Components category. */
+  technologyProduct: AdminProductRef;
   user: { id: string; email: string };
   /** The session the browser signs in with. */
   currentSession: SessionRef;
@@ -486,6 +488,8 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         slug: publishedArticleSlug,
         title: `E2E fixture: published article ${prefix}(not real content)`,
         type: "TUTORIAL",
+        // MVP-028: in the Power Apps section, so its Learn tab has content.
+        technology: "POWER_APPS",
         // SEO story: real Markdown, so the gate checks what ArticleBody
         // renders -- headings, a list, a link, a code block and a table
         // (each wide block in its own focusable, labelled scroll region).
@@ -666,6 +670,30 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       },
     });
 
+    // MVP-028: one published product in the Power Apps Components category,
+    // so /power-apps/components has something to list. (Every other fixture
+    // product lives in the alphabetically-first category, Architecture
+    // Blueprints, which belongs to no technology section.)
+    const powerAppsCategory = categories.find((c) => c.assetType === "POWER_APPS_COMPONENT");
+    if (!powerAppsCategory) {
+      throw new Error(
+        "Expected the seeded Power Apps Components category (run the migrations first).",
+      );
+    }
+    const technologyProductSlug = `${prefix}technology-product`;
+    assertReserved("product", technologyProductSlug);
+    const technologyProduct = await prisma.product.create({
+      data: {
+        slug: technologyProductSlug,
+        name: `E2E fixture: Power Apps component ${prefix}(not a real listing)`,
+        summary,
+        categoryId: powerAppsCategory.id,
+        status: "PUBLISHED",
+        publishedAt: now,
+      },
+    });
+    created.productIds.push(technologyProduct.id);
+
     const makeSession = async (
       createdAt: Date,
       forUserId: string = user.id,
@@ -727,6 +755,11 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         name: publishedAdminProduct.name,
       },
       pricedProduct: { id: priced.id, slug: priced.slug, name: priced.name },
+      technologyProduct: {
+        id: technologyProduct.id,
+        slug: technologyProduct.slug,
+        name: technologyProduct.name,
+      },
       suspendedAdminProduct: {
         id: suspendedAdminProduct.id,
         slug: suspendedAdminProduct.slug,

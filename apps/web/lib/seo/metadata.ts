@@ -10,6 +10,7 @@ import {
   productShareImageUrl,
   productUrl,
   siteShareImageUrl,
+  technologySectionUrl,
 } from "./canonical";
 import type { CategoryIndexingDecision } from "./category-indexing";
 import { SHARE_IMAGE_SIZE } from "./share-image-size";
@@ -183,6 +184,30 @@ export function buildLearnIndexMetadata(input: {
     description: LEARN_INDEX_DESCRIPTION,
     url: site.ok ? learnIndexUrl(site.origin) : undefined,
     robots: hasArticles ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
+}
+
+/**
+ * A technology section tab (MVP-028). Indexable only when the tab has
+ * content: an empty "coming soon" tab is thin content, so it stays
+ * noindex (links still followed) until something is published there -- the
+ * same rule as the /learn hub and empty category pages.
+ */
+export function buildTechnologySectionMetadata(input: {
+  site: SiteUrlResult;
+  path: string;
+  title: string;
+  description: string;
+  hasContent: boolean;
+}): Metadata {
+  const { site, path, title, description, hasContent } = input;
+  return composeMetadata({
+    title: `${title} | ${SITE_NAME}`,
+    socialTitle: title,
+    description: toMetaDescription(description, `${title} on ${SITE_NAME}.`),
+    url: site.ok ? technologySectionUrl(site.origin, path) : undefined,
+    robots: hasContent ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
     image: site.ok ? siteShareImageUrl(site.origin) : undefined,
   });
 }
