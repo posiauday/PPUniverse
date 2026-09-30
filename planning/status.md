@@ -2,7 +2,14 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-027 slice 3 built: the article page.**
+Last updated: 2026-09-30 — **MVP-027 (Design system) all 4 slices built; status QA.**
+- **Slice 4 gives every remaining page the new look.** A single set of defaults styles unstyled elements (page width, headings, fields, primary and secondary buttons, tables) in both themes.
+- **Pages covered:** sign-in, account, unsubscribe and the admin screens.
+- **BUG-009 resolved.**
+- **Merged:** slices 1–3 (PRs #31, #33, #34).
+- **Next:** once slice 4 merges, a **`develop` → `main` release** for the design-system milestone. Then the per-technology sections.
+
+Last updated (previous): 2026-09-30 — **MVP-027 slice 3 built: the article page.**
 - **Contents:** an "On this page" list built from the same parse as the headings.
 - **Code:** panels with a language label and a Copy button that has a fallback.
 - **Callouts:** `[!TIP]`, `[!NOTE]` and `[!WARNING]` boxes.
@@ -85,8 +92,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-027 (slices 1–3 of 4) |
-| QA | 0 | — |
+| In Progress | 1 | MVP-007 (slices 1–2 of 3) |
+| QA | 1 | MVP-027 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 17 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026 |
@@ -185,11 +192,11 @@ Full detail on every story is in `planning/progress-report.md`.
 ## Progress metrics
 
 - Stories done: 17 / 27 (63%)
-- Stories in QA: 0 / 27
+- Stories in QA: 1 / 27 (MVP-027)
 - Points done: 118 / 188 (63%)
 - P0 points done: 103 / 145 (71%)
 - P1 points done: 15 / 43 (35%)
-- Open bugs: 4 (BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 9 resolved (BUG-002 resolved by MVP-026) (see `planning/bugs.csv` and `planning/bugs/`)
+- Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
 
@@ -213,7 +220,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
-| 5 | MVP-027 (Design system) | In Progress (slices 1–3 of 4) | 13 |
+| 5 | MVP-027 (Design system) | QA (all 4 slices built) | 13 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |

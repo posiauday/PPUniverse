@@ -1582,3 +1582,16 @@ Built to the approved "A + B — Article page" mockup. Decided by the agent; rev
    - The mockup's right-column **free component** card needs a real link between an article and a product, which does not exist yet.
    - The **ad slot** belongs to the ads story.
 7. **Dependencies.** `unified` 11.0.5, `remark-parse` 11.0.0, `mdast-util-to-string` 4.0.0, `@types/mdast` 4.0.4 and `@types/hast` 3.0.5, all MIT. They are declared directly at exactly the versions react-markdown already installs, so nothing new is downloaded.
+
+### MVP-027 slice 4 — remaining pages (2026-09-30)
+
+Decided by the agent; reversible. It completes the design system, whose four slices the product owner approved.
+
+1. **Defaults for unstyled elements, instead of editing every component.**
+   - Six pages render plain `<main>`, headings, buttons and fields with no classes: sign-in, account sessions, account privacy, unsubscribe, the audit log and deletion requests. The admin forms elsewhere are the same.
+   - One `@layer base` block in `globals.css` now styles **only elements without a `class`**: the page width, headings, paragraphs, lists, forms, labels, fieldsets, fields, table cells and buttons.
+   - Buttons: a submit button is the primary (filled) style; every other button is secondary (outlined).
+   - Anything with its own classes is untouched, and a unit test enforces that every selector in the block excludes classed elements.
+   - Sign-in's markup, which carries the BUG-005, BUG-011 and BUG-014 accessibility fixes, is **not changed at all**.
+2. **No fading for in-flight buttons.** A button marked `aria-disabled` while submitting keeps full colour, because fading drops its text below 4.5:1. The cursor and its "…" label carry the state.
+3. **BUG-009 (sign-in and account pages unstyled) is resolved by this slice.** Its record said the fix "needs the product owner"; the product owner's approval of the design system covers it.

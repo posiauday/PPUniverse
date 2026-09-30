@@ -3901,3 +3901,33 @@ Slices 1 and 2 merged first (PRs #31 and #33). Slice 2's original PR, #32, was c
 **Environment note:** the scratchpad's local Postgres install vanished mid-session (it lives under Windows %TEMP%). I reinstalled it, and the agent memory note now covers this.
 
 **Remaining for MVP-027:** slice 4, polish of the remaining pages (catalog, product, search, account and admin surfaces), then the story is done.
+
+## MVP-027 — Design system, slice 4 of 4: remaining pages (2026-09-30)
+
+Slice 3 merged first (PR #34).
+
+**Environment:** the `G:\PPU-mvp007` worktree was removed from outside this session, most likely by the desktop app's worktree cleanup. Its `.git` link and most folders vanished, leaving a partial directory. Nothing was lost, because every change was already merged. Slice 4 was built in a fresh worktree, `G:\PPU-work`.
+
+**Built:**
+- **`app/globals.css`:** a `@layer base` block that styles **only elements without a class**:
+  - a plain `<main>` gets the page width and padding;
+  - h1, h2, paragraphs, lists, forms (with field groups), labels, fieldsets and legends;
+  - buttons: submit is primary (filled), anything else secondary (outlined);
+  - text fields, selects, textareas, checkboxes and radios;
+  - table header and data cells.
+- The block covers sign-in, account sessions, account privacy, unsubscribe, the audit log and deletion requests, plus every admin form, in both themes. **Sign-in's markup is unchanged.**
+- **Contrast:** in-flight (`aria-disabled`) buttons are not faded. Fading would drop their text below 4.5:1, and the gate scans some states mid-submission.
+- **Guard test** in `lib/design-tokens.test.ts`: every selector in the block must target a class-less element. It proved itself straight away by catching a list-spacing rule that did not check its own `li`.
+
+**Verified:**
+- `@ppu/web` 443. Playwright chromium 437/437, light and dark.
+- **Visually, against a production build**, using a throwaway local ADMIN test session that was deleted afterwards:
+  - sign-in in light and dark;
+  - account sessions, with the header now showing "Account";
+  - account privacy;
+  - the new-product admin form;
+  - the audit log.
+
+**Result:** MVP-027 has all 4 slices built and moves to **QA** until this PR is green and merged. BUG-009 is resolved. NFR-005 is Implemented in the traceability matrix.
+
+**Next:** the design-system release, `develop` → `main`, then the per-technology sections story.
