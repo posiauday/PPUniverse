@@ -4014,3 +4014,8 @@ Slice 1 merged as PR #37. It was merged about 49 seconds after its CI run starte
   - an empty Dataverse KPIs tab in dark mode (`noindex, follow`, no overflow).
 
 **Next:** merge, then the design-system release to `main`, then launch content.
+
+### MVP-028 — merged and Done; Release 2 on `main` (2026-09-30)
+- **#38 (slice 2)** merged with all 7 checks green. **#37 (slice 1)** was merged before its checks finished; `develop` CI then passed on it.
+- **Release 2 (#39, `develop` → `main`)** merged 4 seconds after #38. `develop` had already moved, so `main` includes the section pages as well. The release PR body said they would come later; that is corrected here. The code had passed its own PR CI as #38, and `main` push CI runs on the merge.
+- **Process note:** two merges this session happened before their checks ran (most likely `--admin`). No harm came of it, because the code had been verified elsewhere. The recommended practice stays "merge when green".
