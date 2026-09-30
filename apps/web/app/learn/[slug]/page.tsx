@@ -8,12 +8,7 @@ import { outlineOf, readingMinutes } from "../../../lib/article-outline";
 import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
 import { findRelatedArticles } from "../../../lib/related-articles";
 import { technologyInfo } from "@ppu/domain-content";
-import {
-  homeUrl,
-  learnIndexUrl,
-  learnUrl,
-  technologySectionUrl,
-} from "../../../lib/seo/canonical";
+import { homeUrl, learnIndexUrl, learnUrl, technologySectionUrl } from "../../../lib/seo/canonical";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/seo/json-ld";
 import { buildLearnMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
 import { SITE_NAME } from "../../../lib/seo/site";

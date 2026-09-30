@@ -56,9 +56,13 @@ describe("parseArticleSource", () => {
       ok: false,
       errors: ["missing front matter: the file must start with a --- block"],
     });
-    const extra = parseArticleSource(VALID.replace("type: TUTORIAL", "type: TUTORIAL\nstatus: PUBLISHED"));
+    const extra = parseArticleSource(
+      VALID.replace("type: TUTORIAL", "type: TUTORIAL\nstatus: PUBLISHED"),
+    );
     expect(!extra.ok && extra.errors).toContain("unknown front-matter line: status: PUBLISHED");
-    const dup = parseArticleSource(VALID.replace("type: TUTORIAL", "type: TUTORIAL\ntype: PATTERN"));
+    const dup = parseArticleSource(
+      VALID.replace("type: TUTORIAL", "type: TUTORIAL\ntype: PATTERN"),
+    );
     expect(!dup.ok && dup.errors).toContain("duplicate key: type");
   });
 });

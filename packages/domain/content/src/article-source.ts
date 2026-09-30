@@ -38,7 +38,8 @@ export interface ArticleSource {
   body: string;
 }
 
-export type ArticleSourceResult = { ok: true; article: ArticleSource } | { ok: false; errors: string[] };
+export type ArticleSourceResult =
+  { ok: true; article: ArticleSource } | { ok: false; errors: string[] };
 
 const KEYS = ["title", "slug", "type", "technology", "excerpt"] as const;
 type Key = (typeof KEYS)[number];
@@ -54,7 +55,8 @@ function unquote(value: string): string {
 export function parseArticleSource(text: string): ArticleSourceResult {
   const source = text.replace(/\r\n/g, "\n").replace(/^﻿/, "");
   const match = source.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!match) return { ok: false, errors: ["missing front matter: the file must start with a --- block"] };
+  if (!match)
+    return { ok: false, errors: ["missing front matter: the file must start with a --- block"] };
 
   const errors: string[] = [];
   const fields: Partial<Record<Key, string>> = {};
@@ -77,9 +79,11 @@ export function parseArticleSource(text: string): ArticleSourceResult {
   const technologyValue = fields.technology ?? "";
   const excerptValue = fields.excerpt ?? "";
 
-  if (!isValidArticleTitle(title)) errors.push("title is required and must be 200 characters or fewer");
+  if (!isValidArticleTitle(title))
+    errors.push("title is required and must be 200 characters or fewer");
   if (!isValidArticleSlug(slug)) errors.push("slug must be lower-case and hyphen-separated");
-  if (!isValidArticleType(type)) errors.push("type must be TUTORIAL, PATTERN, COMPARISON or KPI_GUIDE");
+  if (!isValidArticleType(type))
+    errors.push("type must be TUTORIAL, PATTERN, COMPARISON or KPI_GUIDE");
   if (technologyValue !== "" && !isValidTechnology(technologyValue)) {
     errors.push("technology must be one of the six sections, or omitted");
   }

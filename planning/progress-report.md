@@ -4019,3 +4019,30 @@ Slice 1 merged as PR #37. It was merged about 49 seconds after its CI run starte
 - **#38 (slice 2)** merged with all 7 checks green. **#37 (slice 1)** was merged before its checks finished; `develop` CI then passed on it.
 - **Release 2 (#39, `develop` → `main`)** merged 4 seconds after #38. `develop` had already moved, so `main` includes the section pages as well. The release PR body said they would come later; that is corrected here. The code had passed its own PR CI as #38, and `main` push CI runs on the merge.
 - **Process note:** two merges this session happened before their checks ran (most likely `--admin`). No harm came of it, because the code had been verified elsewhere. The recommended practice stays "merge when green".
+
+## MVP-029 — Launch content: pipeline and article 1 of 24 (2026-09-30)
+
+The product owner approved the launch content plan. Decisions: `docs/final-decisions.md`, "Launch content plan approved; competitor research rule".
+
+**Built:**
+- **`parseArticleSource`** (`@ppu/domain-content`): reads an article file (front matter plus Markdown) and validates it with exactly the admin editor's rules.
+- **A content gate** (`packages/adapters/content/src/content-files.test.ts`): every file in `content/articles` must parse, be named after its slug, sit in its section's folder, and have a unique slug.
+- **`content:import`** (`@ppu/adapter-content`):
+  - creates drafts only, authored by an existing ADMIN;
+  - skips slugs that already exist and never overwrites one;
+  - imports nothing if any file is invalid.
+  - Verified against the local database: it refuses without an author, created the draft, and a re-run skipped it.
+- **Article breadcrumbs:** an article in a technology section now sits under that section ("LowCodeStacks / Power Apps / …"), in both the visible trail and the BreadcrumbList data.
+- **Article 1:** "Delegation in Power Apps: why your gallery stops at 500 rows" (Power Apps, Learn). Every claim was checked against Microsoft Learn's delegation pages for canvas apps, SharePoint and Dataverse.
+  - That check corrected one detail before publishing. Microsoft's general guidance calls `Today()` a delegable constant, but the Dataverse page lists `Today()` and `Now()` as not delegable for date columns. The article shows only the variable-based approach, with a note explaining why.
+- **Competitor review:** Lumeric Visuals (`docs/research/competitors/lumeric-visuals.md`). The ideas adopted, live previews and upfront prices, are to be built as our own work.
+- **`CLAUDE.md`:** the command list gains the import command, and `content/articles/README.md` documents the file format and rules.
+
+**Verified:**
+- `@ppu/domain-content` 23, `@ppu/web` 465, and the content gate.
+- Playwright chromium: 65/65 for the learn, technology, home and fixture states.
+- The article was checked visually at phone width: contents list, table, callouts, code panels with Copy, and no horizontal overflow.
+
+**Process:** before merging #40's branch in, the work was committed first and then merged (not stashed). The only conflict, in the two backlog files, was resolved by keeping both changes. This follows the stash lesson recorded earlier today.
+
+**Next:** the other 23 wave-1 articles, in batches per section.

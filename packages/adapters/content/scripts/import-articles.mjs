@@ -30,7 +30,8 @@ function markdownFiles(dir) {
 async function main() {
   if (!authorEmail) throw new Error("Set ARTICLE_AUTHOR_EMAIL to an existing ADMIN user's email.");
   const author = await prisma.user.findUnique({ where: { email: authorEmail } });
-  if (!author || author.role !== "ADMIN") throw new Error(`${authorEmail} is not an existing ADMIN user.`);
+  if (!author || author.role !== "ADMIN")
+    throw new Error(`${authorEmail} is not an existing ADMIN user.`);
 
   const parsed = markdownFiles(root).map((path) => ({
     name: relative(root, path).split("\\").join("/"),
@@ -56,7 +57,9 @@ async function main() {
     console.log(`created draft: ${name}`);
     created += 1;
   }
-  console.log(`Done: ${created} draft(s) created, ${skipped} skipped. Review and publish them in /admin/content.`);
+  console.log(
+    `Done: ${created} draft(s) created, ${skipped} skipped. Review and publish them in /admin/content.`,
+  );
 }
 
 main()

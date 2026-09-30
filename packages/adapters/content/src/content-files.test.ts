@@ -34,7 +34,9 @@ describe("content/articles", () => {
       if (!result.ok) return;
       expect(basename(path)).toBe(`${result.article.slug}.md`);
       const folder = basename(dirname(path));
-      const expected = result.article.technology ? technologyInfo(result.article.technology).slug : "general";
+      const expected = result.article.technology
+        ? technologyInfo(result.article.technology).slug
+        : "general";
       expect(folder).toBe(expected);
     },
   );

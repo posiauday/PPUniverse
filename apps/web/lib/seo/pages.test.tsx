@@ -325,9 +325,14 @@ describe("article page (SEO story)", () => {
   });
 
   it("places an article in a technology section under that section in the breadcrumb trail (MVP-029)", async () => {
-    content.findPublishedArticleBySlug.mockResolvedValue({ ...articleRow, technology: "POWER_APPS" });
+    content.findPublishedArticleBySlug.mockResolvedValue({
+      ...articleRow,
+      technology: "POWER_APPS",
+    });
     const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
-    expect(markup).toMatch(/<nav aria-label="Breadcrumb"[\s\S]*href="\/power-apps"[\s\S]*Power Apps/);
+    expect(markup).toMatch(
+      /<nav aria-label="Breadcrumb"[\s\S]*href="\/power-apps"[\s\S]*Power Apps/,
+    );
     const breadcrumbs = jsonLdBlocks(markup).find((block) => block["@type"] === "BreadcrumbList");
     expect(breadcrumbs).toMatchObject({
       itemListElement: [
