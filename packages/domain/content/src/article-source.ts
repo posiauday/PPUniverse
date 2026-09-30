@@ -52,8 +52,11 @@ function unquote(value: string): string {
   return trimmed;
 }
 
+/** A leading byte-order mark (some editors add one), built from its code so no invisible character sits in this source. */
+const BYTE_ORDER_MARK = new RegExp(`^${String.fromCharCode(0xfeff)}`);
+
 export function parseArticleSource(text: string): ArticleSourceResult {
-  const source = text.replace(/\r\n/g, "\n").replace(/^﻿/, "");
+  const source = text.replace(/\r\n/g, "\n").replace(BYTE_ORDER_MARK, "");
   const match = source.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
   if (!match)
     return { ok: false, errors: ["missing front matter: the file must start with a --- block"] };

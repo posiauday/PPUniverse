@@ -37,6 +37,11 @@ describe("parseArticleSource", () => {
     expect(result.ok && result.article.excerpt).toBeNull();
   });
 
+  it("ignores a leading byte-order mark, which some editors add", () => {
+    const withBom = String.fromCharCode(0xfeff) + VALID;
+    expect(parseArticleSource(withBom).ok).toBe(true);
+  });
+
   it("rejects what the admin editor would reject, naming every problem", () => {
     const result = parseArticleSource(
       "---\ntitle: \nslug: Not A Slug\ntype: LEARNING_PATH\ntechnology: SHAREPOINT\n---\n",
