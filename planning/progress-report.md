@@ -4066,3 +4066,21 @@ The product owner approved the launch content plan. Decisions: `docs/final-decis
 **Verified:** the content gate passes (5 tests, 4 files), and the whole-repo format check is clean.
 
 **Next:** Power Automate (4 articles).
+
+## MVP-029 — Launch content: Power Automate section complete, 8 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/power-automate/`:
+- **"Approvals that don't stall: reminders, escalation and an audit trail"** (TUTORIAL, Learn tab).
+- **"Cloud flows or Azure Logic Apps?"** (COMPARISON, Learn tab).
+- **"Try, catch and finally: error handling with scopes"** (PATTERN, Architecture tab).
+- **"Flow health KPIs: success rate, failure causes and hours saved"** (KPI_GUIDE, KPIs tab).
+
+**Fact-checking against Microsoft Learn** changed four details before the drafts were finished:
+- **Private networking.** The first draft of the Logic Apps comparison said Power Automate can't reach private networks. Power Platform supports Azure virtual networks for a defined list of connectors, so the article now explains both options and when each fits.
+- **Approval time limit.** Microsoft gives two figures: 30 days on the limits page and 28 days on the approvals known-issues page. The article cites both and tells readers to design for 28.
+- **`result()`.** It returns only the top-level actions in a scope, and where the error message sits depends on the connector. The try-catch article now has a warning, and it shows how to read the real output instead of assuming its shape.
+- **Variables.** They can be initialised only at the top level of a flow, and the article says so.
+
+**Verified:** the content gate passes (9 tests, 8 files), and the whole-repo format check is clean.
+
+**Next:** Power BI (4 articles).
