@@ -2,7 +2,9 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-029 (Launch content) In Progress: the pipeline is built and 12 of 24 articles are written (Power Apps, Power Automate and Power BI sections complete).**
+Last updated: 2026-09-30 — **Security fix: BUG-018 (critical Next.js advisory) resolved on `develop`; it needs releasing to `main`.** MVP-029 continues unchanged.
+
+Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) In Progress: the pipeline is built and 12 of 24 articles are written (Power Apps, Power Automate and Power BI sections complete).**
 - **Approval:** the product owner approved the launch content plan (24 wave-1 articles).
 - **How articles work:** each is a reviewed Markdown file, checked in CI and imported only as a draft.
 - **First article:** "Delegation in Power Apps: why your gallery stops at 500 rows", verified against Microsoft Learn.
@@ -272,7 +274,9 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 ## Open bugs
 
-6 open, 1 mitigated (not root-fixed), 8 resolved:
+6 open, 1 mitigated (not root-fixed), 8 resolved, as last counted. This count predates BUG-016 to BUG-018. `planning/bugs.csv` disagrees with this list for several older bugs (BUG-003 to BUG-009 and BUG-015); reconciling them against git history is a separate cleanup.
+- **[BUG-018](bugs/BUG-018.md) (P0, security)** — **Resolved** 2026-09-30: a critical Next.js advisory (GHSA-vcvr-r3jv-pc5j, remote code execution in `next/og` `ImageResponse`) covered our 16.3.5. Upgraded to 16.3.7. Nothing is deployed, so nothing was exposed; `main` still needs the fix released.
+- [BUG-016](bugs/BUG-016.md) and [BUG-017](bugs/BUG-017.md) — **Resolved** 2026-09-30 (accessibility-suite fixture cleanup; a test that failed on Windows line endings).
 - [BUG-001](bugs/BUG-001.md) — **Resolved** by MVP-021 (PR #5, 2026-09-21): delivered pages emitted relative canonical/`og:url` tags and sign-in/account pages were indexable. No production deployment existed, so nothing was exposed.
 - [BUG-002](bugs/BUG-002.md) — **Resolved** by MVP-026 (2026-09-28): a repeated query parameter now uses its first value instead of returning HTTP 500.
 
