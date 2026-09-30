@@ -106,3 +106,32 @@ describe("reduced motion", () => {
     expect(reduced).not.toMatch(/duration:\s*0?\.0*1ms/);
   });
 });
+
+describe("defaults for unstyled elements (BUG-009)", () => {
+  const start = CSS.indexOf("@layer base {");
+  // Comments are removed first so the selector scan below sees only rules.
+  const block = (start >= 0 ? CSS.slice(start, CSS.indexOf("\n}\n", start)) : "").replace(
+    /\/\*[\s\S]*?\*\//g,
+    "",
+  );
+
+  it("exists", () => {
+    expect(block.length).toBeGreaterThan(0);
+  });
+
+  it("only ever targets elements WITHOUT a class, so styled components are untouched", () => {
+    const selectors = [...block.matchAll(/^\s{2}([^@{}][^{}]*)\{/gm)]
+      .flatMap((match) => (match[1] as string).split(","))
+      .map((selector) => selector.trim())
+      .filter(Boolean);
+    expect(selectors.length).toBeGreaterThan(10);
+    for (const selector of selectors) {
+      // Each selector's styled (last) element must exclude classed elements.
+      const target = selector
+        .split(/\s+|>|\+/)
+        .filter(Boolean)
+        .at(-1) as string;
+      expect(target, selector).toContain(":not([class])");
+    }
+  });
+});
