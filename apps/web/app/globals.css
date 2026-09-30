@@ -121,6 +121,13 @@ samp {
   outline-offset: 2px;
 }
 
+/* Controls on a code panel's dark bar (the Copy button) sit on the code
+   background in BOTH themes, so their ring uses the light code foreground;
+   the page's foreground would be dark on dark in the light theme. */
+.code-panel-bar :focus-visible {
+  outline-color: var(--color-code-foreground);
+}
+
 /* Motion (MVP-027): short, purposeful, and only opacity and transform, which
    the browser animates without re-laying out the page (Core Web Vitals).
    Anyone whose system asks for reduced motion gets none of it. */

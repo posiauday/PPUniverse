@@ -1558,3 +1558,27 @@ Built to the approved Premium 3 layout. Two deliberate deviations from the mocku
    - All categories.
    - The old "Learn · Search products · Sign in" row is removed, because the site header now carries those links.
    - The "What's new" strip is **not** shown yet: there is no digest page for it to link to. It arrives with the maintenance-agent work.
+
+### MVP-027 slice 3 — article page (2026-09-30)
+
+Built to the approved "A + B — Article page" mockup. Decided by the agent; reversible.
+
+1. **Layout.**
+   - Title block: type · reading time · updated date, then the headline and excerpt.
+   - Below it, three columns on wide screens: **On this page** | article | **Keep learning**.
+   - One column, in that order, on narrow screens. Each part is in the page once.
+2. **"On this page."**
+   - Links to the article's h2 and h3 headings.
+   - The list and the heading ids come from the same Markdown parse, with the same slug rules: ids are only `[a-z0-9-]`, and repeats get `-1`, `-2`. A link therefore always matches its heading, and author text can never reach an attribute or URL fragment.
+   - Left out when an article has fewer than two headings.
+3. **Code panels.**
+   - A bar shows the fenced block's language (only `[a-z0-9+#-]` is shown) and a **Copy** button.
+   - Copying uses the Clipboard API, falling back to selection-based copy where the API is blocked.
+   - The result is announced in a polite live region.
+   - The button's focus ring uses the light code colour, so it stays visible on the dark bar in both themes.
+4. **Callouts.** GitHub's alert syntax, `> [!TIP]`, `> [!NOTE]` and `> [!WARNING]`, renders as a labelled `role="note"` box. Ordinary blockquotes stay blockquotes. This is the syntax article authors, including the future maintenance agent's drafts, use for tips.
+5. **Reading time:** whole minutes at about 200 words per minute, never below 1.
+6. **Not built, for honesty:**
+   - The mockup's right-column **free component** card needs a real link between an article and a product, which does not exist yet.
+   - The **ad slot** belongs to the ads story.
+7. **Dependencies.** `unified` 11.0.5, `remark-parse` 11.0.0, `mdast-util-to-string` 4.0.0, `@types/mdast` 4.0.4 and `@types/hast` 3.0.5, all MIT. They are declared directly at exactly the versions react-markdown already installs, so nothing new is downloaded.

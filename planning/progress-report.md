@@ -3854,3 +3854,50 @@ The problem was caught before merge, inside the story, so it gets no bug record 
 **Remaining for MVP-027:**
 - Slice 3: the article layout (contents list, code Copy button, callouts, related column).
 - Slice 4: polish of the remaining pages.
+
+## MVP-027 — Design system, slice 3 of 4: article page (2026-09-30)
+
+Slices 1 and 2 merged first (PRs #31 and #33). Slice 2's original PR, #32, was closed automatically by GitHub when slice 1's branch was deleted on merge. It was replaced by #33, from the same branch, and the lesson is saved to agent memory.
+
+**Built:**
+- **`lib/article-outline.ts`:**
+  - `createSlugger` (ids `[a-z0-9-]`, repeats numbered, never empty).
+  - `remarkArticleStructure`, a remark plugin that gives headings ids and turns `[!TIP]/[!NOTE]/[!WARNING]` blockquotes into callouts, removing the marker.
+  - `outlineOf`: the h2/h3 list from the same parse, remark-parse plus remark-gfm.
+  - `readingMinutes`.
+- **`app/learn/ArticleBody.tsx`:**
+  - Headings carry ids, and callouts render as `role="note"` with a label.
+  - Code sits in a `figure`, with a `figcaption` bar (language and Copy) over the focusable, scrollable `pre`.
+  - Tables get header and cell styling.
+- **`app/learn/CopyCodeButton.tsx`** (client): the Clipboard API with a selection-based fallback, and a live-region result. Its accessible name is "Copy code", which contains the visible "Copy".
+- **`app/learn/ArticleToc.tsx`:** the "On this page" navigation. It is a sticky column on wide screens and a box above the article on narrow ones.
+- **`app/learn/[slug]/page.tsx`:**
+  - The title block (type, reading time, updated date).
+  - The three-column grid.
+  - "Keep learning" as a compact list in an `aside`.
+  - The page's own ids use an underscore, so a heading slug cannot collide with them.
+- **`globals.css`:** the focus ring inside code bars uses the code foreground.
+- **Accessibility gate:** the fixture article gains a `[!TIP]` callout and a `powerfx` code fence. `learn-published` asserts the contents navigation, the Copy button, the callout, and "Keep learning" (now a complementary landmark).
+
+**Tests:**
+- `article-outline.test.ts` covers slugs, dedupe, safety, outline order and ids, Markdown syntax removed from text, and reading time.
+- `ArticleBody.test.tsx` covers ids, callouts, plain blockquotes, the code bar and language, and odd class names.
+- `CopyCodeButton.test.tsx` (jsdom) covers copying and announcing, the fallback (textarea removed, focus restored), and the failure message.
+
+**Verified:**
+- `@ppu/web` 441, `@ppu/e2e` 83.
+- Playwright chromium 437/437, light and dark.
+- **Visually, against a production build with sample articles:**
+  - Desktop in light and dark.
+  - A contents link jumps to its heading, with every id matching.
+  - At 375 px the page is one column, with no overflow.
+  - **Copy worked in a browser where the Clipboard API was blocked, through the fallback.** The first visual check had found that browser's API blocked, which is why the fallback was added.
+
+**Found and fixed during the slice:**
+1. Lint: links in the new column used plain `<a>` instead of Next's `<Link>`.
+2. Formatting: fixed before the push, with the check gating it by exit code.
+3. My test assumed a synthetic click moves focus. It does not; a real click does. The test now focuses the button first.
+
+**Environment note:** the scratchpad's local Postgres install vanished mid-session (it lives under Windows %TEMP%). I reinstalled it, and the agent memory note now covers this.
+
+**Remaining for MVP-027:** slice 4, polish of the remaining pages (catalog, product, search, account and admin surfaces), then the story is done.

@@ -683,8 +683,13 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // the same type, which under parallel workers may be another worker's
       // fixtures. The seed guarantees at least one exists.
       await expect(
-        page.getByRole("region", { name: "Keep learning" }).getByRole("link").first(),
+        page.getByRole("complementary", { name: "Keep learning" }).getByRole("link").first(),
       ).toBeVisible();
+      // MVP-027 slice 3: the contents list, a code panel's Copy button and a
+      // tip callout, all from the fixture's Markdown.
+      await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
+      await expect(page.getByRole("note")).toContainText("A fixture tip callout.");
     },
   },
   {

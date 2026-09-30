@@ -49,3 +49,37 @@ describe("ArticleBody", () => {
     expect(render("# Title\n\nText")).not.toContain("node=");
   });
 });
+
+describe("ArticleBody structure (MVP-027 slice 3)", () => {
+  it("gives every heading the same id the 'On this page' list links to", () => {
+    const html = render("## Set up\n\n### Install it\n\n## Set up");
+    expect(html).toMatch(/<h2 [^>]*id="set-up"/);
+    expect(html).toMatch(/<h3 [^>]*id="install-it"/);
+    expect(html).toMatch(/<h2 [^>]*id="set-up-1"/);
+  });
+
+  it("renders [!TIP], [!NOTE] and [!WARNING] blockquotes as labelled notes, without the marker", () => {
+    const html = render("> [!TIP]\n> Keep filters delegable.\n\n> [!WARNING] Test first.");
+    expect(html.match(/role="note"/g)).toHaveLength(2);
+    expect(html).toContain(">Tip</p>");
+    expect(html).toContain(">Warning</p>");
+    expect(html).toContain("Keep filters delegable.");
+    expect(html).not.toContain("[!TIP]");
+    expect(html).not.toContain("<blockquote");
+  });
+
+  it("keeps an ordinary blockquote a blockquote", () => {
+    expect(render("> Just a quote.")).toContain("<blockquote");
+  });
+
+  it("puts code under a bar naming its language, with a Copy button", () => {
+    const html = render("```powerfx\nSet(x, 1)\n```");
+    expect(html).toMatch(/<figcaption[^>]*code-panel-bar[^>]*><span>powerfx<\/span>/);
+    expect(html).toContain('aria-label="Copy code"');
+  });
+
+  it("labels code with no language as plain code, and never trusts an odd class name", () => {
+    expect(render("```\nplain\n```")).toContain("<span>code</span>");
+    expect(render('```"><script>\nx\n```')).not.toContain("<script");
+  });
+});

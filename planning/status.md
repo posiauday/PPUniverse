@@ -2,7 +2,15 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-027 slice 2 built: the Premium 3 home page.**
+Last updated: 2026-09-30 — **MVP-027 slice 3 built: the article page.**
+- **Contents:** an "On this page" list built from the same parse as the headings.
+- **Code:** panels with a language label and a Copy button that has a fallback.
+- **Callouts:** `[!TIP]`, `[!NOTE]` and `[!WARNING]` boxes.
+- **Title block:** reading time and updated date.
+- **Layout:** three columns (contents | article | Keep learning) on wide screens, one column on phones.
+- **Merged:** slices 1 and 2 (PRs #31 and #33).
+
+Last updated (previous): 2026-09-30 — **MVP-027 slice 2 built: the Premium 3 home page.**
 - **Hero:** a headline beside a layered, decorative Power Apps illustration, with floating code and evidence cards.
 - **Sections:** the newest components, the newest articles and all categories. Each is left out when empty.
 - **Honesty:** the mockup's wording was made truthful (`docs/final-decisions.md`, "MVP-027 slice 2").
@@ -77,7 +85,7 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-027 (slices 1–2 of 4) |
+| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-027 (slices 1–3 of 4) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
@@ -205,7 +213,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
-| 5 | MVP-027 (Design system) | In Progress (slices 1–2 of 4) | 13 |
+| 5 | MVP-027 (Design system) | In Progress (slices 1–3 of 4) | 13 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
