@@ -139,6 +139,22 @@ samp {
   animation: lcs-rise 0.7s var(--ease-out-soft) both;
 }
 
+/* Gentle drift for the hero's decorative floating cards. `translate` is a
+   separate property, so it composes with a card's own rotate utility. */
+@keyframes lcs-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+.motion-float {
+  animation: lcs-float 6s ease-in-out infinite;
+}
+
 .motion-lift {
   transition:
     transform 0.2s var(--ease-out-soft),
