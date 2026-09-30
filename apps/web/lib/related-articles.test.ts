@@ -6,6 +6,7 @@ const summary = (slug: string): ArticleSummary => ({
   slug,
   title: slug,
   type: "TUTORIAL",
+  technology: null,
   excerpt: null,
   publishedAt: new Date("2026-09-01T00:00:00.000Z"),
 });

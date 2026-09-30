@@ -3939,3 +3939,39 @@ Slice 3 merged first (PR #34).
   - Documentation and traceability are updated (NFR-005 Implemented).
   - The security review is in each PR body: no raw-HTML sink, ids and labels built from safe character sets, and self-hosted fonts.
 - **Process lesson:** `gh pr merge --delete-branch=true` also removes a worktree that has the PR branch checked out. That explains both vanished worktrees. From now on the agent detaches its worktree after pushing.
+
+## MVP-028 — Technology sections, slice 1 of 2: content model (2026-09-30)
+
+**Decisions** (product owner, in chat): six sections, four tabs, and short addresses. See `docs/final-decisions.md`, "Technology sections (MVP-028)".
+
+**Built:**
+- **Schema (two additive migrations):**
+  - `KPI_GUIDE` is added to `ArticleType`, in its own migration because Postgres will not use a new enum value in the same transaction.
+  - A new `Technology` enum, a nullable `articles.technology`, and an index on `(technology, status)`.
+  - The rollback steps are in each migration's header.
+  - `prisma migrate diff` reports **no difference** between schema and migrations, checked by Prisma's own exit code.
+- **`@ppu/domain-content`:**
+  - The `Technology` type and `technology` on article records, inputs and summaries.
+  - `technology.ts`: the `TECHNOLOGIES` registry (name and URL segment), `isValidTechnology`, `technologyBySlug` and `technologyInfo`.
+  - `KPI_GUIDE` is a valid type.
+  - `listPublishedArticleSummaries` accepts `types` (several) and `technology`.
+- **`@ppu/adapter-content`:** stores, updates and clears `technology`, and filters summaries by technology and types.
+- **Admin:**
+  - The article editor has a "Technology section (optional)" select, and its type options now come from the shared labels ("KPI guide" included).
+  - Both admin content routes validate `technology` (absent, `null` or `""` means none; anything else outside the six is a 400).
+- **Labels:** `KPI_GUIDE` is "KPI guide", and `/learn` gains a "KPI guides" group.
+
+**Tests:**
+- Domain registry and validation (`technology.test.ts`).
+- Two new adapter integration tests against real Postgres: store, change and clear the technology; filter by technology and types.
+- API route tests: a rejected technology, and absent, empty, `null` or a valid value stored correctly with `KPI_GUIDE`.
+
+**Verified:**
+- `@ppu/domain-content` 19, `@ppu/adapter-content` 9/9 (real Postgres), `@ppu/web` 448.
+- Playwright chromium 437/437, including the admin article editor states.
+
+**Found and fixed:**
+- **BUG-017:** the design-token guard test broke on a Windows CRLF checkout. Fixed by normalising line endings.
+- **Environment:** the `@ppu/db` build alone does not regenerate the Prisma client (Turbo does it in the full build), so I ran `prisma generate` explicitly after the schema change. The per-package test schemas had to be provisioned for this fresh database.
+
+**Next (slice 2):** the section pages, tabs, header menu, home tiles, SEO, sitemap and accessibility states.

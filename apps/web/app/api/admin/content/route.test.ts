@@ -174,6 +174,37 @@ describe("POST /api/admin/content", () => {
     expect(createArticle).not.toHaveBeenCalled();
   });
 
+  it("rejects a technology that is not one of the six sections (MVP-028)", async () => {
+    getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
+    findUnique.mockResolvedValue({ role: "ADMIN" });
+
+    const response = await POST(makePostRequest({ ...VALID_BODY, technology: "SHAREPOINT" }));
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.fieldErrors.technology).toBeDefined();
+    expect(createArticle).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["absent", undefined, null],
+    ["empty", "", null],
+    ["null", null, null],
+    ["POWER_BI", "POWER_BI", "POWER_BI"],
+  ])("stores technology %s as %s (MVP-028)", async (_label, technology, stored) => {
+    getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
+    findUnique.mockResolvedValue({ role: "ADMIN" });
+    findArticleBySlug.mockResolvedValue(null);
+    createArticle.mockResolvedValue({ id: "new-article", ...VALID_BODY, status: "DRAFT" });
+
+    const response = await POST(makePostRequest({ ...VALID_BODY, type: "KPI_GUIDE", technology }));
+
+    expect(response.status).toBe(201);
+    expect(createArticle).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "KPI_GUIDE", technology: stored }),
+    );
+  });
+
   it("creates the article as DRAFT, authored by the signed-in admin", async () => {
     getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
     findUnique.mockResolvedValue({ role: "ADMIN" });

@@ -10,7 +10,12 @@ import { describe, expect, it } from "vitest";
  * token pair.
  */
 
-const CSS = readFileSync(fileURLToPath(new URL("../app/globals.css", import.meta.url)), "utf8");
+// Line endings normalised: a Windows checkout (core.autocrlf) has CRLF, and
+// the block parsers below look for a newline-brace-newline end (BUG-017).
+const CSS = readFileSync(
+  fileURLToPath(new URL("../app/globals.css", import.meta.url)),
+  "utf8",
+).replace(/\r\n/g, "\n");
 
 function block(selector: RegExp): Record<string, string> {
   const match = CSS.match(selector);

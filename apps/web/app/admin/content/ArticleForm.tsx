@@ -2,11 +2,15 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
+import { TECHNOLOGY_OPTIONS } from "../../../lib/technology-options";
 
 export interface ArticleFormValues {
   slug: string;
   title: string;
-  type: "TUTORIAL" | "PATTERN" | "COMPARISON";
+  type: "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE";
+  /** "" means no technology section (MVP-028). */
+  technology: string;
   excerpt: string;
   body: string;
 }
@@ -23,6 +27,7 @@ const DEFAULT_VALUES: ArticleFormValues = {
   slug: "",
   title: "",
   type: "TUTORIAL",
+  technology: "",
   excerpt: "",
   body: "",
 };
@@ -45,6 +50,7 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
   const slugId = useId();
   const titleId = useId();
   const typeId = useId();
+  const technologyId = useId();
   const excerptId = useId();
   const bodyId = useId();
   const statusId = useId();
@@ -131,11 +137,35 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
           aria-invalid={Boolean(fieldErrors["type"])}
           aria-describedby={fieldErrors["type"] ? `${typeId}-error` : undefined}
         >
-          <option value="TUTORIAL">Tutorial</option>
-          <option value="PATTERN">Pattern</option>
-          <option value="COMPARISON">Comparison</option>
+          {(Object.keys(ARTICLE_TYPE_LABEL) as ArticleFormValues["type"][]).map((type) => (
+            <option key={type} value={type}>
+              {ARTICLE_TYPE_LABEL[type]}
+            </option>
+          ))}
         </select>
         {fieldErrors["type"] ? <p id={`${typeId}-error`}>{fieldErrors["type"][0]}</p> : null}
+      </div>
+
+      {/* MVP-028: which technology section the article appears in. */}
+      <div>
+        <label htmlFor={technologyId}>Technology section (optional)</label>
+        <select
+          id={technologyId}
+          value={values.technology}
+          onChange={(event) => update("technology", event.target.value)}
+          aria-invalid={Boolean(fieldErrors["technology"])}
+          aria-describedby={fieldErrors["technology"] ? `${technologyId}-error` : undefined}
+        >
+          <option value="">None (appears on Learn only)</option>
+          {TECHNOLOGY_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {fieldErrors["technology"] ? (
+          <p id={`${technologyId}-error`}>{fieldErrors["technology"][0]}</p>
+        ) : null}
       </div>
 
       <div>

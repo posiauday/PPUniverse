@@ -1595,3 +1595,28 @@ Decided by the agent; reversible. It completes the design system, whose four sli
    - Sign-in's markup, which carries the BUG-005, BUG-011 and BUG-014 accessibility fixes, is **not changed at all**.
 2. **No fading for in-flight buttons.** A button marked `aria-disabled` while submitting keeps full colour, because fading drops its text below 4.5:1. The cursor and its "…" label carry the state.
 3. **BUG-009 (sign-in and account pages unstyled) is resolved by this slice.** Its record said the fix "needs the product owner"; the product owner's approval of the design system covers it.
+
+## 2026-09-30 — Technology sections (MVP-028)
+
+Direct product-owner instruction in chat, answering the agent's three questions. This is item 3 of the revised work order ("Revised work order; learning expansion; maintenance agent limits").
+
+### Product-owner decisions
+1. **Six sections at launch:** Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages. **SharePoint Online, Dynamics 365 and a Governance & ALM section are not at launch.** They were offered and not chosen, and can be added later: each is one registry entry and one enum value.
+2. **Four tabs per section:** **Learn · Architecture · Components · KPIs.**
+3. **Addresses:** `/power-apps` (the Learn tab), `/power-apps/architecture`, `/power-apps/components` and `/power-apps/kpis`, and the same pattern for each section.
+
+### Implementation decisions (agent, under the standing instruction; reversible)
+4. **Story MVP-028**, P1, in two slices:
+   - **Slice 1, content model:** the technology field, the KPI guide type, and the admin editor.
+   - **Slice 2:** the section pages, the header menu, home tiles, SEO and the sitemap.
+5. **Articles** get an optional `technology`. None means cross-cutting: the article still appears on `/learn`, just in no section.
+   - A new article type, `KPI_GUIDE` ("KPI guide"), feeds the KPIs tab.
+   - Tab mapping: **Learn** = tutorials and comparisons; **Architecture** = patterns; **KPIs** = KPI guides.
+6. **Components tab.** It is fed by **product categories**, mapped in code from each category's fixed asset type:
+   - Power Apps components and templates → Power Apps.
+   - Power Automate templates → Power Automate.
+   - Power BI templates → Power BI.
+   - Architecture blueprints and governance assets are cross-cutting.
+   - There is no new database column, so the mapping cannot drift from the categories. This is built in slice 2.
+7. **One registry** (`TECHNOLOGIES` in `@ppu/domain-content`) holds each section's name and URL segment. The header, pages, sitemap and admin editor all read it.
+8. **Empty tabs** will show a "coming soon" state and stay `noindex` until they have content, so thin pages never hurt search ranking (slice 2).

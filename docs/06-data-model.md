@@ -41,7 +41,8 @@ SavedProduct, Review, ReviewVote, CreatorResponse, NotificationPreference, Notif
 
 **`Article`** — tutorials, patterns and comparison pages, discriminated by `type`:
 - `id`, `slug` (unique), `title`.
-- `type`: enum `TUTORIAL | PATTERN | COMPARISON`.
+- `type`: enum `TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE` (`KPI_GUIDE` added by MVP-028; it feeds a technology section's KPIs tab).
+- `technology`: nullable enum `Technology` (`POWER_APPS | POWER_AUTOMATE | POWER_BI | COPILOT_STUDIO | DATAVERSE | POWER_PAGES`), added by MVP-028. It is the technology section the article appears in; null means cross-cutting. It is indexed together with `status`.
 - `body`: Markdown source (`TEXT`). Never rendered as raw HTML — the public `/learn/[slug]` page renders it as escaped, preformatted text (no Markdown-to-HTML conversion in this first pass); defense in depth against stored XSS even though only `ADMIN` may author content today.
 - `excerpt`: nullable, used for the page's meta description.
 - `status`: enum `DRAFT | PUBLISHED`, mirroring `packages/domain/catalog/src/visibility.ts`'s `ProductStatus` pattern — only `PUBLISHED` is ever publicly visible.

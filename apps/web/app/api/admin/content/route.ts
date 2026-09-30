@@ -5,6 +5,9 @@ import {
   isValidArticleSlug,
   isValidArticleTitle,
   isValidArticleType,
+  isValidTechnology,
+  type ArticleType,
+  type Technology,
 } from "@ppu/domain-content";
 import { createErrorEnvelope } from "@ppu/shared";
 import { getCorrelationId, logger } from "@ppu/telemetry";
@@ -44,6 +47,7 @@ interface ArticleInputBody {
   slug?: unknown;
   title?: unknown;
   type?: unknown;
+  technology?: unknown;
   excerpt?: unknown;
   body?: unknown;
 }
@@ -61,7 +65,14 @@ function validateArticleFields(body: ArticleInputBody): Record<string, string[]>
     fieldErrors["title"] = ["title is required and must be 200 characters or fewer."];
   }
   if (typeof body.type !== "string" || !isValidArticleType(body.type)) {
-    fieldErrors["type"] = ["type must be one of TUTORIAL, PATTERN, COMPARISON."];
+    fieldErrors["type"] = ["type must be one of TUTORIAL, PATTERN, COMPARISON, KPI_GUIDE."];
+  }
+  // MVP-028: optional -- absent, null or "" means no technology section.
+  const technology = technologyOf(body);
+  if (technology === undefined) {
+    fieldErrors["technology"] = [
+      "technology must be one of POWER_APPS, POWER_AUTOMATE, POWER_BI, COPILOT_STUDIO, DATAVERSE, POWER_PAGES, or empty.",
+    ];
   }
   if (typeof body.body !== "string" || !isValidArticleBody(body.body)) {
     fieldErrors["body"] = ["body is required."];
@@ -129,7 +140,8 @@ export const POST = withObservability("POST /api/admin/content", async (request:
   const article = await contentRepository.createArticle({
     slug,
     title: body.title as string,
-    type: body.type as "TUTORIAL" | "PATTERN" | "COMPARISON",
+    type: body.type as ArticleType,
+    technology: technologyOf(body) ?? null,
     body: body.body as string,
     excerpt: body.excerpt === undefined || body.excerpt === null ? null : (body.excerpt as string),
     authorUserId: admin.userId,
@@ -139,3 +151,12 @@ export const POST = withObservability("POST /api/admin/content", async (request:
 
   return NextResponse.json({ article }, { status: 201 });
 });
+
+/** The submitted technology: null for none, undefined when the value is not allowed (MVP-028). */
+function technologyOf(body: ArticleInputBody): Technology | null | undefined {
+  if (body.technology === undefined || body.technology === null || body.technology === "")
+    return null;
+  return typeof body.technology === "string" && isValidTechnology(body.technology)
+    ? body.technology
+    : undefined;
+}
