@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-027 (Design system) all 4 slices built; status QA.**
+Last updated: 2026-09-30 — **MVP-027 (Design system) is Done.**
+- All 4 slices are merged: PRs #31, #33, #34 and #35, each with all 7 checks green.
+- **Next:** the design-system release, `develop` → `main`. Then the per-technology sections, whose section list and structure go to the product owner first.
+
+Last updated (previous): 2026-09-30 — **MVP-027 (Design system) all 4 slices built; status QA.**
 - **Slice 4 gives every remaining page the new look.** A single set of defaults styles unstyled elements (page width, headings, fields, primary and secondary buttons, tables) in both themes.
 - **Pages covered:** sign-in, account, unsubscribe and the admin screens.
 - **BUG-009 resolved.**
@@ -93,10 +97,10 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 1 | MVP-007 (slices 1–2 of 3) |
-| QA | 1 | MVP-027 |
+| QA | 0 | — |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
-| Done | 17 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026 |
+| Done | 18 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027 |
 | **Total** | **27** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
@@ -191,11 +195,11 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 17 / 27 (63%)
-- Stories in QA: 1 / 27 (MVP-027)
-- Points done: 118 / 188 (63%)
+- Stories done: 18 / 27 (67%)
+- Stories in QA: 0 / 27
+- Points done: 131 / 188 (70%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 15 / 43 (35%)
+- P1 points done: 28 / 43 (65%)
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
@@ -220,7 +224,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
-| 5 | MVP-027 (Design system) | QA (all 4 slices built) | 13 |
+| 5 | MVP-027 (Design system) | **Done** | 13 (done) |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |

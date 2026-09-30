@@ -3931,3 +3931,11 @@ Slice 3 merged first (PR #34).
 **Result:** MVP-027 has all 4 slices built and moves to **QA** until this PR is green and merged. BUG-009 is resolved. NFR-005 is Implemented in the traceability matrix.
 
 **Next:** the design-system release, `develop` → `main`, then the per-technology sections story.
+
+### MVP-027 — merged and Done (2026-09-30)
+- **Merged:** slice 4, PR #35 (merge commit `1e8def7`, CI run `36672052912`, 7 of 7 green), after slices 1–3 (#31, #33, #34).
+- **Definition-of-done gate:**
+  - Tests pass locally and in CI on all three browser engines, light and dark.
+  - Documentation and traceability are updated (NFR-005 Implemented).
+  - The security review is in each PR body: no raw-HTML sink, ids and labels built from safe character sets, and self-hosted fonts.
+- **Process lesson:** `gh pr merge --delete-branch=true` also removes a worktree that has the PR branch checked out. That explains both vanished worktrees. From now on the agent detaches its worktree after pushing.
