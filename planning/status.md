@@ -2,7 +2,17 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-28 — **MVP-026 (SEO discoverability) built, status QA.**
+Last updated: 2026-09-30 — **MVP-026 (SEO discoverability) is Done.**
+- MVP-007 slice 2 merged first, via PR #27.
+- The SEO story merged via PR #28 (merge commit `cb00b6b`) after CI run `36650827876` passed all 7 checks.
+
+The product owner also chose the **Premium 3 "Component showcase" home page**, on top of the A + B design system (`docs/final-decisions.md`, "Home page design: Premium 3").
+
+**Next:**
+1. The first `develop` → `main` release.
+2. The design-system story.
+
+Last updated (previous): 2026-09-28 — **MVP-026 (SEO discoverability) built, status QA.**
 - Articles now render as real formatted pages (TD-017 resolved).
 - A new `/learn` hub lists every published article.
 - Breadcrumbs and "Keep learning" links tie articles together, and the home page shows the latest articles.
@@ -52,10 +62,10 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 1 | MVP-007 (slices 1–2 of 3) |
-| QA | 1 | MVP-026 |
+| QA | 0 | — |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
-| Done | 16 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023 |
+| Done | 17 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026 |
 | **Total** | **26** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
@@ -150,11 +160,11 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 16 / 26 (62%)
-- Stories in QA: 1 / 26 (MVP-026)
-- Points done: 113 / 175 (65%)
+- Stories done: 17 / 26 (65%)
+- Stories in QA: 0 / 26
+- Points done: 118 / 175 (67%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 10 / 30 (33%)
+- P1 points done: 15 / 30 (50%)
 - Open bugs: 4 (BUG-009, BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 9 resolved (BUG-002 resolved by MVP-026) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
@@ -178,7 +188,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 3 | MVP-020 | **Done** | 8 (done) |
 | 4 | MVP-021 | **Done** | 3 (done) |
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
-| 4 | MVP-026 (SEO discoverability) | QA | 5 |
+| 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
