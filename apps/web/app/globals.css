@@ -165,13 +165,20 @@ samp {
   box-shadow: 0 20px 40px -24px rgb(11 92 92 / 0.45);
 }
 
+/* Reduced motion switches animation and transitions OFF, not merely short.
+   The common "duration: 0.01ms" shortcut is wrong here: transition-property
+   defaults to `all`, so a tiny duration on every element makes EVERY style
+   change -- a focus ring appearing, say -- animate from its old value, and a
+   check made in that first instant sees the old one. That is exactly what
+   the accessibility gate caught in CI (it runs with reduced motion on):
+   focus rings measured as the element's white text colour at the default
+   3px width, mid-transition. `none` has no in-between state to observe. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
   .motion-lift:hover {
