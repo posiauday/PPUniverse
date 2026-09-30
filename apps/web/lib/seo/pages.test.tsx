@@ -22,8 +22,15 @@ const content = vi.hoisted(() => ({
   listPublishedArticleSlugs: vi.fn(),
 }));
 
+// MVP-007 slice 2: the product page reads the product's price. Free by
+// default here; one test below sets a price explicitly.
+const commerce = vi.hoisted(() => ({
+  findProductPrice: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock("../catalog", () => ({ catalogRepository: repository }));
 vi.mock("../content", () => ({ contentRepository: content }));
+vi.mock("../commerce", () => ({ commerceRepository: commerce }));
 vi.mock("@ppu/telemetry", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
@@ -290,6 +297,23 @@ describe("product page", () => {
     ]) {
       expect(json, forbidden).not.toContain(`"${forbidden}"`);
     }
+  });
+
+  it("shows a priced product's price and 'all sales final', but still emits no Offer before checkout exists", async () => {
+    commerce.findProductPrice.mockResolvedValueOnce({
+      productId: "p1",
+      amountCents: 4900,
+      currency: "USD",
+      updatedAt: new Date(),
+    });
+    const markup = renderToStaticMarkup(await ProductPage(productProps()));
+    expect(markup).toContain("$49.00 USD");
+    expect(markup).toContain("All sales are final. No refunds.");
+    expect(markup).toContain("Purchasing opens soon.");
+    expect(markup).not.toContain("to get this for free");
+    const json = markup.match(JSON_LD_BLOCK)?.join("") ?? "";
+    expect(json).not.toContain('"offers"');
+    expect(json).not.toContain('"price"');
   });
 
   it("omits the version when no release is published", async () => {

@@ -7,6 +7,7 @@ import { getCorrelationId, logger } from "@ppu/telemetry";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../../../lib/auth";
+import { commerceRepository } from "../../../../../lib/commerce";
 import { withObservability } from "../../../../../lib/observability";
 
 /**
@@ -41,18 +42,42 @@ export const POST = withObservability(
     // independently verifiable here, not only implicit in the query.
     const catalogRepository = new PrismaCatalogRepository(prisma);
     const product = await catalogRepository.findPublishedProductBySlug(slug);
-    if (!product || !isProductEligibleForFreeEntitlement({ status: product.status })) {
-      // Draft, suspended, archived, rejected or nonexistent all read the
-      // same from outside: not found. Nothing distinguishes "exists but
-      // ineligible" from "doesn't exist" in the response, so an unpublished
-      // product's existence is never leaked by this endpoint.
+    if (!product) {
+      // Draft, suspended, archived or nonexistent all read the same from
+      // outside: not found, so an unpublished product's existence is never
+      // leaked by this endpoint.
       return NextResponse.json(
         createErrorEnvelope("NOT_FOUND", "Product not found.", correlationId),
         { status: 404 },
       );
     }
 
+    // The price is read fresh here, never accepted from the client.
+    const price = await commerceRepository.findProductPrice(product.id);
     const entitlementRepository = new PrismaEntitlementRepository(prisma);
+    if (
+      !isProductEligibleForFreeEntitlement({ status: product.status, hasPrice: price !== null })
+    ) {
+      // A priced product is never granted free. Someone who already holds an
+      // entitlement (claimed before the price was set) keeps their access, so
+      // only a new grant is refused. The product is public, so saying it is
+      // not free leaks nothing -- unlike the not-found case above.
+      const existing =
+        price !== null
+          ? await entitlementRepository.findEntitlement(session.user.id, product.id)
+          : null;
+      if (!existing) {
+        return NextResponse.json(
+          createErrorEnvelope(
+            price !== null ? "PRODUCT_NOT_FREE" : "NOT_FOUND",
+            price !== null ? "This product is not free." : "Product not found.",
+            correlationId,
+          ),
+          { status: price !== null ? 409 : 404 },
+        );
+      }
+    }
+
     const { entitlement, reused } = await entitlementRepository.grantOrReuseEntitlement(
       session.user.id,
       product.id,

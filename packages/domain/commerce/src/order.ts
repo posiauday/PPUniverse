@@ -67,3 +67,36 @@ export class InvalidOrderInputError extends Error {
     this.name = "InvalidOrderInputError";
   }
 }
+
+/** Thrown when setting a price on a product that does not exist. */
+export class PricedProductNotFoundError extends Error {
+  constructor(public readonly productId: string) {
+    super(`Product ${productId} not found`);
+    this.name = "PricedProductNotFoundError";
+  }
+}
+
+/**
+ * Parses what an admin types into the price field ("49", "49.9", "49.00",
+ * "$49.00", "1,299.00") into whole cents, or null if it is not a valid
+ * positive amount with at most two decimal places. Works on the string
+ * directly, never through floating-point arithmetic, so "19.99" is exactly
+ * 1999 cents.
+ */
+export function parsePriceInputToCents(input: string): number | null {
+  const cleaned = input.trim().replace(/^\$/, "").replace(/,/g, "");
+  const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(cleaned);
+  if (!match) return null;
+  const dollars = match[1] ?? "0";
+  const cents = (match[2] ?? "").padEnd(2, "0");
+  const total = Number(dollars) * 100 + Number(cents);
+  return isValidOrderAmountCents(total) ? total : null;
+}
+
+/** "$49.00 USD" -- the currency code is always shown, so Canadian visitors
+ * are never left guessing which dollars. */
+export function formatPrice(amountCents: number, currency: string): string {
+  const dollars = Math.floor(amountCents / 100).toLocaleString("en-US");
+  const cents = String(amountCents % 100).padStart(2, "0");
+  return `$${dollars}.${cents} ${currency}`;
+}

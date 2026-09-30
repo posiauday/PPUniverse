@@ -3,6 +3,7 @@ import {
   InvalidOrderInputError,
   OrderNotFoundError,
   OrderStatusTransitionNotAllowedError,
+  PricedProductNotFoundError,
 } from "@ppu/domain-commerce";
 import { PrismaCommerceRepository } from "./commerce-repository.js";
 
@@ -232,6 +233,58 @@ describe.skipIf(!hasDatabase)("PrismaCommerceRepository (integration)", () => {
         order.id,
       );
       await expect(db.order.delete({ where: { id: order.id } })).rejects.toThrow();
+    });
+  });
+
+  describe("product price", () => {
+    it("a product starts free (no price), can be priced, repriced, and made free again", async () => {
+      expect(await repo.findProductPrice(productId)).toBeNull();
+      expect((await repo.setProductPrice(productId, 2900, "USD")).amountCents).toBe(2900);
+      expect((await repo.setProductPrice(productId, 4900, "USD")).amountCents).toBe(4900);
+      expect(await db.price.count({ where: { productId } })).toBe(1);
+      await repo.clearProductPrice(productId);
+      expect(await repo.findProductPrice(productId)).toBeNull();
+      await repo.clearProductPrice(productId);
+    });
+
+    it("rejects a zero, negative or fractional price, or a non-USD currency", async () => {
+      for (const amount of [0, -1, 9.5]) {
+        await expect(repo.setProductPrice(productId, amount, "USD")).rejects.toBeInstanceOf(
+          InvalidOrderInputError,
+        );
+      }
+      await expect(repo.setProductPrice(productId, 100, "CAD")).rejects.toBeInstanceOf(
+        InvalidOrderInputError,
+      );
+    });
+
+    it("the database itself refuses a zero price", async () => {
+      await expect(
+        db.price.create({ data: { productId, amountCents: 0, currency: "USD" } }),
+      ).rejects.toThrow();
+    });
+
+    it("rejects a price for an unknown product", async () => {
+      await expect(repo.setProductPrice("does-not-exist", 100, "USD")).rejects.toBeInstanceOf(
+        PricedProductNotFoundError,
+      );
+    });
+
+    it("deleting a product removes its price (Cascade)", async () => {
+      const category = await db.category.findUniqueOrThrow({
+        where: { slug: "power-apps-components" },
+      });
+      const temp = await db.product.create({
+        data: {
+          slug: "commerce-repo-price-cascade",
+          name: "Price Cascade",
+          summary: "Temporary.",
+          categoryId: category.id,
+        },
+      });
+      await repo.setProductPrice(temp.id, 500, "USD");
+      await db.product.delete({ where: { id: temp.id } });
+      expect(await db.price.count({ where: { productId: temp.id } })).toBe(0);
     });
   });
 });

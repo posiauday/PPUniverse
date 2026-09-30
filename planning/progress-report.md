@@ -3698,3 +3698,23 @@ The product owner merged PR #24 (MVP-014, merge commit `7c1f5d7`); Claude Code's
 **Verified:** `@ppu/domain-commerce` 8/8; `@ppu/adapter-commerce` 15/15 on three consecutive runs against a real Postgres. Both concurrency tests were shown to fail when the conditional update was temporarily replaced with a plain one, then pass once restored. `@ppu/adapter-payments` 11/11 with real Stripe-generated signatures. Workspace: `build` 28/28, `lint` 28/28, `typecheck` 52/52, `test` 52/52 tasks; Prettier clean.
 
 **Remaining for MVP-007:** slice 2 (`Price` model, admin price editor, product-page price and "all sales final" notice) and slice 3 (Checkout Session creation and purchase flow), which is gated on the sales-tax decision. MVP-007 stays In Progress.
+
+## MVP-007 — Checkout (FR-006), slice 2 of 3: one optional price per product (2026-09-28)
+
+**Decisions first** (`docs/final-decisions.md`, "Business model: free learning first; one price per product; work order"). The product owner clarified that the site is primarily free learning content, that ads are the main intended revenue, and that only a few items will ever be priced. Pricing is therefore **one USD price per product**, with no per-tier pricing; this revises the per-tier wording recorded earlier the same day. Work order: this slice, then SEO, then ads, then checkout. Articles use the LowCodeStacks brand as byline.
+
+**Built:**
+- **Schema:** `Price`, at most one row per product, with CHECKs for a positive amount and a three-letter currency, RLS, and Cascade on product delete. Migration `20260929041358_add_product_prices`, with no drift between schema and migrations.
+- **`@ppu/domain-commerce`:** `parsePriceInputToCents` parses what the admin types (`"49"`, `"$1,299.50"`) as a string, never through floating point, so `"19.99"` is exactly 1999 cents; three decimals, zero and text are rejected. Also `formatPrice` ("$49.00 USD"), `PricedProductNotFoundError`, and three new repository-port methods.
+- **`@ppu/adapter-commerce`:** `findProductPrice`, `setProductPrice` (upsert, with a missing product mapped from P2003) and `clearProductPrice` (idempotent).
+- **Security fix:** `isProductEligibleForFreeEntitlement` now requires the product to be PUBLISHED **and** unpriced. The free-download route reads the price fresh and returns `409 PRODUCT_NOT_FREE` for a priced product, so a paid item can never be claimed free. Someone who claimed it before it was priced keeps access. The route had no tests before; it now has 5.
+- **Admin API:** `PUT`/`DELETE /api/admin/products/{id}/price`, deny-by-default ADMIN. The price text is parsed on the server, so the client cannot bypass the one parser. Telemetry: `product.price_set`, `product.price_cleared`.
+- **Admin UI:** a "Price" section in the product editor. It says "This product is free." or shows the current price, with a labelled price input carrying a hint and error text linked via `aria-describedby`, plus "Make free".
+- **Public product page:** a priced product shows "$49.00 USD", "All sales are final. No refunds." and "Purchasing opens soon." instead of the free-download control. The Product JSON-LD still carries **no Offer**: a product that cannot be bought yet must not advertise itself as purchasable to search engines. Offer data arrives with checkout (slice 3).
+- **Accessibility:** a new `pricedProduct` fixture (7 products per worker now) and two states, `product-priced` and `admin-products-edit-priced`.
+
+**A mistake of mine, caught by the tests:** the first version of the `admin-products-edit-priced` state used the regex `/current price: $49.00 USD/i`, where `$` is an end-of-line anchor, so it could never match. The page was correct; the locator was replaced with a plain string match.
+
+**Verified:** `@ppu/domain-commerce` 13/13, `@ppu/adapter-commerce` 20/20 against real Postgres, `@ppu/domain-entitlements` 5/5, `@ppu/web` 345/345, `@ppu/e2e` 82/82; Playwright on chromium 73/73 across all product and admin-product states plus the inventory and fixture-cleanup specs; workspace build, lint, typecheck and test all green, Prettier clean.
+
+**Remaining for MVP-007:** slice 3 (checkout: Canada/US enforcement, billing country and state recorded, Offer data in JSON-LD), after the SEO and ads stories per the agreed order.

@@ -205,6 +205,9 @@ importers:
       '@ppu/adapter-catalog':
         specifier: workspace:*
         version: link:../../packages/adapters/catalog
+      '@ppu/adapter-commerce':
+        specifier: workspace:*
+        version: link:../../packages/adapters/commerce
       '@ppu/adapter-content':
         specifier: workspace:*
         version: link:../../packages/adapters/content
@@ -241,6 +244,9 @@ importers:
       '@ppu/domain-catalog':
         specifier: workspace:*
         version: link:../../packages/domain/catalog
+      '@ppu/domain-commerce':
+        specifier: workspace:*
+        version: link:../../packages/domain/commerce
       '@ppu/domain-content':
         specifier: workspace:*
         version: link:../../packages/domain/content

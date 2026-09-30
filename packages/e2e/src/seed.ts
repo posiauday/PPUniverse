@@ -80,6 +80,10 @@ export interface FixtureSet {
    * "reinstate or archive" status-control state, and gives the admin
    * audit-log page a guaranteed, this-worker-owned row to find. */
   suspendedAdminProduct: AdminProductRef;
+  /** MVP-007 slice 2: a PUBLISHED product with a price ($49.00 USD) --
+   * exercises the public page's price and "Purchasing opens soon" state and
+   * the admin editor's "current price / Make free" state. */
+  pricedProduct: AdminProductRef;
   user: { id: string; email: string };
   /** The session the browser signs in with. */
   currentSession: SessionRef;
@@ -393,6 +397,21 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.productIds.push(freeGrant.id);
 
+    const pricedSlug = `${prefix}priced-product`;
+    assertReserved("product", pricedSlug);
+    const priced = await prisma.product.create({
+      data: {
+        slug: pricedSlug,
+        name: "E2E fixture: priced product (not a real listing)",
+        summary,
+        status: "PUBLISHED",
+        publishedAt: now,
+        categoryId: populated.id,
+        price: { create: { amountCents: 4900, currency: "USD" } },
+      },
+    });
+    created.productIds.push(priced.id);
+
     const email = `${prefix}user@example.invalid`;
     assertReserved("user", email);
     const user = await prisma.user.create({
@@ -640,6 +659,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         slug: publishedAdminProduct.slug,
         name: publishedAdminProduct.name,
       },
+      pricedProduct: { id: priced.id, slug: priced.slug, name: priced.name },
       suspendedAdminProduct: {
         id: suspendedAdminProduct.id,
         slug: suspendedAdminProduct.slug,
