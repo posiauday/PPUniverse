@@ -4176,3 +4176,28 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 **Verified:** the content gate passes (21 tests, 20 files), and the whole-repo format check is clean.
 
 **Next:** Power Pages (4 articles), which completes wave 1.
+
+## MVP-029 — Launch content: Power Pages section; all 24 wave-1 articles written, story moves to QA (2026-09-30)
+
+**Written:** four drafts in `content/articles/power-pages/`:
+- **"Build your first Power Pages site on Dataverse"** (TUTORIAL, Learn tab).
+- **"Power Pages or a SharePoint site?"** (COMPARISON, Learn tab).
+- **"Web roles and table permissions: securing portal data"** (PATTERN, Architecture tab).
+- **"Portal KPIs: sign-ups, self-service rate and form completion"** (KPI_GUIDE, KPIs tab).
+
+**Checked against Microsoft Learn:**
+- **Defaults.** Sites are private by default. Data is blocked until table permissions grant it. The default environment isn't recommended.
+- **Access types:** Global, Contact, Account, Self, Parent, and Custom (preview, enhanced-authorization sites only).
+- **Microsoft's security best practices:** treat Anonymous as public; avoid Global for sensitive data, especially with the Web API; page permissions are needed because hiding a page doesn't secure it; Web API column permissions don't protect other rendering paths.
+- **Licensing.** List prices are given with their date: authenticated packs of 100 at $200, anonymous packs of 500 at $75, pay-as-you-go at $4 and $0.30. The rules on who counts are included: sign-in pages, bots and errors are excluded, and some internal licences exempt users.
+- **Analytics.** The admin center keeps DAU, WAU and MAU for 30 days, for public sites only. Analytics and licensing counts are expected to differ. Built-in site analytics is a September 2026 preview.
+
+**Status:** all 24 wave-1 articles exist as drafts. **MVP-029 moves to QA, not Done.** The articles are imported as drafts and need product-owner review and publishing, which is the story's real finish line.
+- **Definition-of-Done gate:** tests pass (content gate 25 tests, 24 files).
+- **Docs:** `content/articles/README.md` and `CLAUDE.md` were updated earlier in the story.
+- **Traceability:** FR-014 is unchanged; the content pipeline was recorded earlier.
+- **Security review:** no code changed in the article batches. The pipeline imports drafts only, authored by an existing ADMIN.
+
+**Next:**
+- The product owner merges #47 and this PR, then runs `content:import` against the target database (or the agent does, with the product owner's go-ahead) and reviews and publishes the drafts.
+- In parallel: the deployment story (Netlify, ADR-005) and the decisions-sync pass, if approved.

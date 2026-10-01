@@ -2,7 +2,9 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **Security fix: BUG-018 (critical Next.js advisory) resolved on `develop`; it needs releasing to `main`.** MVP-029 continues unchanged.
+Last updated: 2026-09-30 — **MVP-029 (Launch content) moves to QA: all 24 wave-1 articles are written, and the product owner now reviews and publishes them.** The launch is content-first: the site goes live once they're published (`docs/final-decisions.md`, "Launch is content-first").
+
+Last updated (previous): 2026-09-30 — **Security fix: BUG-018 (critical Next.js advisory) resolved on `develop`; it needs releasing to `main`.** MVP-029 continues unchanged.
 
 Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) In Progress: the pipeline is built and 20 of 24 articles are written (Power Apps, Power Automate, Power BI, Copilot Studio and Dataverse sections complete).**
 - **Approval:** the product owner approved the launch content plan (24 wave-1 articles).
@@ -119,8 +121,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-029 (20 of 24 articles) |
-| QA | 0 | — |
+| In Progress | 1 | MVP-007 (slices 1–2 of 3) |
+| QA | 1 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
@@ -249,7 +251,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
 | 5 | MVP-027 (Design system) | **Done** | 13 (done) |
 | 5 | MVP-028 (Technology sections) | **Done** | 8 (done) |
-| 6 | MVP-029 (Launch content) | In Progress (20 of 24 articles) | 13 |
+| 6 | MVP-029 (Launch content) | QA (24 of 24 articles written; awaiting product-owner review) | 13 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
