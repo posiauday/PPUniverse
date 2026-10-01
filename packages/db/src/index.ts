@@ -1,4 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { pgSchemaOptions } from "./connection-options.js";
 import { PrismaClient } from "./generated/client/client.js";
 
 declare global {
@@ -36,11 +37,9 @@ function createPrismaClient(): PrismaClient {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set. See packages/db/.env.example.");
   }
-  const schema = new URL(connectionString).searchParams.get("schema") ?? undefined;
-  const adapter = new PrismaPg(
-    { connectionString, options: schema ? `-c search_path="${schema}"` : undefined },
-    { schema },
-  );
+  // The search_path startup option is skipped for `public`; see connection-options.ts (MVP-030).
+  const { schema, options } = pgSchemaOptions(connectionString);
+  const adapter = new PrismaPg({ connectionString, options }, { schema });
   return new PrismaClient({ adapter });
 }
 
