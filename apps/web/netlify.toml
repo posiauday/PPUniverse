@@ -1,0 +1,34 @@
+# Netlify build settings for the web app (MVP-030; docs/adr/005-hosting-netlify.md).
+#
+# Monorepo layout, per Netlify's monorepo guidance:
+#   - Base directory: the repository root (leave it unset in the Netlify UI).
+#   - Package directory: apps/web (set in the Netlify UI). This file must live
+#     there.
+#   - Dependencies install from the root with pnpm (Netlify reads
+#     `packageManager` from the root package.json).
+#
+# Next.js runs through Netlify's OpenNext adapter, with no extra configuration.
+# The adapter version is deliberately not pinned, as Netlify recommends.
+#
+# Secrets and per-environment values (DATABASE_URL, NEXTAUTH_SECRET,
+# NEXT_PUBLIC_SITE_URL and the rest) are set in the Netlify UI, never here:
+# this file is committed to a public repository. See docs/15-deployment.md.
+
+[build]
+  # Builds @ppu/web and the workspace packages it depends on (Turborepo's
+  # `^build`). @ppu/db generates its Prisma client first.
+  command = "pnpm turbo run build --filter=@ppu/web"
+  # Relative to the package directory (apps/web).
+  publish = ".next"
+
+[build.environment]
+  # Matches CI (.github/workflows).
+  NODE_VERSION = "22"
+  # Turborepo telemetry off in hosted builds.
+  TURBO_TELEMETRY_DISABLED = "1"
+
+# Deploy previews (one per pull request) are free on Netlify and are served with
+# an automatic `X-Robots-Tag: noindex`, so they stay out of search results
+# (TD-009). Branch deploys don't get that header. Leave them OFF in the Netlify
+# UI (Site configuration > Build & deploy > Branches and deploy contexts:
+# "Branch deploys: None").

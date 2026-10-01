@@ -4201,3 +4201,49 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 **Next:**
 - The product owner merges #47 and this PR, then runs `content:import` against the target database (or the agent does, with the product owner's go-ahead) and reviews and publishes the drafts.
 - In parallel: the deployment story (Netlify, ADR-005) and the decisions-sync pass, if approved.
+
+## MVP-030 — Deploy to Netlify: slice 1 of 2, repository preparation (2026-10-01)
+
+**Story created** to implement `docs/adr/005-hosting-netlify.md` (hosting decided by the product owner, 2026-09-30) and the content-first launch. It covers NFR-007 (reliability) and FR-017 (search engines, via TD-009). 5 points, P1.
+
+**Plan, stated before coding:**
+- **Slice 1 (this entry):** repository changes and the runbook.
+- **Slice 2:** the first real deploy with the product owner, who creates the accounts and enters every secret.
+- **Migration impact:** none.
+- **Security impact:** secrets live only in Netlify's environment variables; the repo holds no credentials. Previews are kept out of search results. The admin role is still granted only by a manual SQL statement, as decided earlier.
+
+**Built:**
+- **`packages/db/src/connection-options.ts`** (new) and its use in `index.ts`. The `-c search_path` startup option is now sent only for non-`public` schemas.
+  - **Why:** Supabase's transaction pooler (port 6543), which Supabase recommends for serverless, doesn't pass startup parameters through. `public` is the default search_path anyway.
+  - **Unchanged:** the test schemas (`pkg_*`) keep the option, so BUG-015's isolation holds.
+  - **Tests:** `connection-options.test.ts` (3 tests).
+- **`apps/web/netlify.toml`** (new):
+  - **Build:** `pnpm turbo run build --filter=@ppu/web`, publishing `.next` and using Node 22 (matching CI). The location and settings follow Netlify's monorepo guidance.
+  - **Comments** say why branch deploys stay off, and that secrets never go in the file.
+- **`docs/15-deployment.md`** (new): the runbook. It covers:
+  - the services and free plans, and who does what;
+  - Supabase's two connection strings and `migrate deploy` over the direct one;
+  - Resend's domain verification (needed, because sign-in is by email link);
+  - the Netlify settings and an environment-variable table;
+  - a first-deploy verification checklist;
+  - the admin grant (`update users set role = 'ADMIN' ...`);
+  - the article import, the DNS cut-over, and Search Console.
+- **`CLAUDE.md`:** a deployment paragraph pointing at the ADR, the toml and the runbook.
+- **TD-009:** the resolution is updated to rely on Netlify's automatic `X-Robots-Tag: noindex` on deploy previews, with branch deploys off. It stays **Open until verified** on the first preview.
+
+**Decided during the work (agent, reversible):**
+- **Rejected: a `DIRECT_URL` override in `prisma.config.ts` for migrations.** `provision-test-schemas.mjs` runs `migrate deploy` per test schema by setting `DATABASE_URL`. A stray `DIRECT_URL` in a developer's shell would silently redirect those migrations to production. Migrations against Supabase are instead run with `DATABASE_URL` set explicitly to the 5432 string (runbook step 1).
+- **Research checked on 2026-10-01:**
+  - Netlify supports Next.js 13.5 and later with no configuration, through its OpenNext adapter, but its docs don't name Next.js 16 or `next/og`, so slice 2 must verify both.
+  - Supabase recommends the transaction pooler for app traffic and a direct or session connection for migrations.
+  - Resend's free plan allows 3,000 emails a month and 100 a day.
+
+**Commands and results:**
+- `pnpm lint` and `pnpm typecheck`: clean.
+- `pnpm test` against the local Postgres: all pass, including `@ppu/db` (24), `@ppu/adapter-catalog` (87, raw SQL in a non-public schema), `@ppu/adapter-content` (34) and `@ppu/web` (465).
+
+**Risks:**
+- Netlify's build may not pick up pnpm 12 from `packageManager` automatically. That's the first slice-2 check.
+- A transaction pooler can't hold session state. Nothing in the app relies on session-level state apart from the `search_path` handled here.
+
+**Remaining (slice 2):** the product owner creates the Netlify, Resend and (optionally) second Supabase accounts and enters the variables. Then the first preview deploy and its verification, the production deploy, the admin grant, the content import, publishing, and DNS.
