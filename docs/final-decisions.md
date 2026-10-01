@@ -1650,3 +1650,24 @@ Direct product-owner instruction in chat: *"approve the content launch"*.
 2. **Workflow.** The agent writes every article as a **draft**, tagged to its section and tab, and the product owner reviews and publishes it. Nothing is published by the agent.
 3. **Testing disclosure.** Examples are checked against Microsoft's documentation, but the agent cannot run them in a Power Platform tenant. Articles say an example follows Microsoft's documented behaviour unless someone has actually tested it.
 4. **Competitor research (agent decision, recorded because the product owner asked to "scrape competitor websites and use their code").** Competitor sites may be **reviewed** for what they offer, how they are organised and where they fall short. Their **code, text and assets are never copied or scraped**: that is their copyright and usually against their terms, and it would contradict the "original writing" rule. Everything LowCodeStacks publishes is original work, citing sources where it relies on them.
+
+## 2026-09-30 — Hosting: Netlify, free plan first; free-only infrastructure
+
+Direct product-owner instructions in chat, in order:
+- *"if it add any cost then i only want whtevr is free"*
+- *"okay go with netlify"*
+
+They followed the agent's comparison of free and cheapest hosting options. The full comparison is in `docs/adr/005-hosting-netlify.md`.
+
+1. **Cost rule: free infrastructure only.** Hosting, database, storage and similar services use free plans. Any paid plan needs the product owner's confirmation at the time it's needed.
+2. **The web app is hosted on Netlify's Free plan.**
+   - **Upgrade path.** If the free plan is outgrown, the planned step is Netlify Personal ($9/month, no migration). Under rule 1, the product owner confirms it then; it isn't approved in advance.
+   - **Why not Vercel.** Vercel's free plan forbids commercial use, and lists ads and payments as commercial.
+   - **Why not Cloudflare.** Its free plan's 10 ms CPU limit per request doesn't suit our database-backed pages.
+3. **Unchanged:** the database is PostgreSQL on Supabase (free plan), and file storage is Cloudflare R2 (free tier).
+4. **Production deploys only on releases to `main`,** because production deploys use free-plan credits and preview deploys don't.
+5. **Resolves the hosting-provider part of open question 5.** The region and data-residency commitments stay open; the region should match the Supabase project's region.
+6. **Context recorded, not a new decision.** The product owner noted that visitors don't upload anything (first-party-only, 2026-09-24) and that no background worker was promised. Nothing at launch needs a worker or a malware scanner.
+   - **Two questions stay open:** how product files are checked once downloads exist (a hosted scanner costs money, so it falls under rule 1), and the worker model (open question 56).
+   - **Not changed yet:** `CLAUDE.md`'s upload and job-queue defaults. Updating them belongs to the decisions-sync pass, which awaits product-owner approval.
+7. **Not decided here:** whether launch is content-first (articles live before checkout), and the decisions-sync pass itself. Both await the product owner's answer.
