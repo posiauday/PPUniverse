@@ -4152,3 +4152,27 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 **Risk and remaining work:**
 - **Release to `main`.** `main` still carries 16.3.5. The product owner should release this fix there; nothing is deployed, so there's no live exposure.
 - **Bug index drift.** `planning/bugs.csv` and `planning/status.md` disagree for several older bugs. That's noted in status and left for a separate reconciliation.
+
+## MVP-029 — Launch content: Dataverse section complete, 20 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/dataverse/`:
+- **"Dataverse or SharePoint lists? An honest comparison"** (COMPARISON, Learn tab).
+- **"Design your first Dataverse schema"** (TUTORIAL, Learn tab).
+- **"Security roles, business units and teams without the tangle"** (PATTERN, Architecture tab).
+- **"Data quality KPIs: completeness, duplicates and freshness"** (KPI_GUIDE, KPIs tab).
+
+**Details confirmed on Microsoft Learn and called out for readers:**
+- **Ownership is permanent.** A table's ownership type can't be changed after creation.
+- **Names are permanent.** Table and column names can't change, and they carry the publisher prefix.
+- **Lookups expose primary names.** A lookup reveals the related row's primary name, even to users who can't open that row.
+- **Privileges only add up.** They're cumulative, and the greatest access wins.
+- **Alternate keys don't check blanks.** Blank values aren't checked for uniqueness.
+- **The list view threshold.** SharePoint's 5,000-item threshold applies to views without indexed columns.
+
+**Corrected while writing:** "Date only" columns need the "Date only" behaviour, not just the date-only format, to avoid time-zone shifts.
+
+**Labelled as our own recommendations:** the five decision questions, the example schema, the order of the security steps, and the data-quality KPI definitions.
+
+**Verified:** the content gate passes (21 tests, 20 files), and the whole-repo format check is clean.
+
+**Next:** Power Pages (4 articles), which completes wave 1.
