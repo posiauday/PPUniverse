@@ -1670,4 +1670,13 @@ They followed the agent's comparison of free and cheapest hosting options. The f
 6. **Context recorded, not a new decision.** The product owner noted that visitors don't upload anything (first-party-only, 2026-09-24) and that no background worker was promised. Nothing at launch needs a worker or a malware scanner.
    - **Two questions stay open:** how product files are checked once downloads exist (a hosted scanner costs money, so it falls under rule 1), and the worker model (open question 56).
    - **Not changed yet:** `CLAUDE.md`'s upload and job-queue defaults. Updating them belongs to the decisions-sync pass, which awaits product-owner approval.
-7. **Not decided here:** whether launch is content-first (articles live before checkout), and the decisions-sync pass itself. Both await the product owner's answer.
+7. **Not decided here:** the decisions-sync pass. It awaits the product owner's answer. The launch question is answered in the next entry.
+
+## 2026-09-30 — Launch is content-first
+
+Direct product-owner instruction in chat, answering "content-first launch?": *"yes all content got created first adn then live"*.
+
+1. **The first public launch is content-first.** The site goes live on `lowcodestacks.com` (Netlify, see the previous entry) **after the launch content is created**: the 24 wave-1 articles in the approved plan ("Launch content plan approved", 2026-09-30), reviewed and published by the product owner.
+2. **Checkout and product downloads aren't part of this launch.** They follow in a later release, in the work order already decided ("Revised work order", 2026-09-29: content, then ads, then checkout).
+3. **Known conflict, recorded rather than resolved silently.** `docs/02-prd.md`'s release criteria still describe a launch that includes a paid product, purchase and download. Under this decision those criteria describe the later commerce release, not the content launch. Rewording the PRD belongs to the decisions-sync pass, which still awaits product-owner approval.
+4. **Interpretation note (agent).** "All content" is read as the 24 wave-1 articles, not the 15 wave-2 articles, which the approved plan schedules after launch. If the product owner meant wave 2 as well, this entry should be corrected.
