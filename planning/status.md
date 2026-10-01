@@ -4,7 +4,7 @@ Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `plann
 
 Last updated: 2026-09-30 — **Security fix: BUG-018 (critical Next.js advisory) resolved on `develop`; it needs releasing to `main`.** MVP-029 continues unchanged.
 
-Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) In Progress: the pipeline is built and 12 of 24 articles are written (Power Apps, Power Automate and Power BI sections complete).**
+Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) In Progress: the pipeline is built and 16 of 24 articles are written (Power Apps, Power Automate, Power BI and Copilot Studio sections complete).**
 - **Approval:** the product owner approved the launch content plan (24 wave-1 articles).
 - **How articles work:** each is a reviewed Markdown file, checked in CI and imported only as a draft.
 - **First article:** "Delegation in Power Apps: why your gallery stops at 500 rows", verified against Microsoft Learn.
@@ -119,7 +119,7 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-029 (12 of 24 articles) |
+| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-029 (16 of 24 articles) |
 | QA | 0 | — |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
@@ -249,7 +249,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
 | 5 | MVP-027 (Design system) | **Done** | 13 (done) |
 | 5 | MVP-028 (Technology sections) | **Done** | 8 (done) |
-| 6 | MVP-029 (Launch content) | In Progress (12 of 24 articles) | 13 |
+| 6 | MVP-029 (Launch content) | In Progress (16 of 24 articles) | 13 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
