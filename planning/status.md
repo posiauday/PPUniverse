@@ -2,7 +2,21 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-09-30 — **MVP-028 (Technology sections) both slices built; status QA.**
+Last updated: 2026-09-30 — **MVP-029 (Launch content) moves to QA: all 24 wave-1 articles are written, and the product owner now reviews and publishes them.** The launch is content-first: the site goes live once they're published (`docs/final-decisions.md`, "Launch is content-first").
+
+Last updated (previous): 2026-09-30 — **Security fix: BUG-018 (critical Next.js advisory) resolved on `develop`; it needs releasing to `main`.** MVP-029 continues unchanged.
+
+Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) In Progress: the pipeline is built and 20 of 24 articles are written (Power Apps, Power Automate, Power BI, Copilot Studio and Dataverse sections complete).**
+- **Approval:** the product owner approved the launch content plan (24 wave-1 articles).
+- **How articles work:** each is a reviewed Markdown file, checked in CI and imported only as a draft.
+- **First article:** "Delegation in Power Apps: why your gallery stops at 500 rows", verified against Microsoft Learn.
+- **Research:** a competitor review of Lumeric Visuals is saved in `docs/research/competitors/`.
+
+Last updated (previous): 2026-09-30 — **MVP-028 (Technology sections) is Done, and Release 2 is on `main` (PR #39).**
+- Release 2 contains the design system and the technology sections, both slices.
+- **Next:** researched launch content, with the article plan going to the product owner first.
+
+Last updated (previous): 2026-09-30 — **MVP-028 (Technology sections) both slices built; status QA.**
 - **Six sections, each with four tabs:** Learn, Architecture, Components and KPIs, at `/power-apps` and so on.
 - **Navigation:** a Technologies menu in the header, technology tiles on the home page, and chips on `/learn`.
 - **Search engines:** empty tabs say "Coming soon" and stay out of search; tabs with content are in the sitemap.
@@ -108,11 +122,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 1 | MVP-007 (slices 1–2 of 3) |
-| QA | 1 | MVP-028 |
+| QA | 1 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
-| Done | 18 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027 |
-| **Total** | **28** | |
+| Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
+| **Total** | **29** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -206,11 +220,11 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 18 / 28 (64%)
-- Stories in QA: 1 / 28 (MVP-028)
-- Points done: 131 / 196 (67%)
+- Stories done: 19 / 29 (66%)
+- Stories in QA: 0 / 29
+- Points done: 139 / 209 (67%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 28 / 51 (55%)
+- P1 points done: 36 / 64 (56%)
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
 - Stories blocked: 0
@@ -236,7 +250,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 4 | MVP-007 | In Progress (slices 1–2 of 3) | 8 |
 | 4 | MVP-026 (SEO discoverability) | **Done** | 5 (done) |
 | 5 | MVP-027 (Design system) | **Done** | 13 (done) |
-| 5 | MVP-028 (Technology sections) | QA (both slices built) | 8 |
+| 5 | MVP-028 (Technology sections) | **Done** | 8 (done) |
+| 6 | MVP-029 (Launch content) | QA (24 of 24 articles written; awaiting product-owner review) | 13 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
@@ -261,7 +276,9 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 ## Open bugs
 
-6 open, 1 mitigated (not root-fixed), 8 resolved:
+6 open, 1 mitigated (not root-fixed), 8 resolved, as last counted. This count predates BUG-016 to BUG-018. `planning/bugs.csv` disagrees with this list for several older bugs (BUG-003 to BUG-009 and BUG-015); reconciling them against git history is a separate cleanup.
+- **[BUG-018](bugs/BUG-018.md) (P0, security)** — **Resolved** 2026-09-30: a critical Next.js advisory (GHSA-vcvr-r3jv-pc5j, remote code execution in `next/og` `ImageResponse`) covered our 16.3.5. Upgraded to 16.3.7. Nothing is deployed, so nothing was exposed; `main` still needs the fix released.
+- [BUG-016](bugs/BUG-016.md) and [BUG-017](bugs/BUG-017.md) — **Resolved** 2026-09-30 (accessibility-suite fixture cleanup; a test that failed on Windows line endings).
 - [BUG-001](bugs/BUG-001.md) — **Resolved** by MVP-021 (PR #5, 2026-09-21): delivered pages emitted relative canonical/`og:url` tags and sign-in/account pages were indexable. No production deployment existed, so nothing was exposed.
 - [BUG-002](bugs/BUG-002.md) — **Resolved** by MVP-026 (2026-09-28): a repeated query parameter now uses its first value instead of returning HTTP 500.
 

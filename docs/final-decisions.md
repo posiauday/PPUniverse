@@ -1639,3 +1639,44 @@ Decided by the agent; reversible.
    - The header has a **Technologies** disclosure menu. It is the WAI-ARIA disclosure pattern: Escape and a click outside close it, and focus returns to the button.
    - The home page has an "Explore by technology" tile grid, and `/learn` has a chip row. These are the always-present, crawlable links; the menu is a shortcut.
 5. **The Components tab** lists up to 12 newest products per technology category, with an "All N in {category}" link when there are more.
+
+## 2026-09-30 — Launch content plan approved; competitor research rule
+
+Direct product-owner instruction in chat: *"approve the content launch"*.
+
+1. **The launch content plan is approved**, as published in the "LowCodeStacks Launch Content" plan (a private claude.ai artifact):
+   - **Wave 1:** 24 articles, four per technology section (two Learn, one Architecture, one KPI guide).
+   - **Wave 2:** 15 more after launch.
+2. **Workflow.** The agent writes every article as a **draft**, tagged to its section and tab, and the product owner reviews and publishes it. Nothing is published by the agent.
+3. **Testing disclosure.** Examples are checked against Microsoft's documentation, but the agent cannot run them in a Power Platform tenant. Articles say an example follows Microsoft's documented behaviour unless someone has actually tested it.
+4. **Competitor research (agent decision, recorded because the product owner asked to "scrape competitor websites and use their code").** Competitor sites may be **reviewed** for what they offer, how they are organised and where they fall short. Their **code, text and assets are never copied or scraped**: that is their copyright and usually against their terms, and it would contradict the "original writing" rule. Everything LowCodeStacks publishes is original work, citing sources where it relies on them.
+
+## 2026-09-30 — Hosting: Netlify, free plan first; free-only infrastructure
+
+Direct product-owner instructions in chat, in order:
+- *"if it add any cost then i only want whtevr is free"*
+- *"okay go with netlify"*
+
+They followed the agent's comparison of free and cheapest hosting options. The full comparison is in `docs/adr/005-hosting-netlify.md`.
+
+1. **Cost rule: free infrastructure only.** Hosting, database, storage and similar services use free plans. Any paid plan needs the product owner's confirmation at the time it's needed.
+2. **The web app is hosted on Netlify's Free plan.**
+   - **Upgrade path.** If the free plan is outgrown, the planned step is Netlify Personal ($9/month, no migration). Under rule 1, the product owner confirms it then; it isn't approved in advance.
+   - **Why not Vercel.** Vercel's free plan forbids commercial use, and lists ads and payments as commercial.
+   - **Why not Cloudflare.** Its free plan's 10 ms CPU limit per request doesn't suit our database-backed pages.
+3. **Unchanged:** the database is PostgreSQL on Supabase (free plan), and file storage is Cloudflare R2 (free tier).
+4. **Production deploys only on releases to `main`,** because production deploys use free-plan credits and preview deploys don't.
+5. **Resolves the hosting-provider part of open question 5.** The region and data-residency commitments stay open; the region should match the Supabase project's region.
+6. **Context recorded, not a new decision.** The product owner noted that visitors don't upload anything (first-party-only, 2026-09-24) and that no background worker was promised. Nothing at launch needs a worker or a malware scanner.
+   - **Two questions stay open:** how product files are checked once downloads exist (a hosted scanner costs money, so it falls under rule 1), and the worker model (open question 56).
+   - **Not changed yet:** `CLAUDE.md`'s upload and job-queue defaults. Updating them belongs to the decisions-sync pass, which awaits product-owner approval.
+7. **Not decided here:** the decisions-sync pass. It awaits the product owner's answer. The launch question is answered in the next entry.
+
+## 2026-09-30 — Launch is content-first
+
+Direct product-owner instruction in chat, answering "content-first launch?": *"yes all content got created first adn then live"*.
+
+1. **The first public launch is content-first.** The site goes live on `lowcodestacks.com` (Netlify, see the previous entry) **after the launch content is created**: the 24 wave-1 articles in the approved plan ("Launch content plan approved", 2026-09-30), reviewed and published by the product owner.
+2. **Checkout and product downloads aren't part of this launch.** They follow in a later release, in the work order already decided ("Revised work order", 2026-09-29: content, then ads, then checkout).
+3. **Known conflict, recorded rather than resolved silently.** `docs/02-prd.md`'s release criteria still describe a launch that includes a paid product, purchase and download. Under this decision those criteria describe the later commerce release, not the content launch. Rewording the PRD belongs to the decisions-sync pass, which still awaits product-owner approval.
+4. **Interpretation note (agent).** "All content" is read as the 24 wave-1 articles, not the 15 wave-2 articles, which the approved plan schedules after launch. If the product owner meant wave 2 as well, this entry should be corrected.

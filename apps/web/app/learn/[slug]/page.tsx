@@ -7,7 +7,8 @@ import { contentRepository } from "../../../lib/content";
 import { outlineOf, readingMinutes } from "../../../lib/article-outline";
 import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
 import { findRelatedArticles } from "../../../lib/related-articles";
-import { homeUrl, learnIndexUrl, learnUrl } from "../../../lib/seo/canonical";
+import { technologyInfo } from "@ppu/domain-content";
+import { homeUrl, learnIndexUrl, learnUrl, technologySectionUrl } from "../../../lib/seo/canonical";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/seo/json-ld";
 import { buildLearnMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
 import { SITE_NAME } from "../../../lib/seo/site";
@@ -86,10 +87,21 @@ export default async function LearnPage({ params }: LearnPageProps) {
         updatedAt: article.updatedAt,
       })
     : null;
+  // MVP-029: an article in a technology section sits under that section in
+  // the trail (LowCodeStacks / Power Apps / title); others under Learn.
+  const section = article.technology ? technologyInfo(article.technology) : null;
+  const parent = section
+    ? { name: section.name, path: `/${section.slug}` }
+    : { name: "Learn", path: "/learn" };
   const breadcrumbJsonLd = site.ok
     ? buildBreadcrumbJsonLd([
         { name: SITE_NAME, url: homeUrl(site.origin) },
-        { name: "Learn", url: learnIndexUrl(site.origin) },
+        {
+          name: parent.name,
+          url: section
+            ? technologySectionUrl(site.origin, parent.path)
+            : learnIndexUrl(site.origin),
+        },
         { name: article.title, url: learnUrl(site.origin, article.slug) },
       ])
     : null;
@@ -102,7 +114,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
       <Breadcrumbs
         items={[
           { name: SITE_NAME, href: "/" },
-          { name: "Learn", href: "/learn" },
+          { name: parent.name, href: parent.path },
           { name: article.title },
         ]}
       />

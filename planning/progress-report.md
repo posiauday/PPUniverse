@@ -4014,3 +4014,190 @@ Slice 1 merged as PR #37. It was merged about 49 seconds after its CI run starte
   - an empty Dataverse KPIs tab in dark mode (`noindex, follow`, no overflow).
 
 **Next:** merge, then the design-system release to `main`, then launch content.
+
+### MVP-028 — merged and Done; Release 2 on `main` (2026-09-30)
+- **#38 (slice 2)** merged with all 7 checks green. **#37 (slice 1)** was merged before its checks finished; `develop` CI then passed on it.
+- **Release 2 (#39, `develop` → `main`)** merged 4 seconds after #38. `develop` had already moved, so `main` includes the section pages as well. The release PR body said they would come later; that is corrected here. The code had passed its own PR CI as #38, and `main` push CI runs on the merge.
+- **Process note:** two merges this session happened before their checks ran (most likely `--admin`). No harm came of it, because the code had been verified elsewhere. The recommended practice stays "merge when green".
+
+## MVP-029 — Launch content: pipeline and article 1 of 24 (2026-09-30)
+
+The product owner approved the launch content plan. Decisions: `docs/final-decisions.md`, "Launch content plan approved; competitor research rule".
+
+**Built:**
+- **`parseArticleSource`** (`@ppu/domain-content`): reads an article file (front matter plus Markdown) and validates it with exactly the admin editor's rules.
+- **A content gate** (`packages/adapters/content/src/content-files.test.ts`): every file in `content/articles` must parse, be named after its slug, sit in its section's folder, and have a unique slug.
+- **`content:import`** (`@ppu/adapter-content`):
+  - creates drafts only, authored by an existing ADMIN;
+  - skips slugs that already exist and never overwrites one;
+  - imports nothing if any file is invalid.
+  - Verified against the local database: it refuses without an author, created the draft, and a re-run skipped it.
+- **Article breadcrumbs:** an article in a technology section now sits under that section ("LowCodeStacks / Power Apps / …"), in both the visible trail and the BreadcrumbList data.
+- **Article 1:** "Delegation in Power Apps: why your gallery stops at 500 rows" (Power Apps, Learn). Every claim was checked against Microsoft Learn's delegation pages for canvas apps, SharePoint and Dataverse.
+  - That check corrected one detail before publishing. Microsoft's general guidance calls `Today()` a delegable constant, but the Dataverse page lists `Today()` and `Now()` as not delegable for date columns. The article shows only the variable-based approach, with a note explaining why.
+- **Competitor review:** Lumeric Visuals (`docs/research/competitors/lumeric-visuals.md`). The ideas adopted, live previews and upfront prices, are to be built as our own work.
+- **`CLAUDE.md`:** the command list gains the import command, and `content/articles/README.md` documents the file format and rules.
+
+**Verified:**
+- `@ppu/domain-content` 23, `@ppu/web` 465, and the content gate.
+- Playwright chromium: 65/65 for the learn, technology, home and fixture states.
+- The article was checked visually at phone width: contents list, table, callouts, code panels with Copy, and no horizontal overflow.
+
+**Process:** before merging #40's branch in, the work was committed first and then merged (not stashed). The only conflict, in the two backlog files, was resolved by keeping both changes. This follows the stash lesson recorded earlier today.
+
+**Next:** the other 23 wave-1 articles, in batches per section.
+
+## MVP-029 — Launch content: Power Apps section complete, 4 of 24 (2026-09-30)
+
+**Written:** three drafts in `content/articles/power-apps/`:
+- **"Canvas app or model-driven app? A decision guide"** (COMPARISON, Learn tab).
+- **"Named formulas and components: a structure that scales"** (PATTERN, Architecture tab).
+- **"Measuring Power Apps adoption: users, retention and time saved"** (KPI_GUIDE, KPIs tab).
+
+**Fact-checking against Microsoft Learn** changed three details before the drafts were finished:
+- **Named formulas.** The first draft counted open tasks with `CountRows(Filter(...))`, which isn't delegated on SharePoint. The examples now use a Dataverse table with `CountIf`, which is delegated and exact up to 50,000 rows, and a tip explains the SharePoint limit.
+- **Adoption KPIs.** Power Apps admin analytics covers canvas apps only and keeps at most 28 days, so retention needs exported history. The article says so, and it points to self-service analytics (preview) and a monthly snapshot.
+- **The CoE Starter Kit** is no longer actively maintained, so the article doesn't build on it.
+
+**Licensing:** the canvas-or-model-driven guide states the licensing rules as Microsoft's FAQ publishes them, including the stricter enforcement announced for February 2027, and tells readers to check the current licensing guide.
+
+**Our own recommendations**, labelled as such in the articles: the KPI definitions and the method for reporting time saved.
+
+**Verified:** the content gate passes (5 tests, 4 files), and the whole-repo format check is clean.
+
+**Next:** Power Automate (4 articles).
+
+## MVP-029 — Launch content: Power Automate section complete, 8 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/power-automate/`:
+- **"Approvals that don't stall: reminders, escalation and an audit trail"** (TUTORIAL, Learn tab).
+- **"Cloud flows or Azure Logic Apps?"** (COMPARISON, Learn tab).
+- **"Try, catch and finally: error handling with scopes"** (PATTERN, Architecture tab).
+- **"Flow health KPIs: success rate, failure causes and hours saved"** (KPI_GUIDE, KPIs tab).
+
+**Fact-checking against Microsoft Learn** changed four details before the drafts were finished:
+- **Private networking.** The first draft of the Logic Apps comparison said Power Automate can't reach private networks. Power Platform supports Azure virtual networks for a defined list of connectors, so the article now explains both options and when each fits.
+- **Approval time limit.** Microsoft gives two figures: 30 days on the limits page and 28 days on the approvals known-issues page. The article cites both and tells readers to design for 28.
+- **`result()`.** It returns only the top-level actions in a scope, and where the error message sits depends on the connector. The try-catch article now has a warning, and it shows how to read the real output instead of assuming its shape.
+- **Variables.** They can be initialised only at the top level of a flow, and the article says so.
+
+**Verified:** the content gate passes (9 tests, 8 files), and the whole-repo format check is clean.
+
+**Next:** Power BI (4 articles).
+
+## MVP-029 — Launch content: Power BI section complete, 12 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/power-bi/`:
+- **"Build a star schema from messy exports"** (TUTORIAL, Learn tab).
+- **"Why are my totals wrong? Filter context explained"** (TUTORIAL, Learn tab).
+- **"One semantic model, many reports"** (PATTERN, Architecture tab).
+- **"Designing a KPI card: target, trend and context"** (KPI_GUIDE, KPIs tab).
+
+**Checked against Microsoft Learn:**
+- star schema and relationship guidance, including surrogate keys through index columns and degenerate dimensions;
+- date table requirements, and when a table must be marked as a date table under calendar-based versus classic time intelligence;
+- the Auto date/time limitations;
+- DAX context, `SUMX`, `CALCULATE`, `HASONEVALUE` and `DIVIDE`;
+- shared semantic models, Build permission, endorsement and its licence requirements;
+- the card and KPI visuals, and the accessibility guidance: 4.5:1 contrast and colour pairs to avoid.
+
+**Accessibility:** the KPI card status measure returns words rather than symbols, so colour never carries the meaning alone and screen readers read the status naturally.
+
+**Labelled as examples or our own recommendations:** the DAX measures, the five-element card structure and the status thresholds.
+
+**Verified:** the content gate passes (13 tests, 12 files), and the whole-repo format check is clean.
+
+**Next:** Copilot Studio (4 articles). This area changes fast, so each article gets an "as of" date.
+
+## MVP-029 — Launch content: Copilot Studio section complete, 16 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/copilot-studio/`:
+- **"Your first agent: instructions, knowledge and testing"** (TUTORIAL, Learn tab).
+- **"Knowledge sources compared: SharePoint, websites, Dataverse and files"** (COMPARISON, Learn tab).
+- **"Grounding an agent safely: what to connect and what to keep out"** (PATTERN, Architecture tab).
+- **"Agent KPIs: resolution rate, escalation rate and answer quality"** (KPI_GUIDE, KPIs tab).
+
+**Dating:** each article opens with an "As of September 2026" note, as the approved plan requires for this fast-moving area. The notes also say the articles describe the standard-harness experience, because Microsoft is rolling out a second building experience (the GitHub Copilot harness) with different screens.
+
+**Details confirmed on Microsoft Learn that change how makers should design:**
+- **Uploaded files aren't permission-checked.** Anyone who can use the agent can get answers from them. SharePoint and Dataverse knowledge use each user's own permissions.
+- **Uploaded content doesn't sync.** Uploaded files are static copies. The Upload files > SharePoint path syncs every four to six hours.
+- **Some documents can't be indexed.** Documents labelled Confidential or Highly Confidential, or with a password, can't be indexed through the upload path. They show as ready but never produce answers.
+- **A data-policy trap.** Blocking the "documents" connector stops only local uploads, not files added from SharePoint or OneDrive.
+- **Restricted SharePoint Search** blocks SharePoint knowledge entirely.
+- **Analytics denominators.** Resolution, escalation and abandon rates are shares of engaged sessions, not all sessions. "Resolved" includes implied resolutions.
+- **Topic analytics.** Per-topic Monitor analytics exist only in classic mode.
+
+**Our own recommendations**, labelled as such in the articles: the example instructions, the six grounding principles and their order, and the monthly review agenda.
+
+**Verified:** the content gate passes (17 tests, 16 files), and the whole-repo format check is clean.
+
+**Next:** Dataverse (4 articles).
+## BUG-018 — Critical Next.js advisory (next/og ImageResponse RCE) fixed (2026-09-30)
+
+Not a story. It's a defect in delivered work (MVP-026's share images), so it has a bug record, `planning/bugs/BUG-018.md`.
+
+**Found:** the CI dependency audit failed on PR #45 (Copilot Studio articles). The advisory GHSA-vcvr-r3jv-pc5j was published that day and covers `next` >=16.2.0 <16.3.6; we were on 16.3.5.
+
+**Changed:** `apps/web/package.json` (`next` ^16.3.7), the root `package.json` (`@next/eslint-plugin-next` ^16.3.7), and `pnpm-lock.yaml`.
+
+**Decision made during the fix:** the first attempt installed 16.3.8, the newest release. pnpm then added `minimumReleaseAgeExclude` entries to `pnpm-workspace.yaml`, because 16.3.8 was under a day old. That was reverted, and 16.3.7 was used instead: it's patched, about 1.6 days old, and needs no exception, so the supply-chain safeguard isn't weakened.
+
+**Commands:**
+- `pnpm audit --audit-level=high`: no known vulnerabilities.
+- `pnpm lint` and `pnpm typecheck`: clean.
+- `pnpm test` against a migrated local Postgres with test schemas provisioned: all packages pass, including 465 web tests and the share-image tests.
+- `pnpm build`: succeeds on Next.js 16.3.7.
+
+**Risk and remaining work:**
+- **Release to `main`.** `main` still carries 16.3.5. The product owner should release this fix there; nothing is deployed, so there's no live exposure.
+- **Bug index drift.** `planning/bugs.csv` and `planning/status.md` disagree for several older bugs. That's noted in status and left for a separate reconciliation.
+
+## MVP-029 — Launch content: Dataverse section complete, 20 of 24 (2026-09-30)
+
+**Written:** four drafts in `content/articles/dataverse/`:
+- **"Dataverse or SharePoint lists? An honest comparison"** (COMPARISON, Learn tab).
+- **"Design your first Dataverse schema"** (TUTORIAL, Learn tab).
+- **"Security roles, business units and teams without the tangle"** (PATTERN, Architecture tab).
+- **"Data quality KPIs: completeness, duplicates and freshness"** (KPI_GUIDE, KPIs tab).
+
+**Details confirmed on Microsoft Learn and called out for readers:**
+- **Ownership is permanent.** A table's ownership type can't be changed after creation.
+- **Names are permanent.** Table and column names can't change, and they carry the publisher prefix.
+- **Lookups expose primary names.** A lookup reveals the related row's primary name, even to users who can't open that row.
+- **Privileges only add up.** They're cumulative, and the greatest access wins.
+- **Alternate keys don't check blanks.** Blank values aren't checked for uniqueness.
+- **The list view threshold.** SharePoint's 5,000-item threshold applies to views without indexed columns.
+
+**Corrected while writing:** "Date only" columns need the "Date only" behaviour, not just the date-only format, to avoid time-zone shifts.
+
+**Labelled as our own recommendations:** the five decision questions, the example schema, the order of the security steps, and the data-quality KPI definitions.
+
+**Verified:** the content gate passes (21 tests, 20 files), and the whole-repo format check is clean.
+
+**Next:** Power Pages (4 articles), which completes wave 1.
+
+## MVP-029 — Launch content: Power Pages section; all 24 wave-1 articles written, story moves to QA (2026-09-30)
+
+**Written:** four drafts in `content/articles/power-pages/`:
+- **"Build your first Power Pages site on Dataverse"** (TUTORIAL, Learn tab).
+- **"Power Pages or a SharePoint site?"** (COMPARISON, Learn tab).
+- **"Web roles and table permissions: securing portal data"** (PATTERN, Architecture tab).
+- **"Portal KPIs: sign-ups, self-service rate and form completion"** (KPI_GUIDE, KPIs tab).
+
+**Checked against Microsoft Learn:**
+- **Defaults.** Sites are private by default. Data is blocked until table permissions grant it. The default environment isn't recommended.
+- **Access types:** Global, Contact, Account, Self, Parent, and Custom (preview, enhanced-authorization sites only).
+- **Microsoft's security best practices:** treat Anonymous as public; avoid Global for sensitive data, especially with the Web API; page permissions are needed because hiding a page doesn't secure it; Web API column permissions don't protect other rendering paths.
+- **Licensing.** List prices are given with their date: authenticated packs of 100 at $200, anonymous packs of 500 at $75, pay-as-you-go at $4 and $0.30. The rules on who counts are included: sign-in pages, bots and errors are excluded, and some internal licences exempt users.
+- **Analytics.** The admin center keeps DAU, WAU and MAU for 30 days, for public sites only. Analytics and licensing counts are expected to differ. Built-in site analytics is a September 2026 preview.
+
+**Status:** all 24 wave-1 articles exist as drafts. **MVP-029 moves to QA, not Done.** The articles are imported as drafts and need product-owner review and publishing, which is the story's real finish line.
+- **Definition-of-Done gate:** tests pass (content gate 25 tests, 24 files).
+- **Docs:** `content/articles/README.md` and `CLAUDE.md` were updated earlier in the story.
+- **Traceability:** FR-014 is unchanged; the content pipeline was recorded earlier.
+- **Security review:** no code changed in the article batches. The pipeline imports drafts only, authored by an existing ADMIN.
+
+**Next:**
+- The product owner merges #47 and this PR, then runs `content:import` against the target database (or the agent does, with the product owner's go-ahead) and reviews and publishes the drafts.
+- In parallel: the deployment story (Netlify, ADR-005) and the decisions-sync pass, if approved.

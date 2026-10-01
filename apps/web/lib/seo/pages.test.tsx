@@ -324,6 +324,25 @@ describe("article page (SEO story)", () => {
     });
   });
 
+  it("places an article in a technology section under that section in the breadcrumb trail (MVP-029)", async () => {
+    content.findPublishedArticleBySlug.mockResolvedValue({
+      ...articleRow,
+      technology: "POWER_APPS",
+    });
+    const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
+    expect(markup).toMatch(
+      /<nav aria-label="Breadcrumb"[\s\S]*href="\/power-apps"[\s\S]*Power Apps/,
+    );
+    const breadcrumbs = jsonLdBlocks(markup).find((block) => block["@type"] === "BreadcrumbList");
+    expect(breadcrumbs).toMatchObject({
+      itemListElement: [
+        { position: 1 },
+        { position: 2, name: "Power Apps", item: "https://example.com/power-apps" },
+        { position: 3, name: "Intro Tutorial" },
+      ],
+    });
+  });
+
   it("renders the Markdown body and a 'Keep learning' list of related articles", async () => {
     content.listPublishedArticleSummaries.mockResolvedValue([summary("other")]);
     const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
