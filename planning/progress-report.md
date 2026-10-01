@@ -4133,3 +4133,22 @@ The product owner approved the launch content plan. Decisions: `docs/final-decis
 **Verified:** the content gate passes (17 tests, 16 files), and the whole-repo format check is clean.
 
 **Next:** Dataverse (4 articles).
+## BUG-018 — Critical Next.js advisory (next/og ImageResponse RCE) fixed (2026-09-30)
+
+Not a story. It's a defect in delivered work (MVP-026's share images), so it has a bug record, `planning/bugs/BUG-018.md`.
+
+**Found:** the CI dependency audit failed on PR #45 (Copilot Studio articles). The advisory GHSA-vcvr-r3jv-pc5j was published that day and covers `next` >=16.2.0 <16.3.6; we were on 16.3.5.
+
+**Changed:** `apps/web/package.json` (`next` ^16.3.7), the root `package.json` (`@next/eslint-plugin-next` ^16.3.7), and `pnpm-lock.yaml`.
+
+**Decision made during the fix:** the first attempt installed 16.3.8, the newest release. pnpm then added `minimumReleaseAgeExclude` entries to `pnpm-workspace.yaml`, because 16.3.8 was under a day old. That was reverted, and 16.3.7 was used instead: it's patched, about 1.6 days old, and needs no exception, so the supply-chain safeguard isn't weakened.
+
+**Commands:**
+- `pnpm audit --audit-level=high`: no known vulnerabilities.
+- `pnpm lint` and `pnpm typecheck`: clean.
+- `pnpm test` against a migrated local Postgres with test schemas provisioned: all packages pass, including 465 web tests and the share-image tests.
+- `pnpm build`: succeeds on Next.js 16.3.7.
+
+**Risk and remaining work:**
+- **Release to `main`.** `main` still carries 16.3.5. The product owner should release this fix there; nothing is deployed, so there's no live exposure.
+- **Bug index drift.** `planning/bugs.csv` and `planning/status.md` disagree for several older bugs. That's noted in status and left for a separate reconciliation.
