@@ -4247,3 +4247,33 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 - A transaction pooler can't hold session state. Nothing in the app relies on session-level state apart from the `search_path` handled here.
 
 **Remaining (slice 2):** the product owner creates the Netlify, Resend and (optionally) second Supabase accounts and enters the variables. Then the first preview deploy and its verification, the production deploy, the admin grant, the content import, publishing, and DNS.
+
+## MVP-030 — Review fixes and first deploy (2026-10-01)
+
+**First deploy:** the product owner created the Netlify and Resend accounts, entered the secrets and linked GitHub.
+- **Build:** Netlify built Release 3 (`main@9d925d5`) with `@netlify/plugin-nextjs` 5.16.1. The server function runs in us-east-2, and Netlify's secret scan of 707 files was clean.
+- **Pages:** `/`, `/power-apps`, `/search?q=dataverse` (raw SQL through the 6543 pooler), `/og` and `/signin` all work.
+- **Domain:** `lowcodestacks.com` was moved from Porkbun parking to Netlify (an ALIAS to `apex-loadbalancer.netlify.com`, and a CNAME for `www`). Resend's domain is verified, and sign-in emails are sent.
+- **Still private:** the site is behind Netlify's team-login guard until launch, so the guard intercepts sign-in links. The product owner signs in to Netlify first.
+
+**Database:**
+- The product owner chose option A: wipe `ppuniverse-dev`, which held only 12 early tables with no Prisma history, then run `prisma migrate deploy` (22 migrations) over the Session pooler.
+- The agent's attempt to apply migrations through the Supabase connection was stopped by the auto-mode classifier after 6 of 22 ("Production Deploy"). The product owner wiped and re-ran the migrations; nothing was half-applied in the end.
+
+**Code review of slice 1 (8 findings), all fixed in this branch.** These were issues found during the story, before Done, so they're recorded here rather than as bugs:
+1. **`_prisma_migrations` had RLS off.** It was exposed to the anon key through Supabase's REST API. Fixed by migration `20261001000000_enable_rls_prisma_migrations` (verified on in all 9 local schemas). Production was also fixed by hand by the product owner; the migration is a no-op there.
+2. **The server functions ran on Node 24, while CI uses 22.** `NODE_VERSION` in `netlify.toml` only sets the build image. `AWS_LAMBDA_JS_RUNTIME=nodejs22.x` was set through the Netlify API (it can't go in the toml). The toml comment and the runbook are corrected.
+3. **For `public`, search_path was no longer pinned** (and 4, altitude: special-casing `public` patched a symptom). **Root fix:** raw SQL is now schema-qualified with `qualifiedTable()` (`packages/db/src/database-schema.ts`), and **no** `-c search_path` startup option is sent for any schema.
+   - **Proof:** every adapter's DB-gated integration suite passes in its isolated `pkg_*` schema without the startup option, including catalog search (87 tests).
+   - **Why it matters:** the app now works through a transaction pooler with any schema.
+   - **Safety:** the schema and table names are validated as plain identifiers before being embedded.
+5. **The runbook's commands failed in Windows shells.** They now come in Command Prompt, PowerShell and Git Bash forms, using `npx prisma` and `node scripts\import-articles.mjs`, which don't need pnpm on PATH.
+6. **The runbook suggested the IPv6-only direct connection, and didn't warn that 6543 hangs migrations.** It now names the Session pooler (5432) and explains the hang.
+7. **No test checked that the client passes schema and options to PrismaPg.** `client-adapter.test.ts` asserts the exact adapter arguments for production (`public`, pooler) and a test schema, including that no startup option is sent.
+8. **The stale header comment in `packages/db/src/index.ts`** is rewritten.
+
+**Commands:**
+- `pnpm lint` and `pnpm typecheck`: clean.
+- `pnpm test` against the local Postgres, migrated with the new migration and with test schemas reprovisioned: all pass, including `@ppu/db` 30, catalog 87, content 34, commerce 20 and web 465.
+
+**Remaining (slice 2):** the product owner completes sign-in (after Netlify login), grants ADMIN by SQL, runs the article import (Windows forms now in the runbook), and reviews and publishes. Then launch with "Make public".
