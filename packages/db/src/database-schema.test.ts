@@ -28,7 +28,9 @@ describe("schemaFromConnectionString", () => {
 
 describe("getDatabaseSchema and qualifiedTable", () => {
   it("defaults to public when DATABASE_URL names no schema, or is unset", () => {
-    expect(getDatabaseSchema({ DATABASE_URL: "postgresql://u:p@localhost:5432/db" })).toBe("public");
+    expect(getDatabaseSchema({ DATABASE_URL: "postgresql://u:p@localhost:5432/db" })).toBe(
+      "public",
+    );
     expect(getDatabaseSchema({})).toBe("public");
   });
 
