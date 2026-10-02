@@ -1680,3 +1680,68 @@ Direct product-owner instruction in chat, answering "content-first launch?": *"y
 2. **Checkout and product downloads aren't part of this launch.** They follow in a later release, in the work order already decided ("Revised work order", 2026-09-29: content, then ads, then checkout).
 3. **Known conflict, recorded rather than resolved silently.** `docs/02-prd.md`'s release criteria still describe a launch that includes a paid product, purchase and download. Under this decision those criteria describe the later commerce release, not the content launch. Rewording the PRD belongs to the decisions-sync pass, which still awaits product-owner approval.
 4. **Interpretation note (agent).** "All content" is read as the 24 wave-1 articles, not the 15 wave-2 articles, which the approved plan schedules after launch. If the product owner meant wave 2 as well, this entry should be corrected.
+
+## 2026-10-01 — Visual redesign: "Daylight" (replaces the A + B look and the Premium 3 home)
+
+Direct product-owner instructions in chat, choosing from the design canvas "LowCodeStacks — Daylight site" (a private claude.ai artifact):
+- The dark "Nightshift" proposal was rejected: *"NO I dont like thi s"* (too dark, too generic, not enough visuals or motion).
+- Of four bright concepts, Daylight was chosen: *"Day light look best"*, then *"A"*.
+- *"lets focnus on day liht first rebudl full site usinf that"*, and after the full page set was drawn, *"Yes go ahead"*.
+- The article page's text and layout were approved too: *"Arctile page's page text adn oreitation seems good too"*.
+
+### Product-owner decisions
+1. **Daylight is the site's visual design.** It replaces the A + B colours and fonts ("Design direction: A + B combined", 2026-09-29) and the Premium 3 home layout ("Home page design: Premium 3", 2026-09-30).
+2. **The look:**
+   - Warm paper background (`#FBF8F3`), near-black ink (`#14141A`), a lime accent and a violet focus colour.
+   - One pastel tint and one dark text colour per technology (Power Apps lavender, Power Automate sky, Power BI butter, Copilot Studio mint, Dataverse green, Power Pages pink), every pairing at least 4.5:1.
+   - Bricolage Grotesque for display headings, an Instrument Serif italic for one accent word per heading, Geist for body text and Geist Mono for labels and code.
+   - Glossy 3D-style shapes drawn in CSS, and live animated mock-ups (an app that types and scrolls, a flow running, bars growing to a target).
+3. **The pages drawn on the canvas** are the target: home, technology hub, guides library, article, search, sign-in, page not found, and the mobile home and article. Admin and account pages take the same tokens and components without a separate design.
+
+### What does not change
+Everything that was a commitment rather than a look stays as decided:
+- The dark-mode toggle at parity ("Design system (MVP-027)", decision 5). It gets a Daylight dark palette. The canvas only draws the light theme, but the product owner did not withdraw the toggle, so the safest reading is to keep it.
+- Dark code panels with a language label and Copy button; callouts; the article contents list.
+- The footer's standing non-affiliation line, the skip link, self-hosted fonts, and motion that stops entirely for reduced-motion users.
+- Content honesty: home sections come from real data and are left out when empty; decorative mock-ups are hidden from assistive technology and never present invented data as real.
+
+### Implementation decisions (agent, under the standing instruction; reversible)
+1. **Story MVP-031**, "Daylight redesign", P1. Built as one branch in ordered commits: foundations (tokens, fonts, header, footer, brand mark); home; technology hub; guides library and article; search, sign-in and page not found; shared `@ppu/ui` components.
+2. **Search stays a product search.** The canvas draws search results as guides, but `/search` searches the product catalog today, and making guides searchable is a product change. The page gets the Daylight look over its current behaviour. Recorded as open question 63.
+3. **Truthful copy in place of the canvas's sample words:**
+   - The hero's announcement pill shows the real number of published guides. It does not claim every guide is "checked against Microsoft Learn", which the site cannot verify for future articles.
+   - An article shows a "Cites Microsoft Learn" badge only when its body actually links to learn.microsoft.com.
+   - Each technology panel shows that technology's real published guide count.
+   - "Start with these three" lists three named launch guides by slug, each shown only if published; the section is left out if none are.
+   - The scrolling topic ribbon is decorative (hidden from assistive technology, not links). The same guides are reachable as real links on the page.
+4. **Fonts** load through `next/font/google`, which self-hosts them at build time (all four are SIL Open Font License).
+
+### Logo: X2 "Code stack" (2026-10-01)
+Direct product-owner instruction in chat, after several rounds of logo boards on the same canvas (card stacks, isometric stacks, niche variations, a rethink and finally full lockups drawn from an inspiration sheet the product owner supplied): *"X2 is final if you think that ther wont be anythgin else better than it"*. The agent's view, given in the same exchange, was that nothing on the boards beat it for this niche, which met the product owner's condition.
+
+1. **The mark:** three soft rounded cards stepped up and to the right, lime at the back, coral in the middle and violet at the front, with a white `</>` on the front card. It reads as stacks of components, built by people who also write code. Each card has a light-to-deep gradient in its own colour.
+2. **The logo is the stack symbol alone.** Product owner, in the same exchange: *"just keep the stack part in logo below is jsut branding"*. The name and tagline drawn under the mark on the X2 board are branding that sits beside the logo, not part of it:
+   - the wordmark, "LowCode" in ink and "Stacks" in violet, set in Bricolage Grotesque;
+   - the tagline *"Built to hold up"*, which matches the home headline and is used only where there is room for one.
+3. **Small sizes:** at 20 px and below, the `</>` is illegible. The favicon uses a simplified drawing of the same mark: a larger front card with a bold `< >` and no slash. This is a drawing choice, not a second logo.
+
+Reversible implementation details (agent): the mark is an inline SVG component with per-instance gradient ids, so several marks on one page do not collide. No trademark search has been done beyond the earlier web search, which found no other "LowCodeStacks" brand. A formal clearance search is the product owner's call.
+
+### Board fidelity pass (2026-10-01)
+The product owner asked whether the built site will look exactly like the canvas: *"i love what we have on the design board an dwant to have it liek that designed"*. A side-by-side comparison found visual drift, plus four places where the site and the board differ in content or features. The product owner answered those four, delegating three of them to the agent:
+
+1. **Home sections the board does not draw** ("Latest from Learn", "New components and templates", "Browse by category") **stay**, restyled to the board's brand kit: *"that is fine because will demand us to create new things or section its just the fomrating and design shoudl followu th ebrand kit show in the baord"*.
+2. **Header**, delegated (*"do what make sense for the goal of the site adn make it profeisnall"*). The agent's decision: the board's header with its two extra items, a "KPI guides" link and a "Search" box that shows a Ctrl K / ⌘K shortcut. It also keeps "Sign in" and the light/dark toggle, which are working features the board leaves out.
+3. **Search covers guides and components**, delegated (*"you descied taqth which will be more benficial after researching and implement"*). This closes open question 63. The reasons:
+   - Launch is content-first, so searching only the catalog returns nothing.
+   - Guides are what visitors come for.
+   - Google retired the sitelinks search box in November 2024, so search brings no SEO feature; it is purely for visitors.
+   - Results pages stay `noindex, follow`, Google's guidance for internal search results.
+   - The implementation is PostgreSQL full-text search, the MVP search baseline in CLAUDE.md, over published guides only.
+4. **Footer**, delegated (*"You research what is better for gettign site viral ANd for excellent SEO"*). The agent's decision is the board's look, extended with link columns: the six technologies, the guide types and the site's main pages. The reasons:
+   - Google asks that "every page you care about should have a link from at least one other page", with descriptive anchor text.
+   - A site-wide footer gives every section a crawlable link from every page.
+   - The non-affiliation line and the trademark sentence stay, as standing commitments.
+   - About, Privacy and Terms pages are not invented: they need facts and legal terms from the product owner (open question 64). For sharing, the article's "Copy link" control from the board is built.
+
+The look of every drawn page follows the canvas. The exceptions are the truthful-copy rules above, and real data in place of sample data.

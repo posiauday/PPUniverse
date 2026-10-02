@@ -13,9 +13,14 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/seo/json
 import { buildLearnMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
 import { SITE_NAME } from "../../../lib/seo/site";
 import { getSiteUrl } from "../../../lib/site-url";
+import { paletteFor } from "../../../lib/technology-palette";
+import { ARTICLE_COVERS } from "../../home/HomeSections";
 import { ArticleBody } from "../ArticleBody";
+import { ArticleList } from "../ArticleList";
 import { ArticleToc } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
+import { CopyLink } from "../CopyLink";
+import { ReadingProgress } from "../ReadingProgress";
 
 interface LearnPageProps {
   params: Promise<{ slug: string }>;
@@ -108,80 +113,108 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
   const outline = outlineOf(article.body);
   const minutes = readingMinutes(article.body);
+  const palette = paletteFor(article.technology);
+  // "Delegation in Power Apps: why your gallery stops at 500 rows" -- the part
+  // after the first colon is set in the serif accent (Daylight type rule).
+  const colon = article.title.indexOf(": ");
+  const [lead, accent] =
+    colon > 0
+      ? [article.title.slice(0, colon + 1), article.title.slice(colon + 2)]
+      : [article.title, ""];
+  // The badge is shown only when the article really links to Microsoft
+  // Learn, so it can never claim a check that is not in the text.
+  const citesLearn = /https:\/\/learn\.microsoft\.com\//.test(article.body);
+  const cover = ARTICLE_COVERS[article.slug];
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <Breadcrumbs
-        items={[
-          { name: SITE_NAME, href: "/" },
-          { name: parent.name, href: parent.path },
-          { name: article.title },
-        ]}
-      />
-      <header className="mt-6 max-w-3xl">
-        <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
-          <span className="font-mono font-medium text-primary">
-            {ARTICLE_TYPE_LABEL[article.type].toLowerCase()}
-          </span>
-          <span aria-hidden="true">·</span>
-          <span>{minutes} min read</span>
-          <span aria-hidden="true">·</span>
-          <span>
-            Updated{" "}
-            <time dateTime={article.updatedAt.toISOString()}>
-              {DATE_FORMAT.format(article.updatedAt)}
-            </time>
-          </span>
-        </p>
-        <h1 className="mt-3 text-4xl leading-tight font-semibold tracking-tight">
-          {article.title}
-        </h1>
-        {article.excerpt ? (
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{article.excerpt}</p>
+    <main className="px-4 pb-6 md:px-6">
+      <ReadingProgress />
+      <header
+        className={`motion-rise relative mx-auto mt-4 grid max-w-[77.5rem] items-center gap-8 overflow-hidden rounded-[2.5rem] px-6 py-10 md:px-[72px] md:py-16 ${palette.tint} ${cover ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
+      >
+        <div className="relative flex flex-col gap-5">
+          {/* Learn / Power Apps / Tutorial, as the canvas draws it; the
+              BreadcrumbList JSON-LD below still ends at the article. */}
+          <Breadcrumbs
+            items={[
+              { name: "Learn", href: "/learn" },
+              ...(section ? [{ name: section.name, href: parent.path }] : []),
+              { name: ARTICLE_TYPE_LABEL[article.type] },
+            ]}
+            endsAtCurrentPage={false}
+          />
+          <h1 className="text-4xl leading-[1.04] font-bold md:text-[3.75rem]">
+            {lead}
+            {accent ? (
+              <>
+                {" "}
+                <span className={`accent-word text-[1.08em] ${palette.ink}`}>{accent}</span>
+              </>
+            ) : null}
+          </h1>
+          {article.excerpt ? (
+            <p className="max-w-3xl text-lg leading-relaxed md:text-xl">{article.excerpt}</p>
+          ) : null}
+          <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+            {section ? (
+              <span className="rounded-full bg-primary px-3.5 py-1.5 text-primary-foreground">
+                {section.name}
+              </span>
+            ) : null}
+            <span className="rounded-full bg-card/75 px-3.5 py-1.5">
+              {ARTICLE_TYPE_LABEL[article.type]}
+            </span>
+            {citesLearn ? (
+              <span className="rounded-full bg-highlight px-3.5 py-1.5 text-highlight-foreground">
+                <span aria-hidden="true">✓ </span>Cites Microsoft Learn
+              </span>
+            ) : null}
+            <span className="font-normal">
+              {minutes} min read · Updated{" "}
+              <time dateTime={article.updatedAt.toISOString()}>
+                {DATE_FORMAT.format(article.updatedAt)}
+              </time>
+            </span>
+          </p>
+        </div>
+        {cover ? (
+          <div aria-hidden="true" className="relative hidden h-[240px] place-items-center lg:grid">
+            {cover}
+            <span className="shape-sphere motion-bob absolute top-0 right-0 h-[70px] w-[70px]" />
+            <span className="shape-pill motion-bob-alt absolute bottom-2 left-0 h-[34px] w-[90px]" />
+          </div>
         ) : null}
       </header>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)] xl:grid-cols-[13rem_minmax(0,1fr)_15rem]">
-        <div className="lg:row-span-2 xl:row-span-1">
+      {/* Daylight (MVP-031): contents | article, then "Keep learning" below
+          as a row of cards -- the approved article design has no third
+          column, and a narrow one squeezed the titles. */}
+      <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[15rem_minmax(0,46rem)] lg:gap-16">
+        <div>
           <ArticleToc items={outline} />
+          {site.ok ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
         </div>
-        <div className="max-w-3xl min-w-0">
+        <div className="min-w-0">
           <ArticleBody markdown={article.body} />
         </div>
-        {related.length > 0 ? (
-          <aside aria-labelledby="related_heading" className="self-start xl:sticky xl:top-6">
-            <div className="rounded-xl border border-border bg-card p-4">
-              <h2
-                id="related_heading"
-                className="font-mono text-xs font-medium tracking-wide text-muted-foreground uppercase"
-              >
-                Keep learning
-              </h2>
-              <ul className="mt-2 space-y-1">
-                {related.map((item) => (
-                  <li key={item.slug}>
-                    <Link
-                      href={`/learn/${encodeURIComponent(item.slug)}`}
-                      className="inline-flex min-h-8 flex-col py-1 font-semibold text-primary no-underline hover:underline"
-                    >
-                      {item.title}
-                      <span className="text-xs font-normal text-muted-foreground">
-                        {ARTICLE_TYPE_LABEL[item.type]}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/learn"
-                className="mt-3 inline-flex min-h-8 items-center text-sm font-semibold"
-              >
-                All learning content
-              </Link>
-            </div>
-          </aside>
-        ) : null}
       </div>
+
+      {related.length > 0 ? (
+        <aside aria-labelledby="related_heading" className="mx-auto mt-20 max-w-[77.5rem]">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 id="related_heading" className="text-3xl font-bold md:text-[2.5rem]">
+              Keep <span className="accent-word text-accent">learning</span>
+            </h2>
+            <Link
+              href="/learn"
+              className="inline-flex min-h-11 items-center border-b-2 border-foreground font-semibold text-foreground no-underline"
+            >
+              All learning content →
+            </Link>
+          </div>
+          <ArticleList articles={related} headingLevel={3} columns={4} />
+        </aside>
+      ) : null}
 
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
       {breadcrumbJsonLd ? <JsonLd data={breadcrumbJsonLd} /> : null}

@@ -9,8 +9,8 @@ export interface CategoryCardProps {
 /** Plain <a>, not next/link — this package stays framework-portable rather than depending on Next.js. */
 export function CategoryCard({ href, name, description }: CategoryCardProps) {
   return (
-    <a href={href} className="block">
-      <Card className="transition-colors hover:border-primary">
+    <a href={href} className="block h-full text-foreground no-underline">
+      <Card className="h-full transition-colors hover:border-foreground">
         <CardHeader>
           <CardTitle>{name}</CardTitle>
           {description ? <CardDescription>{description}</CardDescription> : null}

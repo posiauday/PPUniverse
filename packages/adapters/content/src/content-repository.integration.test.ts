@@ -287,6 +287,53 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
     ]);
   });
 
+  it("searchPublishedArticles finds PUBLISHED articles only, title matches first (MVP-031)", async () => {
+    const author = await createTestUser("content-repo-search@example.test");
+    const make = async (slug: string, title: string, body: string, publish: boolean) => {
+      const article = await repo.createArticle({
+        slug,
+        title,
+        type: "TUTORIAL",
+        technology: "POWER_APPS",
+        body,
+        excerpt: null,
+        authorUserId: author.id,
+      });
+      createdArticleIds.push(article.id);
+      if (publish) await repo.publishArticle(article.id, author.id);
+    };
+    await make("content-repo-search-title", "Zyxquark galleries explained", "Body.", true);
+    await make(
+      "content-repo-search-body",
+      "Another guide",
+      "This mentions **zyxquark** once, see [the docs](https://example.test/a).",
+      true,
+    );
+    await make("content-repo-search-draft", "Zyxquark draft", "Zyxquark zyxquark.", false);
+
+    const hits = await repo.searchPublishedArticles({ query: "zyxquark", limit: 10 });
+    expect(hits.map((hit) => hit.slug)).toEqual([
+      "content-repo-search-title",
+      "content-repo-search-body",
+    ]);
+    expect(hits[0]?.technology).toBe("POWER_APPS");
+    expect(hits[0]?.type).toBe("TUTORIAL");
+    const start = String.fromCharCode(1);
+    const end = String.fromCharCode(2);
+    expect(hits[0]?.titleMarked).toBe(`${start}Zyxquark${end} galleries explained`);
+    expect(hits[1]?.snippetMarked).toContain(`${start}zyxquark${end}`);
+    // Markdown emphasis, link brackets and link targets are stripped.
+    for (const leftover of ["*", "[", "]", "https:"]) {
+      expect(hits[1]?.snippetMarked).not.toContain(leftover);
+    }
+
+    expect(await repo.searchPublishedArticles({ query: "   ", limit: 10 })).toEqual([]);
+    // Unbalanced quotes and operators are accepted, never a syntax error.
+    await expect(
+      repo.searchPublishedArticles({ query: '"zyxquark -or (', limit: 10 }),
+    ).resolves.toBeInstanceOf(Array);
+  });
+
   it("an authorUserId cannot be hard-deleted while an Article references it (Restrict FK)", async () => {
     const author = await createTestUser("content-repo-restrict@example.test");
     const created = await repo.createArticle({
