@@ -1793,3 +1793,24 @@ The product owner reviewed the six navigation-restructure boards on the design c
 A KPI section exists only in Power BI. Measuring guides elsewhere sit in that product's own section (adoption, run health, cost, go-live). Also approved as drawn: the Guides hub by goal, the Technologies menu, and the Updates page layout. The Updates page's content pipeline is still to be built.
 
 The product owner also asked for a deep research plan for each section's content, presentation and backlinks. It is `docs/research/content-research-plan.md`, a proposal awaiting approval.
+
+### Governance & admin area and the Updates badge (2026-10-02)
+Direct product-owner instruction: *"Also add coe and data and governance adn dlp polict i dont knwo what tech all come ro fall into but you will have to do researhc for that too. Updates need otficaiotn motions bangs to get user to click on it"*.
+
+1. **A 7th area, "Governance & admin",** for admins and CoE leads. It cuts across every product, so it isn't placed inside one. This supersedes the earlier choice not to have a Governance & ALM section at launch ("Technology sections (MVP-028)", decision 1). Its sections, from Microsoft Learn's admin and governance documentation (checked 2026-10-02):
+   - Environments & strategy
+   - Data policies (DLP) & connectors
+   - Security & access
+   - CoE & visibility
+   - ALM & deployment
+   - Licensing & capacity
+   - AI & agent governance
+
+   Two research findings shape its first guides:
+   - Microsoft now calls DLP policies **"data policies"**, alongside **advanced connector policies**.
+   - The **CoE Starter Kit is no longer actively maintained**. Its core features moved into the admin center (Inventory, Usage, Monitor, Actions), so "Moving off the CoE Starter Kit" is a priority guide.
+2. **Updates badge:** a lime count of updates since the visitor's last visit, with a soft ping animation, in the top bar and the phone menu.
+   - **Lifecycle:** it stops once Updates is opened; reduced motion shows a still badge.
+   - **Accessibility:** screen readers hear "Updates, N new".
+   - **Storage:** the last-visit date is stored only in the visitor's browser (local storage), never sent to the server. The Privacy notice must say so in the same change that ships the badge.
+3. The design canvas carries the Governance & admin page board and the badge on every restructure board. The Brand board is updated with the X2 logo, the Governance colour (#E2E8F0 / #334155, 8.4:1), the goal labels and the badge.

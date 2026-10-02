@@ -125,6 +125,17 @@ Seed search terms that start the demand research for each section. They are star
   - Liquid & code: Liquid, Web API.
   - Go-live: go-live checklist, site checker, analytics.
 
+- **Governance & admin** (7th area, cross-product)
+  - Environments & strategy: environment strategy, environment groups and rules, Managed Environments.
+  - Data policies: data policies (DLP), advanced connector policies, blocking connectors, MCP connectors.
+  - Security & access: tenant settings, security roles.
+  - CoE & visibility: moving off the CoE Starter Kit (no longer actively maintained, per Microsoft Learn), and the admin center's Inventory, Usage, Monitor and Actions.
+  - ALM: pipelines, deploying from Git.
+  - Licensing & capacity: licensing, Dataverse capacity, Copilot credits.
+  - AI & agent governance: governing Copilot Studio agents.
+
+  Extra demand sources for this area: the Power Platform admin and governance community boards, and admin-focused Microsoft Learn training paths.
+
 ## 6. Process and cadence
 
 1. **Research sprint per technology.** The agent gathers and clusters the demand data from section 2 into the briefs from section 1. Read-only, nothing posted.
