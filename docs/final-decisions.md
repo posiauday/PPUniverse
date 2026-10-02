@@ -1780,3 +1780,16 @@ The product owner then approved, by direct answers in chat:
 4. **Draw it on the design canvas first,** for sign-off before it is built.
 
 The product owner added that sections must not be generic: *"kpi i think just hsopuld be at power bi but you have to reseach as SKME in each competn ... decide wht shoudl put on each page not generalise eveytwhere it shoudl dynamic"*. The agent's per-technology topic map, researched from Microsoft Learn's own documentation structure for each product (2026-10-02), is a **proposal awaiting the product owner's confirmation**. It is not decided here.
+
+### Structure boards approved (2026-10-02)
+The product owner reviewed the six navigation-restructure boards on the design canvas and replied *"Look good"*. **The per-technology section map is approved** as drawn:
+- **Power Apps:** Choose & plan · Data & delegation · Formulas & components · Performance & offline · Ship it: solutions & ALM · Adoption & usage.
+- **Power Automate:** Triggers & flow design · Approvals · Errors, retries & limits · Desktop flows (RPA) · Choose the right tool · Run & monitor.
+- **Power BI:** Data modelling · DAX & calculations · Reports, visuals & KPIs · Refresh & gateways · Security & sharing.
+- **Copilot Studio:** Build your agent · Knowledge & grounding · Tools, actions & MCP · Test & evaluate · Publish to Teams & web · Monitor & cost.
+- **Dataverse:** Tables & schema · Security model · Business logic · Dataverse or something else · Data quality & integration.
+- **Power Pages:** Build your site · Access & table permissions · Sign-in & identity · Liquid & custom code · Choose · Go-live & monitor.
+
+A KPI section exists only in Power BI. Measuring guides elsewhere sit in that product's own section (adoption, run health, cost, go-live). Also approved as drawn: the Guides hub by goal, the Technologies menu, and the Updates page layout. The Updates page's content pipeline is still to be built.
+
+The product owner also asked for a deep research plan for each section's content, presentation and backlinks. It is `docs/research/content-research-plan.md`, a proposal awaiting approval.
