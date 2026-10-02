@@ -1814,3 +1814,9 @@ Direct product-owner instruction: *"Also add coe and data and governance adn dlp
    - **Accessibility:** screen readers hear "Updates, N new".
    - **Storage:** the last-visit date is stored only in the visitor's browser (local storage), never sent to the server. The Privacy notice must say so in the same change that ships the badge.
 3. The design canvas carries the Governance & admin page board and the badge on every restructure board. The Brand board is updated with the X2 logo, the Governance colour (#E2E8F0 / #334155, 8.4:1), the goal labels and the badge.
+
+### Technology pages are hubs (2026-10-02)
+The product owner clarified: *"if i open power apps section then i should see everything organized and i choose where to go"*. Researched against how product hubs are organised on Stripe's documentation and Microsoft Learn (every area visible at once, each with its top links), and against the Diátaxis documentation framework (tutorials, how-to, reference, explanation):
+- **Each technology page opens as a map:** a short hero with a scoped "Stuck? Search …" box and three common problems, then **every section as a card**. Each card has a one-line description, its guides as links, coming guides marked "Coming", and "See all".
+- **A "Quick reference" row** per technology: limits tables, cheat sheets and an error index. This is the "reference" kind we lacked, and these are the pages people bookmark.
+- **The ordered "New here? Start with these 3" path sits at the end**, reached from a link in the hero, so it never blocks someone exploring.
