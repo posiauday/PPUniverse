@@ -44,11 +44,26 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "72px",
-        background: "#0c0f17",
-        color: "#ffffff",
+        // Daylight (MVP-031): warm paper, ink text, a lime eyebrow chip and
+        // the three-bar brand mark.
+        background: "#fbf8f3",
+        color: "#14141a",
       }}
     >
-      <div style={{ display: "flex", fontSize: 32, color: "#f5b83d" }}>{eyebrow}</div>
+      <div style={{ display: "flex" }}>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 30,
+            padding: "10px 24px",
+            borderRadius: 999,
+            background: "#d9f99d",
+            color: "#14141a",
+          }}
+        >
+          {eyebrow}
+        </div>
+      </div>
       <div
         style={{
           display: "flex",
@@ -61,13 +76,20 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
       <div style={{ display: "flex", alignItems: "center", fontSize: 36 }}>
         <div
           style={{
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            background: "#6fd3c4",
-            marginRight: 16,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginRight: 18,
           }}
-        />
+        >
+          <div style={{ width: 16, height: 9, borderRadius: 5, background: "#a3e635" }} />
+          <div
+            style={{ width: 24, height: 9, borderRadius: 5, background: "#ff7a59", marginTop: 3 }}
+          />
+          <div
+            style={{ width: 32, height: 9, borderRadius: 5, background: "#6c47ff", marginTop: 3 }}
+          />
+        </div>
         {SITE_NAME}
       </div>
     </div>,

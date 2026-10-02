@@ -15,7 +15,8 @@ import { useEffect, useId, useRef, useState } from "react";
 export function TechnologiesMenu({
   items,
 }: {
-  items: ReadonlyArray<{ name: string; href: string }>;
+  /** `dot`: an optional colour class for the item's marker (the technology's ink). */
+  items: ReadonlyArray<{ name: string; href: string; dot?: string }>;
 }) {
   const [open, setOpen] = useState(false);
   const listId = useId();
@@ -49,7 +50,7 @@ export function TechnologiesMenu({
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-11 items-center gap-1 font-semibold text-foreground hover:underline"
+        className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-foreground hover:bg-muted"
       >
         Technologies
         <svg
@@ -68,15 +69,19 @@ export function TechnologiesMenu({
       <ul
         id={listId}
         hidden={!open}
-        className="absolute left-0 z-40 mt-1 w-60 rounded-xl border border-border bg-card p-2 shadow-lg"
+        className="absolute left-1/2 z-40 mt-2 w-64 max-w-[calc(100vw-1.5rem)] -translate-x-1/2 rounded-3xl sm:left-0 sm:translate-x-0 border border-border bg-card p-2 shadow-[0_24px_50px_-24px_rgb(20_20_26/0.45)]"
       >
         {items.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center rounded-lg px-3 font-semibold text-foreground no-underline hover:bg-muted"
+              className="flex min-h-11 items-center gap-3 rounded-2xl px-3 font-semibold text-foreground no-underline hover:bg-muted"
             >
+              <span
+                aria-hidden="true"
+                className={`h-2.5 w-2.5 rounded-full ${item.dot ?? "bg-foreground"}`}
+              />
               {item.name}
             </Link>
           </li>

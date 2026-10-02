@@ -9,52 +9,108 @@
    a passing build). */
 @source "../../../packages/ui/src";
 
-/* Design tokens (docs/05-ux-design-system.md; MVP-027, docs/final-decisions.md
-   "Design direction: A + B combined" and "Home page design: Premium 3").
-   Semantic colour tokens, a 4/8 spacing rhythm (Tailwind's default scale),
-   and two themes: light (the default, "Studio Light") and dark ("Night
-   Lab"), both at parity because every component uses these tokens and never
-   a raw colour. Every text pairing is at least 4.5:1 in both themes, and
-   control boundaries at least 3:1 (lib/design-tokens.test.ts checks them). */
+/* Design tokens: "Daylight" (MVP-031; docs/final-decisions.md, "Visual
+   redesign: Daylight", 2026-10-01), replacing the A + B palette of MVP-027.
+   Warm paper, near-black ink, a lime accent, a violet focus ring, and one
+   pastel tint plus one dark "ink" colour per technology. Two themes at
+   parity -- light (the default) and a Daylight dark -- because every
+   component uses these tokens and never a raw colour. Every text pairing is
+   at least 4.5:1 in both themes, control boundaries and the focus ring at
+   least 3:1 (lib/design-tokens.test.ts checks them from this file). */
 @theme {
-  --color-background: #f7f6f2;
-  --color-foreground: #16181d;
-  --color-muted: #efece5;
-  --color-muted-foreground: #50565f;
-  --color-border: #dedad0;
-  --color-primary: #0b5c5c;
+  --color-background: #fbf8f3;
+  --color-foreground: #14141a;
+  --color-muted: #f2eee6;
+  --color-muted-foreground: #4a4a57;
+  --color-border: #e4ded2;
+  /* The primary action is ink: black pill buttons with white text. */
+  --color-primary: #14141a;
   --color-primary-foreground: #ffffff;
   --color-card: #ffffff;
-  --color-card-foreground: #16181d;
-  /* Amber "What's new" highlight, and the code panel -- dark in both themes. */
-  --color-highlight: #f5b83d;
-  --color-highlight-foreground: #1a1406;
-  --color-code: #0f1420;
-  --color-code-foreground: #e8ebf2;
-  --color-code-muted: #8a94ab;
-  --color-code-border: #2c3446;
+  --color-card-foreground: #14141a;
+  /* Violet for accent words, links in prose and the focus ring. */
+  --color-accent: #5b21b6;
+  --color-ring: #5b21b6;
+  /* Coral for a warm accent word. */
+  --color-coral: #c2410c;
+  /* Lime: the marker under an accent word, "New" pills, tip callouts. */
+  --color-highlight: #d9f99d;
+  --color-highlight-foreground: #14141a;
+  /* The hero stage behind the animated mock-ups. */
+  --color-stage: #f1ecff;
+  /* Code panels are dark in both themes. */
+  --color-code: #14141a;
+  --color-code-foreground: #ececf1;
+  --color-code-muted: #a1a1ad;
+  --color-code-border: #3a3a46;
 
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-source-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
+  /* One tint (backgrounds) and one ink (text on that tint) per technology. */
+  --color-tech-apps: #ede4ff;
+  --color-tech-apps-ink: #5b21b6;
+  --color-tech-automate: #dcebff;
+  --color-tech-automate-ink: #1e40af;
+  --color-tech-bi: #fff0c2;
+  --color-tech-bi-ink: #92400e;
+  --color-tech-copilot: #d3f6ec;
+  --color-tech-copilot-ink: #115e59;
+  --color-tech-dataverse: #d9f7e3;
+  --color-tech-dataverse-ink: #065f46;
+  --color-tech-pages: #ffddec;
+  --color-tech-pages-ink: #9d174d;
 
-  --radius-card: 0.875rem;
+  --font-display: var(--font-bricolage), "Segoe UI", system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-geist), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
 
-  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --radius-card: 1.5rem;
+  --radius-panel: 2rem;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Dark theme: unlayered, so it overrides the @theme defaults (which Tailwind
    emits inside a cascade layer) whenever <html data-theme="dark">. */
 [data-theme="dark"] {
-  --color-background: #0c0f17;
-  --color-foreground: #e8ebf2;
-  --color-muted: #182030;
-  --color-muted-foreground: #a7afc0;
-  --color-border: #2a3346;
-  --color-primary: #6fd3c4;
-  --color-primary-foreground: #06201d;
-  --color-card: #141a27;
-  --color-card-foreground: #e8ebf2;
+  --color-background: #111115;
+  --color-foreground: #f4f1ea;
+  --color-muted: #1d1d24;
+  --color-muted-foreground: #b9b9c6;
+  --color-border: #2e2e38;
+  --color-primary: #f4f1ea;
+  --color-primary-foreground: #14141a;
+  --color-card: #19191f;
+  --color-card-foreground: #f4f1ea;
+  --color-accent: #c4b5fd;
+  --color-ring: #c4b5fd;
+  /* A deep lime: the dark theme's light text has to read on it (marker,
+     "New" pill, tip callout), and so does the ring. */
+  --color-highlight: #36500f;
+  --color-highlight-foreground: #f4f1ea;
+  --color-stage: #1c1830;
+  --color-coral: #ffb59c;
+  --color-code: #0b0b0e;
+  --color-tech-apps: #2a2142;
+  --color-tech-apps-ink: #d6c9ff;
+  --color-tech-automate: #172840;
+  --color-tech-automate-ink: #b9d4ff;
+  --color-tech-bi: #352a10;
+  --color-tech-bi-ink: #fcd97a;
+  --color-tech-copilot: #0f302a;
+  --color-tech-copilot-ink: #93ecd6;
+  --color-tech-dataverse: #12301f;
+  --color-tech-dataverse-ink: #9ff0bd;
+  --color-tech-pages: #3a1828;
+  --color-tech-pages-ink: #ffbfdb;
+}
+
+/* The header is sticky from the md breakpoint (SiteHeader). Scrolling to a
+   focused element or a #heading keeps it clear of the header, so focus is
+   never hidden behind it (WCAG 2.4.11). */
+@media (min-width: 48rem) {
+  html {
+    scroll-padding-top: 6.5rem;
+  }
 }
 
 body {
@@ -63,11 +119,13 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Display face for page and section headings only; everything else reads in
-   the body face. */
+/* Display face for page and section headings; everything else reads in the
+   body face. Bricolage is tight at large sizes, so headings never go below
+   -0.02em tracking (the design's measured limit). */
 h1,
 h2 {
   font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 code,
@@ -75,6 +133,27 @@ kbd,
 pre,
 samp {
   font-family: var(--font-mono);
+}
+
+/* One serif-italic accent word per heading (Daylight type rule). */
+.accent-word {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* The lime marker that sweeps under an accent word once, on load. */
+.marker {
+  background: linear-gradient(
+      transparent 58%,
+      var(--color-highlight) 58%,
+      var(--color-highlight) 90%,
+      transparent 90%
+    )
+    no-repeat 0 0 / 100% 100%;
+  padding-inline: 0.06em;
+  animation: lcs-marker 0.9s 0.9s cubic-bezier(0.7, 0, 0.2, 1) both;
 }
 
 .sr-only {
@@ -97,7 +176,7 @@ samp {
   top: -4rem;
   z-index: 50;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 999px;
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   font-weight: 600;
@@ -112,18 +191,18 @@ samp {
   outline: none;
 }
 
-/* The ring must not follow the element's text colour: currentColor made it
-   near-white on the white-text Search button over a white page (BUG-003,
-   measured 1.06:1). The foreground token is far above 3:1 against the page
-   in both themes. */
+/* The ring is its own token, never the element's text colour: currentColor
+   made it near-white on a white-text button over a white page (BUG-003,
+   measured 1.06:1). The ring token is far above 3:1 against the page, cards,
+   the stage and every technology tint, in both themes. */
 :focus-visible {
-  outline: 2px solid var(--color-foreground);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-ring);
+  outline-offset: 3px;
 }
 
 /* Controls on a code panel's dark bar (the Copy button) sit on the code
    background in BOTH themes, so their ring uses the light code foreground;
-   the page's foreground would be dark on dark in the light theme. */
+   the page's ring would be dark on dark in the light theme. */
 .code-panel-bar :focus-visible {
   outline-color: var(--color-code-foreground);
 }
@@ -137,7 +216,8 @@ samp {
    the base layer, so any element with its own classes -- the search form,
    theme toggle, Copy button, cards -- is untouched, and utilities still win.
    Every colour is a theme token, so both themes get it; the contrast of each
-   pairing is covered by lib/design-tokens.test.ts. */
+   pairing is covered by lib/design-tokens.test.ts. MVP-031 restyles them in
+   the Daylight look: pill buttons, rounded fields with a strong edge. */
 @layer base {
   main:not([class]) {
     margin-inline: auto;
@@ -145,20 +225,19 @@ samp {
     padding: 2rem 1rem 3rem;
   }
   main h1:not([class]) {
-    font-size: 2.25rem;
-    line-height: 1.15;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-size: 2.75rem;
+    line-height: 1.05;
+    font-weight: 700;
   }
   main h2:not([class]) {
     margin-top: 2.5rem;
-    font-size: 1.5rem;
-    line-height: 1.25;
-    font-weight: 600;
+    font-size: 1.625rem;
+    line-height: 1.2;
+    font-weight: 700;
   }
   main p:not([class]) {
     margin-top: 0.75rem;
-    line-height: 1.6;
+    line-height: 1.65;
   }
   main ul:not([class]) {
     margin-top: 0.75rem;
@@ -188,7 +267,7 @@ samp {
   }
   fieldset:not([class]) {
     border: 1px solid var(--color-border);
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     padding: 0.75rem 1rem 1rem;
   }
   legend:not([class]) {
@@ -203,9 +282,9 @@ samp {
     align-items: center;
     justify-content: center;
     min-height: 2.75rem;
-    padding: 0.5rem 1.125rem;
-    border: 1px solid var(--color-muted-foreground);
-    border-radius: 0.625rem;
+    padding: 0.5rem 1.375rem;
+    border: 1.5px solid var(--color-muted-foreground);
+    border-radius: 999px;
     background: var(--color-card);
     color: var(--color-foreground);
     font-weight: 600;
@@ -239,10 +318,10 @@ samp {
   textarea:not([class]) {
     width: 100%;
     max-width: 32rem;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--color-muted-foreground);
-    border-radius: 0.625rem;
+    min-height: 3rem;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--color-muted-foreground);
+    border-radius: 0.875rem;
     background: var(--color-card);
     color: var(--color-foreground);
   }
@@ -268,9 +347,12 @@ samp {
   }
 }
 
-/* Motion (MVP-027): short, purposeful, and only opacity and transform, which
-   the browser animates without re-laying out the page (Core Web Vitals).
-   Anyone whose system asks for reduced motion gets none of it. */
+/* Motion (MVP-027, extended by MVP-031): only opacity and transform (and
+   offset-distance for a dot running along a path), which the browser
+   animates without re-laying out the page (Core Web Vitals). Every
+   animation's resting state is the finished, fully visible element, so with
+   animation switched off nothing is missing. Anyone whose system asks for
+   reduced motion gets none of it (the block at the end of this file). */
 @keyframes lcs-rise {
   from {
     opacity: 0;
@@ -282,12 +364,26 @@ samp {
   }
 }
 
-.motion-rise {
-  animation: lcs-rise 0.7s var(--ease-out-soft) both;
+@keyframes lcs-word {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em) rotate(3deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-/* Gentle drift for the hero's decorative floating cards. `translate` is a
-   separate property, so it composes with a card's own rotate utility. */
+@keyframes lcs-marker {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+
 @keyframes lcs-float {
   0%,
   100% {
@@ -298,18 +394,325 @@ samp {
   }
 }
 
+@keyframes lcs-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-12px) rotate(5deg);
+  }
+}
+
+@keyframes lcs-bob-alt {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(10px) rotate(3deg);
+  }
+}
+
+@keyframes lcs-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(50px, -30px) scale(1.12);
+  }
+}
+
+@keyframes lcs-drift-alt {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.08);
+  }
+  50% {
+    transform: translate(-60px, 24px) scale(0.96);
+  }
+}
+
+/* A list scrolling inside a mock app window, pausing at each stop. */
+@keyframes lcs-scroll {
+  0%,
+  18% {
+    transform: translateY(0);
+  }
+  38%,
+  58% {
+    transform: translateY(-60px);
+  }
+  78%,
+  92% {
+    transform: translateY(-120px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Bars growing toward a target, resting at full height. */
+@keyframes lcs-grow {
+  0% {
+    transform: scaleY(0.6);
+  }
+  25%,
+  90% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0.6);
+  }
+}
+
+/* A dot running along a CSS offset-path (a flow's steps). */
+@keyframes lcs-run {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+/* Chat: the question, then typing dots, then the answer; mostly visible. */
+@keyframes lcs-question {
+  0%,
+  6% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  12%,
+  92% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes lcs-typing {
+  0%,
+  10% {
+    opacity: 0;
+  }
+  14%,
+  30% {
+    opacity: 1;
+  }
+  34%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes lcs-answer {
+  0%,
+  32% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  38%,
+  92% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes lcs-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The hero's named cursors: each glides between two empty spots and rests. */
+@keyframes lcs-cursor-a {
+  0%,
+  12% {
+    transform: translate(0, 0);
+  }
+  40%,
+  62% {
+    transform: translate(70px, 130px);
+  }
+  90%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+@keyframes lcs-cursor-b {
+  0%,
+  15% {
+    transform: translate(0, 0);
+  }
+  45%,
+  70% {
+    transform: translate(90px, -34px);
+  }
+  95%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes lcs-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Before/after code that flips once per cycle, with a near-instant cut so
+   the two versions are never seen on top of each other. */
+@keyframes lcs-swap-before {
+  0%,
+  46% {
+    opacity: 1;
+  }
+  48%,
+  98% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes lcs-swap-after {
+  0%,
+  46% {
+    opacity: 0;
+  }
+  48%,
+  98% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.motion-rise {
+  animation: lcs-rise 0.7s var(--ease-out-soft) both;
+}
+.motion-word {
+  display: inline-block;
+  animation: lcs-word 0.8s var(--ease-out-soft) both;
+}
 .motion-float {
   animation: lcs-float 6s ease-in-out infinite;
+}
+.motion-bob {
+  animation: lcs-bob 7s ease-in-out infinite;
+}
+.motion-bob-alt {
+  animation: lcs-bob-alt 8s ease-in-out infinite;
+}
+.motion-drift {
+  animation: lcs-drift 14s ease-in-out infinite;
+}
+.motion-drift-alt {
+  animation: lcs-drift-alt 16s ease-in-out infinite;
+}
+.motion-scroll {
+  animation: lcs-scroll 10s ease-in-out infinite;
+}
+.motion-grow {
+  transform-origin: bottom;
+  animation: lcs-grow 6s ease-in-out infinite;
+}
+.motion-run {
+  animation: lcs-run 3.2s linear infinite;
+}
+.motion-question {
+  animation: lcs-question 9s infinite;
+}
+.motion-typing {
+  animation: lcs-typing 9s infinite;
+}
+.motion-answer {
+  animation: lcs-answer 9s infinite;
+}
+.motion-dot {
+  animation: lcs-dot 1s infinite;
+}
+.motion-cursor-a {
+  animation: lcs-cursor-a 9s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+}
+.motion-cursor-b {
+  animation: lcs-cursor-b 10s 1s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+}
+.motion-marquee {
+  animation: lcs-marquee 50s linear infinite;
+}
+.motion-swap-before {
+  animation: lcs-swap-before 8s infinite;
+}
+.motion-swap-after {
+  animation: lcs-swap-after 8s infinite;
 }
 
 .motion-lift {
   transition:
+    transform 0.4s var(--ease-out-soft),
+    box-shadow 0.4s var(--ease-out-soft);
+}
+.motion-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 50px -28px rgb(20 20 26 / 0.4);
+}
+
+/* The primary pill's hover: a lime underline shadow. */
+.motion-press {
+  transition:
     transform 0.2s var(--ease-out-soft),
     box-shadow 0.2s var(--ease-out-soft);
 }
-.motion-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -24px rgb(11 92 92 / 0.45);
+.motion-press:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 0 -2px #a3e635,
+    0 16px 30px -10px rgb(20 20 26 / 0.4);
+}
+
+/* Glossy 3D-style shapes, drawn in CSS. Purely decorative: always inside an
+   aria-hidden container. Fixed colours: they read on both themes. */
+.shape-sphere {
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff 0, #ddd6fe 18%, #8b5cf6 60%, #5b21b6 100%);
+  box-shadow: 0 30px 40px -20px rgb(91 33 182 / 0.6);
+}
+.shape-ring {
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, #fb923c, #fde68a, #f97316, #fb923c);
+  -webkit-mask: radial-gradient(farthest-side, transparent 58%, #000 60%);
+  mask: radial-gradient(farthest-side, transparent 58%, #000 60%);
+}
+.shape-pill {
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ecfccb 0, #a3e635 45%, #65a30d 100%);
+  box-shadow:
+    inset 0 6px 10px rgb(255 255 255 / 0.7),
+    0 26px 30px -16px rgb(77 124 15 / 0.6);
+}
+.shape-pill-coral {
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe4d6 0, #ff7a59 45%, #c2410c 100%);
+  box-shadow:
+    inset 0 6px 10px rgb(255 255 255 / 0.6),
+    0 26px 30px -16px rgb(194 65 12 / 0.6);
+}
+.shape-cube {
+  border-radius: 22px;
+  background: linear-gradient(145deg, #e0f2fe 0, #38bdf8 50%, #0369a1 100%);
+  box-shadow:
+    inset 0 6px 10px rgb(255 255 255 / 0.6),
+    0 26px 30px -16px rgb(3 105 161 / 0.6);
 }
 
 /* Reduced motion switches animation and transitions OFF, not merely short.
@@ -328,7 +731,8 @@ samp {
     transition: none !important;
     scroll-behavior: auto !important;
   }
-  .motion-lift:hover {
+  .motion-lift:hover,
+  .motion-press:hover {
     transform: none;
   }
 }
