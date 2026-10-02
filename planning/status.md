@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-02 — **MVP-031 (Daylight redesign) moves to QA: the whole public site is rebuilt to the approved canvas, and the accessibility gate passes in all three browsers.**
+Last updated: 2026-10-02 — **MVP-032 (About, Privacy and Terms) moves to QA**, and two security fixes are up for review.
+- **Pages:** `/about`, `/privacy` and `/terms`, written by the agent at the product owner's instruction from an inventory of what the code does. They name the operator, Uday Posia (Saskatchewan, Canada), and `contact@lowcodestacks.com`, which the product owner must create before launch. Code samples are MIT; text is reserved; there is no compliance claim. A lawyer's review before launch is recommended.
+- **Security:** BUG-019 (sign-in links logged in production without an email key) and BUG-020 (uploads open to members) are fixed in PR #54.
+- **Next:** the product owner reviews and merges #53, #54 and the MVP-032 PR, retargeting MVP-032 to `develop` before #53's branch is deleted.
+
+Last updated (previous): 2026-10-02 — **MVP-031 (Daylight redesign) moves to QA: the whole public site is rebuilt to the approved canvas, and the accessibility gate passes in all three browsers.**
 - **Board fidelity pass:** the built pages were compared side by side with the canvas at desktop and phone widths, and the drift fixed (heading font optical size, header with KPI guides and a Ctrl K search box, the phone Menu, the technology hub's featured guides, the article's Copy link, a footer with link columns).
 - **Product decisions recorded** in `docs/final-decisions.md`: the X2 "Code stack" logo; the four board-fidelity choices (three delegated to the agent). Site search now covers guides (open question 63 closed). About, Privacy and Terms need product-owner content (open question 64).
 - **Accessibility gate:** 474 checks per browser, all passing. WebKit passed in one run. Chromium and Firefox passed 468 in the full run; their 4 failures were the outdated BUG-004 test locator, and the 6 corrected and new BUG-004 checks then passed in both.
@@ -130,11 +135,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 2 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; branch pushed for product-owner review and merge) |
+| QA | 3 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **31** | |
+| **Total** | **32** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -228,11 +233,11 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 19 / 31 (61%)
-- Stories in QA: 2 / 31 (MVP-029, MVP-031)
-- Points done: 139 / 227 (61%)
+- Stories done: 19 / 32 (59%)
+- Stories in QA: 3 / 32 (MVP-029, MVP-031, MVP-032)
+- Points done: 139 / 232 (60%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 36 / 82 (44%)
+- P1 points done: 36 / 87 (41%)
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 19 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-024 added by MVP-031; TD-010 partially resolved
 - Stories blocked: 0
@@ -262,6 +267,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 6 | MVP-029 (Launch content) | QA (24 of 24 articles written; awaiting product-owner review) | 13 |
 | 6 | MVP-030 (Deploy to Netlify) | In Progress (slice 1 of 2) | 5 |
 | 6 | MVP-031 (Daylight redesign) | QA (built and gated; awaiting product-owner review and merge) | 13 |
+| 6 | MVP-032 (About, Privacy and Terms) | QA (built; awaiting product-owner review and merge after #53) | 5 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |

@@ -53,3 +53,11 @@ export function productShareImageUrl(origin: string, slug: string): string {
 export function technologySectionUrl(origin: string, path: string): string {
   return `${origin}${path}`;
 }
+
+/** MVP-032: the About, Privacy and Terms pages. */
+export const INFO_PAGE_PATHS = ["/about", "/privacy", "/terms"] as const;
+export type InfoPagePath = (typeof INFO_PAGE_PATHS)[number];
+
+export function infoPageUrl(origin: string, path: InfoPagePath): string {
+  return `${origin}${path}`;
+}

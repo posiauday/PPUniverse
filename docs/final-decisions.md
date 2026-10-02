@@ -1745,3 +1745,21 @@ The product owner asked whether the built site will look exactly like the canvas
    - About, Privacy and Terms pages are not invented: they need facts and legal terms from the product owner (open question 64). For sharing, the article's "Copy link" control from the board is built.
 
 The look of every drawn page follows the canvas. The exceptions are the truthful-copy rules above, and real data in place of sample data.
+
+## 2026-10-02 — About, Privacy and Terms pages (MVP-032)
+
+Direct product-owner instructions in chat, in reply to open question 64 ("About, Privacy and Terms need product-owner content"):
+- *"you buuild it for what iam puttin out there you know"*: the agent writes the three pages from what the site actually does.
+- **Operator:** "LowCodeStacks, run by Uday Posia" (chosen: name plus brand, full name "Uday Posia").
+- **Contact address:** `contact@lowcodestacks.com`. The product owner creates the mailbox or forwarding at the registrar before launch.
+- **Location:** Saskatchewan, Canada.
+- **Content licence:** code samples free to reuse (MIT); article text and images reserved ("Code free, text reserved").
+
+### Decisions
+1. **This supersedes "no legal copy authored by the agent"** ("MVP-020 open questions 46, 47 and 48", scope boundary) **for these three pages only**, by the product owner's direct instruction. Each page states only what the code actually does: an inventory of personal data, cookies, logs and service providers was taken from the codebase on 2026-10-02. The pages carry no compliance claim of any kind ("No compliance claim of any kind, anywhere" still holds):
+   - they describe practices, how to make requests, and the 30-day response the operator commits to;
+   - they name the Office of the Privacy Commissioner of Canada as where to complain.
+   The agent recommends a lawyer reviews them before launch; that is the product owner's call.
+2. **Open question 47 (jurisdiction) is partly answered.** The operator is in Saskatchewan, which has no general private-sector privacy law, so PIPEDA (federal) is the relevant privacy law, per the Office of the Privacy Commissioner. The Terms' governing law is Saskatchewan and the federal laws of Canada that apply there. Still open: the hosting region (open question 5) and paid-sales terms (open question 3).
+3. **Open question 64 is closed.** The footer links About, Privacy and Terms, and the account page links the Terms it records acceptance of.
+4. **Policy versions:** a reversible migration adds real `PolicyVersion` rows (`2026-10-02`) for the Terms and the Privacy notice. Terms acceptance then references the real version; the placeholder rows stay, as history, since consent records may point at them.

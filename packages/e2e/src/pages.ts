@@ -255,6 +255,25 @@ export const GATED_PAGES: readonly GatedPage[] = [
       ).toBeVisible();
     },
   },
+  // MVP-032: About, Privacy and Terms -- long text in the article layout.
+  ...(
+    [
+      ["about", "/about", "About LowCodeStacks"],
+      ["privacy", "/privacy", "Privacy notice"],
+      ["terms", "/terms", "Terms of use"],
+    ] as const
+  ).map(([id, route, title]): GatedPage => ({
+    id,
+    route,
+    description: `${title} page`,
+    auth: "guest",
+    status: 200,
+    path: () => route,
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
+      await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
+    },
+  })),
   {
     id: "category-populated",
     route: "/categories/[slug]",
@@ -459,7 +478,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await seed.resetPrivacyState();
       await page.reload();
       await expect(
-        page.getByRole("button", { name: /accept: the terms of service/i }),
+        page.getByRole("button", { name: /accept: the terms of use/i }),
       ).toBeVisible();
       await expect(page.getByRole("button", { name: /request account deletion/i })).toBeVisible();
     },

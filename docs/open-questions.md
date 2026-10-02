@@ -199,7 +199,7 @@ these questions.
     product-only behaviour; no guide search is built. Answer needed from the
     product owner before guide search is designed and built.
 
-64. **OPEN — needs product-owner content (2026-10-01).** About, Privacy and
+64. **DECIDED 2026-10-02 (MVP-032):** the product owner asked the agent to write the pages and supplied the operator, contact, location and content licence; see `docs/final-decisions.md`, "About, Privacy and Terms pages". Original question, raised 2026-10-01: About, Privacy and
     Terms pages. Google's guidance on helpful content asks whether it is
     "self-evident to your visitors who authored your content", so an About page
     (who writes the guides and why) supports trust and search. A privacy notice
