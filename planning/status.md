@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-02 — **MVP-032 (About, Privacy and Terms) moves to QA**, and two security fixes are up for review.
+Last updated: 2026-10-02 — **MVP-033 (Navigation restructure) In Progress: slice C (technology hubs) is built and goes to review.**
+- **Hubs:** each technology page is a map of its own sections, with a "New here?" path at the end. Old tab addresses redirect to the hub. Governance & admin is the 7th area, at `/governance`.
+- **Guides by goal:** `/learn` and the footer use the goal labels: Fix a problem · Choose the right tool · Design it to last · Measure success.
+- **Technologies menu:** the large menu from the approved board. It shows all 7 areas, each with its guide count, a start-here guide and its first sections. On phones, the menu shows the areas as tinted tiles.
+- **Next:** the product owner reviews and merges the slice C PR into `develop`. Then slice B (topics in the content model) and slice D (Updates).
+
+Last updated (previous): 2026-10-02 — **MVP-032 (About, Privacy and Terms) moves to QA**, and two security fixes are up for review.
 - **Pages:** `/about`, `/privacy` and `/terms`, written by the agent at the product owner's instruction from an inventory of what the code does. They name the operator, Uday Posia (Saskatchewan, Canada), and `contact@lowcodestacks.com`, which the product owner must create before launch. Code samples are MIT; text is reserved; there is no compliance claim. A lawyer's review before launch is recommended.
 - **Security:** BUG-019 (sign-in links logged in production without an email key) and BUG-020 (uploads open to members) are fixed in PR #54.
 - **Next:** the product owner reviews and merges #53, #54 and the MVP-032 PR, retargeting MVP-032 to `develop` before #53's branch is deleted.

@@ -4379,3 +4379,43 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 - **Pages can drift from the code.** When data handling changes (ads, analytics, checkout), the Privacy notice must change in the same PR. Only the cookie name and the no-claim rule are guarded by tests.
 
 **Remaining:** the product owner reviews and merges. Merge #53 first; this PR is stacked on it.
+
+## MVP-033 — Navigation restructure: slice C, technology hubs (2026-10-02)
+
+**Scope:** slice C of `docs/plans/mvp-033-navigation-restructure.md`, built to the approved structure boards (`docs/final-decisions.md`, 2026-10-02 navigation entries). The story stays In Progress; slices B (content model) and D (Updates) are next.
+
+**Built:**
+- **Technology hubs** (`app/[technology]/TechnologyHub.tsx`, `lib/technology-hubs.ts`):
+  - a hero with a scoped search and three problem chips;
+  - every approved section as a card, with planned guides marked "Coming";
+  - a "New here? Start with these 3" path at the end.
+- **Governance & admin** at `/governance`: the 7th area, noindex until it has guides.
+- **Old tab addresses** (`/power-apps/kpis` and so on) redirect (308) to the hub; the sitemap lists hubs only.
+- **Guides by goal:** the `/learn` sections and the footer's Guides column use the goal labels, in the approved order. Section anchors keep the type names, so older links still land.
+- **Technologies menu** (`app/TechnologiesMenu.tsx`, `lib/technology-menu.ts`), to the "Header and Technologies menu" board:
+  - all 7 areas, each with its guide count, the first guide of its hub's "New here?" path, and its first four sections linking to their cards;
+  - a footer link to every guide by goal;
+  - 7 columns from xl, 4 at lg;
+  - the phone menu shows the areas as tinted tiles.
+  - The menu is loaded once per request in the root layout. If the read fails, it is logged and the menu shows areas and sections without counts, so no page breaks.
+- **Tech debt:** TD-025 (each guide's section is mapped in code until slice B adds a topic field).
+
+**Caught and fixed during the story:**
+- **Server-only code in the menu.** The client menu imported a helper from the module that also loads the server logger, and the dev build failed. The count label is now worked out on the server, so the client imports only types.
+- **Crowded count labels.** At 1280 px the count crowded single-word area names; it now wraps under the name.
+
+**Commands and results:**
+- **Web:** typecheck and lint clean; 571 unit tests pass (7 new for the menu); Prettier clean.
+- **e2e:** typecheck clean; route coverage passes (11).
+- **Visual check** (Chromium, local database with the 24 launch guides published locally):
+  - pages: `/power-apps`, `/power-bi` and `/governance` at 375 and 1280 px, light and dark; the open menu at 1024 and 1280 px; the phone menu at 375 px;
+  - no console errors and no sideways scroll;
+  - Escape returns focus to the button.
+- **Not run:** the three-browser a11y gate. CI runs it on the PR; its `home-technologies-menu-open` state covers the new menu.
+
+**Open questions for the product owner:**
+- **Governance hero:** the hub has no hero picture (the other hubs have one).
+- **Tab redirects:** old tab addresses land on the top of the hub, not a section, because hubs are now split by topic rather than by guide type.
+- **Guide card labels:** cards still label each guide "Tutorial", "Pattern" and so on; should they use the goal labels too?
+
+**Remaining:** the product owner reviews and merges the slice C PR into `develop`.
