@@ -477,9 +477,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // already proved for this same class of problem).
       await seed.resetPrivacyState();
       await page.reload();
-      await expect(
-        page.getByRole("button", { name: /accept: the terms of use/i }),
-      ).toBeVisible();
+      await expect(page.getByRole("button", { name: /accept: the terms of use/i })).toBeVisible();
       await expect(page.getByRole("button", { name: /request account deletion/i })).toBeVisible();
     },
   },
