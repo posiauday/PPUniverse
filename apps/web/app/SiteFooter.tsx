@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../lib/article-types";
 import { componentsEnabled } from "../lib/feature-flags";
 import { SITE_NAME } from "../lib/seo/site";
+import { ALL_AREAS } from "./[technology]/OtherAreas";
 import { BrandMark } from "./BrandMark";
 
 /** "Microsoft, Power Apps, Power Automate, ... and Power Pages", from the registry. */
@@ -17,7 +18,7 @@ const COLUMNS: ReadonlyArray<{
   {
     id: "footer-technologies",
     label: "Technologies",
-    links: TECHNOLOGIES.map((entry) => ({ name: entry.name, href: `/${entry.slug}` })),
+    links: ALL_AREAS.map((area) => ({ name: area.name, href: `/${area.slug}` })),
   },
   {
     id: "footer-learn",

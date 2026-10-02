@@ -76,8 +76,8 @@ describe("section tabs and paths", () => {
     expect(ASSET_TECHNOLOGY.GOVERNANCE_ASSET).toBeNull();
   });
 
-  it("reserve one sitemap slot per section tab", () => {
-    expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length * SECTION_TABS.length);
+  it("reserve one sitemap slot per technology hub", () => {
+    expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length);
   });
 });
 
@@ -158,14 +158,11 @@ describe("loadSection", () => {
 });
 
 describe("listSectionPathsWithContent", () => {
-  it("returns only tabs that have something in them", async () => {
+  it("returns only hubs with a published guide of any type (MVP-033)", async () => {
     const d = deps();
-    d.listPublishedArticleSummaries.mockImplementation(
-      async (options: { technology: string; types: string[] }) =>
-        options.technology === "POWER_BI" && options.types.includes("KPI_GUIDE")
-          ? [{ slug: "k" }]
-          : [],
+    d.listPublishedArticleSummaries.mockImplementation(async (options: { technology: string }) =>
+      options.technology === "POWER_BI" ? [{ slug: "k" }] : [],
     );
-    expect(await listSectionPathsWithContent(d.value)).toEqual(["/power-bi/kpis"]);
+    expect(await listSectionPathsWithContent(d.value)).toEqual(["/power-bi"]);
   });
 });

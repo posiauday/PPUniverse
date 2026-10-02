@@ -186,46 +186,45 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
-    // MVP-028: a technology section's Learn tab with content (the fixture
-    // article is tagged Power Apps).
-    id: "technology-learn",
+    // MVP-033: a technology hub with content (the fixture article is tagged
+    // Power Apps): every section as a card, the guide in one of them.
+    id: "technology-hub",
     route: "/[technology]",
-    description: "Power Apps section, Learn tab, with a published tutorial",
+    description: "Power Apps hub, with a published guide",
     auth: "guest",
     status: 200,
     path: () => "/power-apps",
     prepare: async (page, seed) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Power Apps");
-      await expect(page.getByRole("link", { name: seed.publishedArticle.title })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Everything in Power Apps" })).toBeVisible();
       await expect(
-        page
-          .getByRole("navigation", { name: "Power Apps sections" })
-          .getByRole("link", { name: "Learn", exact: true }),
-      ).toHaveAttribute("aria-current", "page");
+        page.getByRole("link", { name: seed.publishedArticle.title }).first(),
+      ).toBeVisible();
     },
   },
   {
-    id: "technology-components",
+    // MVP-033: the old tabs redirect (308) to their hub. Nothing is ever
+    // published as a Dataverse guide by the harness, so this hub is empty.
+    id: "technology-tab-redirect",
     route: "/[technology]/[tab]",
-    description: "Power Apps section, Components tab, with a published component",
-    auth: "guest",
-    status: 200,
-    path: () => "/power-apps/components",
-    prepare: async (page, seed) => {
-      await expect(page.getByRole("link", { name: seed.technologyProduct.name })).toBeVisible();
-    },
-  },
-  {
-    // Nothing is ever published as a Dataverse KPI guide by the harness, so
-    // this tab is reliably empty under every worker.
-    id: "technology-tab-empty",
-    route: "/[technology]/[tab]",
-    description: "Dataverse section, KPIs tab, empty ('coming soon')",
+    description: "an old tab address (Dataverse KPIs) lands on the empty Dataverse hub",
     auth: "guest",
     status: 200,
     path: () => "/dataverse/kpis",
     prepare: async (page) => {
-      await expect(page.getByText("Coming soon.")).toBeVisible();
+      await expect(page).toHaveURL(/\/dataverse$/);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dataverse");
+    },
+  },
+  {
+    id: "governance",
+    route: "/governance",
+    description: "Governance & admin hub (planned guides only)",
+    auth: "guest",
+    status: 200,
+    path: () => "/governance",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Governance & admin");
     },
   },
   {

@@ -57,6 +57,8 @@
   --color-tech-dataverse-ink: #065f46;
   --color-tech-pages: #ffddec;
   --color-tech-pages-ink: #9d174d;
+  --color-tech-gov: #e2e8f0;
+  --color-tech-gov-ink: #334155;
 
   --font-display: var(--font-bricolage), "Segoe UI", system-ui, sans-serif;
   --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
@@ -102,6 +104,8 @@
   --color-tech-dataverse-ink: #9ff0bd;
   --color-tech-pages: #3a1828;
   --color-tech-pages-ink: #ffbfdb;
+  --color-tech-gov: #1f2937;
+  --color-tech-gov-ink: #cbd5e1;
 }
 
 /* The header is sticky from the md breakpoint (SiteHeader). Scrolling to a

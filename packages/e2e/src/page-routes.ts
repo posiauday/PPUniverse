@@ -27,6 +27,7 @@ export const GATED_ROUTES = [
   "/admin/audit",
   "/[technology]",
   "/[technology]/[tab]",
+  "/governance",
   "/about",
   "/privacy",
   "/terms",

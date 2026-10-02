@@ -1,8 +1,7 @@
-import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
 import { componentsEnabled } from "../lib/feature-flags";
-import { TECHNOLOGY_PALETTE } from "../lib/technology-palette";
 import type { Theme } from "../lib/theme";
+import { ALL_AREAS } from "./[technology]/OtherAreas";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
 import { HeaderSearch } from "./HeaderSearch";
@@ -10,11 +9,12 @@ import { MobileMenu } from "./MobileMenu";
 import { TechnologiesMenu } from "./TechnologiesMenu";
 import { ThemeToggle } from "./ThemeToggle";
 
-/** MVP-028: the six technology sections, from the one registry. */
-const TECHNOLOGY_LINKS = TECHNOLOGIES.map((entry) => ({
-  name: entry.name,
-  href: `/${entry.slug}`,
-  dot: TECHNOLOGY_PALETTE[entry.technology].dot,
+/** MVP-028: the six technology hubs from the one registry, then Governance &
+ * admin (MVP-033). */
+const TECHNOLOGY_LINKS = ALL_AREAS.map((area) => ({
+  name: area.name,
+  href: `/${area.slug}`,
+  dot: area.dot,
 }));
 
 /** The main links (docs/final-decisions.md, "Navigation restructure"): Guides,

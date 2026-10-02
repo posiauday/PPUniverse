@@ -206,18 +206,21 @@ export function sectionHasContent(content: SectionContent): boolean {
   return content.kind === "articles" ? content.articles.length > 0 : content.groups.length > 0;
 }
 
-/** Every section tab path that has content, for sitemap.xml (MVP-028). */
+/** Every technology hub that has guides, for sitemap.xml (MVP-028). Since
+ * MVP-033 the tabs redirect to the hub, so only hub paths are listed. */
 export async function listSectionPathsWithContent(deps: SectionDeps): Promise<string[]> {
   const paths: string[] = [];
   for (const technology of TECHNOLOGIES) {
-    for (const { tab } of SECTION_TABS) {
-      if (sectionHasContent(await loadSection(deps, technology, tab))) {
-        paths.push(sectionPath(technology, tab));
-      }
+    const guides = await deps.content.listPublishedArticleSummaries({
+      limit: 1,
+      technology: technology.technology,
+    });
+    if (guides.length > 0) {
+      paths.push(sectionPath(technology, "learn"));
     }
   }
   return paths;
 }
 
-/** The most sitemap URLs the sections can take: six sections, four tabs each. */
-export const MAX_SECTION_PATHS = TECHNOLOGIES.length * SECTION_TABS.length;
+/** The most sitemap URLs the sections can take: one hub per technology. */
+export const MAX_SECTION_PATHS = TECHNOLOGIES.length;
