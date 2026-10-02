@@ -308,10 +308,10 @@ describe("/learn hub (SEO story)", () => {
       summary("c1", "COMPARISON"),
     ]);
     const markup = renderToStaticMarkup(await LearnIndexPage());
-    expect(markup).toContain(">Tutorials</h2>");
-    expect(markup).toContain(">Comparisons</h2>");
-    expect(markup).not.toContain(">Patterns</h2>");
-    expect(markup.indexOf("Tutorials")).toBeLessThan(markup.indexOf("Comparisons"));
+    expect(markup).toContain(">Fix a problem</h2>");
+    expect(markup).toContain(">Choose the right tool</h2>");
+    expect(markup).not.toContain(">Design it to last</h2>");
+    expect(markup.indexOf("Fix a problem")).toBeLessThan(markup.indexOf("Choose the right tool"));
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",
       "BreadcrumbList",

@@ -19,12 +19,13 @@ export const dynamic = "force-dynamic";
  * outgrows it (TD-023). */
 const LEARN_INDEX_LIMIT = 500;
 
-/** A line under each type's heading (Daylight, MVP-031). */
+/** A line under each goal heading (Daylight, MVP-031). Since the headings
+ * became goals (MVP-033), it names the kind of guide underneath. */
 const SECTION_LINE: Readonly<Record<string, string>> = {
-  TUTORIAL: "Fix the problem in front of you.",
-  PATTERN: "Structures that hold up as things grow.",
-  COMPARISON: "Pick the right tool before you build.",
-  KPI_GUIDE: "Measure whether it's working.",
+  TUTORIAL: "Step-by-step tutorials for the problem in front of you.",
+  COMPARISON: "Comparisons that help you pick before you build.",
+  PATTERN: "Patterns: structures that hold up as things grow.",
+  KPI_GUIDE: "KPI guides for checking whether it's working.",
 };
 
 const getArticles = cache(() =>
