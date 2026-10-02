@@ -6,9 +6,8 @@ import {
 } from "@ppu/domain-files";
 import { createErrorEnvelope } from "@ppu/shared";
 import { getCorrelationId } from "@ppu/telemetry";
-import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { authOptions } from "../../../../lib/auth";
+import { notFoundForNonAdmin, requireAdmin } from "../../../../lib/require-admin";
 import { withObservability } from "../../../../lib/observability";
 import { storageAdapter } from "../../../../lib/storage";
 
@@ -30,13 +29,10 @@ function isUploadRequestBody(value: unknown): value is UploadRequestBody {
 
 export const POST = withObservability("POST /api/files/uploads", async (request: Request) => {
   const correlationId = getCorrelationId() ?? "unknown";
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      createErrorEnvelope("UNAUTHENTICATED", "Sign-in required.", correlationId),
-      { status: 401 },
-    );
-  }
+  // BUG-020: only an admin uploads files (first-party publishing; visitors
+  // never upload). Signed out and non-admin both get the identical 404.
+  const admin = await requireAdmin();
+  if (!admin) return notFoundForNonAdmin(correlationId);
 
   const body: unknown = await request.json().catch(() => null);
   if (!isUploadRequestBody(body)) {
@@ -65,7 +61,7 @@ export const POST = withObservability("POST /api/files/uploads", async (request:
     );
   }
 
-  const storageKey = `${session.user.id}/${randomUUID()}-${sanitizeFilename(body.filename)}`;
+  const storageKey = `${admin.userId}/${randomUUID()}-${sanitizeFilename(body.filename)}`;
   const uploadUrl = await storageAdapter.getSignedUploadUrl(
     "quarantine",
     storageKey,
