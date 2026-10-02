@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-type MenuLink = { name: string; href: string; dot?: string };
+type MenuLink = { name: string; href: string; tint?: string };
 
 /**
  * The header's menu below lg (MVP-031, "Board fidelity pass"): the mobile
@@ -87,14 +87,14 @@ export function MobileMenu({
           >
             Technologies
           </p>
-          <ul aria-labelledby={`${panelId}-tech`} className="mt-1 grid grid-cols-2">
+          <ul aria-labelledby={`${panelId}-tech`} className="mt-2 grid grid-cols-2 gap-2 px-1">
             {technologies.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} onClick={close} className={linkClass}>
-                  <span
-                    aria-hidden="true"
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${link.dot ?? "bg-foreground"}`}
-                  />
+                <Link
+                  href={link.href}
+                  onClick={close}
+                  className={`flex min-h-12 items-center rounded-[0.875rem] px-3 py-2 text-sm leading-tight font-semibold text-foreground no-underline ${link.tint ?? "bg-muted"}`}
+                >
                   {link.name}
                 </Link>
               </li>

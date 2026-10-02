@@ -4,6 +4,7 @@ import { TECHNOLOGY_PALETTE } from "../../lib/technology-palette";
 
 /** Governance & admin, the seventh area (docs/final-decisions.md, 2026-10-02). */
 export const GOVERNANCE_AREA = {
+  key: "GOVERNANCE_ADMIN",
   name: "Governance & admin",
   slug: "governance",
   tint: "bg-tech-gov",
@@ -15,6 +16,7 @@ export const GOVERNANCE_AREA = {
 /** Every area, in menu order: the six technologies, then Governance & admin. */
 export const ALL_AREAS = [
   ...TECHNOLOGIES.map((entry) => ({
+    key: entry.technology,
     name: entry.name,
     slug: entry.slug,
     ...TECHNOLOGY_PALETTE[entry.technology],
