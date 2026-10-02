@@ -1763,3 +1763,20 @@ Direct product-owner instructions in chat, in reply to open question 64 ("About,
 2. **Open question 47 (jurisdiction) is partly answered.** The operator is in Saskatchewan, which has no general private-sector privacy law, so PIPEDA (federal) is the relevant privacy law, per the Office of the Privacy Commissioner. The Terms' governing law is Saskatchewan and the federal laws of Canada that apply there. Still open: the hosting region (open question 5) and paid-sales terms (open question 3).
 3. **Open question 64 is closed.** The footer links About, Privacy and Terms, and the account page links the Terms it records acceptance of.
 4. **Policy versions:** a reversible migration adds real `PolicyVersion` rows (`2026-10-02`) for the Terms and the Privacy notice. Terms acceptance then references the real version; the placeholder rows stay, as history, since consent records may point at them.
+
+## 2026-10-02 — Navigation restructure: by technology and by goal
+
+The product owner asked for a strategist's review of the navigation (*"do we need kapi guide on tha navigation hwo to organize evyethgin so tit become easier ffor eveytpoen"*). The agent's review found:
+- two competing groupings, by technology and by article type;
+- "KPI guides" as a top link (jargon, 6 of 24 guides, and a jump into `/learn`);
+- "Components" linking to an empty catalog at launch;
+- technology tabs holding one guide each;
+- inconsistent labels.
+
+The product owner then approved, by direct answers in chat:
+1. **Top bar: Technologies ▾ · Guides · (Updates, when built) · search · sign-in.** "KPI guides" is removed from the top bar. "Components" is hidden until the first product is published (feature flag).
+2. **Technology pages: one page with sections instead of four tabs** while content is small. The old tab addresses redirect to the matching section. Tabs may return when a technology has more than about 8 guides of one kind. This supersedes "Four tabs per section" ("Technology sections (MVP-028)", decision 2) for now.
+3. **Goal labels everywhere for the kinds of guide:** Fix a problem (tutorials), Choose the right tool (comparisons), Design it to last (patterns), Measure success (KPI guides).
+4. **Draw it on the design canvas first,** for sign-off before it is built.
+
+The product owner added that sections must not be generic: *"kpi i think just hsopuld be at power bi but you have to reseach as SKME in each competn ... decide wht shoudl put on each page not generalise eveytwhere it shoudl dynamic"*. The agent's per-technology topic map, researched from Microsoft Learn's own documentation structure for each product (2026-10-02), is a **proposal awaiting the product owner's confirmation**. It is not decided here.
