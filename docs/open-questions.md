@@ -186,3 +186,14 @@ these questions.
     and no longer reference `/api/admin/submissions`. This item stays **OPEN**
     for the same reason item 61 does — a documentation-correctness default, not
     a product-owner-confirmed decision needing closure.
+
+## Raised 2026-10-01 (MVP-031, Daylight redesign) — question only, nothing here is decided
+
+63. **OPEN — safest reversible default applied (2026-10-01).** Should site search
+    cover guides as well as products? The approved Daylight canvas draws
+    `/search?q=delegation` returning guides, but `/search` searches the product
+    catalog only (`catalogRepository.searchProducts`), and with the content-first
+    launch there are no published products, so every search returns nothing.
+    **Default applied:** the search page gets the Daylight look over its current
+    product-only behaviour; no guide search is built. Answer needed from the
+    product owner before guide search is designed and built.

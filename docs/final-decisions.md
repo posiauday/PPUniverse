@@ -1680,3 +1680,38 @@ Direct product-owner instruction in chat, answering "content-first launch?": *"y
 2. **Checkout and product downloads aren't part of this launch.** They follow in a later release, in the work order already decided ("Revised work order", 2026-09-29: content, then ads, then checkout).
 3. **Known conflict, recorded rather than resolved silently.** `docs/02-prd.md`'s release criteria still describe a launch that includes a paid product, purchase and download. Under this decision those criteria describe the later commerce release, not the content launch. Rewording the PRD belongs to the decisions-sync pass, which still awaits product-owner approval.
 4. **Interpretation note (agent).** "All content" is read as the 24 wave-1 articles, not the 15 wave-2 articles, which the approved plan schedules after launch. If the product owner meant wave 2 as well, this entry should be corrected.
+
+## 2026-10-01 — Visual redesign: "Daylight" (replaces the A + B look and the Premium 3 home)
+
+Direct product-owner instructions in chat, choosing from the design canvas "LowCodeStacks — Daylight site" (a private claude.ai artifact):
+- The dark "Nightshift" proposal was rejected: *"NO I dont like thi s"* (too dark, too generic, not enough visuals or motion).
+- Of four bright concepts, Daylight was chosen: *"Day light look best"*, then *"A"*.
+- *"lets focnus on day liht first rebudl full site usinf that"*, and after the full page set was drawn, *"Yes go ahead"*.
+- The article page's text and layout were approved too: *"Arctile page's page text adn oreitation seems good too"*.
+
+### Product-owner decisions
+1. **Daylight is the site's visual design.** It replaces the A + B colours and fonts ("Design direction: A + B combined", 2026-09-29) and the Premium 3 home layout ("Home page design: Premium 3", 2026-09-30).
+2. **The look:**
+   - Warm paper background (`#FBF8F3`), near-black ink (`#14141A`), a lime accent and a violet focus colour.
+   - One pastel tint and one dark text colour per technology (Power Apps lavender, Power Automate sky, Power BI butter, Copilot Studio mint, Dataverse green, Power Pages pink), every pairing at least 4.5:1.
+   - Bricolage Grotesque for display headings, an Instrument Serif italic for one accent word per heading, Geist for body text and Geist Mono for labels and code.
+   - Glossy 3D-style shapes drawn in CSS, and live animated mock-ups (an app that types and scrolls, a flow running, bars growing to a target).
+3. **The pages drawn on the canvas** are the target: home, technology hub, guides library, article, search, sign-in, page not found, and the mobile home and article. Admin and account pages take the same tokens and components without a separate design.
+
+### What does not change
+Everything that was a commitment rather than a look stays as decided:
+- The dark-mode toggle at parity ("Design system (MVP-027)", decision 5). It gets a Daylight dark palette. The canvas only draws the light theme, but the product owner did not withdraw the toggle, so the safest reading is to keep it.
+- Dark code panels with a language label and Copy button; callouts; the article contents list.
+- The footer's standing non-affiliation line, the skip link, self-hosted fonts, and motion that stops entirely for reduced-motion users.
+- Content honesty: home sections come from real data and are left out when empty; decorative mock-ups are hidden from assistive technology and never present invented data as real.
+
+### Implementation decisions (agent, under the standing instruction; reversible)
+1. **Story MVP-031**, "Daylight redesign", P1. Built as one branch in ordered commits: foundations (tokens, fonts, header, footer, brand mark); home; technology hub; guides library and article; search, sign-in and page not found; shared `@ppu/ui` components.
+2. **Search stays a product search.** The canvas draws search results as guides, but `/search` searches the product catalog today, and making guides searchable is a product change. The page gets the Daylight look over its current behaviour. Recorded as open question 63.
+3. **Truthful copy in place of the canvas's sample words:**
+   - The hero's announcement pill shows the real number of published guides. It does not claim every guide is "checked against Microsoft Learn", which the site cannot verify for future articles.
+   - An article shows a "Cites Microsoft Learn" badge only when its body actually links to learn.microsoft.com.
+   - Each technology panel shows that technology's real published guide count.
+   - "Start with these three" lists three named launch guides by slug, each shown only if published; the section is left out if none are.
+   - The scrolling topic ribbon is decorative (hidden from assistive technology, not links). The same guides are reachable as real links on the page.
+4. **Fonts** load through `next/font/google`, which self-hosts them at build time (all four are SIL Open Font License).
