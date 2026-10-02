@@ -1715,3 +1715,14 @@ Everything that was a commitment rather than a look stays as decided:
    - "Start with these three" lists three named launch guides by slug, each shown only if published; the section is left out if none are.
    - The scrolling topic ribbon is decorative (hidden from assistive technology, not links). The same guides are reachable as real links on the page.
 4. **Fonts** load through `next/font/google`, which self-hosts them at build time (all four are SIL Open Font License).
+
+### Logo: X2 "Code stack" (2026-10-01)
+Direct product-owner instruction in chat, after several rounds of logo boards on the same canvas (card stacks, isometric stacks, niche variations, a rethink and finally full lockups drawn from an inspiration sheet the product owner supplied): *"X2 is final if you think that ther wont be anythgin else better than it"*. The agent's view, given in the same exchange, was that nothing on the boards beat it for this niche, which met the product owner's condition.
+
+1. **The mark:** three soft rounded cards stepped up and to the right, lime at the back, coral in the middle and violet at the front, with a white `</>` on the front card. It reads as stacks of components, built by people who also write code. Each card has a light-to-deep gradient in its own colour.
+2. **The logo is the stack symbol alone.** Product owner, in the same exchange: *"just keep the stack part in logo below is jsut branding"*. The name and tagline drawn under the mark on the X2 board are branding that sits beside the logo, not part of it:
+   - the wordmark, "LowCode" in ink and "Stacks" in violet, set in Bricolage Grotesque;
+   - the tagline *"Built to hold up"*, which matches the home headline and is used only where there is room for one.
+3. **Small sizes:** at 20 px and below, the `</>` is illegible. The favicon uses a simplified drawing of the same mark: a larger front card with a bold `< >` and no slash. This is a drawing choice, not a second logo.
+
+Reversible implementation details (agent): the mark is an inline SVG component with per-instance gradient ids, so several marks on one page do not collide. No trademark search has been done beyond the earlier web search, which found no other "LowCodeStacks" brand. A formal clearance search is the product owner's call.

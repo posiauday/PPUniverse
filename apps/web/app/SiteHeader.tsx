@@ -37,7 +37,7 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
           href="/"
           className="inline-flex min-h-11 items-center gap-2 text-foreground no-underline md:mr-2 md:gap-2.5"
         >
-          <BrandMark />
+          <BrandMark size={32} />
           <span className="font-display text-base font-bold tracking-tight sm:text-lg">
             {SITE_NAME}
           </span>

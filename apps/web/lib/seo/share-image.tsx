@@ -1,5 +1,6 @@
 import { normalizeDisplayText } from "@ppu/domain-catalog";
 import { ImageResponse } from "next/og";
+import { brandMarkSvg } from "../brand-mark";
 import { SHARE_IMAGE_SIZE } from "./share-image-size";
 import { SITE_NAME } from "./site";
 
@@ -20,6 +21,9 @@ import { SITE_NAME } from "./site";
  */
 
 export const MAX_SHARE_TITLE_LENGTH = 110;
+
+/** The X2 logo as an encoded SVG image, drawn from the same geometry as BrandMark and the favicon. */
+const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(brandMarkSvg("full")).toString("base64")}`;
 
 /** Browsers and crawlers may cache a card for a day; a title edit shows up by then. */
 const CACHE_CONTROL = "public, max-age=3600, s-maxage=86400";
@@ -45,7 +49,7 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
         justifyContent: "space-between",
         padding: "72px",
         // Daylight (MVP-031): warm paper, ink text, a lime eyebrow chip and
-        // the three-bar brand mark.
+        // the X2 "Code stack" logo.
         background: "#fbf8f3",
         color: "#14141a",
       }}
@@ -74,22 +78,8 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
         {title}
       </div>
       <div style={{ display: "flex", alignItems: "center", fontSize: 36 }}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginRight: 18,
-          }}
-        >
-          <div style={{ width: 16, height: 9, borderRadius: 5, background: "#a3e635" }} />
-          <div
-            style={{ width: 24, height: 9, borderRadius: 5, background: "#ff7a59", marginTop: 3 }}
-          />
-          <div
-            style={{ width: 32, height: 9, borderRadius: 5, background: "#6c47ff", marginTop: 3 }}
-          />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element -- Satori draws a plain <img>; next/image does not apply here */}
+        <img src={MARK_DATA_URI} width={56} height={56} alt="" style={{ marginRight: 18 }} />
         {SITE_NAME}
       </div>
     </div>,
