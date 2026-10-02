@@ -13,7 +13,7 @@ test.describe("BUG-004: the search input placeholder has enough contrast", () =>
       await page.goto("/search");
 
       const placeholder = await measurePlaceholderContrast(
-        page.getByRole("searchbox", { name: "Search products" }),
+        page.getByRole("main").getByRole("searchbox", { name: "Search guides and components" }),
       );
       expect(placeholder.placeholder, "the input should have placeholder text").not.toBe("");
       expect(
@@ -22,4 +22,16 @@ test.describe("BUG-004: the search input placeholder has enough contrast", () =>
       ).toBeGreaterThanOrEqual(4.5);
     });
   }
+
+  // MVP-031: the header's own search box (shown from the xl breakpoint).
+  test("the header search box placeholder is at least 4.5:1 at 1280px", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: VIEWPORT_HEIGHT });
+    await page.goto("/");
+
+    const placeholder = await measurePlaceholderContrast(
+      page.getByRole("banner").getByRole("searchbox", { name: "Search guides and components" }),
+    );
+    expect(placeholder.placeholder, "the header search box should have a placeholder").not.toBe("");
+    expect(placeholder.ratio, "placeholder against the box").toBeGreaterThanOrEqual(4.5);
+  });
 });
