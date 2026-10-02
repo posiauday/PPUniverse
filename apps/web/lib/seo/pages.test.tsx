@@ -47,7 +47,7 @@ vi.mock("next-auth/next", () => ({ getServerSession: vi.fn().mockResolvedValue(n
 // Next.js build; these tests read the layout's metadata, not its fonts.
 vi.mock("next/font/google", () => {
   const font = () => ({ className: "font", variable: "--font", style: {} });
-  return { Fraunces: font, Source_Sans_3: font, IBM_Plex_Mono: font };
+  return { Bricolage_Grotesque: font, Instrument_Serif: font, Geist: font, Geist_Mono: font };
 });
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
@@ -211,7 +211,9 @@ describe("home page — learning content (SEO story)", () => {
   it("links to /learn and lists the newest articles when any are published", async () => {
     content.listPublishedArticleSummaries.mockResolvedValue([summary("a"), summary("b")]);
     const markup = renderToStaticMarkup(await HomePage());
-    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({ limit: 6 });
+    // MVP-031: one query feeds the guide counts, the starter guides and the
+    // newest six, so it asks for every published summary (the /learn ceiling).
+    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({ limit: 500 });
     expect(markup).toContain("Latest from Learn");
     expect(markup).toContain('href="/learn/a"');
     expect(markup).toContain('href="/learn"');
@@ -230,18 +232,40 @@ describe("home page — learning content (SEO story)", () => {
   });
 });
 
-describe("home page — Premium 3 layout (MVP-027 slice 2)", () => {
-  it("leads with the hero headline as its only h1, linking to Learn and to the components", async () => {
+describe("home page — Daylight layout (MVP-031; was Premium 3, MVP-027 slice 2)", () => {
+  const text = (markup: string) => markup.replace(/<[^>]+>/g, "");
+
+  it("leads with the hero headline as its only h1, linking to Learn and to the technologies", async () => {
     const markup = renderToStaticMarkup(await HomePage());
     expect(markup.match(/<h1/g)).toHaveLength(1);
-    expect(markup).toContain("Learn it properly. Ship components that last.");
+    expect(text(markup)).toContain("Build Power Platform apps that actually hold up.");
     expect(markup).toContain('href="/learn"');
-    expect(markup).toContain('href="/search"');
+    expect(markup).toContain('href="#technologies"');
+    expect(markup).toContain('id="technologies"');
   });
 
   it("keeps the hero illustration out of the accessibility tree", async () => {
     const markup = renderToStaticMarkup(await HomePage());
-    expect(markup).toMatch(/<div aria-hidden="true"[^>]*>[\s\S]*Field inspections/);
+    expect(markup).toMatch(/<div aria-hidden="true"[^>]*>[\s\S]*Site inspections/);
+  });
+
+  it("shows the real guide count, and leaves the announcement out when nothing is published", async () => {
+    expect(text(renderToStaticMarkup(await HomePage()))).not.toContain("free guide");
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("a"), summary("b")]);
+    expect(text(renderToStaticMarkup(await HomePage()))).toContain(
+      "2 free guides across six technologies",
+    );
+  });
+
+  it("lists the named starter guides only while they are published", async () => {
+    expect(renderToStaticMarkup(await HomePage())).not.toContain("Start with the");
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("why-are-my-totals-wrong"),
+      summary("unrelated"),
+    ]);
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(text(markup)).toContain("Start here.");
+    expect(markup).toContain('href="/learn/why-are-my-totals-wrong"');
   });
 
   it("shows the newest published products, and leaves the section out when there are none", async () => {
@@ -347,7 +371,8 @@ describe("article page (SEO story)", () => {
     content.listPublishedArticleSummaries.mockResolvedValue([summary("other")]);
     const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
     expect(markup).toContain(">Step one</h2>");
-    expect(markup).toContain("Keep learning");
+    // MVP-031: "learning" is the heading's serif accent word, so compare text.
+    expect(markup.replace(/<[^>]+>/g, "")).toContain("Keep learning");
     expect(markup).toContain('href="/learn/other"');
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({
       limit: 4,
@@ -384,7 +409,10 @@ describe("technology sections (MVP-028)", () => {
     expect(metadata.title).toBe(`Power Apps tutorials | ${SITE_NAME}`);
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
     expect(markup).toContain('href="/learn/pa-guide"');
-    expect(markup).toMatch(/<a[^>]*aria-current="page"[^>]*>Learn<\/a>/);
+    // MVP-031: the count badge is aria-hidden, so the link's name stays "Learn".
+    expect(markup).toMatch(
+      /<a[^>]*aria-current="page"[^>]*>Learn(<span aria-hidden="true"[^>]*>\d+<\/span>)?<\/a>/,
+    );
     expect(markup).toContain('href="/power-apps/architecture"');
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",
