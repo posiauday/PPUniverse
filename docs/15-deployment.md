@@ -50,7 +50,7 @@ Why two strings: serverless functions open many short-lived connections, and Sup
    - **Base directory:** leave empty (the repository root).
    - **Package directory:** `apps/web`.
    - **Branch to deploy:** `main`.
-   - The build command and publish directory come from `apps/web/netlify.toml`.
+   - The build command and publish directory come from `apps/web/netlify.toml`. Its `publish` path is relative to the repository root (`apps/web/.next`), as Netlify resolves every `netlify.toml` path from the base directory (BUG-021).
 3. **Deploy contexts** (Site configuration → Build & deploy → Branches and deploy contexts):
    - **Deploy previews:** on. Netlify serves them with `X-Robots-Tag: noindex`.
    - **Branch deploys:** **None.** They wouldn't get that header (TD-009).

@@ -18,8 +18,11 @@
   # Builds @ppu/web and the workspace packages it depends on (Turborepo's
   # `^build`). @ppu/db generates its Prisma client first.
   command = "pnpm turbo run build --filter=@ppu/web"
-  # Relative to the package directory (apps/web).
-  publish = ".next"
+  # Relative to the BASE directory (the repository root), not to this file's
+  # package directory: Netlify resolves every path in netlify.toml from the
+  # base directory, even in a monorepo (docs.netlify.com, "Monorepos").
+  # BUG-021: ".next" here made the Next.js plugin look in the repository root.
+  publish = "apps/web/.next"
 
 [build.environment]
   # Matches CI (.github/workflows).
