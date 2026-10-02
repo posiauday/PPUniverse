@@ -1,6 +1,7 @@
 import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
 import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../lib/article-types";
+import { componentsEnabled } from "../lib/feature-flags";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
 
@@ -20,14 +21,13 @@ const COLUMNS: ReadonlyArray<{
   },
   {
     id: "footer-learn",
-    label: "Learn",
+    label: "Guides",
     links: [
       { name: "All guides", href: "/learn" },
       ...ARTICLE_TYPE_SECTIONS.map((section) => ({
         name: section.heading,
         href: `/learn#${SECTION_ANCHOR[section.type]}`,
       })),
-      { name: "Components", href: "/search" },
     ],
   },
 ];
@@ -66,7 +66,11 @@ export function SiteFooter() {
         </div>
         {/* Two link columns side by side from phone width; from md they join the outer grid. */}
         <div className="grid grid-cols-2 gap-6 md:contents">
-          {COLUMNS.map((column) => (
+          {COLUMNS.map((column) =>
+            column.id === "footer-learn" && componentsEnabled()
+              ? { ...column, links: [...column.links, { name: "Components", href: "/search" }] }
+              : column,
+          ).map((column) => (
             <nav key={column.id} aria-labelledby={column.id}>
               <p
                 id={column.id}
