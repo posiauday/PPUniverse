@@ -622,6 +622,15 @@ samp {
 .motion-scroll {
   animation: lcs-scroll 10s ease-in-out infinite;
 }
+/* A text cursor blinking in a mock search box; at rest it is shown. */
+@keyframes lcs-caret {
+  50% {
+    opacity: 0;
+  }
+}
+.motion-caret {
+  animation: lcs-caret 1s steps(1) infinite;
+}
 .motion-grow {
   transform-origin: bottom;
   animation: lcs-grow 6s ease-in-out infinite;

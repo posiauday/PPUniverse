@@ -9,7 +9,15 @@ import Link from "next/link";
  * the surrounding text colour -- always a checked pairing for that surface --
  * rather than a muted grey that is not checked against every tint.
  */
-export function Breadcrumbs({ items }: { items: ReadonlyArray<{ name: string; href?: string }> }) {
+export function Breadcrumbs({
+  items,
+  endsAtCurrentPage = true,
+}: {
+  items: ReadonlyArray<{ name: string; href?: string }>;
+  /** False when the last item is a label rather than this page (the article
+   * trail ends at the guide type, as the canvas draws it). */
+  endsAtCurrentPage?: boolean;
+}) {
   return (
     <nav aria-label="Breadcrumb" className="text-sm">
       <ol className="flex flex-wrap items-center gap-x-2">
@@ -21,7 +29,7 @@ export function Breadcrumbs({ items }: { items: ReadonlyArray<{ name: string; hr
                 {item.name}
               </Link>
             ) : (
-              <span aria-current="page" className="font-semibold">
+              <span aria-current={endsAtCurrentPage ? "page" : undefined} className="font-semibold">
                 {item.name}
               </span>
             )}

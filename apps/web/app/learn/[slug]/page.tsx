@@ -19,6 +19,7 @@ import { ArticleBody } from "../ArticleBody";
 import { ArticleList } from "../ArticleList";
 import { ArticleToc } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
+import { CopyLink } from "../CopyLink";
 import { ReadingProgress } from "../ReadingProgress";
 
 interface LearnPageProps {
@@ -132,12 +133,15 @@ export default async function LearnPage({ params }: LearnPageProps) {
         className={`motion-rise relative mx-auto mt-4 grid max-w-[77.5rem] items-center gap-8 overflow-hidden rounded-[2.5rem] px-6 py-10 md:px-[72px] md:py-16 ${palette.tint} ${cover ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
       >
         <div className="relative flex flex-col gap-5">
+          {/* Learn / Power Apps / Tutorial, as the canvas draws it; the
+              BreadcrumbList JSON-LD below still ends at the article. */}
           <Breadcrumbs
             items={[
-              { name: SITE_NAME, href: "/" },
-              { name: parent.name, href: parent.path },
-              { name: article.title },
+              { name: "Learn", href: "/learn" },
+              ...(section ? [{ name: section.name, href: parent.path }] : []),
+              { name: ARTICLE_TYPE_LABEL[article.type] },
             ]}
+            endsAtCurrentPage={false}
           />
           <h1 className="text-4xl leading-[1.04] font-bold md:text-[3.75rem]">
             {lead}
@@ -177,6 +181,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
           <div aria-hidden="true" className="relative hidden h-[240px] place-items-center lg:grid">
             {cover}
             <span className="shape-sphere motion-bob absolute top-0 right-0 h-[70px] w-[70px]" />
+            <span className="shape-pill motion-bob-alt absolute bottom-2 left-0 h-[34px] w-[90px]" />
           </div>
         ) : null}
       </header>
@@ -187,6 +192,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
       <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[15rem_minmax(0,46rem)] lg:gap-16">
         <div>
           <ArticleToc items={outline} />
+          {site.ok ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
         </div>
         <div className="min-w-0">
           <ArticleBody markdown={article.body} />

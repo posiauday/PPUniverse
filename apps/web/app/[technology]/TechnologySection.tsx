@@ -19,9 +19,10 @@ import {
   type SectionCounts,
   type SectionTab,
 } from "../../lib/technology-sections";
-import { TECHNOLOGY_VISUALS } from "../home/TechnologyPanels";
 import { ArticleList } from "../learn/ArticleList";
 import { Breadcrumbs } from "../learn/Breadcrumbs";
+import { AlsoInSection, FeaturedGuides, featuredFirst } from "./FeaturedGuides";
+import { TechnologyHeroVisual } from "./TechnologyHeroVisual";
 
 const TYPE_CHIPS = [
   ["TUTORIAL", "tutorial", "tutorials"],
@@ -56,8 +57,10 @@ export function TechnologySection({
   const current = tabInfo(tab);
   const palette = TECHNOLOGY_PALETTE[technology.technology];
 
+  // The visible trail starts at the home page's technologies, as the canvas
+  // draws it; the BreadcrumbList JSON-LD below keeps the home page as root.
   const crumbs = [
-    { name: SITE_NAME, href: "/" },
+    { name: "Technologies", href: "/#technologies" },
     ...(tab === "learn"
       ? [{ name: technology.name }]
       : [
@@ -91,7 +94,7 @@ export function TechnologySection({
       <header
         className={`motion-rise relative mx-auto mt-2 max-w-[77.5rem] overflow-hidden rounded-[2.5rem] ${palette.tint}`}
       >
-        <div className="relative flex flex-col gap-4 px-6 py-10 md:px-16 md:py-14 lg:max-w-[50rem]">
+        <div className="relative flex flex-col gap-4 px-6 py-10 md:px-16 md:py-14 lg:min-h-[31.25rem] lg:max-w-[50rem]">
           <Breadcrumbs items={crumbs} />
           <h1
             className={
@@ -110,7 +113,7 @@ export function TechnologySection({
           </p>
           {counts.articles > 0 ? (
             <ul
-              className="mt-2 flex flex-wrap gap-2 text-sm font-medium"
+              className="mt-2 flex flex-wrap gap-2 text-sm font-medium lg:mt-auto"
               aria-label="Published guides"
             >
               <li className="rounded-full bg-primary px-3.5 py-1.5 text-primary-foreground">
@@ -127,55 +130,53 @@ export function TechnologySection({
             </ul>
           ) : null}
         </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-10 right-16 bottom-0 hidden w-[340px] flex-col lg:flex"
-        >
-          {TECHNOLOGY_VISUALS[technology.technology]}
+        <div aria-hidden="true">
+          <TechnologyHeroVisual technology={technology.technology} />
         </div>
       </header>
 
-      <nav
-        aria-label={`${technology.name} sections`}
-        className="mx-auto mt-8 max-w-[77.5rem] overflow-x-auto"
-      >
-        <ul className="inline-flex gap-1 rounded-full border border-border bg-card p-1.5">
-          {SECTION_TABS.map((entry) => {
-            const selected = entry.tab === tab;
-            const count = tabCount(counts, entry.tab);
-            return (
-              <li key={entry.tab}>
-                <Link
-                  href={sectionPath(technology, entry.tab)}
-                  aria-current={selected ? "page" : undefined}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-5 font-semibold whitespace-nowrap no-underline ${
-                    selected
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {entry.label}
-                  {count !== null && count > 0 ? (
-                    // Visual only: the link's name stays exactly the tab label.
-                    <span
-                      aria-hidden="true"
-                      className={`rounded-full px-2 text-xs ${selected ? "bg-highlight text-highlight-foreground" : "bg-muted text-foreground"}`}
-                    >
-                      {count}
-                    </span>
-                  ) : null}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <div className="mx-auto mt-8 flex max-w-[77.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <nav aria-label={`${technology.name} sections`} className="max-w-full overflow-x-auto">
+          <ul className="inline-flex gap-1 rounded-full border border-border bg-card p-1.5">
+            {SECTION_TABS.map((entry) => {
+              const selected = entry.tab === tab;
+              const count = tabCount(counts, entry.tab);
+              return (
+                <li key={entry.tab}>
+                  <Link
+                    href={sectionPath(technology, entry.tab)}
+                    aria-current={selected ? "page" : undefined}
+                    className={`inline-flex min-h-11 items-center gap-2 rounded-full px-5 font-semibold whitespace-nowrap no-underline ${
+                      selected
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {entry.label}
+                    {count !== null && count > 0 ? (
+                      // Visual only: the link's name stays exactly the tab label.
+                      <span
+                        aria-hidden="true"
+                        className={`rounded-full px-2 text-xs ${selected ? "bg-highlight text-highlight-foreground" : "bg-muted text-foreground"}`}
+                      >
+                        {count}
+                      </span>
+                    ) : null}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <p className="text-sm text-muted-foreground">{tabDescription(technology, tab)}</p>
+      </div>
 
-      <section aria-labelledby="section_content" className="mx-auto mt-10 max-w-[77.5rem]">
-        <h2 id="section_content" className="text-3xl font-bold md:text-[2.5rem]">
+      <section aria-labelledby="section_content" className="mx-auto mt-6 max-w-[77.5rem]">
+        {/* The canvas shows no heading over the tab's content (the selected
+            tab says what it is); the outline still needs one. */}
+        <h2 id="section_content" className="sr-only">
           {tab === "learn" ? tabTitle(technology, tab) : current.label}
         </h2>
-        <p className="mt-2 text-muted-foreground">{tabDescription(technology, tab)}</p>
 
         {!hasContent ? (
           <div className="relative mt-6 overflow-hidden rounded-[1.75rem] border-2 border-dashed border-muted-foreground px-6 py-10 md:px-10">
@@ -197,7 +198,16 @@ export function TechnologySection({
             </p>
           </div>
         ) : content.kind === "articles" ? (
-          <ArticleList articles={content.articles} headingLevel={3} columns={2} />
+          <>
+            <FeaturedGuides articles={featuredFirst(content.articles).slice(0, 2)} />
+            {content.articles.length > 2 ? (
+              <ArticleList
+                articles={featuredFirst(content.articles).slice(2)}
+                headingLevel={3}
+                columns={3}
+              />
+            ) : null}
+          </>
         ) : (
           content.groups.map((group) => (
             <section
@@ -234,6 +244,8 @@ export function TechnologySection({
           ))
         )}
       </section>
+
+      {tab === "learn" ? <AlsoInSection technology={technology} counts={counts} /> : null}
 
       <section aria-labelledby="other_sections" className="mx-auto mt-20 max-w-[77.5rem]">
         <h2 id="other_sections" className="text-3xl font-bold md:text-[2.25rem]">

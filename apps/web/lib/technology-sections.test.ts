@@ -97,10 +97,13 @@ describe("loadSectionCounts and tabCount (MVP-031)", () => {
       expect.objectContaining({ technology: "POWER_APPS" }),
     );
     expect(d.listPublishedArticleSummaries.mock.calls[0]?.[0]).not.toHaveProperty("types");
-    expect(counts).toEqual({
-      articles: 5,
-      byType: { TUTORIAL: 2, COMPARISON: 1, PATTERN: 1, KPI_GUIDE: 1 },
-    });
+    expect(counts.articles).toBe(5);
+    expect(counts.byType).toEqual({ TUTORIAL: 2, COMPARISON: 1, PATTERN: 1, KPI_GUIDE: 1 });
+    // Newest first in, so the first tutorial is the newest one.
+    expect(counts.newestByType.TUTORIAL).toBe(
+      (await d.listPublishedArticleSummaries.mock.results[0]?.value)[0],
+    );
+    expect(counts.newestByType.PATTERN).toEqual({ type: "PATTERN" });
     expect(tabCount(counts, "learn")).toBe(3);
     expect(tabCount(counts, "architecture")).toBe(1);
     expect(tabCount(counts, "kpis")).toBe(1);
@@ -109,7 +112,7 @@ describe("loadSectionCounts and tabCount (MVP-031)", () => {
 
   it("is zero everywhere for a technology with nothing published", async () => {
     const counts = await loadSectionCounts(deps().value, POWER_APPS);
-    expect(counts).toEqual({ articles: 0, byType: {} });
+    expect(counts).toEqual({ articles: 0, byType: {}, newestByType: {} });
     expect(tabCount(counts, "learn")).toBe(0);
   });
 });

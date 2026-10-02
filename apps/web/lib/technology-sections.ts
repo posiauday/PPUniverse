@@ -173,6 +173,8 @@ export async function loadSection(
 export interface SectionCounts {
   articles: number;
   byType: Partial<Record<ArticleType, number>>;
+  /** The newest guide of each type, for the Learn tab's "Also in" cards. */
+  newestByType: Partial<Record<ArticleType, ArticleSummary>>;
 }
 
 export async function loadSectionCounts(
@@ -184,8 +186,13 @@ export async function loadSectionCounts(
     technology: technology.technology,
   });
   const byType: Partial<Record<ArticleType, number>> = {};
-  for (const article of articles) byType[article.type] = (byType[article.type] ?? 0) + 1;
-  return { articles: articles.length, byType };
+  const newestByType: Partial<Record<ArticleType, ArticleSummary>> = {};
+  // Summaries arrive newest first, so the first of each type is its newest.
+  for (const article of articles) {
+    byType[article.type] = (byType[article.type] ?? 0) + 1;
+    newestByType[article.type] ??= article;
+  }
+  return { articles: articles.length, byType, newestByType };
 }
 
 /** A tab's guide count, or null for the Components tab, which lists products. */
