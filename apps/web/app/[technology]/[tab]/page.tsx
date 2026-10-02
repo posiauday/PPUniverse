@@ -9,6 +9,7 @@ import { SITE_NAME } from "../../../lib/seo/site";
 import { getSiteUrl } from "../../../lib/site-url";
 import {
   loadSection,
+  loadSectionCounts,
   sectionHasContent,
   sectionPath,
   tabBySegment,
@@ -32,12 +33,12 @@ const getTab = cache(async (slug: string, segment: string) => {
   const technology = technologyBySlug(slug);
   const tab = tabBySegment(segment);
   if (!technology || !tab) return null;
-  const content = await loadSection(
-    { content: contentRepository, catalog: catalogRepository },
-    technology,
-    tab.tab,
-  );
-  return { technology, tab: tab.tab, content };
+  const deps = { content: contentRepository, catalog: catalogRepository };
+  const [content, counts] = await Promise.all([
+    loadSection(deps, technology, tab.tab),
+    loadSectionCounts(deps, technology),
+  ]);
+  return { technology, tab: tab.tab, content, counts };
 });
 
 export async function generateMetadata({ params }: TechnologyTabPageProps): Promise<Metadata> {
@@ -68,6 +69,7 @@ export default async function TechnologyTabPage({ params }: TechnologyTabPagePro
       technology={section.technology}
       tab={section.tab}
       content={section.content}
+      counts={section.counts}
     />
   );
 }

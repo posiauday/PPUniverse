@@ -9,8 +9,8 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../lib/seo/
 import { buildLearnIndexMetadata } from "../../lib/seo/metadata";
 import { LEARN_INDEX_DESCRIPTION, SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
-import { ArticleList } from "./ArticleList";
 import { TechnologyTiles } from "../TechnologyTiles";
+import { ArticleList } from "./ArticleList";
 import { Breadcrumbs } from "./Breadcrumbs";
 
 // See apps/web/app/page.tsx for why content pages render per-request.
@@ -19,6 +19,14 @@ export const dynamic = "force-dynamic";
 /** How many articles the hub lists. Pagination arrives when the library
  * outgrows it (TD-023). */
 const LEARN_INDEX_LIMIT = 500;
+
+/** A line under each type's heading (Daylight, MVP-031). */
+const SECTION_LINE: Readonly<Record<string, string>> = {
+  TUTORIAL: "Fix the problem in front of you.",
+  PATTERN: "Structures that hold up as things grow.",
+  COMPARISON: "Pick the right tool before you build.",
+  KPI_GUIDE: "Measure whether it's working.",
+};
 
 const getArticles = cache(() =>
   contentRepository.listPublishedArticleSummaries({ limit: LEARN_INDEX_LIMIT }),
@@ -30,11 +38,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The /learn hub (SEO story): every published tutorial, pattern and
- * comparison in one crawlable place, grouped by type. It is the page every
- * article links back to, so no article is ever more than two clicks from the
- * home page. Empty sections are left out; with no articles at all it shows
- * an empty state and stays noindex.
+ * The /learn hub (SEO story; Daylight look, MVP-031): every published
+ * tutorial, pattern, comparison and KPI guide in one crawlable place, grouped
+ * by type under a lime header with links straight to each technology. It is
+ * the page every article links back to, so no article is ever more than two
+ * clicks from the home page. Empty sections are left out; with no articles at
+ * all it shows an empty state and stays noindex.
  */
 export default async function LearnIndexPage() {
   const articles = await getArticles();
@@ -60,29 +69,59 @@ export default async function LearnIndexPage() {
     : null;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <Breadcrumbs items={[{ name: SITE_NAME, href: "/" }, { name: "Learn" }]} />
-      <h1 className="mt-2 text-2xl font-semibold">Learn Power Platform</h1>
-      <p className="mt-2 text-muted-foreground">{LEARN_INDEX_DESCRIPTION}</p>
-      {/* MVP-028: straight to one technology. */}
-      <nav aria-label="Technologies">
-        <TechnologyTiles variant="chips" />
-      </nav>
+    <main className="px-4 pb-6 md:px-6">
+      <header className="motion-rise relative mx-auto mt-2 max-w-[77.5rem] overflow-hidden rounded-[2.5rem] bg-highlight px-6 py-12 text-highlight-foreground md:px-16 md:py-16">
+        <div aria-hidden="true">
+          <span className="shape-sphere motion-bob absolute top-12 right-24 hidden h-[110px] w-[110px] md:block" />
+          <span className="shape-pill-coral motion-bob-alt absolute top-[250px] right-48 hidden h-[54px] w-[150px] lg:block" />
+          <span className="shape-cube motion-bob absolute right-16 bottom-14 hidden h-[72px] w-[72px] [animation-duration:9s] md:block" />
+        </div>
+        <div className="relative flex max-w-3xl flex-col gap-4">
+          <Breadcrumbs items={[{ name: SITE_NAME, href: "/" }, { name: "Learn" }]} />
+          <p className="font-mono text-xs tracking-widest uppercase">
+            Learn Power Platform{articles.length > 0 ? ` · ${articles.length} guides` : ""}
+          </p>
+          <h1 className="text-5xl leading-[0.98] font-extrabold md:text-[5.25rem]">
+            Every guide, <span className="accent-word">in one place.</span>
+          </h1>
+          <p className="max-w-xl text-lg leading-relaxed">{LEARN_INDEX_DESCRIPTION}</p>
+        </div>
+        {/* MVP-028: straight to one technology. */}
+        <nav aria-label="Technologies" className="relative mt-8">
+          <TechnologyTiles />
+        </nav>
+      </header>
 
       {sections.length === 0 ? (
-        <p className="mt-8">
+        <p className="mx-auto mt-10 max-w-[77.5rem] text-lg">
           No articles are published yet.{" "}
-          <Link href="/" className="inline-block py-1 underline">
+          <Link href="/" className="inline-block py-1 font-semibold underline">
             Browse products by category
           </Link>
         </p>
       ) : (
         sections.map((section) => (
-          <section key={section.type} aria-labelledby={`learn-${section.type}`} className="mt-8">
-            <h2 id={`learn-${section.type}`} className="text-lg font-semibold">
-              {section.heading}
-            </h2>
-            <ArticleList articles={section.articles} headingLevel={3} />
+          <section
+            key={section.type}
+            aria-labelledby={`learn-${section.type}`}
+            className="mx-auto mt-16 max-w-[77.5rem]"
+          >
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <h2 id={`learn-${section.type}`} className="text-4xl font-bold md:text-[2.75rem]">
+                {section.heading}
+              </h2>
+              <span className="rounded-full bg-primary px-3 py-0.5 text-sm font-semibold text-primary-foreground">
+                {section.articles.length}
+              </span>
+              <span className="accent-word text-2xl text-muted-foreground">
+                {SECTION_LINE[section.type]}
+              </span>
+            </div>
+            <ArticleList
+              articles={section.articles}
+              headingLevel={3}
+              columns={section.articles.length % 4 === 0 || section.articles.length === 7 ? 4 : 3}
+            />
           </section>
         ))
       )}

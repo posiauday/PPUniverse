@@ -168,6 +168,33 @@ export async function loadSection(
   return { kind: "components", groups: groups.filter((group) => group.products.length > 0) };
 }
 
+/** How many PUBLISHED guides a technology has, in total and by type (MVP-031:
+ * the section header's chips and the tab badges). */
+export interface SectionCounts {
+  articles: number;
+  byType: Partial<Record<ArticleType, number>>;
+}
+
+export async function loadSectionCounts(
+  deps: Pick<SectionDeps, "content">,
+  technology: TechnologyInfo,
+): Promise<SectionCounts> {
+  const articles = await deps.content.listPublishedArticleSummaries({
+    limit: SECTION_ARTICLE_LIMIT,
+    technology: technology.technology,
+  });
+  const byType: Partial<Record<ArticleType, number>> = {};
+  for (const article of articles) byType[article.type] = (byType[article.type] ?? 0) + 1;
+  return { articles: articles.length, byType };
+}
+
+/** A tab's guide count, or null for the Components tab, which lists products. */
+export function tabCount(counts: SectionCounts, tab: SectionTab): number | null {
+  const { articleTypes } = tabInfo(tab);
+  if (!articleTypes) return null;
+  return articleTypes.reduce((sum, type) => sum + (counts.byType[type] ?? 0), 0);
+}
+
 export function sectionHasContent(content: SectionContent): boolean {
   return content.kind === "articles" ? content.articles.length > 0 : content.groups.length > 0;
 }

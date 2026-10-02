@@ -9,6 +9,7 @@ import { SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
 import {
   loadSection,
+  loadSectionCounts,
   sectionHasContent,
   sectionPath,
   tabDescription,
@@ -32,12 +33,12 @@ const NOT_FOUND_TITLE = `Page not found | ${SITE_NAME}`;
 const getLearnTab = cache(async (slug: string) => {
   const technology = technologyBySlug(slug);
   if (!technology) return null;
-  const content = await loadSection(
-    { content: contentRepository, catalog: catalogRepository },
-    technology,
-    "learn",
-  );
-  return { technology, content };
+  const deps = { content: contentRepository, catalog: catalogRepository };
+  const [content, counts] = await Promise.all([
+    loadSection(deps, technology, "learn"),
+    loadSectionCounts(deps, technology),
+  ]);
+  return { technology, content, counts };
 });
 
 export async function generateMetadata({ params }: TechnologyPageProps): Promise<Metadata> {
@@ -61,6 +62,11 @@ export default async function TechnologyPage({ params }: TechnologyPageProps) {
   const section = await getLearnTab((await params).technology);
   if (!section) notFound();
   return (
-    <TechnologySection technology={section.technology} tab="learn" content={section.content} />
+    <TechnologySection
+      technology={section.technology}
+      tab="learn"
+      content={section.content}
+      counts={section.counts}
+    />
   );
 }
