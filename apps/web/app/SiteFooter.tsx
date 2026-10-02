@@ -1,5 +1,6 @@
 import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
+import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../lib/article-types";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
 
@@ -7,44 +8,92 @@ import { BrandMark } from "./BrandMark";
 const TRADEMARKS = ["Microsoft", ...TECHNOLOGIES.map((entry) => entry.name)];
 const TRADEMARK_LIST = `${TRADEMARKS.slice(0, -1).join(", ")} and ${TRADEMARKS.at(-1)}`;
 
+const COLUMNS: ReadonlyArray<{
+  id: string;
+  label: string;
+  links: ReadonlyArray<{ name: string; href: string }>;
+}> = [
+  {
+    id: "footer-technologies",
+    label: "Technologies",
+    links: TECHNOLOGIES.map((entry) => ({ name: entry.name, href: `/${entry.slug}` })),
+  },
+  {
+    id: "footer-learn",
+    label: "Learn",
+    links: [
+      { name: "All guides", href: "/learn" },
+      ...ARTICLE_TYPE_SECTIONS.map((section) => ({
+        name: section.heading,
+        href: `/learn#${SECTION_ANCHOR[section.type]}`,
+      })),
+      { name: "Components", href: "/search" },
+    ],
+  },
+];
+
+const FOOTER_LINK =
+  "inline-flex min-h-11 items-center text-foreground no-underline hover:underline md:min-h-9";
+
 /**
- * Site-wide footer (MVP-027; Daylight look, MVP-031). Carries the standing
- * non-affiliation line: LowCodeStacks never claims Microsoft endorsement,
- * certification or partnership (CLAUDE.md delivery rules), and saying so
- * plainly on every page is the simplest way to keep that true. The trademark
- * notice names exactly the technologies the site covers (the registry).
+ * Site-wide footer (MVP-027; Daylight look, MVP-031; link columns from the
+ * "Board fidelity pass", docs/final-decisions.md). Every section of the site
+ * gets a plain, descriptive link from every page, which helps readers and
+ * crawlers alike. Pages that do not exist yet (About, Privacy, Terms: open
+ * question 64) are not linked.
+ *
+ * Carries the standing non-affiliation line: LowCodeStacks never claims
+ * Microsoft endorsement, certification or partnership (CLAUDE.md delivery
+ * rules), and saying so plainly on every page is the simplest way to keep
+ * that true. The trademark notice names exactly the technologies the site
+ * covers (the registry). The column labels are not headings, so the footer
+ * adds nothing to a page's heading outline.
  */
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t border-border px-4 md:px-6">
-      <div className="mx-auto flex max-w-[77.5rem] flex-col gap-6 py-10 text-sm text-muted-foreground sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-xl">
-          <p className="flex items-center gap-2.5 font-display text-base font-bold text-foreground">
-            <BrandMark size={22} />
+      <div className="mx-auto grid max-w-[77.5rem] gap-10 py-12 md:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]">
+        <div className="max-w-md">
+          <p className="flex items-center gap-2.5 font-display text-xl font-bold text-foreground">
+            <BrandMark size={30} />
             {SITE_NAME}
           </p>
-          <p className="mt-2">
+          <p className="mt-3 font-display text-2xl leading-tight font-bold text-foreground">
+            Built to <span className="accent-word text-accent">hold up</span>.
+          </p>
+          <p className="mt-3 text-[0.9375rem] leading-relaxed text-muted-foreground">
             Free Power Platform learning, architecture patterns and reusable components.
           </p>
-          <p className="mt-2 leading-relaxed">
-            Independent site. Not affiliated with, endorsed by or certified by Microsoft.{" "}
-            {TRADEMARK_LIST} are trademarks of the Microsoft group of companies.
-          </p>
         </div>
-        <nav aria-label="Footer">
-          <ul className="flex flex-wrap gap-x-5">
-            <li>
-              <Link href="/learn" className="inline-flex min-h-11 items-center underline">
-                Learn
-              </Link>
-            </li>
-            <li>
-              <Link href="/search" className="inline-flex min-h-11 items-center underline">
-                Components
-              </Link>
-            </li>
-          </ul>
-        </nav>
+        {/* Two link columns side by side from phone width; from md they join the outer grid. */}
+        <div className="grid grid-cols-2 gap-6 md:contents">
+          {COLUMNS.map((column) => (
+            <nav key={column.id} aria-labelledby={column.id}>
+              <p
+                id={column.id}
+                className="font-mono text-xs tracking-widest text-muted-foreground uppercase"
+              >
+                {column.label}
+              </p>
+              <ul className="mt-3 flex flex-col text-[0.9375rem]">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className={FOOTER_LINK}>
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
+      </div>
+      <div className="mx-auto max-w-[77.5rem] border-t border-border py-6 text-[0.8125rem] leading-relaxed text-muted-foreground">
+        <p>
+          © {new Date().getFullYear()} {SITE_NAME}. Independent site. Not affiliated with, endorsed
+          by or certified by Microsoft. {TRADEMARK_LIST} are trademarks of the Microsoft group of
+          companies.
+        </p>
       </div>
     </footer>
   );
