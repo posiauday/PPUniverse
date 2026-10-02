@@ -16,33 +16,122 @@ export function TechnologyPanels({
   counts: Readonly<Partial<Record<Technology, number>>>;
 }) {
   return (
-    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-[18px]">
-      {TECHNOLOGIES.map((entry) => {
-        const palette = TECHNOLOGY_PALETTE[entry.technology];
-        const count = counts[entry.technology] ?? 0;
-        return (
-          <li key={entry.slug}>
-            <Link
-              href={`/${entry.slug}`}
-              className={`motion-lift relative flex h-[340px] flex-col overflow-hidden rounded-[1.875rem] p-7 text-foreground no-underline lg:h-[400px] ${palette.tint}`}
-            >
-              <h3 className="font-display text-[1.875rem] leading-tight font-bold tracking-[-0.02em]">
-                {entry.name}
-              </h3>
-              <span className={`mt-1 text-[0.9375rem] ${palette.ink}`}>{palette.tagline}</span>
-              <span className={`mt-3.5 text-[0.8125rem] font-semibold ${palette.ink}`}>
-                {count > 0
-                  ? `${count} ${count === 1 ? "guide" : "guides"} →`
-                  : "Guides coming soon →"}
-              </span>
-              <div aria-hidden="true" className="relative mt-2 flex min-h-0 flex-1 flex-col">
-                {TECHNOLOGY_VISUALS[entry.technology]}
-              </div>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      <CompactPanels counts={counts} />
+      <ul className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 lg:gap-[18px]">
+        {TECHNOLOGIES.map((entry) => {
+          const palette = TECHNOLOGY_PALETTE[entry.technology];
+          const count = counts[entry.technology] ?? 0;
+          return (
+            <li key={entry.slug}>
+              <Link
+                href={`/${entry.slug}`}
+                className={`motion-lift relative flex h-[340px] flex-col overflow-hidden rounded-[1.875rem] p-7 text-foreground no-underline lg:h-[400px] ${palette.tint}`}
+              >
+                <h3 className="font-display text-[1.875rem] leading-tight font-bold tracking-[-0.02em]">
+                  {entry.name}
+                </h3>
+                <span className={`mt-1 text-[0.9375rem] ${palette.ink}`}>{palette.tagline}</span>
+                <span className={`mt-3.5 text-[0.8125rem] font-semibold ${palette.ink}`}>
+                  {count > 0
+                    ? `${count} ${count === 1 ? "guide" : "guides"} →`
+                    : "Guides coming soon →"}
+                </span>
+                <div aria-hidden="true" className="relative mt-2 flex min-h-0 flex-1 flex-col">
+                  {TECHNOLOGY_VISUALS[entry.technology]}
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
+function guideLabel(count: number): string {
+  return count > 0 ? `${count} ${count === 1 ? "guide" : "guides"} →` : "Guides coming soon →";
+}
+
+/** Small illustrations for the first three compact panels (the mobile canvas). */
+const COMPACT_VISUALS: Readonly<Partial<Record<Technology, ReactNode>>> = {
+  POWER_APPS: (
+    <span className="absolute right-[18px] -bottom-[30px] h-[130px] w-[84px] -rotate-[8deg] rounded-[18px] bg-[#14141a] p-1.5">
+      <span className="block h-full rounded-[13px] bg-white" />
+    </span>
+  ),
+  POWER_AUTOMATE: (
+    <span className="absolute right-[18px] bottom-[22px] flex gap-1.5 text-[11px] font-semibold">
+      <span className="rounded-[9px] bg-white px-2.5 py-1.5 text-[#14141a]">Try</span>
+      <span className="rounded-[9px] bg-white px-2.5 py-1.5 text-[#9a3412]">Catch</span>
+    </span>
+  ),
+  POWER_BI: (
+    <span className="absolute right-5 bottom-5 flex items-end gap-[5px]">
+      {[
+        ["h-[30px]", "bg-[#fcd34d]", "0s"],
+        ["h-[46px]", "bg-[#f59e0b]", "0.15s"],
+        ["h-[62px]", "bg-[#14141a]", "0.3s"],
+      ].map(([height, colour, delay]) => (
+        <i
+          key={delay}
+          className={`motion-grow w-3.5 rounded ${height} ${colour}`}
+          style={{ animationDelay: delay }}
+        />
+      ))}
+    </span>
+  ),
+};
+
+/**
+ * The same six links, compact, below sm, as the mobile canvas draws them: the
+ * first three as short panels with a small illustration, the last three as a
+ * row of tiles. Only one of the two layouts is ever displayed.
+ */
+function CompactPanels({ counts }: { counts: Readonly<Partial<Record<Technology, number>>> }) {
+  const [first, second] = [TECHNOLOGIES.slice(0, 3), TECHNOLOGIES.slice(3)];
+  return (
+    <div className="flex flex-col gap-3.5 sm:hidden">
+      <ul className="flex flex-col gap-3.5">
+        {first.map((entry) => {
+          const palette = TECHNOLOGY_PALETTE[entry.technology];
+          return (
+            <li key={entry.slug}>
+              <Link
+                href={`/${entry.slug}`}
+                className={`relative flex h-[150px] flex-col overflow-hidden rounded-3xl p-5 text-foreground no-underline ${palette.tint}`}
+              >
+                <h3 className="font-display text-2xl font-bold">{entry.name}</h3>
+                <span className={`mt-0.5 text-sm ${palette.ink}`}>{palette.tagline}</span>
+                <span className={`mt-auto text-[0.8125rem] font-semibold ${palette.ink}`}>
+                  {guideLabel(counts[entry.technology] ?? 0)}
+                </span>
+                <span aria-hidden="true">{COMPACT_VISUALS[entry.technology]}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <ul className="grid grid-cols-3 gap-2.5">
+        {second.map((entry) => {
+          const palette = TECHNOLOGY_PALETTE[entry.technology];
+          const count = counts[entry.technology] ?? 0;
+          return (
+            <li key={entry.slug}>
+              <Link
+                href={`/${entry.slug}`}
+                className={`flex h-[110px] flex-col justify-between rounded-[1.25rem] p-3.5 text-foreground no-underline ${palette.tint}`}
+              >
+                <h3 className="font-display text-base leading-tight font-bold">{entry.name}</h3>
+                <span className={`text-xs font-semibold ${palette.ink}`}>
+                  {count > 0 ? `${count} ${count === 1 ? "guide" : "guides"} →` : "Soon →"}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

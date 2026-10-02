@@ -46,7 +46,7 @@ export function BrokenFirst() {
   return (
     <section
       aria-labelledby="home_how"
-      className="relative mx-auto mt-20 grid max-w-[77.5rem] items-center gap-12 overflow-hidden rounded-[2.25rem] bg-code px-6 py-12 text-code-foreground md:px-16 md:py-16 lg:grid-cols-[1fr_1.1fr]"
+      className="relative mx-auto mt-20 grid max-w-[77.5rem] items-center gap-6 overflow-hidden rounded-[2.25rem] bg-code px-5 py-8 text-code-foreground sm:gap-12 sm:px-6 sm:py-12 md:px-16 md:py-16 lg:grid-cols-[1fr_1.1fr]"
     >
       <div
         aria-hidden="true"
@@ -55,12 +55,13 @@ export function BrokenFirst() {
       <div className="relative flex flex-col gap-7">
         <h2
           id="home_how"
-          className="text-4xl leading-[1.02] font-bold text-white md:text-[3.375rem]"
+          className="text-[1.75rem] leading-[1.05] font-bold text-white sm:text-4xl md:text-[3.375rem]"
         >
           Every guide shows the <span className="accent-word text-[#d9f99d]">broken</span> version
           first.
         </h2>
-        <ol className="flex flex-col gap-4 text-[1.0625rem] leading-normal">
+        {/* The mobile canvas shows only the heading and the code here. */}
+        <ol className="flex flex-col gap-4 text-[1.0625rem] leading-normal max-sm:hidden">
           {[
             [
               "1",
@@ -119,10 +120,60 @@ export function BrokenFirst() {
   );
 }
 
-/** A big article card with an illustrated cover, for "Start here". */
+/** Small icon tiles for the compact "Start here" rows (the mobile canvas). */
+const COMPACT_ICONS: Readonly<Record<string, string>> = {
+  "power-apps-delegation-500-rows": "500",
+  "why-are-my-totals-wrong": "Σ",
+  "approvals-that-dont-stall": "✓",
+};
+
+/** Big article cards with an illustrated cover, for "Start here"; below sm,
+ * compact rows with an icon tile, as the mobile canvas draws them. Only one
+ * of the two lists is ever displayed. */
 export function StartHereCards({ articles }: { articles: readonly ArticleSummary[] }) {
   return (
-    <ul className="mt-9 grid grid-cols-1 gap-5 md:grid-cols-3">
+    <>
+      <ul className="mt-6 flex flex-col gap-3 sm:hidden">
+        {articles.map((article) => {
+          const palette = paletteFor(article.technology);
+          const technology = article.technology ? technologyInfo(article.technology) : null;
+          return (
+            <li
+              key={article.slug}
+              className="relative flex items-center gap-3.5 rounded-[1.375rem] border border-border bg-card p-[18px]"
+            >
+              <span
+                aria-hidden="true"
+                className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl font-display text-lg font-extrabold ${palette.tint} ${palette.ink}`}
+              >
+                {COMPACT_ICONS[article.slug] ?? ARTICLE_TYPE_LABEL[article.type].charAt(0)}
+              </span>
+              <div className="flex min-w-0 flex-col gap-1">
+                <p className={`text-xs font-semibold ${palette.ink}`}>
+                  {technology ? `${technology.name} · ` : ""}
+                  {ARTICLE_TYPE_LABEL[article.type]}
+                </p>
+                <h3 className="font-display text-[1.0625rem] leading-tight font-bold">
+                  <Link
+                    href={`/learn/${encodeURIComponent(article.slug)}`}
+                    className="text-foreground no-underline after:absolute after:inset-0 after:content-['']"
+                  >
+                    {article.title}
+                  </Link>
+                </h3>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <StartHereGrid articles={articles} />
+    </>
+  );
+}
+
+function StartHereGrid({ articles }: { articles: readonly ArticleSummary[] }) {
+  return (
+    <ul className="mt-9 hidden grid-cols-1 gap-5 sm:grid md:grid-cols-3">
       {articles.map((article) => {
         const palette = paletteFor(article.technology);
         const technology = article.technology ? technologyInfo(article.technology) : null;

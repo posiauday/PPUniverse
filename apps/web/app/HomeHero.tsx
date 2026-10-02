@@ -21,7 +21,7 @@ export function HomeHero({ guideCount }: { guideCount: number }) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -top-6 h-[520px] bg-[radial-gradient(rgb(20_20_26/0.09)_1.2px,transparent_1.2px)] [mask-image:linear-gradient(#000,transparent_70%)] bg-[length:26px_26px]"
       />
-      <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 px-4 pt-8 text-center md:pt-14">
+      <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 pt-8 text-center sm:px-4 md:pt-14">
         {guideCount > 0 ? (
           <Link
             href="/learn"
@@ -36,7 +36,7 @@ export function HomeHero({ guideCount }: { guideCount: number }) {
         ) : null}
         <h1
           id="home_title"
-          className="text-[3.25rem] leading-[0.98] font-bold sm:text-7xl lg:max-w-[58rem] lg:text-[6.25rem] lg:leading-[0.96]"
+          className="text-[3.125rem] leading-[0.98] font-bold sm:text-7xl lg:max-w-[58rem] lg:text-[6.25rem] lg:leading-[0.96]"
         >
           <Word delay={0.1}>Build</Word> <Word delay={0.18}>Power</Word>{" "}
           <Word delay={0.26}>Platform</Word> <Word delay={0.34}>apps</Word>{" "}

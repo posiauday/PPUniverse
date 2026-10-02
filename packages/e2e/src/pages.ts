@@ -168,16 +168,21 @@ async function submitSignIn(
 export const GATED_PAGES: readonly GatedPage[] = [
   {
     // MVP-028: the header's Technologies menu, opened, so axe and the
-    // keyboard check see its links.
+    // keyboard check see its links. Below lg (MVP-031) the header shows a
+    // Menu button instead, whose panel lists the same technologies.
     id: "home-technologies-menu-open",
     route: "/",
-    description: "home page with the header's Technologies menu open",
+    description: "home page with the header's Technologies menu (or, below lg, its Menu) open",
     auth: "guest",
     status: 200,
     path: () => "/",
     prepare: async (page) => {
-      await page.getByRole("button", { name: "Technologies" }).click();
-      await expect(page.getByRole("link", { name: "Power Automate" }).first()).toBeVisible();
+      const menu = page.getByRole("button", { name: "Menu" });
+      if (await menu.isVisible()) await menu.click();
+      else await page.getByRole("button", { name: "Technologies" }).click();
+      await expect(
+        page.getByRole("link", { name: "Power Automate" }).filter({ visible: true }).first(),
+      ).toBeVisible();
     },
   },
   {

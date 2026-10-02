@@ -6,6 +6,7 @@ import type { Theme } from "../lib/theme";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
 import { HeaderSearch } from "./HeaderSearch";
+import { MobileMenu } from "./MobileMenu";
 import { TechnologiesMenu } from "./TechnologiesMenu";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -15,6 +16,13 @@ const TECHNOLOGY_LINKS = TECHNOLOGIES.map((entry) => ({
   href: `/${entry.slug}`,
   dot: TECHNOLOGY_PALETTE[entry.technology].dot,
 }));
+
+/** The main links, for the menu below lg (the wide header lays them out itself). */
+const MAIN_LINKS = [
+  { name: "Learn", href: "/learn" },
+  { name: "Components", href: "/search" },
+  { name: "KPI guides", href: `/learn#${SECTION_ANCHOR.KPI_GUIDE}` },
+];
 
 const NAV_LINK =
   "inline-flex min-h-11 items-center rounded-full px-3 text-foreground no-underline hover:bg-muted";
@@ -32,6 +40,9 @@ const NAV_LINK =
  * element clear of it (WCAG 2.4.11, focus not obscured).
  */
 export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolean }) {
+  const account = signedIn
+    ? { name: "Account", href: "/account/sessions" }
+    : { name: "Sign in", href: "/signin" };
   return (
     <header className="z-30 bg-background px-3 pt-3 pb-2 md:sticky md:top-0 md:px-6 md:pt-3.5">
       <div className="mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-4 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
@@ -46,7 +57,7 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
         </Link>
         <nav
           aria-label="Main"
-          className="order-last flex w-full flex-wrap items-center gap-x-1 text-[0.9375rem] font-medium md:order-none md:w-auto md:grow"
+          className="hidden grow items-center gap-x-1 text-[0.9375rem] font-medium lg:flex"
         >
           <Link href="/learn" className={NAV_LINK}>
             Learn
@@ -61,23 +72,26 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <HeaderSearch />
-          {signedIn ? (
-            <Link href="/account/sessions" className={`${NAV_LINK} font-semibold`}>
-              Account
-            </Link>
-          ) : (
-            <Link href="/signin" className={`${NAV_LINK} font-semibold`}>
-              Sign in
-            </Link>
-          )}
-          <ThemeToggle initialTheme={theme} />
+          <Link href={account.href} className={`${NAV_LINK} font-semibold max-lg:hidden`}>
+            {account.name}
+          </Link>
+          <span className="max-lg:hidden">
+            <ThemeToggle initialTheme={theme} />
+          </span>
           <Link
             href="/learn"
-            className="motion-press hidden min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline sm:inline-flex"
+            className="motion-press hidden min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline lg:inline-flex"
           >
             Start learning
           </Link>
         </div>
+        {/* Below lg: the menu button, and its panel as the header's last row. */}
+        <MobileMenu
+          links={MAIN_LINKS}
+          technologies={TECHNOLOGY_LINKS}
+          account={account}
+          themeToggle={<ThemeToggle initialTheme={theme} />}
+        />
       </div>
     </header>
   );

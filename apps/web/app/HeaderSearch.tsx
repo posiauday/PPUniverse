@@ -8,7 +8,7 @@ const INPUT_ID = "header-search-q";
 /**
  * The header's search box (MVP-031, "Board fidelity pass"): a plain GET form
  * to /search, so it works without JavaScript and every search is a real,
- * shareable URL. From lg it is a pill with a text box; below lg there is no
+ * shareable URL. From xl it is a pill with a text box; below xl there is no
  * room, so it is a link to /search instead.
  *
  * Ctrl K (⌘K on Apple devices) jumps to it: it focuses the box where the box
@@ -28,7 +28,7 @@ export function HeaderSearch() {
       if (event.altKey || event.shiftKey) return;
       event.preventDefault();
       const input = inputRef.current;
-      // offsetParent is null while the box is display:none (below lg).
+      // offsetParent is null while the box is display:none (below xl).
       if (input && input.offsetParent !== null) {
         input.focus();
         input.select();
@@ -42,7 +42,7 @@ export function HeaderSearch() {
 
   return (
     <>
-      <form action="/search" method="GET" role="search" className="relative hidden lg:block">
+      <form action="/search" method="GET" role="search" className="relative hidden xl:block">
         <label htmlFor={INPUT_ID} className="sr-only">
           Search guides and components
         </label>
@@ -79,7 +79,7 @@ export function HeaderSearch() {
       <Link
         href="/search"
         aria-label="Search"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground no-underline hover:text-foreground lg:hidden"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground no-underline hover:text-foreground xl:hidden"
       >
         <svg
           width="16"

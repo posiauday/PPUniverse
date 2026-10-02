@@ -84,12 +84,15 @@ export default async function HomePage() {
         className="mx-auto mt-20 max-w-[77.5rem] scroll-mt-28"
       >
         <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-          <h2 id="home-technologies" className="text-5xl leading-none font-bold md:text-[4.25rem]">
+          <h2
+            id="home-technologies"
+            className="text-4xl leading-none font-bold sm:text-5xl md:text-[4.25rem]"
+          >
             Six technologies.
             <br />
             <span className="accent-word text-accent">One</span> place to get them right.
           </h2>
-          <p className="max-w-sm text-[1.0625rem] leading-relaxed text-muted-foreground">
+          <p className="max-w-sm text-[1.0625rem] leading-relaxed text-muted-foreground max-sm:hidden">
             Each one gets tutorials, architecture patterns and KPI guides, with reusable components
             to follow.
           </p>
