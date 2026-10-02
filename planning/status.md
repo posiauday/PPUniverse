@@ -286,6 +286,7 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 ## Open bugs
 
+- **[BUG-019](bugs/BUG-019.md) (P1, security)** and **[BUG-020](bugs/BUG-020.md) (P2, security)**, both **Resolved** 2026-10-02 on `fix/signin-link-logging-and-upload-auth`. Production without an email key used to log sign-in links, which are working credentials; it now fails closed and logs nothing. Upload URLs were open to any signed-in user; they are now admin-only. Nothing is deployed, so nothing was exposed.
 6 open, 1 mitigated (not root-fixed), 8 resolved, as last counted. This count predates BUG-016 to BUG-018. `planning/bugs.csv` disagrees with this list for several older bugs (BUG-003 to BUG-009 and BUG-015); reconciling them against git history is a separate cleanup.
 - **[BUG-018](bugs/BUG-018.md) (P0, security)** — **Resolved** 2026-09-30: a critical Next.js advisory (GHSA-vcvr-r3jv-pc5j, remote code execution in `next/og` `ImageResponse`) covered our 16.3.5. Upgraded to 16.3.7. Nothing is deployed, so nothing was exposed; `main` still needs the fix released.
 - [BUG-016](bugs/BUG-016.md) and [BUG-017](bugs/BUG-017.md) — **Resolved** 2026-09-30 (accessibility-suite fixture cleanup; a test that failed on Windows line endings).

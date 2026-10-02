@@ -94,6 +94,10 @@ export default defineConfig({
     env: {
       ...(process.env as Record<string, string>),
       NEXTAUTH_URL: BASE_URL,
+      // BUG-019: a production build no longer falls back to logging email.
+      // This throwaway test server opts in, so sign-in states can be gated
+      // without a real provider.
+      EMAIL_TRANSPORT: "log",
       // A throwaway per-run secret: never committed, never reused.
       NEXTAUTH_SECRET: process.env["NEXTAUTH_SECRET"] ?? randomBytes(32).toString("hex"),
       // Only used to build canonical URLs and structured data; nothing is fetched from it.

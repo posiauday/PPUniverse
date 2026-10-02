@@ -63,7 +63,7 @@ Why two strings: serverless functions open many short-lived connections, and Sup
 | `NEXTAUTH_URL` | `https://lowcodestacks.com` | Sign-in links point here, so sign-in works on production, not on previews |
 | `NEXT_PUBLIC_SITE_URL` | `https://lowcodestacks.com` | The canonical origin, for production and previews alike, so previews point search engines at production |
 | `EMAIL_FROM` | `no-reply@lowcodestacks.com` (your Resend sender) | |
-| `RESEND_API_KEY` | The Resend key | Secret |
+| `RESEND_API_KEY` | The Resend key | Secret. **Required for sign-in.** Without it, production sends no email: sign-in shows "couldn't send", and nothing about the message is logged (BUG-019). Never set `EMAIL_TRANSPORT` in production; it exists only for test servers |
 | `EMAIL_UNSUBSCRIBE_SECRET` | A new random value | Secret. Never the same as `NEXTAUTH_SECRET` |
 | `SENTRY_DSN` | Leave unset for now | Optional |
 

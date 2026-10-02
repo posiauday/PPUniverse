@@ -16,9 +16,11 @@ export interface EmailAdapter {
 }
 
 /**
- * Dev/test default: logs instead of sending. Never used in production — a
- * real vendor-backed EmailAdapter is required before launch (MVP-018,
- * docs/open-questions.md item 19).
+ * Dev/test transport: logs instead of sending, including the body, so a
+ * developer can follow a sign-in link locally. The body of a sign-in email
+ * IS a credential, so this must never run where logs are shared: it is only
+ * selected outside production, or when a test harness opts in explicitly
+ * (see selectEmailAdapter and BUG-019).
  */
 export class ConsoleEmailAdapter implements EmailAdapter {
   async send(message: EmailMessage): Promise<void> {
@@ -26,4 +28,36 @@ export class ConsoleEmailAdapter implements EmailAdapter {
     console.log(`[email:dev] body=${message.text}`);
     await Promise.resolve();
   }
+}
+
+/**
+ * Production with no email provider configured (BUG-019): every send fails,
+ * so the caller records a failed send and the person is told the email could
+ * not be sent. Nothing about the message is logged -- not the recipient, not
+ * the subject, and above all not the body, which for a sign-in email is a
+ * working credential.
+ */
+export class UnconfiguredEmailAdapter implements EmailAdapter {
+  async send(_message: EmailMessage): Promise<void> {
+    await Promise.resolve();
+    throw new Error("Email is not configured: set RESEND_API_KEY to send email.");
+  }
+}
+
+/**
+ * Chooses the transport (BUG-019):
+ * - a provider key: the real provider;
+ * - otherwise, outside production, or when `logTransport` is explicitly
+ *   requested (the accessibility gate's production-build server sets
+ *   EMAIL_TRANSPORT=log): the console transport;
+ * - otherwise (production, no key): fail closed, logging nothing.
+ */
+export function selectEmailAdapter(options: {
+  provider: EmailAdapter | null;
+  production: boolean;
+  logTransport: boolean;
+}): EmailAdapter {
+  if (options.provider) return options.provider;
+  if (!options.production || options.logTransport) return new ConsoleEmailAdapter();
+  return new UnconfiguredEmailAdapter();
 }
