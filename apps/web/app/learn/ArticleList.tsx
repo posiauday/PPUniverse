@@ -29,10 +29,16 @@ export function ArticleList({
   articles,
   headingLevel,
   columns = 3,
+  showType = true,
+  showDate = true,
 }: {
   articles: readonly ArticleSummary[];
   headingLevel: 3 | 4;
   columns?: 2 | 3 | 4;
+  /** Off where the section heading already names the type (the /learn groups). */
+  showType?: boolean;
+  /** Off in the /learn library, as the canvas draws it; the article page shows the date. */
+  showDate?: boolean;
 }) {
   const Heading = headingLevel === 3 ? "h3" : "h4";
   return (
@@ -47,14 +53,20 @@ export function ArticleList({
           >
             <span aria-hidden="true" className={`h-2.5 shrink-0 ${palette.tint}`} />
             <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
-              <p className="flex flex-wrap items-center gap-2 text-[0.8125rem] font-semibold">
-                {technology ? (
-                  <span className={`rounded-full px-2.5 py-1 ${palette.tint} ${palette.ink}`}>
-                    {technology.name}
-                  </span>
-                ) : null}
-                <span className="text-muted-foreground">{ARTICLE_TYPE_LABEL[article.type]}</span>
-              </p>
+              {technology || showType ? (
+                <p className="flex flex-wrap items-center gap-2 text-[0.8125rem] font-semibold">
+                  {technology ? (
+                    <span className={`rounded-full px-2.5 py-1 ${palette.tint} ${palette.ink}`}>
+                      {technology.name}
+                    </span>
+                  ) : null}
+                  {showType ? (
+                    <span className="text-muted-foreground">
+                      {ARTICLE_TYPE_LABEL[article.type]}
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
               <Heading className="font-display text-[1.3125rem] leading-tight font-bold tracking-[-0.01em]">
                 {/* The stretched ::after makes the whole card clickable while
                     the link's name stays the title alone. */}
@@ -70,11 +82,13 @@ export function ArticleList({
                   {article.excerpt}
                 </p>
               ) : null}
-              <p className="mt-auto pt-1 text-[0.8125rem] text-muted-foreground">
-                <time dateTime={article.publishedAt.toISOString()}>
-                  {DATE_FORMAT.format(article.publishedAt)}
-                </time>
-              </p>
+              {showDate ? (
+                <p className="mt-auto pt-1 text-[0.8125rem] text-muted-foreground">
+                  <time dateTime={article.publishedAt.toISOString()}>
+                    {DATE_FORMAT.format(article.publishedAt)}
+                  </time>
+                </p>
+              ) : null}
             </div>
           </li>
         );

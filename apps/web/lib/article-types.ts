@@ -15,3 +15,11 @@ export const ARTICLE_TYPE_SECTIONS: ReadonlyArray<{ type: ArticleType; heading: 
   { type: "COMPARISON", heading: "Comparisons" },
   { type: "KPI_GUIDE", heading: "KPI guides" },
 ];
+
+/** Stable anchors for the /learn hub's sections; the header's "KPI guides" link uses one. */
+export const SECTION_ANCHOR: Record<ArticleType, string> = {
+  TUTORIAL: "tutorials",
+  PATTERN: "patterns",
+  COMPARISON: "comparisons",
+  KPI_GUIDE: "kpi-guides",
+};

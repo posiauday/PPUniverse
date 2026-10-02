@@ -2,7 +2,7 @@ import { JsonLd } from "@ppu/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
-import { ARTICLE_TYPE_SECTIONS } from "../../lib/article-types";
+import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../../lib/article-types";
 import { contentRepository } from "../../lib/content";
 import { homeUrl, learnIndexUrl } from "../../lib/seo/canonical";
 import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../lib/seo/json-ld";
@@ -11,7 +11,6 @@ import { LEARN_INDEX_DESCRIPTION, SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
 import { TechnologyTiles } from "../TechnologyTiles";
 import { ArticleList } from "./ArticleList";
-import { Breadcrumbs } from "./Breadcrumbs";
 
 // See apps/web/app/page.tsx for why content pages render per-request.
 export const dynamic = "force-dynamic";
@@ -77,9 +76,10 @@ export default async function LearnIndexPage() {
           <span className="shape-cube motion-bob absolute right-16 bottom-14 hidden h-[72px] w-[72px] [animation-duration:9s] md:block" />
         </div>
         <div className="relative flex max-w-3xl flex-col gap-4">
-          <Breadcrumbs items={[{ name: SITE_NAME, href: "/" }, { name: "Learn" }]} />
+          {/* The canvas draws no visible breadcrumb here: /learn is one level
+              down, and the BreadcrumbList JSON-LD below still describes it. */}
           <p className="font-mono text-xs tracking-widest uppercase">
-            Learn Power Platform{articles.length > 0 ? ` · ${articles.length} guides` : ""}
+            Learn{articles.length > 0 ? ` · ${articles.length} guides` : ""}
           </p>
           <h1 className="text-5xl leading-[0.98] font-extrabold md:text-[5.25rem]">
             Every guide, <span className="accent-word">in one place.</span>
@@ -103,8 +103,9 @@ export default async function LearnIndexPage() {
         sections.map((section) => (
           <section
             key={section.type}
+            id={SECTION_ANCHOR[section.type]}
             aria-labelledby={`learn-${section.type}`}
-            className="mx-auto mt-16 max-w-[77.5rem]"
+            className="mx-auto mt-16 max-w-[77.5rem] scroll-mt-28"
           >
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <h2 id={`learn-${section.type}`} className="text-4xl font-bold md:text-[2.75rem]">
@@ -121,6 +122,8 @@ export default async function LearnIndexPage() {
               articles={section.articles}
               headingLevel={3}
               columns={section.articles.length % 4 === 0 || section.articles.length === 7 ? 4 : 3}
+              showType={false}
+              showDate={false}
             />
           </section>
         ))

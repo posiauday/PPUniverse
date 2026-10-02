@@ -36,7 +36,7 @@ export function HomeHero({ guideCount }: { guideCount: number }) {
         ) : null}
         <h1
           id="home_title"
-          className="text-[3.25rem] leading-[0.98] font-bold sm:text-7xl lg:text-[6.25rem] lg:leading-[0.96]"
+          className="text-[3.25rem] leading-[0.98] font-bold sm:text-7xl lg:max-w-[58rem] lg:text-[6.25rem] lg:leading-[0.96]"
         >
           <Word delay={0.1}>Build</Word> <Word delay={0.18}>Power</Word>{" "}
           <Word delay={0.26}>Platform</Word> <Word delay={0.34}>apps</Word>{" "}

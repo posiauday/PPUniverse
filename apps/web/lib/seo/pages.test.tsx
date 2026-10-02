@@ -214,14 +214,14 @@ describe("home page — learning content (SEO story)", () => {
     // MVP-031: one query feeds the guide counts, the starter guides and the
     // newest six, so it asks for every published summary (the /learn ceiling).
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({ limit: 500 });
-    expect(markup).toContain("Latest from Learn");
+    expect(markup).toContain(`id="home-learn"`);
     expect(markup).toContain('href="/learn/a"');
     expect(markup).toContain('href="/learn"');
   });
 
   it("omits the section, but keeps the /learn link, when nothing is published", async () => {
     const markup = renderToStaticMarkup(await HomePage());
-    expect(markup).not.toContain("Latest from Learn");
+    expect(markup).not.toContain(`id="home-learn"`);
     expect(markup).toContain('href="/learn"');
   });
 
@@ -281,11 +281,11 @@ describe("home page — Daylight layout (MVP-031; was Premium 3, MVP-027 slice 2
       page: 1,
       pageSize: 4,
     });
-    expect(markup).toContain("New components and templates");
+    expect(markup).toContain(`id="home-components"`);
     expect(markup).toContain('href="/products/sample-component"');
 
     repository.searchProducts.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 4 });
-    expect(renderToStaticMarkup(await HomePage())).not.toContain("New components and templates");
+    expect(renderToStaticMarkup(await HomePage())).not.toContain(`id="home-components"`);
   });
 });
 

@@ -1,9 +1,11 @@
 import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
+import { SECTION_ANCHOR } from "../lib/article-types";
 import { TECHNOLOGY_PALETTE } from "../lib/technology-palette";
 import type { Theme } from "../lib/theme";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
+import { HeaderSearch } from "./HeaderSearch";
 import { TechnologiesMenu } from "./TechnologiesMenu";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -53,29 +55,12 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
           <Link href="/search" className={NAV_LINK}>
             Components
           </Link>
+          <Link href={`/learn#${SECTION_ANCHOR.KPI_GUIDE}`} className={NAV_LINK}>
+            KPI guides
+          </Link>
         </nav>
         <div className="ml-auto flex items-center gap-1">
-          <Link
-            href="/search"
-            aria-label="Search"
-            className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-border bg-muted px-3 text-sm text-muted-foreground no-underline hover:text-foreground"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-            <span aria-hidden="true" className="hidden lg:inline">
-              Search
-            </span>
-          </Link>
+          <HeaderSearch />
           {signedIn ? (
             <Link href="/account/sessions" className={`${NAV_LINK} font-semibold`}>
               Account

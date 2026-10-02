@@ -113,6 +113,12 @@ export default async function HomePage() {
                 </>
               )}
             </h2>
+            <Link
+              href="/learn"
+              className="inline-flex min-h-11 items-center border-b-2 border-foreground font-semibold text-foreground no-underline"
+            >
+              All {summaries.length} guides →
+            </Link>
           </div>
           <StartHereCards articles={startHere} />
         </section>
@@ -123,14 +129,14 @@ export default async function HomePage() {
       {latest.length > 0 ? (
         <section aria-labelledby="home-learn" className="mx-auto mt-20 max-w-[77.5rem]">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 id="home-learn" className="text-3xl font-bold md:text-[2.5rem]">
-              Latest from Learn
+            <h2 id="home-learn" className="text-4xl font-bold md:text-[3.5rem]">
+              Fresh from <span className="accent-word text-accent">Learn</span>.
             </h2>
             <Link
               href="/learn"
               className="inline-flex min-h-11 items-center border-b-2 border-foreground font-semibold text-foreground no-underline"
             >
-              All {summaries.length} guides →
+              All guides →
             </Link>
           </div>
           <ArticleList articles={latest} headingLevel={3} />
@@ -140,8 +146,8 @@ export default async function HomePage() {
       {products.items.length > 0 ? (
         <section aria-labelledby="home-components" className="mx-auto mt-20 max-w-[77.5rem]">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 id="home-components" className="text-3xl font-bold md:text-[2.5rem]">
-              New components and templates
+            <h2 id="home-components" className="text-4xl font-bold md:text-[3.5rem]">
+              New <span className="accent-word text-accent">components</span> and templates.
             </h2>
             <Link
               href="/search"
@@ -150,7 +156,7 @@ export default async function HomePage() {
               See all
             </Link>
           </div>
-          <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {products.items.map((product) => (
               <li key={product.id} className="motion-lift rounded-card">
                 <ProductCard
@@ -167,10 +173,10 @@ export default async function HomePage() {
 
       {categories.length > 0 ? (
         <section aria-labelledby="home-categories" className="mx-auto mt-20 max-w-[77.5rem]">
-          <h2 id="home-categories" className="text-3xl font-bold md:text-[2.5rem]">
-            Browse by category
+          <h2 id="home-categories" className="text-4xl font-bold md:text-[3.5rem]">
+            Browse by <span className="accent-word text-coral">category</span>.
           </h2>
-          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-9 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
               <li key={category.id}>
                 <CategoryCard

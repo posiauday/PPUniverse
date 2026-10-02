@@ -12,9 +12,12 @@ import { Bricolage_Grotesque, Geist, Geist_Mono, Instrument_Serif } from "next/f
  * layout (Core Web Vitals, CLS). Each is exposed as a CSS variable that
  * globals.css maps onto the --font-* theme tokens.
  */
+// Variable weight plus the optical-size axis, as the design canvas loads it:
+// browsers pick the optical size from the font size, so large headings get
+// Bricolage's tighter display cut instead of its wider text cut.
 export const displayFont = Bricolage_Grotesque({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  axes: ["opsz"],
   display: "swap",
   variable: "--font-bricolage",
 });

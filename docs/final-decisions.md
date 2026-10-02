@@ -1726,3 +1726,22 @@ Direct product-owner instruction in chat, after several rounds of logo boards on
 3. **Small sizes:** at 20 px and below, the `</>` is illegible. The favicon uses a simplified drawing of the same mark: a larger front card with a bold `< >` and no slash. This is a drawing choice, not a second logo.
 
 Reversible implementation details (agent): the mark is an inline SVG component with per-instance gradient ids, so several marks on one page do not collide. No trademark search has been done beyond the earlier web search, which found no other "LowCodeStacks" brand. A formal clearance search is the product owner's call.
+
+### Board fidelity pass (2026-10-01)
+The product owner asked whether the built site will look exactly like the canvas: *"i love what we have on the design board an dwant to have it liek that designed"*. A side-by-side comparison found visual drift, plus four places where the site and the board differ in content or features. The product owner answered those four, delegating three of them to the agent:
+
+1. **Home sections the board does not draw** ("Latest from Learn", "New components and templates", "Browse by category") **stay**, restyled to the board's brand kit: *"that is fine because will demand us to create new things or section its just the fomrating and design shoudl followu th ebrand kit show in the baord"*.
+2. **Header**, delegated (*"do what make sense for the goal of the site adn make it profeisnall"*). The agent's decision: the board's header with its two extra items, a "KPI guides" link and a "Search" box that shows a Ctrl K / ⌘K shortcut. It also keeps "Sign in" and the light/dark toggle, which are working features the board leaves out.
+3. **Search covers guides and components**, delegated (*"you descied taqth which will be more benficial after researching and implement"*). This closes open question 63. The reasons:
+   - Launch is content-first, so searching only the catalog returns nothing.
+   - Guides are what visitors come for.
+   - Google retired the sitelinks search box in November 2024, so search brings no SEO feature; it is purely for visitors.
+   - Results pages stay `noindex, follow`, Google's guidance for internal search results.
+   - The implementation is PostgreSQL full-text search, the MVP search baseline in CLAUDE.md, over published guides only.
+4. **Footer**, delegated (*"You research what is better for gettign site viral ANd for excellent SEO"*). The agent's decision is the board's look, extended with link columns: the six technologies, the guide types and the site's main pages. The reasons:
+   - Google asks that "every page you care about should have a link from at least one other page", with descriptive anchor text.
+   - A site-wide footer gives every section a crawlable link from every page.
+   - The non-affiliation line and the trademark sentence stay, as standing commitments.
+   - About, Privacy and Terms pages are not invented: they need facts and legal terms from the product owner (open question 64). For sharing, the article's "Copy link" control from the board is built.
+
+The look of every drawn page follows the canvas. The exceptions are the truthful-copy rules above, and real data in place of sample data.
