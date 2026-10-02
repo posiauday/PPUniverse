@@ -4247,3 +4247,83 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 - A transaction pooler can't hold session state. Nothing in the app relies on session-level state apart from the `search_path` handled here.
 
 **Remaining (slice 2):** the product owner creates the Netlify, Resend and (optionally) second Supabase accounts and enters the variables. Then the first preview deploy and its verification, the production deploy, the admin grant, the content import, publishing, and DNS.
+
+
+## MVP-031 — Daylight redesign: whole site rebuilt to the approved canvas, story moves to QA (2026-10-02)
+
+**Requirements:** NFR-005 (UX quality), NFR-001 (accessibility), NFR-004 (SEO, partial).
+**Decisions:**
+- `docs/final-decisions.md`, "Visual redesign: Daylight", including two new subsections:
+  - "Logo: X2 "Code stack"" (2026-10-01);
+  - "Board fidelity pass" (2026-10-01).
+- Open question 63 is closed (search covers guides); open question 64 is new (About, Privacy and Terms content).
+
+**Migration impact:** none. No schema change; guide search reads existing columns.
+
+**Security review (checked against what was built):**
+- **Guide search:**
+  - The SQL is parameterised through `Prisma.sql`.
+  - `websearch_to_tsquery` accepts any input without raising errors.
+  - Only `PUBLISHED` rows are returned.
+  - Match highlighting uses two control characters that are stripped from the source text first. They are turned into `<mark>` elements on the server; article text is never parsed as HTML (unit test: `<b>` in a title renders escaped).
+  - Results pages stay `noindex, follow`.
+- **Header search:** a plain GET form. The Ctrl K / ⌘K shortcut only focuses the box or navigates to `/search`.
+- **Copy link:** copies the canonical article URL built on the server, never the current address with its query or fragment.
+- **Secrets:** none added. No new external requests: fonts stay self-hosted.
+- **Microsoft claims:** the non-affiliation line and trademark sentence stay on every page.
+
+**Built, in order (branch `feature/mvp-031-daylight-redesign`):**
+1. **Foundations, home, technology hubs, guides library and article, search, sign-in, 404 and shared `@ppu/ui` components** (commits d5a0d8a to 98d3816). Daylight tokens in light and dark, the four fonts, the header, the footer and the animated home stage.
+2. **Technologies menu fix** (fc785b5): below `md` the open list pushes the page down instead of covering header links. This was found by the gate; target size, WCAG 2.5.8.
+3. **Logo X2 "Code stack"** (0b140ce):
+   - One shared geometry, `apps/web/lib/brand-mark.ts`, used by:
+     - the header and footer `BrandMark` (per-instance gradient ids);
+     - `app/icon.svg`, generated from it and guarded by a test;
+     - the share image.
+   - At 20 px and below, a simplified drawing is used.
+4. **Board fidelity pass, part 1** (056bd4f):
+   - **Heading font:** Bricolage Grotesque now loads its optical-size axis, as the canvas does. Without it, large headings rendered in the wider text cut, the biggest visible difference.
+   - **Hero:** the headline wraps as drawn.
+   - **Header:** a "KPI guides" link and a search box with a Ctrl K / ⌘K shortcut.
+   - **Guide search:**
+     - `ContentRepository.searchPublishedArticles`: weighted full-text over title, excerpt and body, with `ts_headline` snippets.
+     - The `/search` page lists guides first in the board's row layout, then components.
+   - **`/learn`:** cards as drawn, with stable section anchors.
+   - **Home:** section headings in the board's style.
+5. **Footer** (2a40bb3): link columns for the six technologies and the guide types, the brand line, and a slim notice bar.
+6. **Board fidelity pass, part 2** (5c68c9e):
+   - **Power Apps hero phone:** blinking cursor, scrolling list.
+   - **Learn tab:** two illustrated featured guides; guides with drawn covers come first.
+   - **"Also in" row** under the Learn tab.
+   - **Breadcrumbs as drawn.** The JSON-LD trails are unchanged.
+   - **Article:** a Copy link button with a live-region announcement.
+7. **Board fidelity pass, part 3: the mobile canvas** (2ec0755):
+   - **Below `lg`:** the logo, search and a Menu disclosure. Its panel holds the links, the six technologies, sign-in, the theme switch and the call to action, and opens in the page flow.
+   - **Below `sm`:** compact technology panels and tiles, compact "Start here" rows, and a trimmed "broken version first" panel.
+8. **Tests** (5f3f049, then the BUG-004 locator commit):
+   - **BUG-004 regression tests:** now target the renamed search box ("Search guides and components").
+   - **Header search box:** new border and placeholder contrast checks.
+
+**Caught and fixed during the story (not bugs, per CLAUDE.md):**
+- **Overlapping menu:** the floating Technologies panel part-covered other header links at 320 and 768 px (axe target-size).
+- **Outdated regression test:** the BUG-004 tests timed out after the search box was renamed. This was a test locator problem, not a contrast problem.
+- **Search snippets:** the first snippet regex left Markdown brackets in, because PostgreSQL treats backslashes inside a bracket expression literally. Fixed, and covered by the integration test.
+
+**Commands and results:**
+- `pnpm lint` and `pnpm typecheck`: clean.
+- **Unit tests:** `@ppu/web` 548, `@ppu/ui` 57, `@ppu/e2e` 83.
+- **Integration:** `@ppu/adapter-content` 10, against local Postgres, including the new search test (published-only, title outranks body, Markdown stripped, malformed queries accepted).
+- `pnpm build`: succeeds.
+- **`pnpm test:a11y`:** 474 checks per engine, all passing.
+  - WebKit: 474 in one run.
+  - Chromium and Firefox: 468 in the full run; the 4 failures were the outdated BUG-004 locator, and the 6 corrected and new BUG-004 checks then passed in both.
+
+**Risks:**
+- **Guide search** computes its vector per query and lists at most 20 guides. Recorded as TD-024 (Low), fine at launch size.
+- **Two theme toggles:** the header and the phone menu each have one. Their pressed state can disagree only if someone switches theme and then resizes across `lg` without reloading. The theme itself is always correct.
+- **Featured covers** exist only for the drawn launch guides. Other guides fall back to their type's initial.
+
+**Remaining:**
+- The product owner reviews and merges the MVP-031 PR into `develop`.
+- About, Privacy and Terms pages need product-owner content (open question 64).
+- Screen-reader testing has not been done (open question 38, unchanged).

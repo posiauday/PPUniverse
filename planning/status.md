@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-01 — **MVP-030 (Deploy to Netlify) In Progress, slice 1 of 2 built:** the database client works through Supabase's transaction pooler, `apps/web/netlify.toml` exists, and `docs/15-deployment.md` is the step-by-step runbook. Slice 2 is the first real deploy, with the product owner creating the accounts and entering secrets.
+Last updated: 2026-10-02 — **MVP-031 (Daylight redesign) moves to QA: the whole public site is rebuilt to the approved canvas, and the accessibility gate passes in all three browsers.**
+- **Board fidelity pass:** the built pages were compared side by side with the canvas at desktop and phone widths, and the drift fixed (heading font optical size, header with KPI guides and a Ctrl K search box, the phone Menu, the technology hub's featured guides, the article's Copy link, a footer with link columns).
+- **Product decisions recorded** in `docs/final-decisions.md`: the X2 "Code stack" logo; the four board-fidelity choices (three delegated to the agent). Site search now covers guides (open question 63 closed). About, Privacy and Terms need product-owner content (open question 64).
+- **Accessibility gate:** 474 checks per browser, all passing. WebKit passed in one run. Chromium and Firefox passed 468 in the full run; their 4 failures were the outdated BUG-004 test locator, and the 6 corrected and new BUG-004 checks then passed in both.
+- **Next:** the product owner reviews and merges the MVP-031 PR into `develop`.
+
+Last updated (previous): 2026-10-01 — **MVP-030 (Deploy to Netlify) In Progress, slice 1 of 2 built:** the database client works through Supabase's transaction pooler, `apps/web/netlify.toml` exists, and `docs/15-deployment.md` is the step-by-step runbook. Slice 2 is the first real deploy, with the product owner creating the accounts and entering secrets.
 
 Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) moves to QA: all 24 wave-1 articles are written, and the product owner now reviews and publishes them.** The launch is content-first: the site goes live once they're published (`docs/final-decisions.md`, "Launch is content-first").
 
@@ -124,11 +130,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 1 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing) |
+| QA | 2 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; branch pushed for product-owner review and merge) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **30** | |
+| **Total** | **31** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -222,13 +228,13 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 19 / 30 (63%)
-- Stories in QA: 1 / 30 (MVP-029)
-- Points done: 139 / 214 (65%)
+- Stories done: 19 / 31 (61%)
+- Stories in QA: 2 / 31 (MVP-029, MVP-031)
+- Points done: 139 / 227 (61%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 36 / 69 (52%)
+- P1 points done: 36 / 82 (44%)
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
+- Open tech debt: 19 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-024 added by MVP-031; TD-010 partially resolved
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
@@ -255,6 +261,7 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 5 | MVP-028 (Technology sections) | **Done** | 8 (done) |
 | 6 | MVP-029 (Launch content) | QA (24 of 24 articles written; awaiting product-owner review) | 13 |
 | 6 | MVP-030 (Deploy to Netlify) | In Progress (slice 1 of 2) | 5 |
+| 6 | MVP-031 (Daylight redesign) | QA (built and gated; awaiting product-owner review and merge) | 13 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
@@ -296,7 +303,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 
 ## Open tech debt
 
-18 open items (4 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+19 open items (4 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
@@ -317,6 +324,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-016](tech-debt/TD-016.md) — **Open** (new, 2026-09-23, Low): `ArticlePublishEvent` (MVP-017) is a bare publish-action log, not full content-version snapshotting — nothing to snapshot yet, since no correction/republish path exists either.
 - [TD-017](tech-debt/TD-017.md) — **Resolved** (2026-09-28, MVP-026): article Markdown renders as structured HTML (react-markdown + remark-gfm, no raw HTML).
 - [TD-023](tech-debt/TD-023.md) — **Open** (new, 2026-09-28, Low): the `/learn` hub has no pagination — capped at the 500 newest articles.
+- [TD-024](tech-debt/TD-024.md) — **Open** (new, 2026-10-02, Low): guide search builds its full-text vector per query (no index) and lists at most 20 guides, with no paging.
 - [TD-021](tech-debt/TD-021.md) — **Open** (new, 2026-09-25, Medium): MVP-014 does not snapshot license/compatibility/support-policy evidence at each release's publish time — an explicit scope exclusion, not an oversight; the `Release`/`ReleaseFile` immutability guarantee itself is unaffected, only the surrounding evidence display is not point-in-time.
 
 ## Proposed stories (not approved — not on the board, not counted above)
