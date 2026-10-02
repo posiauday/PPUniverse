@@ -43,7 +43,12 @@ export function TechnologiesMenu({
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    // Below md the wrapper is `display: contents`, so the open list becomes its
+    // own full-width row at the end of the header's wrapping nav and pushes the
+    // page down instead of floating over the header's other links (a floating
+    // panel there part-covers them, failing WCAG 2.5.8 target size). From md
+    // up the nav is one line with room below it, so the list is a dropdown.
+    <div ref={rootRef} className="max-md:contents md:relative">
       <button
         ref={buttonRef}
         type="button"
@@ -69,7 +74,7 @@ export function TechnologiesMenu({
       <ul
         id={listId}
         hidden={!open}
-        className="absolute left-1/2 z-40 mt-2 w-64 max-w-[calc(100vw-1.5rem)] -translate-x-1/2 rounded-3xl sm:left-0 sm:translate-x-0 border border-border bg-card p-2 shadow-[0_24px_50px_-24px_rgb(20_20_26/0.45)]"
+        className="z-40 rounded-3xl border border-border bg-card p-2 max-md:order-last max-md:my-1 max-md:grid max-md:w-full sm:max-md:grid-cols-2 md:absolute md:left-0 md:mt-2 md:w-64 md:shadow-[0_24px_50px_-24px_rgb(20_20_26/0.45)]"
       >
         {items.map((item) => (
           <li key={item.href}>
