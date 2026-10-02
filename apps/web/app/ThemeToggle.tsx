@@ -29,7 +29,7 @@ export function ThemeToggle({ initialTheme }: { initialTheme: Theme }) {
       onClick={toggle}
       aria-pressed={dark}
       aria-label="Dark theme"
-      className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-muted"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-foreground hover:bg-card"
     >
       {dark ? (
         <svg

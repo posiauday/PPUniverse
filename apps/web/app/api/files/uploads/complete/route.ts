@@ -1,8 +1,7 @@
 import { createErrorEnvelope } from "@ppu/shared";
 import { getCorrelationId } from "@ppu/telemetry";
-import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { authOptions } from "../../../../../lib/auth";
+import { notFoundForNonAdmin, requireAdmin } from "../../../../../lib/require-admin";
 import { completeFileUpload, UploadNotFoundError } from "../../../../../lib/complete-file-upload";
 import { withObservability } from "../../../../../lib/observability";
 
@@ -26,13 +25,10 @@ export const POST = withObservability(
   "POST /api/files/uploads/complete",
   async (request: Request) => {
     const correlationId = getCorrelationId() ?? "unknown";
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorEnvelope("UNAUTHENTICATED", "Sign-in required.", correlationId),
-        { status: 401 },
-      );
-    }
+    // BUG-020: only an admin uploads files. Signed out and non-admin both
+    // get the identical 404.
+    const admin = await requireAdmin();
+    if (!admin) return notFoundForNonAdmin(correlationId);
 
     const body: unknown = await request.json().catch(() => null);
     if (!isCompleteRequestBody(body)) {
@@ -50,7 +46,7 @@ export const POST = withObservability(
     // the requesting user's id (see /api/files/uploads) — this is the
     // ownership check for a resource with no FileScan row yet to check
     // ownership against.
-    if (!body.storageKey.startsWith(`${session.user.id}/`)) {
+    if (!body.storageKey.startsWith(`${admin.userId}/`)) {
       return NextResponse.json(
         createErrorEnvelope("FORBIDDEN", "You do not have access to this upload.", correlationId),
         { status: 403 },
@@ -62,7 +58,7 @@ export const POST = withObservability(
         storageKey: body.storageKey,
         originalFilename: body.originalFilename,
         declaredMimeType: body.declaredMimeType,
-        uploadedByUserId: session.user.id,
+        uploadedByUserId: admin.userId,
       });
       return NextResponse.json({ fileScan: record });
     } catch (error) {

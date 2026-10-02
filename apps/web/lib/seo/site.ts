@@ -19,7 +19,7 @@ export const SITE_DESCRIPTION =
 
 /** The /learn hub's meta description and visible introduction. */
 export const LEARN_INDEX_DESCRIPTION =
-  "Free tutorials, patterns and comparisons for Power Apps, Power Automate and Power BI.";
+  "Free tutorials, comparisons, patterns and KPI guides for Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages.";
 
 /** Longer descriptions are trimmed for meta/Open Graph tags; the page itself is never truncated. */
 export const MAX_META_DESCRIPTION_LENGTH = 300;

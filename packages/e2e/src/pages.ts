@@ -168,16 +168,21 @@ async function submitSignIn(
 export const GATED_PAGES: readonly GatedPage[] = [
   {
     // MVP-028: the header's Technologies menu, opened, so axe and the
-    // keyboard check see its links.
+    // keyboard check see its links. Below lg (MVP-031) the header shows a
+    // Menu button instead, whose panel lists the same technologies.
     id: "home-technologies-menu-open",
     route: "/",
-    description: "home page with the header's Technologies menu open",
+    description: "home page with the header's Technologies menu (or, below lg, its Menu) open",
     auth: "guest",
     status: 200,
     path: () => "/",
     prepare: async (page) => {
-      await page.getByRole("button", { name: "Technologies" }).click();
-      await expect(page.getByRole("link", { name: "Power Automate" }).first()).toBeVisible();
+      const menu = page.getByRole("button", { name: "Menu" });
+      if (await menu.isVisible()) await menu.click();
+      else await page.getByRole("button", { name: "Technologies" }).click();
+      await expect(
+        page.getByRole("link", { name: "Power Automate" }).filter({ visible: true }).first(),
+      ).toBeVisible();
     },
   },
   {
@@ -238,17 +243,37 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 200,
     path: () => "/",
-    // MVP-027 slice 2: the Premium 3 layout -- the hero and, since every
-    // worker seeds published products, the newest-components section.
+    // MVP-031 (was MVP-027 slice 2): the Daylight layout -- the hero and,
+    // since every worker seeds published products, the newest-components
+    // section.
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        "Learn it properly. Ship components that last.",
+        "Build Power Platform apps that actually hold up.",
       );
       await expect(
         page.getByRole("heading", { name: "New components and templates" }),
       ).toBeVisible();
     },
   },
+  // MVP-032: About, Privacy and Terms -- long text in the article layout.
+  ...(
+    [
+      ["about", "/about", "About LowCodeStacks"],
+      ["privacy", "/privacy", "Privacy notice"],
+      ["terms", "/terms", "Terms of use"],
+    ] as const
+  ).map(([id, route, title]): GatedPage => ({
+    id,
+    route,
+    description: `${title} page`,
+    auth: "guest",
+    status: 200,
+    path: () => route,
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
+      await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
+    },
+  })),
   {
     id: "category-populated",
     route: "/categories/[slug]",
@@ -452,9 +477,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // already proved for this same class of problem).
       await seed.resetPrivacyState();
       await page.reload();
-      await expect(
-        page.getByRole("button", { name: /accept: the terms of service/i }),
-      ).toBeVisible();
+      await expect(page.getByRole("button", { name: /accept: the terms of use/i })).toBeVisible();
       await expect(page.getByRole("button", { name: /request account deletion/i })).toBeVisible();
     },
   },

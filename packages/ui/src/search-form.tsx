@@ -18,7 +18,7 @@ export function SearchForm({
   preserveParams,
 }: SearchFormProps) {
   return (
-    <form action={action} method="GET" role="search" className="flex gap-2">
+    <form action={action} method="GET" role="search" className="relative flex items-center">
       <label htmlFor="catalog-search-q" className="sr-only">
         {label}
       </label>
@@ -30,7 +30,7 @@ export function SearchForm({
         name="q"
         defaultValue={defaultValue}
         placeholder={label}
-        className="flex-1 rounded-card border border-muted-foreground px-3 py-2 text-sm placeholder:text-muted-foreground"
+        className="min-h-14 w-full min-w-0 flex-1 rounded-full border-2 border-foreground bg-card py-3 pr-28 pl-5 text-base text-foreground shadow-[0_5px_0_#a3e635] placeholder:text-muted-foreground sm:pr-32 sm:pl-6 sm:text-lg"
       />
       {preserveParams
         ? Object.entries(preserveParams).map(([key, value]) =>
@@ -39,7 +39,7 @@ export function SearchForm({
         : null}
       <button
         type="submit"
-        className="rounded-card bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        className="absolute right-1.5 min-h-11 rounded-full bg-primary px-5 font-semibold text-primary-foreground sm:px-6"
       >
         Search
       </button>

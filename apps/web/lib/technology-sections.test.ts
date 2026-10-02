@@ -7,7 +7,9 @@ import {
   SECTION_TABS,
   listSectionPathsWithContent,
   loadSection,
+  loadSectionCounts,
   sectionHasContent,
+  tabCount,
   sectionPath,
   tabBySegment,
   type SectionDeps,
@@ -76,6 +78,40 @@ describe("section tabs and paths", () => {
 
   it("reserve one sitemap slot per section tab", () => {
     expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length * SECTION_TABS.length);
+  });
+});
+
+describe("loadSectionCounts and tabCount (MVP-031)", () => {
+  it("counts the technology's published guides by type, and each tab's share", async () => {
+    const d = deps({
+      articles: [
+        { type: "TUTORIAL", slug: "newer-tutorial" },
+        { type: "COMPARISON" },
+        { type: "PATTERN" },
+        { type: "KPI_GUIDE" },
+        { type: "TUTORIAL", slug: "older-tutorial" },
+      ],
+    });
+    const counts = await loadSectionCounts(d.value, POWER_APPS);
+    expect(d.listPublishedArticleSummaries).toHaveBeenCalledWith(
+      expect.objectContaining({ technology: "POWER_APPS" }),
+    );
+    expect(d.listPublishedArticleSummaries.mock.calls[0]?.[0]).not.toHaveProperty("types");
+    expect(counts.articles).toBe(5);
+    expect(counts.byType).toEqual({ TUTORIAL: 2, COMPARISON: 1, PATTERN: 1, KPI_GUIDE: 1 });
+    // Newest first in, so the first tutorial is the newest one.
+    expect(counts.newestByType.TUTORIAL).toEqual({ type: "TUTORIAL", slug: "newer-tutorial" });
+    expect(counts.newestByType.PATTERN).toEqual({ type: "PATTERN" });
+    expect(tabCount(counts, "learn")).toBe(3);
+    expect(tabCount(counts, "architecture")).toBe(1);
+    expect(tabCount(counts, "kpis")).toBe(1);
+    expect(tabCount(counts, "components")).toBeNull();
+  });
+
+  it("is zero everywhere for a technology with nothing published", async () => {
+    const counts = await loadSectionCounts(deps().value, POWER_APPS);
+    expect(counts).toEqual({ articles: 0, byType: {}, newestByType: {} });
+    expect(tabCount(counts, "learn")).toBe(0);
   });
 });
 

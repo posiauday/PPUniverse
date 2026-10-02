@@ -1,5 +1,6 @@
 import { normalizeDisplayText } from "@ppu/domain-catalog";
 import { ImageResponse } from "next/og";
+import { brandMarkSvg } from "../brand-mark";
 import { SHARE_IMAGE_SIZE } from "./share-image-size";
 import { SITE_NAME } from "./site";
 
@@ -20,6 +21,9 @@ import { SITE_NAME } from "./site";
  */
 
 export const MAX_SHARE_TITLE_LENGTH = 110;
+
+/** The X2 logo as an encoded SVG image, drawn from the same geometry as BrandMark and the favicon. */
+const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(brandMarkSvg("full")).toString("base64")}`;
 
 /** Browsers and crawlers may cache a card for a day; a title edit shows up by then. */
 const CACHE_CONTROL = "public, max-age=3600, s-maxage=86400";
@@ -44,11 +48,26 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "72px",
-        background: "#0c0f17",
-        color: "#ffffff",
+        // Daylight (MVP-031): warm paper, ink text, a lime eyebrow chip and
+        // the X2 "Code stack" logo.
+        background: "#fbf8f3",
+        color: "#14141a",
       }}
     >
-      <div style={{ display: "flex", fontSize: 32, color: "#f5b83d" }}>{eyebrow}</div>
+      <div style={{ display: "flex" }}>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 30,
+            padding: "10px 24px",
+            borderRadius: 999,
+            background: "#d9f99d",
+            color: "#14141a",
+          }}
+        >
+          {eyebrow}
+        </div>
+      </div>
       <div
         style={{
           display: "flex",
@@ -59,15 +78,8 @@ export function renderShareImage(input: { eyebrow: string; title: string }): Ima
         {title}
       </div>
       <div style={{ display: "flex", alignItems: "center", fontSize: 36 }}>
-        <div
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            background: "#6fd3c4",
-            marginRight: 16,
-          }}
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element -- Satori draws a plain <img>; next/image does not apply here */}
+        <img src={MARK_DATA_URI} width={56} height={56} alt="" style={{ marginRight: 18 }} />
         {SITE_NAME}
       </div>
     </div>,

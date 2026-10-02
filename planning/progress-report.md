@@ -4201,3 +4201,181 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 **Next:**
 - The product owner merges #47 and this PR, then runs `content:import` against the target database (or the agent does, with the product owner's go-ahead) and reviews and publishes the drafts.
 - In parallel: the deployment story (Netlify, ADR-005) and the decisions-sync pass, if approved.
+
+## MVP-030 — Deploy to Netlify: slice 1 of 2, repository preparation (2026-10-01)
+
+**Story created** to implement `docs/adr/005-hosting-netlify.md` (hosting decided by the product owner, 2026-09-30) and the content-first launch. It covers NFR-007 (reliability) and FR-017 (search engines, via TD-009). 5 points, P1.
+
+**Plan, stated before coding:**
+- **Slice 1 (this entry):** repository changes and the runbook.
+- **Slice 2:** the first real deploy with the product owner, who creates the accounts and enters every secret.
+- **Migration impact:** none.
+- **Security impact:** secrets live only in Netlify's environment variables; the repo holds no credentials. Previews are kept out of search results. The admin role is still granted only by a manual SQL statement, as decided earlier.
+
+**Built:**
+- **`packages/db/src/connection-options.ts`** (new) and its use in `index.ts`. The `-c search_path` startup option is now sent only for non-`public` schemas.
+  - **Why:** Supabase's transaction pooler (port 6543), which Supabase recommends for serverless, doesn't pass startup parameters through. `public` is the default search_path anyway.
+  - **Unchanged:** the test schemas (`pkg_*`) keep the option, so BUG-015's isolation holds.
+  - **Tests:** `connection-options.test.ts` (3 tests).
+- **`apps/web/netlify.toml`** (new):
+  - **Build:** `pnpm turbo run build --filter=@ppu/web`, publishing `.next` and using Node 22 (matching CI). The location and settings follow Netlify's monorepo guidance.
+  - **Comments** say why branch deploys stay off, and that secrets never go in the file.
+- **`docs/15-deployment.md`** (new): the runbook. It covers:
+  - the services and free plans, and who does what;
+  - Supabase's two connection strings and `migrate deploy` over the direct one;
+  - Resend's domain verification (needed, because sign-in is by email link);
+  - the Netlify settings and an environment-variable table;
+  - a first-deploy verification checklist;
+  - the admin grant (`update users set role = 'ADMIN' ...`);
+  - the article import, the DNS cut-over, and Search Console.
+- **`CLAUDE.md`:** a deployment paragraph pointing at the ADR, the toml and the runbook.
+- **TD-009:** the resolution is updated to rely on Netlify's automatic `X-Robots-Tag: noindex` on deploy previews, with branch deploys off. It stays **Open until verified** on the first preview.
+
+**Decided during the work (agent, reversible):**
+- **Rejected: a `DIRECT_URL` override in `prisma.config.ts` for migrations.** `provision-test-schemas.mjs` runs `migrate deploy` per test schema by setting `DATABASE_URL`. A stray `DIRECT_URL` in a developer's shell would silently redirect those migrations to production. Migrations against Supabase are instead run with `DATABASE_URL` set explicitly to the 5432 string (runbook step 1).
+- **Research checked on 2026-10-01:**
+  - Netlify supports Next.js 13.5 and later with no configuration, through its OpenNext adapter, but its docs don't name Next.js 16 or `next/og`, so slice 2 must verify both.
+  - Supabase recommends the transaction pooler for app traffic and a direct or session connection for migrations.
+  - Resend's free plan allows 3,000 emails a month and 100 a day.
+
+**Commands and results:**
+- `pnpm lint` and `pnpm typecheck`: clean.
+- `pnpm test` against the local Postgres: all pass, including `@ppu/db` (24), `@ppu/adapter-catalog` (87, raw SQL in a non-public schema), `@ppu/adapter-content` (34) and `@ppu/web` (465).
+
+**Risks:**
+- Netlify's build may not pick up pnpm 12 from `packageManager` automatically. That's the first slice-2 check.
+- A transaction pooler can't hold session state. Nothing in the app relies on session-level state apart from the `search_path` handled here.
+
+**Remaining (slice 2):** the product owner creates the Netlify, Resend and (optionally) second Supabase accounts and enters the variables. Then the first preview deploy and its verification, the production deploy, the admin grant, the content import, publishing, and DNS.
+
+
+## MVP-031 — Daylight redesign: whole site rebuilt to the approved canvas, story moves to QA (2026-10-02)
+
+**Requirements:** NFR-005 (UX quality), NFR-001 (accessibility), NFR-004 (SEO, partial).
+**Decisions:**
+- `docs/final-decisions.md`, "Visual redesign: Daylight", including two new subsections:
+  - "Logo: X2 "Code stack"" (2026-10-01);
+  - "Board fidelity pass" (2026-10-01).
+- Open question 63 is closed (search covers guides); open question 64 is new (About, Privacy and Terms content).
+
+**Migration impact:** none. No schema change; guide search reads existing columns.
+
+**Security review (checked against what was built):**
+- **Guide search:**
+  - The SQL is parameterised through `Prisma.sql`.
+  - `websearch_to_tsquery` accepts any input without raising errors.
+  - Only `PUBLISHED` rows are returned.
+  - Match highlighting uses two control characters that are stripped from the source text first. They are turned into `<mark>` elements on the server; article text is never parsed as HTML (unit test: `<b>` in a title renders escaped).
+  - Results pages stay `noindex, follow`.
+- **Header search:** a plain GET form. The Ctrl K / ⌘K shortcut only focuses the box or navigates to `/search`.
+- **Copy link:** copies the canonical article URL built on the server, never the current address with its query or fragment.
+- **Secrets:** none added. No new external requests: fonts stay self-hosted.
+- **Microsoft claims:** the non-affiliation line and trademark sentence stay on every page.
+
+**Built, in order (branch `feature/mvp-031-daylight-redesign`):**
+1. **Foundations, home, technology hubs, guides library and article, search, sign-in, 404 and shared `@ppu/ui` components** (commits d5a0d8a to 98d3816). Daylight tokens in light and dark, the four fonts, the header, the footer and the animated home stage.
+2. **Technologies menu fix** (fc785b5): below `md` the open list pushes the page down instead of covering header links. This was found by the gate; target size, WCAG 2.5.8.
+3. **Logo X2 "Code stack"** (0b140ce):
+   - One shared geometry, `apps/web/lib/brand-mark.ts`, used by:
+     - the header and footer `BrandMark` (per-instance gradient ids);
+     - `app/icon.svg`, generated from it and guarded by a test;
+     - the share image.
+   - At 20 px and below, a simplified drawing is used.
+4. **Board fidelity pass, part 1** (056bd4f):
+   - **Heading font:** Bricolage Grotesque now loads its optical-size axis, as the canvas does. Without it, large headings rendered in the wider text cut, the biggest visible difference.
+   - **Hero:** the headline wraps as drawn.
+   - **Header:** a "KPI guides" link and a search box with a Ctrl K / ⌘K shortcut.
+   - **Guide search:**
+     - `ContentRepository.searchPublishedArticles`: weighted full-text over title, excerpt and body, with `ts_headline` snippets.
+     - The `/search` page lists guides first in the board's row layout, then components.
+   - **`/learn`:** cards as drawn, with stable section anchors.
+   - **Home:** section headings in the board's style.
+5. **Footer** (2a40bb3): link columns for the six technologies and the guide types, the brand line, and a slim notice bar.
+6. **Board fidelity pass, part 2** (5c68c9e):
+   - **Power Apps hero phone:** blinking cursor, scrolling list.
+   - **Learn tab:** two illustrated featured guides; guides with drawn covers come first.
+   - **"Also in" row** under the Learn tab.
+   - **Breadcrumbs as drawn.** The JSON-LD trails are unchanged.
+   - **Article:** a Copy link button with a live-region announcement.
+7. **Board fidelity pass, part 3: the mobile canvas** (2ec0755):
+   - **Below `lg`:** the logo, search and a Menu disclosure. Its panel holds the links, the six technologies, sign-in, the theme switch and the call to action, and opens in the page flow.
+   - **Below `sm`:** compact technology panels and tiles, compact "Start here" rows, and a trimmed "broken version first" panel.
+8. **Tests** (5f3f049, then the BUG-004 locator commit):
+   - **BUG-004 regression tests:** now target the renamed search box ("Search guides and components").
+   - **Header search box:** new border and placeholder contrast checks.
+
+**Caught and fixed during the story (not bugs, per CLAUDE.md):**
+- **Overlapping menu:** the floating Technologies panel part-covered other header links at 320 and 768 px (axe target-size).
+- **Outdated regression test:** the BUG-004 tests timed out after the search box was renamed. This was a test locator problem, not a contrast problem.
+- **Search snippets:** the first snippet regex left Markdown brackets in, because PostgreSQL treats backslashes inside a bracket expression literally. Fixed, and covered by the integration test.
+
+**Commands and results:**
+- `pnpm lint` and `pnpm typecheck`: clean.
+- **Unit tests:** `@ppu/web` 548, `@ppu/ui` 57, `@ppu/e2e` 83.
+- **Integration:** `@ppu/adapter-content` 10, against local Postgres, including the new search test (published-only, title outranks body, Markdown stripped, malformed queries accepted).
+- `pnpm build`: succeeds.
+- **`pnpm test:a11y`:** 474 checks per engine, all passing.
+  - WebKit: 474 in one run.
+  - Chromium and Firefox: 468 in the full run; the 4 failures were the outdated BUG-004 locator, and the 6 corrected and new BUG-004 checks then passed in both.
+
+**Risks:**
+- **Guide search** computes its vector per query and lists at most 20 guides. Recorded as TD-024 (Low), fine at launch size.
+- **Two theme toggles:** the header and the phone menu each have one. Their pressed state can disagree only if someone switches theme and then resizes across `lg` without reloading. The theme itself is always correct.
+- **Featured covers** exist only for the drawn launch guides. Other guides fall back to their type's initial.
+
+**Remaining:**
+- The product owner reviews and merges the MVP-031 PR into `develop`.
+- About, Privacy and Terms pages need product-owner content (open question 64).
+- Screen-reader testing has not been done (open question 38, unchanged).
+
+
+## MVP-032 — About, Privacy and Terms pages, story moves to QA (2026-10-02)
+
+**Requirements:** FR-004 (consent), NFR-005 (UX).
+**Decision:** `docs/final-decisions.md`, "About, Privacy and Terms pages" (2026-10-02). It records the product owner's direct instruction, operator Uday Posia, contact@lowcodestacks.com, Saskatchewan (Canada), and "code free, text reserved". It supersedes "no agent-authored legal copy" for these pages only. Open question 64 is closed and open question 47 partly answered.
+
+**Migration impact:** `20261002000000_add_policy_versions_2026_10_02`.
+- It is additive and reversible: the rollback SQL is in the file.
+- It adds real Terms and Privacy `PolicyVersion` rows with `effectiveAt = GREATEST(2026-10-02, now)`, so they're the latest even on a database first migrated after today.
+- Verified on a throwaway schema migrated from scratch; the schema was then dropped.
+
+**Security review:**
+- **Text rendering:** the page text is static Markdown rendered without raw HTML.
+- **No new routes** that accept input.
+- **The privacy statements were checked against the code:**
+  - cookies (next-auth's, and `lcs-theme` for one year);
+  - logs (no IP or email; search terms are recorded);
+  - providers (Netlify, Supabase, Resend);
+  - no analytics or ads.
+- **A test ties the named cookie to the code's constant.** A second test fails if any page says "comply", "compliant" or "GDPR".
+
+**Research:** Office of the Privacy Commissioner of Canada guidance, checked 2026-10-02:
+- PIPEDA applies to private-sector commercial activity in Saskatchewan, which has no substantially similar provincial law.
+- Access requests must be answered within 30 days.
+- People should be told when their information may be processed outside Canada.
+- A privacy policy should name a contact and explain how to request access, correction and deletion.
+
+**Built:**
+- **Pages:** `apps/web/lib/legal/pages.ts` holds the three pages' text and the operator/contact constants. `app/InfoPageView.tsx` renders a Daylight header with the article layout (contents list and body). The routes are `app/about`, `app/privacy` and `app/terms`.
+- **SEO:** `buildInfoPageMetadata` (indexable, absolute canonical) and `infoPageUrl`. The sitemap lists the three pages last, and the catalog/article budget is reduced by 3.
+- **Footer:** an "About and policies" nav in the notice bar, as the canvas draws it.
+- **Account privacy page:** links the Terms and Privacy notice, and says "Terms of use".
+- **a11y gate:** `about`, `privacy` and `terms` states, plus the route list.
+
+**Caught and fixed during the story:**
+- **Placeholder Terms could win.** The placeholder policy rows would have stayed the "latest" Terms on a database first migrated after 2026-10-02 (fixed with `GREATEST`).
+- **About heading overflow.** The heading overflowed at 320 px ("LowCodeStacks," is one long word). The phone size is now 2.25rem.
+- **Outdated test label.** `privacy-empty` looked for the old "Terms of Service" button label.
+
+**Commands and results:**
+- **Web:** typecheck and lint clean; 556 unit tests pass (8 new in `lib/legal/pages.test.ts`).
+- **e2e unit tests:** 83, including route coverage.
+- **Targeted a11y run (Chromium):** the new pages, the account privacy states and route coverage, 83 checks: 76 then 7 after the label fix, all passing.
+- **Not run:** the full three-browser gate. At the product owner's request the big runs were skipped this time, because the identical layout components passed the full gate in MVP-031.
+
+**Risks:**
+- **Pages not yet reviewed by a lawyer.** Recommended before launch.
+- **`contact@lowcodestacks.com` doesn't exist yet.** The product owner must create it before launch, or privacy requests will bounce.
+- **Pages can drift from the code.** When data handling changes (ads, analytics, checkout), the Privacy notice must change in the same PR. Only the cookie name and the no-claim rule are guarded by tests.
+
+**Remaining:** the product owner reviews and merges. Merge #53 first; this PR is stacked on it.

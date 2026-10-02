@@ -11,8 +11,8 @@ export interface ProductCardProps {
 /** Plain <a>, not next/link — this package stays framework-portable rather than depending on Next.js. */
 export function ProductCard({ href, name, summary, categoryName }: ProductCardProps) {
   return (
-    <a href={href} className="block">
-      <Card className="transition-colors hover:border-primary">
+    <a href={href} className="block h-full text-foreground no-underline">
+      <Card className="h-full transition-colors hover:border-foreground">
         <CardHeader>
           <Badge variant="muted" className="w-fit">
             {categoryName}

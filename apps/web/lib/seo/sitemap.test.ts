@@ -20,8 +20,8 @@ const ARTICLES: ArticleSitemapEntries = {
 // The home page and the /learn hub take one slot each.
 // The home page and /learn hub take one slot each, and MVP-028's technology
 // section tabs (MAX_SECTION_PATHS) are reserved up front.
-const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 2 - MAX_SECTION_PATHS) / 2);
-const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 2 - MAX_SECTION_PATHS - CATALOG_BUDGET;
+const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 2 - 3 - MAX_SECTION_PATHS) / 2);
+const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 2 - 3 - MAX_SECTION_PATHS - CATALOG_BUDGET;
 
 describe("buildSitemap", () => {
   it("lists the home page, category base URLs, product URLs, the /learn hub and Article URLs — as absolute URLs", () => {
@@ -33,13 +33,21 @@ describe("buildSitemap", () => {
       { url: "https://example.com/products/beta" },
       { url: "https://example.com/learn", lastModified: UPDATED },
       { url: "https://example.com/learn/intro-tutorial", lastModified: UPDATED },
+      { url: "https://example.com/about" },
+      { url: "https://example.com/privacy" },
+      { url: "https://example.com/terms" },
     ]);
   });
 
   it("lists only the home page for an empty catalog and no Articles (no empty /learn hub)", () => {
     expect(
       buildSitemap("https://example.com", { categorySlugs: [], productSlugs: [] }, []),
-    ).toEqual([{ url: "https://example.com/" }]);
+    ).toEqual([
+      { url: "https://example.com/" },
+      { url: "https://example.com/about" },
+      { url: "https://example.com/privacy" },
+      { url: "https://example.com/terms" },
+    ]);
   });
 
   it("dates the /learn hub by its most recently updated Article", () => {
@@ -108,7 +116,7 @@ describe("generateSitemap", () => {
   it("splits the remaining budget between catalog entries and Article slugs (the home page and /learn hub take one each)", async () => {
     const { deps, listSitemapEntries, listPublishedArticleSlugs } = make();
     const sitemap = await generateSitemap(deps);
-    expect(sitemap).toHaveLength(7);
+    expect(sitemap).toHaveLength(10);
     expect(listSitemapEntries).toHaveBeenCalledWith(CATALOG_BUDGET);
     expect(listPublishedArticleSlugs).toHaveBeenCalledWith(ARTICLE_BUDGET);
   });
@@ -143,7 +151,7 @@ describe("generateSitemap", () => {
     const { deps, warn, listSitemapEntries } = make();
     listSitemapEntries.mockResolvedValue({ ...ENTRIES, truncated: true });
     const sitemap = await generateSitemap(deps);
-    expect(sitemap).toHaveLength(7);
+    expect(sitemap).toHaveLength(10);
     expect(warn).toHaveBeenCalledWith("seo.sitemap_truncated", {
       limit: MAX_SITEMAP_URLS,
       categories: 2,

@@ -186,3 +186,24 @@ these questions.
     and no longer reference `/api/admin/submissions`. This item stays **OPEN**
     for the same reason item 61 does — a documentation-correctness default, not
     a product-owner-confirmed decision needing closure.
+
+## Raised 2026-10-01 (MVP-031, Daylight redesign)
+
+63. **DECIDED 2026-10-01: guides and components.** The product owner delegated
+    the call to the agent; see `docs/final-decisions.md`, "Board fidelity pass".
+    Original question: should site search cover guides as well as products? The approved Daylight canvas draws
+    `/search?q=delegation` returning guides, but `/search` searches the product
+    catalog only (`catalogRepository.searchProducts`), and with the content-first
+    launch there are no published products, so every search returns nothing.
+    **Default applied:** the search page gets the Daylight look over its current
+    product-only behaviour; no guide search is built. Answer needed from the
+    product owner before guide search is designed and built.
+
+64. **DECIDED 2026-10-02 (MVP-032):** the product owner asked the agent to write the pages and supplied the operator, contact, location and content licence; see `docs/final-decisions.md`, "About, Privacy and Terms pages". Original question, raised 2026-10-01: About, Privacy and
+    Terms pages. Google's guidance on helpful content asks whether it is
+    "self-evident to your visitors who authored your content", so an About page
+    (who writes the guides and why) supports trust and search. A privacy notice
+    is expected wherever personal data is collected (sign-in, subscriptions).
+    These pages state facts and legal terms only the product owner can supply,
+    so none are invented. **Default applied:** the footer links only to pages
+    that exist; each link is added when its page is written and approved.

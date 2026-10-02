@@ -1,7 +1,10 @@
-import type { PrismaClient } from "@ppu/db";
+import { Prisma, type PrismaClient } from "@ppu/db";
 import {
   isValidArticleStatusTransition,
+  SEARCH_MATCH_END,
+  SEARCH_MATCH_START,
   type ArticleCreateInput,
+  type ArticleSearchHit,
   type ArticleRecord,
   type ArticleSitemapEntries,
   type ArticleSummary,
@@ -11,6 +14,13 @@ import {
   type ContentRepository,
   type Technology,
 } from "@ppu/domain-content";
+
+/** Both match markers, for stripping them from source text (see SEARCH_MATCH_START). */
+const MARKERS = SEARCH_MATCH_START + SEARCH_MATCH_END;
+/** ts_headline options: wrap every match in the markers; the title in full. */
+const TITLE_HEADLINE_OPTIONS = `StartSel=${SEARCH_MATCH_START}, StopSel=${SEARCH_MATCH_END}, HighlightAll=true`;
+/** ...and the snippet as one short fragment around the best match. */
+const SNIPPET_HEADLINE_OPTIONS = `StartSel=${SEARCH_MATCH_START}, StopSel=${SEARCH_MATCH_END}, MaxWords=26, MinWords=12, ShortWord=2, MaxFragments=1`;
 
 export class PrismaContentRepository implements ContentRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -155,6 +165,66 @@ export class PrismaContentRepository implements ContentRepository {
       excerpt: row.excerpt,
       // PUBLISHED rows always have publishedAt set.
       publishedAt: row.publishedAt as Date,
+    }));
+  }
+
+  /**
+   * PostgreSQL full-text search, the MVP search baseline (CLAUDE.md), the
+   * same approach as the catalog's searchProducts. websearch_to_tsquery
+   * accepts anything a person types (quotes, "or", a leading minus) and never
+   * raises a syntax error. The title outranks the excerpt, which outranks the
+   * body. The vector is computed per query: fine at launch size; an indexed
+   * generated column is the step up if the library grows large.
+   */
+  async searchPublishedArticles(options: {
+    query: string;
+    limit: number;
+  }): Promise<ArticleSearchHit[]> {
+    const query = options.query.trim();
+    if (!query) return [];
+    const document = Prisma.sql`(
+      setweight(to_tsvector('english', a."title"), 'A') ||
+      setweight(to_tsvector('english', coalesce(a."excerpt", '')), 'B') ||
+      setweight(to_tsvector('english', a."body"), 'C')
+    )`;
+    // The snippet text: the excerpt then the body, with the marker characters
+    // removed and the Markdown punctuation and link targets blanked out, so a
+    // snippet reads as prose.
+    const snippetSource = Prisma.sql`regexp_replace(
+      translate(coalesce(a."excerpt", '') || ' ' || a."body", ${MARKERS}, ''),
+      '\\]\\([^)]*\\)|[][#*_\`>|]', ' ', 'g'
+    )`;
+    const titleSource = Prisma.sql`translate(a."title", ${MARKERS}, '')`;
+    const rows = await this.db.$queryRaw<
+      Array<{
+        slug: string;
+        title: string;
+        type: string;
+        technology: string | null;
+        excerpt: string | null;
+        publishedAt: Date;
+        titleMarked: string;
+        snippetMarked: string;
+      }>
+    >`
+      SELECT a."slug", a."title", a."type"::text AS "type",
+             a."technology"::text AS "technology", a."excerpt", a."publishedAt",
+             ts_headline('english', ${titleSource}, q, ${TITLE_HEADLINE_OPTIONS}) AS "titleMarked",
+             ts_headline('english', ${snippetSource}, q, ${SNIPPET_HEADLINE_OPTIONS}) AS "snippetMarked"
+      FROM "articles" a, websearch_to_tsquery('english', ${query}) q
+      WHERE a."status" = 'PUBLISHED' AND ${document} @@ q
+      ORDER BY ts_rank(${document}, q) DESC, a."publishedAt" DESC, a."slug" ASC
+      LIMIT ${options.limit}
+    `;
+    return rows.map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      type: row.type as ArticleType,
+      technology: row.technology as Technology | null,
+      excerpt: row.excerpt,
+      publishedAt: row.publishedAt,
+      titleMarked: row.titleMarked,
+      snippetMarked: row.snippetMarked.replace(/\s+/g, " ").trim(),
     }));
   }
 }

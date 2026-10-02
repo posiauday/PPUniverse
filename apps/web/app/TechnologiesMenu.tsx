@@ -15,7 +15,8 @@ import { useEffect, useId, useRef, useState } from "react";
 export function TechnologiesMenu({
   items,
 }: {
-  items: ReadonlyArray<{ name: string; href: string }>;
+  /** `dot`: an optional colour class for the item's marker (the technology's ink). */
+  items: ReadonlyArray<{ name: string; href: string; dot?: string }>;
 }) {
   const [open, setOpen] = useState(false);
   const listId = useId();
@@ -42,14 +43,19 @@ export function TechnologiesMenu({
   }, [open]);
 
   return (
-    <div ref={rootRef} className="relative">
+    // Below md the wrapper is `display: contents`, so the open list becomes its
+    // own full-width row at the end of the header's wrapping nav and pushes the
+    // page down instead of floating over the header's other links (a floating
+    // panel there part-covers them, failing WCAG 2.5.8 target size). From md
+    // up the nav is one line with room below it, so the list is a dropdown.
+    <div ref={rootRef} className="max-md:contents md:relative">
       <button
         ref={buttonRef}
         type="button"
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-11 items-center gap-1 font-semibold text-foreground hover:underline"
+        className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-foreground hover:bg-muted"
       >
         Technologies
         <svg
@@ -68,15 +74,19 @@ export function TechnologiesMenu({
       <ul
         id={listId}
         hidden={!open}
-        className="absolute left-0 z-40 mt-1 w-60 rounded-xl border border-border bg-card p-2 shadow-lg"
+        className="z-40 rounded-3xl border border-border bg-card p-2 max-md:order-last max-md:my-1 max-md:grid max-md:w-full sm:max-md:grid-cols-2 md:absolute md:left-0 md:mt-2 md:w-64 md:shadow-[0_24px_50px_-24px_rgb(20_20_26/0.45)]"
       >
         {items.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
               onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center rounded-lg px-3 font-semibold text-foreground no-underline hover:bg-muted"
+              className="flex min-h-11 items-center gap-3 rounded-2xl px-3 font-semibold text-foreground no-underline hover:bg-muted"
             >
+              <span
+                aria-hidden="true"
+                className={`h-2.5 w-2.5 rounded-full ${item.dot ?? "bg-foreground"}`}
+              />
               {item.name}
             </Link>
           </li>

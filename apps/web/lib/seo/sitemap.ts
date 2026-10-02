@@ -7,6 +7,8 @@ import { MAX_SECTION_PATHS } from "../technology-sections";
 import {
   categoryUrl,
   homeUrl,
+  INFO_PAGE_PATHS,
+  infoPageUrl,
   learnIndexUrl,
   learnUrl,
   productUrl,
@@ -18,7 +20,8 @@ export const MAX_SITEMAP_URLS = 50_000;
 
 /**
  * sitemap.xml contents (MVP-021, FR-017; extended by MVP-017, FR-014): the
- * home page, categories that currently have at least one PUBLISHED product
+ * home page, About/Privacy/Terms (MVP-032), categories that currently have
+ * at least one PUBLISHED product
  * (base URLs only — paginated URLs are not enumerated), PUBLISHED products,
  * the /learn hub, and PUBLISHED Articles. Never DRAFT or any other status;
  * never search, sort, filter or paginated variants.
@@ -53,6 +56,8 @@ export function buildSitemap(
       url: learnUrl(origin, article.slug),
       lastModified: article.updatedAt,
     })),
+    // MVP-032: About, Privacy and Terms, always listed, last.
+    ...INFO_PAGE_PATHS.map((path) => ({ url: infoPageUrl(origin, path) })),
   ];
 }
 
@@ -78,7 +83,7 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
   // catalog entries and Article slugs so one domain's growth cannot silently
   // starve the other's sitemap coverage.
   // MVP-028: the technology section tabs are reserved up front too.
-  const budget = MAX_SITEMAP_URLS - 2 - MAX_SECTION_PATHS;
+  const budget = MAX_SITEMAP_URLS - 2 - INFO_PAGE_PATHS.length - MAX_SECTION_PATHS;
   const catalogBudget = Math.ceil(budget / 2);
   const articleBudget = budget - catalogBudget;
 
