@@ -22,7 +22,7 @@ export function SortLinks({ hrefFor, current, includeRelevance }: SortLinksProps
     : ["recent", "alphabetical"];
 
   return (
-    <nav aria-label="Sort products" className="flex items-center gap-3 text-sm">
+    <nav aria-label="Sort products" className="flex flex-wrap items-center gap-2 text-sm">
       <span className="text-muted-foreground">Sort:</span>
       {options.map((option) => {
         const isCurrent = option === current;
@@ -31,7 +31,12 @@ export function SortLinks({ hrefFor, current, includeRelevance }: SortLinksProps
             key={option}
             href={hrefFor(option)}
             aria-current={isCurrent ? "true" : undefined}
-            className={cn(isCurrent ? "font-semibold text-foreground" : "text-muted-foreground")}
+            className={cn(
+              "inline-flex min-h-11 items-center rounded-full px-4 no-underline",
+              isCurrent
+                ? "bg-primary font-semibold text-primary-foreground"
+                : "border border-border bg-card text-foreground hover:bg-muted",
+            )}
           >
             {SORT_LABELS[option]}
           </a>
