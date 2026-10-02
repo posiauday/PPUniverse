@@ -1763,3 +1763,60 @@ Direct product-owner instructions in chat, in reply to open question 64 ("About,
 2. **Open question 47 (jurisdiction) is partly answered.** The operator is in Saskatchewan, which has no general private-sector privacy law, so PIPEDA (federal) is the relevant privacy law, per the Office of the Privacy Commissioner. The Terms' governing law is Saskatchewan and the federal laws of Canada that apply there. Still open: the hosting region (open question 5) and paid-sales terms (open question 3).
 3. **Open question 64 is closed.** The footer links About, Privacy and Terms, and the account page links the Terms it records acceptance of.
 4. **Policy versions:** a reversible migration adds real `PolicyVersion` rows (`2026-10-02`) for the Terms and the Privacy notice. Terms acceptance then references the real version; the placeholder rows stay, as history, since consent records may point at them.
+
+## 2026-10-02 — Navigation restructure: by technology and by goal
+
+The product owner asked for a strategist's review of the navigation (*"do we need kapi guide on tha navigation hwo to organize evyethgin so tit become easier ffor eveytpoen"*). The agent's review found:
+- two competing groupings, by technology and by article type;
+- "KPI guides" as a top link (jargon, 6 of 24 guides, and a jump into `/learn`);
+- "Components" linking to an empty catalog at launch;
+- technology tabs holding one guide each;
+- inconsistent labels.
+
+The product owner then approved, by direct answers in chat:
+1. **Top bar: Technologies ▾ · Guides · (Updates, when built) · search · sign-in.** "KPI guides" is removed from the top bar. "Components" is hidden until the first product is published (feature flag).
+2. **Technology pages: one page with sections instead of four tabs** while content is small. The old tab addresses redirect to the matching section. Tabs may return when a technology has more than about 8 guides of one kind. This supersedes "Four tabs per section" ("Technology sections (MVP-028)", decision 2) for now.
+3. **Goal labels everywhere for the kinds of guide:** Fix a problem (tutorials), Choose the right tool (comparisons), Design it to last (patterns), Measure success (KPI guides).
+4. **Draw it on the design canvas first,** for sign-off before it is built.
+
+The product owner added that sections must not be generic: *"kpi i think just hsopuld be at power bi but you have to reseach as SKME in each competn ... decide wht shoudl put on each page not generalise eveytwhere it shoudl dynamic"*. The agent's per-technology topic map, researched from Microsoft Learn's own documentation structure for each product (2026-10-02), is a **proposal awaiting the product owner's confirmation**. It is not decided here.
+
+### Structure boards approved (2026-10-02)
+The product owner reviewed the six navigation-restructure boards on the design canvas and replied *"Look good"*. **The per-technology section map is approved** as drawn:
+- **Power Apps:** Choose & plan · Data & delegation · Formulas & components · Performance & offline · Ship it: solutions & ALM · Adoption & usage.
+- **Power Automate:** Triggers & flow design · Approvals · Errors, retries & limits · Desktop flows (RPA) · Choose the right tool · Run & monitor.
+- **Power BI:** Data modelling · DAX & calculations · Reports, visuals & KPIs · Refresh & gateways · Security & sharing.
+- **Copilot Studio:** Build your agent · Knowledge & grounding · Tools, actions & MCP · Test & evaluate · Publish to Teams & web · Monitor & cost.
+- **Dataverse:** Tables & schema · Security model · Business logic · Dataverse or something else · Data quality & integration.
+- **Power Pages:** Build your site · Access & table permissions · Sign-in & identity · Liquid & custom code · Choose · Go-live & monitor.
+
+A KPI section exists only in Power BI. Measuring guides elsewhere sit in that product's own section (adoption, run health, cost, go-live). Also approved as drawn: the Guides hub by goal, the Technologies menu, and the Updates page layout. The Updates page's content pipeline is still to be built.
+
+The product owner also asked for a deep research plan for each section's content, presentation and backlinks. It is `docs/research/content-research-plan.md`, a proposal awaiting approval.
+
+### Governance & admin area and the Updates badge (2026-10-02)
+Direct product-owner instruction: *"Also add coe and data and governance adn dlp polict i dont knwo what tech all come ro fall into but you will have to do researhc for that too. Updates need otficaiotn motions bangs to get user to click on it"*.
+
+1. **A 7th area, "Governance & admin",** for admins and CoE leads. It cuts across every product, so it isn't placed inside one. This supersedes the earlier choice not to have a Governance & ALM section at launch ("Technology sections (MVP-028)", decision 1). Its sections, from Microsoft Learn's admin and governance documentation (checked 2026-10-02):
+   - Environments & strategy
+   - Data policies (DLP) & connectors
+   - Security & access
+   - CoE & visibility
+   - ALM & deployment
+   - Licensing & capacity
+   - AI & agent governance
+
+   Two research findings shape its first guides:
+   - Microsoft now calls DLP policies **"data policies"**, alongside **advanced connector policies**.
+   - The **CoE Starter Kit is no longer actively maintained**. Its core features moved into the admin center (Inventory, Usage, Monitor, Actions), so "Moving off the CoE Starter Kit" is a priority guide.
+2. **Updates badge:** a lime count of updates since the visitor's last visit, with a soft ping animation, in the top bar and the phone menu.
+   - **Lifecycle:** it stops once Updates is opened; reduced motion shows a still badge.
+   - **Accessibility:** screen readers hear "Updates, N new".
+   - **Storage:** the last-visit date is stored only in the visitor's browser (local storage), never sent to the server. The Privacy notice must say so in the same change that ships the badge.
+3. The design canvas carries the Governance & admin page board and the badge on every restructure board. The Brand board is updated with the X2 logo, the Governance colour (#E2E8F0 / #334155, 8.4:1), the goal labels and the badge.
+
+### Technology pages are hubs (2026-10-02)
+The product owner clarified: *"if i open power apps section then i should see everything organized and i choose where to go"*. Researched against how product hubs are organised on Stripe's documentation and Microsoft Learn (every area visible at once, each with its top links), and against the Diátaxis documentation framework (tutorials, how-to, reference, explanation):
+- **Each technology page opens as a map:** a short hero with a scoped "Stuck? Search …" box and three common problems, then **every section as a card**. Each card has a one-line description, its guides as links, coming guides marked "Coming", and "See all".
+- **A "Quick reference" row** per technology: limits tables, cheat sheets and an error index. This is the "reference" kind we lacked, and these are the pages people bookmark.
+- **The ordered "New here? Start with these 3" path sits at the end**, reached from a link in the hero, so it never blocks someone exploring.

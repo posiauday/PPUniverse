@@ -1,6 +1,6 @@
 import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
-import { SECTION_ANCHOR } from "../lib/article-types";
+import { componentsEnabled } from "../lib/feature-flags";
 import { TECHNOLOGY_PALETTE } from "../lib/technology-palette";
 import type { Theme } from "../lib/theme";
 import { SITE_NAME } from "../lib/seo/site";
@@ -17,12 +17,15 @@ const TECHNOLOGY_LINKS = TECHNOLOGIES.map((entry) => ({
   dot: TECHNOLOGY_PALETTE[entry.technology].dot,
 }));
 
-/** The main links, for the menu below lg (the wide header lays them out itself). */
-const MAIN_LINKS = [
-  { name: "Learn", href: "/learn" },
-  { name: "Components", href: "/search" },
-  { name: "KPI guides", href: `/learn#${SECTION_ANCHOR.KPI_GUIDE}` },
-];
+/** The main links (docs/final-decisions.md, "Navigation restructure"): Guides,
+ * and Components only once the catalog has products (feature flag). "KPI
+ * guides" is no longer a top link; KPI guides live under Guides. */
+function mainLinks(): Array<{ name: string; href: string }> {
+  return [
+    { name: "Guides", href: "/learn" },
+    ...(componentsEnabled() ? [{ name: "Components", href: "/search" }] : []),
+  ];
+}
 
 const NAV_LINK =
   "inline-flex min-h-11 items-center rounded-full px-3 text-foreground no-underline hover:bg-muted";
@@ -43,6 +46,7 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
   const account = signedIn
     ? { name: "Account", href: "/account/sessions" }
     : { name: "Sign in", href: "/signin" };
+  const links = mainLinks();
   return (
     <header className="z-30 bg-background px-3 pt-3 pb-2 md:sticky md:top-0 md:px-6 md:pt-3.5">
       <div className="mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-4 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
@@ -59,16 +63,12 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
           aria-label="Main"
           className="hidden grow items-center gap-x-1 text-[0.9375rem] font-medium lg:flex"
         >
-          <Link href="/learn" className={NAV_LINK}>
-            Learn
-          </Link>
           <TechnologiesMenu items={TECHNOLOGY_LINKS} />
-          <Link href="/search" className={NAV_LINK}>
-            Components
-          </Link>
-          <Link href={`/learn#${SECTION_ANCHOR.KPI_GUIDE}`} className={NAV_LINK}>
-            KPI guides
-          </Link>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className={NAV_LINK}>
+              {link.name}
+            </Link>
+          ))}
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <HeaderSearch />
@@ -87,7 +87,7 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
         </div>
         {/* Below lg: the menu button, and its panel as the header's last row. */}
         <MobileMenu
-          links={MAIN_LINKS}
+          links={links}
           technologies={TECHNOLOGY_LINKS}
           account={account}
           themeToggle={<ThemeToggle initialTheme={theme} />}
