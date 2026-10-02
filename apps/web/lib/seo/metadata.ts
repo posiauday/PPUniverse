@@ -4,6 +4,8 @@ import type { SiteUrlResult } from "../site-url";
 import {
   categoryUrl,
   homeUrl,
+  infoPageUrl,
+  type InfoPagePath,
   learnIndexUrl,
   learnShareImageUrl,
   learnUrl,
@@ -215,4 +217,24 @@ export function buildTechnologySectionMetadata(input: {
 /** For unknown or unpublished slugs: the response is a 404, and the metadata says noindex too. */
 export function buildNotFoundMetadata(title: string): Metadata {
   return { title, robots: NOINDEX_ROBOTS };
+}
+
+/** MVP-032: About, Privacy and Terms. Always indexable: they say who runs
+ * the site and how it treats people, which readers and search engines both
+ * look for (Google's guidance on showing who is behind content). */
+export function buildInfoPageMetadata(input: {
+  site: SiteUrlResult;
+  path: InfoPagePath;
+  title: string;
+  description: string;
+}): Metadata {
+  const { site, path, title, description } = input;
+  return composeMetadata({
+    title: `${title} | ${SITE_NAME}`,
+    socialTitle: title,
+    description: toMetaDescription(description, description),
+    url: site.ok ? infoPageUrl(site.origin, path) : undefined,
+    robots: INDEXABLE_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
 }

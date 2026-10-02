@@ -3,6 +3,7 @@ import { prisma } from "@ppu/db";
 import { currentDeletionRequestState } from "@ppu/domain-privacy";
 import { getServerSession } from "next-auth/next";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { authOptions } from "../../../lib/auth";
 import { SITE_NAME } from "../../../lib/seo/site";
@@ -41,10 +42,15 @@ export default async function AccountPrivacyPage() {
 
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">Consent</h2>
+        {/* MVP-032: the Terms being accepted are now a real page. */}
+        <p>
+          Read the <Link href="/terms">Terms of use</Link> and the{" "}
+          <Link href="/privacy">Privacy notice</Link>.
+        </p>
         {termsConsent ? (
-          <p>Terms of service accepted {dateLabel(termsConsent.recordedAt)}.</p>
+          <p>Terms of use accepted {dateLabel(termsConsent.recordedAt)}.</p>
         ) : (
-          <ConsentToggle category="TERMS_OF_SERVICE" label="the Terms of Service" granted={false} />
+          <ConsentToggle category="TERMS_OF_SERVICE" label="the Terms of use" granted={false} />
         )}
         <ConsentToggle
           category="MARKETING_EMAIL"

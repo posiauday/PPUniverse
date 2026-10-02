@@ -39,8 +39,7 @@ const FOOTER_LINK =
  * Site-wide footer (MVP-027; Daylight look, MVP-031; link columns from the
  * "Board fidelity pass", docs/final-decisions.md). Every section of the site
  * gets a plain, descriptive link from every page, which helps readers and
- * crawlers alike. Pages that do not exist yet (About, Privacy, Terms: open
- * question 64) are not linked.
+ * crawlers alike. About, Privacy and Terms sit in the notice bar (MVP-032).
  *
  * Carries the standing non-affiliation line: LowCodeStacks never claims
  * Microsoft endorsement, certification or partnership (CLAUDE.md delivery
@@ -88,12 +87,31 @@ export function SiteFooter() {
           ))}
         </div>
       </div>
-      <div className="mx-auto max-w-[77.5rem] border-t border-border py-6 text-[0.8125rem] leading-relaxed text-muted-foreground">
-        <p>
+      <div className="mx-auto flex max-w-[77.5rem] flex-col gap-3 border-t border-border py-6 text-[0.8125rem] leading-relaxed text-muted-foreground md:flex-row md:items-start md:justify-between md:gap-10">
+        <p className="max-w-3xl">
           © {new Date().getFullYear()} {SITE_NAME}. Independent site. Not affiliated with, endorsed
           by or certified by Microsoft. {TRADEMARK_LIST} are trademarks of the Microsoft group of
           companies.
         </p>
+        {/* MVP-032: who runs the site and the rules, on every page, as the canvas draws them. */}
+        <nav aria-label="About and policies">
+          <ul className="flex gap-x-5">
+            {[
+              { name: "About", href: "/about" },
+              { name: "Privacy", href: "/privacy" },
+              { name: "Terms", href: "/terms" },
+            ].map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 md:min-h-0"
+                >
+                  {link.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </footer>
   );

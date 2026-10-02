@@ -4327,3 +4327,55 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 - The product owner reviews and merges the MVP-031 PR into `develop`.
 - About, Privacy and Terms pages need product-owner content (open question 64).
 - Screen-reader testing has not been done (open question 38, unchanged).
+
+
+## MVP-032 — About, Privacy and Terms pages, story moves to QA (2026-10-02)
+
+**Requirements:** FR-004 (consent), NFR-005 (UX).
+**Decision:** `docs/final-decisions.md`, "About, Privacy and Terms pages" (2026-10-02). It records the product owner's direct instruction, operator Uday Posia, contact@lowcodestacks.com, Saskatchewan (Canada), and "code free, text reserved". It supersedes "no agent-authored legal copy" for these pages only. Open question 64 is closed and open question 47 partly answered.
+
+**Migration impact:** `20261002000000_add_policy_versions_2026_10_02`.
+- It is additive and reversible: the rollback SQL is in the file.
+- It adds real Terms and Privacy `PolicyVersion` rows with `effectiveAt = GREATEST(2026-10-02, now)`, so they're the latest even on a database first migrated after today.
+- Verified on a throwaway schema migrated from scratch; the schema was then dropped.
+
+**Security review:**
+- **Text rendering:** the page text is static Markdown rendered without raw HTML.
+- **No new routes** that accept input.
+- **The privacy statements were checked against the code:**
+  - cookies (next-auth's, and `lcs-theme` for one year);
+  - logs (no IP or email; search terms are recorded);
+  - providers (Netlify, Supabase, Resend);
+  - no analytics or ads.
+- **A test ties the named cookie to the code's constant.** A second test fails if any page says "comply", "compliant" or "GDPR".
+
+**Research:** Office of the Privacy Commissioner of Canada guidance, checked 2026-10-02:
+- PIPEDA applies to private-sector commercial activity in Saskatchewan, which has no substantially similar provincial law.
+- Access requests must be answered within 30 days.
+- People should be told when their information may be processed outside Canada.
+- A privacy policy should name a contact and explain how to request access, correction and deletion.
+
+**Built:**
+- **Pages:** `apps/web/lib/legal/pages.ts` holds the three pages' text and the operator/contact constants. `app/InfoPageView.tsx` renders a Daylight header with the article layout (contents list and body). The routes are `app/about`, `app/privacy` and `app/terms`.
+- **SEO:** `buildInfoPageMetadata` (indexable, absolute canonical) and `infoPageUrl`. The sitemap lists the three pages last, and the catalog/article budget is reduced by 3.
+- **Footer:** an "About and policies" nav in the notice bar, as the canvas draws it.
+- **Account privacy page:** links the Terms and Privacy notice, and says "Terms of use".
+- **a11y gate:** `about`, `privacy` and `terms` states, plus the route list.
+
+**Caught and fixed during the story:**
+- **Placeholder Terms could win.** The placeholder policy rows would have stayed the "latest" Terms on a database first migrated after 2026-10-02 (fixed with `GREATEST`).
+- **About heading overflow.** The heading overflowed at 320 px ("LowCodeStacks," is one long word). The phone size is now 2.25rem.
+- **Outdated test label.** `privacy-empty` looked for the old "Terms of Service" button label.
+
+**Commands and results:**
+- **Web:** typecheck and lint clean; 556 unit tests pass (8 new in `lib/legal/pages.test.ts`).
+- **e2e unit tests:** 83, including route coverage.
+- **Targeted a11y run (Chromium):** the new pages, the account privacy states and route coverage, 83 checks: 76 then 7 after the label fix, all passing.
+- **Not run:** the full three-browser gate. At the product owner's request the big runs were skipped this time, because the identical layout components passed the full gate in MVP-031.
+
+**Risks:**
+- **Pages not yet reviewed by a lawyer.** Recommended before launch.
+- **`contact@lowcodestacks.com` doesn't exist yet.** The product owner must create it before launch, or privacy requests will bounce.
+- **Pages can drift from the code.** When data handling changes (ads, analytics, checkout), the Privacy notice must change in the same PR. Only the cookie name and the no-claim rule are guarded by tests.
+
+**Remaining:** the product owner reviews and merges. Merge #53 first; this PR is stacked on it.

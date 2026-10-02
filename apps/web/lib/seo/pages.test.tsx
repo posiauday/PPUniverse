@@ -730,14 +730,18 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/products/sample-component" },
       { url: "https://example.com/learn", lastModified: updatedAt },
       { url: "https://example.com/learn/intro-tutorial", lastModified: updatedAt },
+      { url: "https://example.com/about" },
+      { url: "https://example.com/privacy" },
+      { url: "https://example.com/terms" },
     ]);
-    // The home page and the /learn hub take one each of MAX_SITEMAP_URLS
-    // (50,000) and the 24 technology section tabs are reserved (MVP-028); the
-    // remaining 49,974 is split between the catalog and content repositories
+    // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
+    // one each of MAX_SITEMAP_URLS (50,000) and the 24 technology section tabs
+    // are reserved (MVP-028); the remaining 49,971 is split between the catalog
+    // and content repositories
     // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
     // so none is listed.
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_987);
-    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_987);
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_986);
+    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_985);
   });
 });
 
