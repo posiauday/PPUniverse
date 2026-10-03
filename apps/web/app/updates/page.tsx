@@ -103,7 +103,7 @@ export default async function UpdatesPage() {
             {tracked.length > 0 ? (
               <section
                 aria-labelledby="deprecation-tracker"
-                className="rounded-[1.75rem] bg-[#14141a] p-6 text-[#f4f1ea] ring-1 ring-[#2e2e38]"
+                className="on-code-surface rounded-[1.75rem] bg-[#14141a] p-6 text-[#f4f1ea] ring-1 ring-[#2e2e38]"
               >
                 <h2 id="deprecation-tracker" className="text-3xl font-bold">
                   Deprecation tracker

@@ -211,9 +211,10 @@ samp {
   outline-color: var(--color-code-foreground);
 }
 
-/* The same for the technology hub's "New here?" strip (MVP-033), which is
-   the code background in both themes: its links take the light ring, which
-   the page's violet ring is not against #22222b (1.76:1). */
+/* The same for the other dark surfaces that stay dark in both themes (MVP-033):
+   the technology hub's "New here?" strip and the /updates deprecation tracker.
+   Their links take the light ring; the page's violet ring is 1.76:1 against
+   #22222b and 2.04:1 against #14141a. */
 .on-code-surface :focus-visible {
   outline-color: var(--color-code-foreground);
 }

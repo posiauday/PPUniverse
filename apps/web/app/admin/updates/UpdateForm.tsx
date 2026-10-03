@@ -195,8 +195,8 @@ export function UpdateForm({
       {field(
         "effectiveDate",
         "Effective date (optional)",
-        text("effectiveDate", "date"),
-        "When the change takes effect. A deprecation or retirement with a date appears in the tracker.",
+        text("effectiveDate"),
+        "As YYYY-MM-DD, such as 2026-08-31. When the change takes effect: a deprecation or retirement with a date appears in the tracker.",
       )}
       {field("replacement", "Switch to (optional)", text("replacement"))}
 
