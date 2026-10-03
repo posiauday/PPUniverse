@@ -170,7 +170,11 @@ export async function engineTabsToLinks(page: Page): Promise<boolean> {
  * and its indicator is measured (`linkStops`); their keyboard REACHABILITY is then
  * not verified in that engine and is documented as a limitation.
  */
-export async function traverseTabOrder(page: Page, max = 80): Promise<TabTraversal> {
+// 160, not 80: the header's Technologies mega menu (MVP-033), when open,
+// adds about 40 stops of its own (7 areas, each with its hub, start-here
+// guide and first sections). A real keyboard trap still never ends, so the
+// guard is unchanged in kind.
+export async function traverseTabOrder(page: Page, max = 160): Promise<TabTraversal> {
   const tabsToLinks = await engineTabsToLinks(page);
   await ensureHelpers(page);
   await beginTabWalk(page);

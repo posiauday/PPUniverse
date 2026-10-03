@@ -3,6 +3,7 @@ title: "Canvas app or model-driven app? A decision guide"
 slug: canvas-vs-model-driven-apps
 type: COMPARISON
 technology: POWER_APPS
+topic: choose-and-plan
 excerpt: "Canvas apps give you full control of the screen, and model-driven apps give you speed and consistency on Dataverse. Five questions to pick the right one, plus when to use both."
 ---
 Power Apps has two ways to build an app, and choosing the wrong one costs you weeks. A **canvas app** starts from a blank screen, and you place and wire every control yourself. A **model-driven app** starts from your data model, and Power Apps builds the forms, views and navigation from it.

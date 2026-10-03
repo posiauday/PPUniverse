@@ -57,6 +57,13 @@ export const TECHNOLOGY_PALETTE: Readonly<Record<Technology, TechnologyPalette>>
     dot: "bg-tech-pages-ink",
     tagline: "Portals with locked-down data",
   },
+  // MVP-033: the cross-product area (docs/final-decisions.md, "Governance & admin area").
+  GOVERNANCE_ADMIN: {
+    tint: "bg-tech-gov",
+    ink: "text-tech-gov-ink",
+    dot: "bg-tech-gov-ink",
+    tagline: "Guardrails that don't slow makers down",
+  },
 };
 
 /** The neutral palette for an article with no technology (cross-cutting). */

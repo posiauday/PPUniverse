@@ -3,7 +3,7 @@
 Each article is one Markdown file, reviewed in a pull request, then imported as a **draft** for the product owner to publish (MVP-029; `docs/final-decisions.md`, "Launch content plan approved").
 
 ## Where a file goes
-`content/articles/<section>/<slug>.md`, where `<section>` is the technology's URL segment (`power-apps`, `power-automate`, `power-bi`, `copilot-studio`, `dataverse`, `power-pages`), or `general` for an article with no section. The file name must be the slug.
+`content/articles/<section>/<slug>.md`, where `<section>` is the technology's URL segment (`power-apps`, `power-automate`, `power-bi`, `copilot-studio`, `dataverse`, `power-pages`, or `governance` for Governance & admin), or `general` for an article with no section. The file name must be the slug.
 
 ## Format
 ```
@@ -11,7 +11,9 @@ Each article is one Markdown file, reviewed in a pull request, then imported as 
 title: "The article's title"
 slug: the-article-slug
 type: TUTORIAL            # TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE
-technology: POWER_APPS    # optional: one of the six sections
+technology: POWER_APPS    # optional: one of the six products, or GOVERNANCE_ADMIN
+topic: data-and-delegation # optional: the hub section, one of that technology's
+                          # TECHNOLOGY_TOPICS ids (packages/domain/content/src/technology.ts)
 excerpt: "One or two sentences for search results and cards."
 ---
 The Markdown body.

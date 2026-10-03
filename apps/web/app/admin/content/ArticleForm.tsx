@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
-import { TECHNOLOGY_OPTIONS } from "../../../lib/technology-options";
+import { TECHNOLOGY_OPTIONS, topicOptions } from "../../../lib/technology-options";
 
 export interface ArticleFormValues {
   slug: string;
@@ -11,6 +11,8 @@ export interface ArticleFormValues {
   type: "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE";
   /** "" means no technology section (MVP-028). */
   technology: string;
+  /** "" means none: the hub shows it in the area's first section (MVP-033). */
+  topic: string;
   excerpt: string;
   body: string;
 }
@@ -28,6 +30,7 @@ const DEFAULT_VALUES: ArticleFormValues = {
   title: "",
   type: "TUTORIAL",
   technology: "",
+  topic: "",
   excerpt: "",
   body: "",
 };
@@ -51,6 +54,7 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
   const titleId = useId();
   const typeId = useId();
   const technologyId = useId();
+  const topicId = useId();
   const excerptId = useId();
   const bodyId = useId();
   const statusId = useId();
@@ -77,6 +81,9 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
           slug: values.slug,
           title: values.title,
           type: values.type,
+          // BUG-022: the technology was shown but never sent, so a save cleared it.
+          technology: values.technology,
+          topic: values.topic,
           excerpt: values.excerpt.trim() === "" ? null : values.excerpt,
           body: values.body,
         }),
@@ -152,7 +159,11 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
         <select
           id={technologyId}
           value={values.technology}
-          onChange={(event) => update("technology", event.target.value)}
+          onChange={(event) => {
+            // A topic belongs to one technology, so changing it clears the topic.
+            const technology = event.target.value;
+            setValues((current) => ({ ...current, technology, topic: "" }));
+          }}
           aria-invalid={Boolean(fieldErrors["technology"])}
           aria-describedby={fieldErrors["technology"] ? `${technologyId}-error` : undefined}
         >
@@ -166,6 +177,28 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
         {fieldErrors["technology"] ? (
           <p id={`${technologyId}-error`}>{fieldErrors["technology"][0]}</p>
         ) : null}
+      </div>
+
+      {/* MVP-033: which section of that technology's hub it appears in. */}
+      <div>
+        <label htmlFor={topicId}>Hub section (optional)</label>
+        <select
+          id={topicId}
+          value={values.topic}
+          onChange={(event) => update("topic", event.target.value)}
+          disabled={values.technology === ""}
+          aria-invalid={Boolean(fieldErrors["topic"])}
+          aria-describedby={`${topicId}-hint${fieldErrors["topic"] ? ` ${topicId}-error` : ""}`}
+        >
+          <option value="">None (the hub&apos;s first section)</option>
+          {topicOptions(values.technology).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <p id={`${topicId}-hint`}>Choose a technology first. Each has its own sections.</p>
+        {fieldErrors["topic"] ? <p id={`${topicId}-error`}>{fieldErrors["topic"][0]}</p> : null}
       </div>
 
       <div>

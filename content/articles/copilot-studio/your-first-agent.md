@@ -3,6 +3,7 @@ title: "Your first agent: instructions, knowledge and testing"
 slug: your-first-agent
 type: TUTORIAL
 technology: COPILOT_STUDIO
+topic: build-your-agent
 excerpt: "Build a Copilot Studio agent that answers questions from your own content, and test it properly before anyone else sees it. Instructions that work, knowledge that's scoped, and a repeatable test set."
 ---
 > [!NOTE]

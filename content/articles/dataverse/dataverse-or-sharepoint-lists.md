@@ -3,6 +3,7 @@ title: "Dataverse or SharePoint lists? An honest comparison"
 slug: dataverse-or-sharepoint-lists
 type: COMPARISON
 technology: DATAVERSE
+topic: choose-dataverse
 excerpt: "SharePoint lists are free with Microsoft 365 and quick to start. Dataverse costs more and does far more. Where each one wins, where lists quietly break down, and how to decide before you build."
 ---
 Almost every Power Platform project starts with the same question: do we keep the data in SharePoint lists, or do we use Dataverse? The answer usually decides the licensing cost of the whole solution, so it's worth getting right before anything is built.

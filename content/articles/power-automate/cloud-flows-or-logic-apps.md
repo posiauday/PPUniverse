@@ -3,6 +3,7 @@ title: "Cloud flows or Azure Logic Apps?"
 slug: cloud-flows-or-logic-apps
 type: COMPARISON
 technology: POWER_AUTOMATE
+topic: choose-the-tool
 excerpt: "Power Automate and Azure Logic Apps share a designer and many connectors, but they're built for different owners, scales and controls. How to choose, and when to move a flow across."
 ---
 Power Automate cloud flows and Azure Logic Apps look almost the same. Both have a visual designer, triggers and actions, and more than 1,400 connectors. That similarity hides real differences in who owns the automation, how it's paid for, how it's secured and how far it scales.

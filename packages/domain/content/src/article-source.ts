@@ -1,4 +1,4 @@
-import { isValidTechnology } from "./technology.js";
+import { isValidTechnology, isValidTopic } from "./technology.js";
 import {
   isValidArticleBody,
   isValidArticleExcerpt,
@@ -20,11 +20,13 @@ import type { ArticleType, Technology } from "./types.js";
  *   slug: power-apps-delegation-500-rows
  *   type: TUTORIAL
  *   technology: POWER_APPS
+ *   topic: data-and-delegation
  *   excerpt: "Why an app shows only part of your data, and how to fix it."
  *   ---
  *   Body...
  *
- * Only these five keys are allowed, each on one line; values may be quoted.
+ * Only these six keys are allowed (`topic`, MVP-033, is one of the
+ * technology's hub sections and needs a technology), each on one line; values may be quoted.
  * Every value goes through exactly the validators the admin editor's API
  * uses, so an imported article is one the editor would have accepted.
  */
@@ -34,6 +36,7 @@ export interface ArticleSource {
   title: string;
   type: ArticleType;
   technology: Technology | null;
+  topic: string | null;
   excerpt: string | null;
   body: string;
 }
@@ -41,7 +44,7 @@ export interface ArticleSource {
 export type ArticleSourceResult =
   { ok: true; article: ArticleSource } | { ok: false; errors: string[] };
 
-const KEYS = ["title", "slug", "type", "technology", "excerpt"] as const;
+const KEYS = ["title", "slug", "type", "technology", "topic", "excerpt"] as const;
 type Key = (typeof KEYS)[number];
 
 function unquote(value: string): string {
@@ -81,6 +84,7 @@ export function parseArticleSource(text: string): ArticleSourceResult {
   const type = fields.type ?? "";
   const technologyValue = fields.technology ?? "";
   const excerptValue = fields.excerpt ?? "";
+  const topicValue = fields.topic ?? "";
 
   if (!isValidArticleTitle(title))
     errors.push("title is required and must be 200 characters or fewer");
@@ -88,7 +92,12 @@ export function parseArticleSource(text: string): ArticleSourceResult {
   if (!isValidArticleType(type))
     errors.push("type must be TUTORIAL, PATTERN, COMPARISON or KPI_GUIDE");
   if (technologyValue !== "" && !isValidTechnology(technologyValue)) {
-    errors.push("technology must be one of the six sections, or omitted");
+    errors.push("technology must be one of the seven areas, or omitted");
+  }
+  if (topicValue !== "") {
+    if (technologyValue === "") errors.push("topic needs a technology");
+    else if (isValidTechnology(technologyValue) && !isValidTopic(technologyValue, topicValue))
+      errors.push(`topic must be one of ${technologyValue}'s sections`);
   }
   const excerpt = excerptValue === "" ? null : excerptValue;
   if (!isValidArticleExcerpt(excerpt)) errors.push("excerpt must be 500 characters or fewer");
@@ -102,6 +111,7 @@ export function parseArticleSource(text: string): ArticleSourceResult {
       title,
       type: type as ArticleType,
       technology: technologyValue === "" ? null : (technologyValue as Technology),
+      topic: topicValue === "" ? null : topicValue,
       excerpt,
       body,
     },

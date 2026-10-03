@@ -11,3 +11,10 @@ overrides:
   # build-time only) — see planning/tech-debt/TD-002.md.
   mysql2: ">=3.22.0"
   deepmerge-ts: ">=8.0.0"
+  # GHSA-vfj7-8cjw-p6xm: braces (<=3.0.3, no patched release) reaches us only
+  # through @next/eslint-plugin-next > fast-glob > micromatch. The plugin calls
+  # one fast-glob function, globSync(pattern, { onlyDirectories: true }), and
+  # only when settings.next.rootDir is set (ours isn't). tinyglobby has the same
+  # globSync and depends on picomatch, not braces. See
+  # planning/tech-debt/TD-027.md; remove once the plugin drops fast-glob 3.
+  "@next/eslint-plugin-next>fast-glob": "npm:tinyglobby@^0.2.17"
