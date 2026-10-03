@@ -817,8 +817,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/admin/content",
     prepare: async (page, seed) => {
-      await expect(page.getByText(seed.draftArticle.title)).toBeVisible();
-      await expect(page.getByText(seed.publishedArticle.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.draftArticle.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.publishedArticle.title)).toBeVisible();
     },
   },
   {
@@ -867,8 +867,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/admin/updates",
     prepare: async (page, seed) => {
-      await expect(page.getByText(seed.draftUpdate.title)).toBeVisible();
-      await expect(page.getByText(seed.publishedUpdate.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.draftUpdate.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.publishedUpdate.title)).toBeVisible();
     },
   },
   {

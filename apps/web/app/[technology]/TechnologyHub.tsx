@@ -175,7 +175,7 @@ export function TechnologyHub({
         <section
           id="start-here"
           aria-labelledby="start-here-heading"
-          className="mx-auto mt-12 max-w-[77.5rem] scroll-mt-28 rounded-[1.75rem] bg-code p-6 text-code-foreground md:p-8"
+          className="mx-auto mt-12 max-w-[77.5rem] scroll-mt-28 rounded-[1.75rem] on-code-surface bg-code p-6 text-code-foreground md:p-8"
         >
           <h2
             id="start-here-heading"

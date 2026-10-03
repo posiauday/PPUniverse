@@ -211,6 +211,13 @@ samp {
   outline-color: var(--color-code-foreground);
 }
 
+/* The same for the technology hub's "New here?" strip (MVP-033), which is
+   the code background in both themes: its links take the light ring, which
+   the page's violet ring is not against #22222b (1.76:1). */
+.on-code-surface :focus-visible {
+  outline-color: var(--color-code-foreground);
+}
+
 /* Defaults for UNSTYLED elements (MVP-027 slice 4; resolves BUG-009).
    Several pages -- sign-in, account, unsubscribe, the admin forms -- render
    plain <main>, <h1>, <button>, <input> with no classes, and Tailwind's reset
