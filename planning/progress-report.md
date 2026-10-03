@@ -4499,3 +4499,60 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - **BUG-022 exposure:** in production, a guide re-saved through the editor before this fix has no technology.
 
 **Remaining in MVP-033:** slice D (Updates page and badge).
+
+## MVP-033 — slice D: Updates page, admin and the animated badge; story moves to QA (2026-10-03)
+
+**Requirements:** NFR-005 (UX), NFR-004 (SEO). **Decision:** `docs/final-decisions.md`, "Governance & admin area and the Updates badge" (badge behaviour, browser-only storage, Privacy notice in the same change) and "Structure boards approved" (the Updates board). **Plan:** `docs/plans/mvp-033-navigation-restructure.md`, slice D. The defaults applied are recorded as open questions 65 to 69.
+
+**Migration impact:** two additive migrations, each with its rollback in its header.
+- **`20261003000200_add_update_items`:** the `update_items` and `update_publish_events` tables, plus the `UpdateKind` enum. Both tables have RLS enabled, and the FKs are Restrict.
+- **`20261003000300_add_privacy_policy_version_2026_10_03`:** a new Privacy `PolicyVersion` row. The Terms are unchanged.
+- Applied locally with no schema drift.
+
+**Built:**
+- **Domain (`@ppu/domain-content`):** `updates.ts` (types, `UpdateRepository`, validators, `trackerLabel`) and `update-source.ts` (the drafts file parser). Update sources must be https links on microsoft.com or one of its subdomains, so look-alike hosts are refused.
+- **Adapter:** `PrismaUpdateRepository`. Publishing is one transaction that also writes the audit event; edits never touch status. Also `updates:import`, which imports drafts only, skips existing slugs, and imports nothing if any file is invalid.
+- **Drafts:** `content/updates/` holds four drafts, each checked against Microsoft Learn on 2026-10-03:
+  - the Power Automate mobile app retirement (August 31, 2026);
+  - the removal of the maker-portal help chatbot (September 9, 2026);
+  - the removal of the classic look for model-driven apps (April 2026);
+  - the deprecation of the Editable and Read-Only grid controls (March 2026).
+
+  The page's intro line, "release plans stop in September 2026; new capabilities move to the AI at Work roadmap", was checked on the same pages. A CI gate test validates every draft.
+- **Admin:** `/admin/updates` (list, with a link to each Microsoft source and a Publish button), plus `/new` and `/[id]/edit`. The API routes `/api/admin/updates`, `/[id]` and `/[id]/publish` are admin-only, give the identical 404 to everyone else, and share one validator (`lib/update-input.ts`).
+- **Public `/updates`:** matches the Updates board:
+  - the amber "What changed, and what it means." hero;
+  - the feed, with an area chip, kind, "New" chip, action pill, summary and Microsoft link;
+  - the "N new since your last visit" pill;
+  - the dark deprecation tracker, with a status label and "Switch to".
+
+  The page is noindex until the first update is published.
+- **Badge:** an "Updates" link in the top bar and the phone menu. Its lime count has a ping and a pop that stop under reduced motion; the ping ring is then hidden, leaving a still badge. Screen readers hear "Updates, N new". The count is worked out in the browser from published times and `localStorage["lcs-updates-last-visit"]`, which is never sent to the server and is safe when storage is blocked. Opening `/updates` records the visit and clears the badge at once.
+- **Privacy notice:** a new "Stored in your browser" section names the key, and the notice gets a new effective date (October 3, 2026). A test ties the named key to the code's constant.
+- **e2e:** routes and states for `/updates` and the three admin pages. The fixtures seed a published and a draft update.
+- **Docs:** `docs/06-data-model.md`, `CLAUDE.md` commands, and `content/updates/README.md`.
+
+**Security review:**
+- **Admin-only writes:** the role is re-read from the database, and non-admins get the identical 404 on every route.
+- **Server-side validation:** fixed enum kinds and length limits.
+- **Source links:** the allow-list refuses `http:`, credentials in the link and look-alike hosts, so no update can link a reader off Microsoft. Links render as plain `<a>` with `rel="noopener"`, and all text is escaped by React.
+- **Badge privacy:** the badge sends nothing about the visitor to the server.
+- **Audit trail:** a publish writes an `UpdatePublishEvent` row, plus a `content.update_published` log line.
+
+**Caught and fixed during the work:**
+- A second reduced-motion block broke the design-token test, which reads the first one. Merged into the existing block.
+- The tracker list showed bullets, and the dark card blended into the dark page. Fixed with `list-none` and an outline.
+
+**Commands and results:**
+- **Domain content:** 40 tests pass.
+- **Content adapter:** 42 tests pass, including the update repository against local Postgres and the drafts gate.
+- **Web:** typecheck, ESLint and Prettier clean; 602 tests pass (new: updates API, badge, visit storage, update times, `/updates` page, Privacy key).
+- **e2e:** typecheck clean, 83 unit tests pass.
+- **Browser check:** `/updates` and the badge at 375 and 1280 px in light and dark, in Chromium with reduced motion, on the harness's own fixtures (cleaned up afterwards).
+- **Not run locally:** the pinned Playwright browsers aren't installed in this container. CI runs the full three-browser gate.
+
+**Risks:**
+- **Production migrations:** apply them before deploying, as for slices B and C.
+- **Publishing:** the four drafts are only drafts. The product owner imports them (`updates:import`), checks each link, and publishes.
+
+**Remaining:** the product owner reviews PR #62, applies the migrations, imports and publishes the drafts, and answers open questions 65 to 69. MVP-033 is in **QA**.

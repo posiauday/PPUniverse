@@ -9,6 +9,7 @@ import { HeaderSearch } from "./HeaderSearch";
 import { MobileMenu } from "./MobileMenu";
 import { TechnologiesMenu } from "./TechnologiesMenu";
 import { ThemeToggle } from "./ThemeToggle";
+import { UpdatesLink } from "./UpdatesLink";
 
 /** MVP-028: the six technology hubs from the one registry, then Governance &
  * admin (MVP-033). The phone menu shows them as tinted tiles. */
@@ -47,11 +48,14 @@ export function SiteHeader({
   theme,
   signedIn,
   menu = buildTechnologyMenu(ALL_AREAS, null),
+  updateTimes = [],
 }: {
   theme: Theme;
   signedIn: boolean;
   /** The Technologies menu (lib/technology-menu.ts); without it, areas and sections only. */
   menu?: readonly TechnologyMenuArea[];
+  /** Newest published update times, for the Updates badge (lib/update-times.ts). */
+  updateTimes?: readonly string[];
 }) {
   const account = signedIn
     ? { name: "Account", href: "/account/sessions" }
@@ -79,6 +83,8 @@ export function SiteHeader({
               {link.name}
             </Link>
           ))}
+          {/* MVP-033 slice D: Updates, with its "new" badge. */}
+          <UpdatesLink publishedTimes={updateTimes} className={NAV_LINK} />
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <HeaderSearch />
@@ -101,6 +107,7 @@ export function SiteHeader({
           technologies={TECHNOLOGY_LINKS}
           account={account}
           themeToggle={<ThemeToggle initialTheme={theme} />}
+          updateTimes={updateTimes}
         />
       </div>
     </header>

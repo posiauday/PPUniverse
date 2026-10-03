@@ -110,3 +110,59 @@ model ArticlePublishEvent {
   @@index([articleId, createdAt])
   @@map("article_publish_events")
 }
+
+/// MVP-033 slice D (docs/final-decisions.md, "Governance & admin area and the
+/// Updates badge"): what kind of platform change an update describes.
+enum UpdateKind {
+  FEATURE
+  LICENSING
+  DEPRECATION
+  RETIREMENT
+}
+
+/// A short note, in our words, on a Power Platform change and whether to act,
+/// linked to Microsoft's announcement. Drafted by the agent (content/updates),
+/// published by the product owner. Same lifecycle and audit rules as Article.
+model UpdateItem {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  title         String
+  summary       String
+  technology    Technology?
+  kind          UpdateKind
+  /// A few words on what to do; null for none.
+  action        String?
+  /// Microsoft's announcement: https on microsoft.com (checked by the API and importer).
+  sourceUrl     String
+  /// When the change takes effect; drives the deprecation tracker.
+  effectiveDate DateTime?     @db.Date
+  /// What to switch to, for the tracker.
+  replacement   String?
+  status        ArticleStatus @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten.
+  publishedAt   DateTime?
+  authorUserId  String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  author User                 @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events UpdatePublishEvent[]
+
+  @@index([status, publishedAt])
+  @@map("update_items")
+}
+
+/// Append-only audit trail for publishing an UpdateItem, like ArticlePublishEvent.
+model UpdatePublishEvent {
+  id          String               @id @default(cuid())
+  updateId    String
+  actorUserId String
+  action      ArticlePublishAction
+  createdAt   DateTime             @default(now())
+
+  update UpdateItem @relation(fields: [updateId], references: [id], onDelete: Restrict)
+  actor  User       @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([updateId, createdAt])
+  @@map("update_publish_events")
+}

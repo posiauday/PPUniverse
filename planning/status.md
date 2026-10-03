@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-03 — **MVP-033 slices B and C built** (PR #62):
+Last updated: 2026-10-03 — **MVP-033 (Navigation restructure) moves to QA:** all four slices are built in PR #62.
+- **Slice D:** the Updates page and deprecation tracker, the admin pages for updates, an animated "new" badge (browser-only storage, still under reduced motion), and the Privacy notice updated in the same change.
+- **Drafts:** four platform-update drafts are in `content/updates`, each checked against Microsoft Learn.
+- **Production:** apply migrations `20261003000000` to `20261003000300` with the 5432 connection before deploying. Then run `updates:import` and publish the drafts after checking them.
+- **Open questions:** 65 to 69 record the defaults applied.
+
+Last updated (previous): 2026-10-03 — **MVP-033 slices B and C built** (PR #62):
 - **Hubs and Guides page:** the Guides page matches its board (TD-026 resolved).
 - **Content model:** articles now have a hub `topic` and can belong to Governance & admin (TD-025 resolved).
 - **Bug fixed:** BUG-022, where saving in the admin editor cleared an article's technology.
@@ -148,7 +154,7 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 3 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
+| QA | 4 | MVP-033 (Navigation restructure; PR #62), MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |

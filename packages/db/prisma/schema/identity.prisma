@@ -43,6 +43,8 @@ model User {
   emailSends             EmailSend[]
   articles               Article[]
   articlePublishActions  ArticlePublishEvent[]
+  updateItems            UpdateItem[]
+  updatePublishActions   UpdatePublishEvent[]
   releasePublishActions  ReleasePublishEvent[]
   productStatusActions   ProductStatusEvent[]
   orders                 Order[]

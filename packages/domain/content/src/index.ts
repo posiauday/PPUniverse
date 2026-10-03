@@ -41,3 +41,27 @@ export type {
   ProductTechnology,
   Technology,
 } from "./types.js";
+export {
+  TRACKED_KINDS,
+  UPDATE_ACTION_MAX,
+  UPDATE_KINDS,
+  UPDATE_KIND_LABEL,
+  UPDATE_REPLACEMENT_MAX,
+  UPDATE_SUMMARY_MAX,
+  UPDATE_TITLE_MAX,
+  isValidOptionalText,
+  isValidUpdateKind,
+  isValidUpdateSlug,
+  isValidUpdateSourceUrl,
+  isValidUpdateSummary,
+  isValidUpdateTitle,
+  trackerLabel,
+  type PublishedUpdate,
+  type UpdateCreateInput,
+  type UpdateInput,
+  type UpdateKind,
+  type UpdateRecord,
+  type UpdateRepository,
+  type UpdateStatus,
+} from "./updates.js";
+export { parseIsoDate, parseUpdateSource, type UpdateSourceResult } from "./update-source.js";

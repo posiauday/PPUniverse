@@ -7,6 +7,8 @@ import { contentRepository } from "../lib/content";
 import { NOINDEX_ROBOTS } from "../lib/seo/metadata";
 import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo/site";
 import { loadTechnologyMenu } from "../lib/technology-menu";
+import { loadUpdateTimes } from "../lib/update-times";
+import { updateRepository } from "../lib/updates";
 import { THEME_COOKIE, resolveTheme } from "../lib/theme";
 import { fontVariables } from "./fonts";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
@@ -33,9 +35,10 @@ export const metadata: Metadata = {
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
-  const [session, menu] = await Promise.all([
+  const [session, menu, updateTimes] = await Promise.all([
     getServerSession(authOptions),
     loadTechnologyMenu(ALL_AREAS, contentRepository),
+    loadUpdateTimes(updateRepository),
   ]);
 
   return (
@@ -44,7 +47,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <SiteHeader theme={theme} signedIn={Boolean(session)} menu={menu} />
+        <SiteHeader
+          theme={theme}
+          signedIn={Boolean(session)}
+          menu={menu}
+          updateTimes={updateTimes}
+        />
         <div id="main-content" tabIndex={-1}>
           {children}
         </div>

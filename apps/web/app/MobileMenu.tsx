@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { UpdatesLink } from "./UpdatesLink";
 
 type MenuLink = { name: string; href: string; tint?: string };
 
@@ -20,11 +21,14 @@ export function MobileMenu({
   technologies,
   account,
   themeToggle,
+  updateTimes = [],
 }: {
   links: readonly MenuLink[];
   technologies: readonly MenuLink[];
   account: MenuLink;
   themeToggle: ReactNode;
+  /** Newest published update times, for the Updates badge (MVP-033 slice D). */
+  updateTimes?: readonly string[];
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -80,6 +84,9 @@ export function MobileMenu({
                 </Link>
               </li>
             ))}
+            <li>
+              <UpdatesLink publishedTimes={updateTimes} className={linkClass} onNavigate={close} />
+            </li>
           </ul>
           <p
             id={`${panelId}-tech`}

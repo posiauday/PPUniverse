@@ -219,12 +219,28 @@ export const GATED_PAGES: readonly GatedPage[] = [
   {
     id: "governance",
     route: "/governance",
-    description: "Governance & admin hub (planned guides only)",
+    description: "Governance & admin hub",
     auth: "guest",
     status: 200,
     path: () => "/governance",
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Governance & admin");
+    },
+  },
+  {
+    // MVP-033 slice D: the Updates page, with the seeded published update in
+    // the feed and in the deprecation tracker.
+    id: "updates",
+    route: "/updates",
+    description: "Updates page with a published update and the deprecation tracker",
+    auth: "guest",
+    status: 200,
+    path: () => "/updates",
+    prepare: async (page, seed) => {
+      await expect(
+        page.getByRole("heading", { level: 3, name: seed.publishedUpdate.title }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Deprecation tracker" })).toBeVisible();
     },
   },
   {
@@ -841,6 +857,43 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "admin",
     status: 200,
     path: (seed) => `/admin/content/${seed.draftArticle.id}/edit`,
+  },
+  {
+    // MVP-033 slice D: the admin updates list, with a draft and a published update.
+    id: "admin-updates-populated",
+    route: "/admin/updates",
+    description: "admin updates list, signed in as ADMIN, with a draft and a published update",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/updates",
+    prepare: async (page, seed) => {
+      await expect(page.getByText(seed.draftUpdate.title)).toBeVisible();
+      await expect(page.getByText(seed.publishedUpdate.title)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-updates-denied",
+    route: null,
+    description: "admin updates list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/updates",
+  },
+  {
+    id: "admin-updates-new",
+    route: "/admin/updates/new",
+    description: "admin new-update form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/updates/new",
+  },
+  {
+    id: "admin-updates-edit",
+    route: "/admin/updates/[id]/edit",
+    description: "admin edit-update form, signed in as ADMIN, pre-filled with a draft",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
   },
   {
     // The positive admin state: proves the surface actually lists real

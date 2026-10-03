@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "content:import": "node scripts/import-articles.mjs"
+    "content:import": "node scripts/import-articles.mjs",
+    "updates:import": "node scripts/import-updates.mjs"
   },
   "dependencies": {
     "@ppu/db": "workspace:*",

@@ -32,6 +32,11 @@ const commerce = vi.hoisted(() => ({
 
 vi.mock("../catalog", () => ({ catalogRepository: repository }));
 vi.mock("../content", () => ({ contentRepository: content }));
+const updates = vi.hoisted(() => ({
+  listPublishedUpdates: vi.fn().mockResolvedValue([]),
+  listPublishedUpdateTimes: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("../updates", () => ({ updateRepository: updates }));
 vi.mock("../commerce", () => ({ commerceRepository: commerce }));
 vi.mock("@ppu/telemetry", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -80,6 +85,7 @@ import TechnologyPage, {
   generateMetadata as technologyMetadata,
 } from "../../app/[technology]/page";
 import GovernancePage, { generateMetadata as governanceMetadata } from "../../app/governance/page";
+import UpdatesPage, { generateMetadata as updatesMetadata } from "../../app/updates/page";
 import TechnologyTabPage, {
   generateMetadata as technologyTabMetadata,
 } from "../../app/[technology]/[tab]/page";
@@ -803,5 +809,52 @@ describe("next.config headers", () => {
     for (const rule of rules) {
       expect(rule.headers).toEqual([{ key: "X-Robots-Tag", value: "noindex, nofollow" }]);
     }
+  });
+});
+
+describe("/updates (MVP-033 slice D)", () => {
+  const update = (
+    slug: string,
+    kind: string,
+    effective: string | null,
+    replacement: string | null,
+  ) => ({
+    id: slug,
+    slug,
+    title: `Title ${slug}`,
+    summary: "What changed.",
+    technology: "POWER_AUTOMATE",
+    kind,
+    action: "No action",
+    sourceUrl: `https://learn.microsoft.com/x#${slug}`,
+    effectiveDate: effective ? new Date(`${effective}T00:00:00Z`) : null,
+    replacement,
+    publishedAt: new Date("2026-10-01T00:00:00Z"),
+  });
+
+  it("stays noindex with an empty state until the first update is published", async () => {
+    updates.listPublishedUpdates.mockResolvedValue([]);
+    expect((await updatesMetadata()).robots).toEqual({ index: false, follow: true });
+    const markup = renderToStaticMarkup(await UpdatesPage());
+    expect(markup).toContain("No updates are published yet.");
+    expect(markup).not.toContain("Deprecation tracker");
+  });
+
+  it("lists updates with Microsoft's link, and tracks only dated deprecations and retirements", async () => {
+    updates.listPublishedUpdates.mockResolvedValue([
+      update("app-retired", "RETIREMENT", "2026-08-31", "Approvals app in Microsoft Teams"),
+      update("grid-deprecated", "DEPRECATION", "2026-03-01", null),
+      update("new-feature", "FEATURE", null, null),
+    ]);
+    expect((await updatesMetadata()).robots).toEqual({ index: true, follow: true });
+    const markup = renderToStaticMarkup(await UpdatesPage());
+    expect(markup).toContain('id="new-feature"');
+    expect(markup).toContain('href="https://learn.microsoft.com/x#new-feature"');
+    const tracker = markup.slice(markup.indexOf("Deprecation tracker"));
+    expect(tracker).toContain("Removed Aug 2026");
+    expect(tracker).toContain("Switch to: Approvals app in Microsoft Teams");
+    expect(tracker).toContain("Deprecated Mar 2026");
+    expect(tracker).not.toContain("Title new-feature");
+    expect(tracker.indexOf("app-retired")).toBeLessThan(tracker.indexOf("grid-deprecated"));
   });
 });
