@@ -89,12 +89,9 @@ The plan is in `docs/plans/mvp-033-navigation-restructure.md`. It has four slice
     - TD-025 was recorded.
   - **Verified:** web typecheck and lint are clean, and the web unit tests pass. e2e typecheck and the route-coverage test pass.
   - **Not yet run:** the Playwright a11y gate (CI runs it on the PR). The pages have not had a visual check in a browser.
-  - **Still to do in slice C:**
-    1. Visually check `/power-apps`, `/power-bi` and `/governance` at 375 and 1280 px, in light and dark.
-    2. Rename the Guides page (`/learn`) section headings to the goal labels: Fix a problem · Choose the right tool · Design it to last · Measure success.
-    3. Turn the Technologies menu into a mega menu with all 7 areas (the items already include Governance).
-    4. Mark MVP-033 progress in `planning/status.md` and `planning/progress-report.md`.
-    5. Open the PR into `develop`.
+  - **Done since (2026-10-02/03):** goal labels on `/learn` and in the footer, the Technologies mega menu, a visual check, and the planning updates. TD-026 records what's left of the Guides board: the problem-first search hero, goal chips, a technology filter, and the board's lines under each heading.
+  - **PR:** slice C goes into `develop`; the product owner merges it.
+  - **Cloud container quirk:** `pnpm build` (Turborepo) fails there with "Exec format error". Build with `pnpm -r --filter "@ppu/web^..." run build`, then run `next build` in `apps/web`.
 - **B:** the content model. Add an article `topic` field and a GOVERNANCE_ADMIN area, with a migration, an admin topic picker and a backfill from `ARTICLE_TOPIC`. This resolves TD-025.
 - **D:** an Updates page and model, an animated "new updates" badge in the top bar (static under reduced motion), and a Privacy notice update if the badge stores any read state.
 
