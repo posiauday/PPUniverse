@@ -318,6 +318,48 @@ describe("/learn hub (SEO story)", () => {
     ]);
   });
 
+  it("leads with a problem-first search, goal chips and a technology filter (TD-026)", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("t1", "TUTORIAL"),
+      summary("k1", "KPI_GUIDE"),
+    ]);
+    const markup = renderToStaticMarkup(await LearnIndexPage());
+    expect(markup).toContain("What are you");
+    expect(markup).toContain('action="/search"');
+    expect(markup).toContain('href="#tutorials"');
+    expect(markup).toContain('href="#kpi-guides"');
+    expect(markup).not.toContain('href="#patterns"');
+    expect(markup).toContain('href="/learn?technology=governance"');
+    expect(markup).toMatch(/aria-current="page"[^>]*>All technologies</);
+  });
+
+  it("narrows to one technology, and ignores an unknown one", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      { ...summary("apps-guide"), technology: "POWER_APPS", title: "Apps guide" },
+      { ...summary("bi-guide"), technology: "POWER_BI", title: "BI guide" },
+    ]);
+    const filtered = renderToStaticMarkup(
+      await LearnIndexPage({ searchParams: Promise.resolve({ technology: "power-bi" }) }),
+    );
+    expect(filtered).toContain("BI guide");
+    expect(filtered).not.toContain("Apps guide");
+    expect(filtered).toMatch(/aria-current="page"[^>]*>Power BI</);
+    const unknown = renderToStaticMarkup(
+      await LearnIndexPage({ searchParams: Promise.resolve({ technology: "nope" }) }),
+    );
+    expect(unknown).toContain("Apps guide");
+    expect(unknown).toContain("BI guide");
+  });
+
+  it("points an area with no guides yet to its hub", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("t1", "TUTORIAL")]);
+    const markup = renderToStaticMarkup(
+      await LearnIndexPage({ searchParams: Promise.resolve({ technology: "governance" }) }),
+    );
+    expect(markup).toContain("No Governance &amp; admin guides are published yet.");
+    expect(markup).toContain('href="/governance"');
+  });
+
   it("shows an empty state and no CollectionPage when nothing is published", async () => {
     const markup = renderToStaticMarkup(await LearnIndexPage());
     expect(markup).toContain("No articles are published yet.");

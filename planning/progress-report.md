@@ -4419,3 +4419,27 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 - **Guide card labels:** cards still label each guide "Tutorial", "Pattern" and so on; should they use the goal labels too?
 
 **Remaining:** the product owner reviews and merges the slice C PR into `develop`.
+
+## MVP-033 — slice C follow-up: TD-026 resolved, the Guides page matches its board (2026-10-03)
+
+**What changed:** `apps/web/app/learn/page.tsx` now has:
+- the board's "What are you trying to do?" hero, with a problem-first search that posts to `/search`;
+- goal chips linking to each section;
+- a technology filter (`?technology=<slug>`, validated against the registry, with an unknown value ignored);
+- the board's line and coloured marker for each goal.
+
+The technology tiles were removed from `/learn` because the board has none, so `app/TechnologyTiles.tsx` (now unused) was deleted. Hubs stay linked from the header and the footer.
+
+**Caught and fixed during the work:**
+- The page must default its props: the existing tests call it without them.
+- The floating cube overlapped the last filter chip at 1280 px, so it was removed. The coral pill now shows only from `xl`.
+
+**Security:**
+- No new routes.
+- The filter value is only compared against the technology registry and is never echoed raw: the empty-state text uses the registry name.
+
+**Commands:**
+- Web typecheck, ESLint and Prettier are clean, and 574 unit tests pass (3 new).
+- axe (WCAG 2.2 AA) is clean on `/learn` and `/learn?technology=power-bi` at 375 and 1280 px, light and dark.
+
+**Tech debt:** TD-026 resolved.
