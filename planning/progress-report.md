@@ -4443,3 +4443,59 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - axe (WCAG 2.2 AA) is clean on `/learn` and `/learn?technology=power-bi` at 375 and 1280 px, light and dark.
 
 **Tech debt:** TD-026 resolved.
+
+## MVP-033 — slice B: content model (topic field, Governance & admin area) (2026-10-03)
+
+**Requirements:** NFR-005 (UX), NFR-004 (SEO). **Decisions:** `docs/final-decisions.md`, "Structure boards approved" and "Governance & admin area and the Updates badge". **Plan:** `docs/plans/mvp-033-navigation-restructure.md`, slice B. Resolves TD-025.
+
+**Migration impact:** two additive migrations, each with its rollback in its header comment.
+- **`20261003000000_add_governance_admin_technology`:** adds the enum value `GOVERNANCE_ADMIN` (its own migration, because Postgres can't use a new enum value in the transaction that adds it).
+- **`20261003000100_add_article_topic`:** adds a nullable `articles.topic` column, then backfills the 24 launch guides. The backfill matches on slug and technology and never overwrites a topic that is already set.
+- **Verified locally:** both migrations applied, with no drift between the migrations and the schema. Against throwaway draft rows, the backfill set a matching guide, skipped one with a different technology, and left an existing topic unchanged.
+- **Production:** the product owner applies them with the direct 5432 connection, as for `20261002000000`.
+
+**Built:**
+- **Domain (`@ppu/domain-content`):**
+  - `Technology` gains `GOVERNANCE_ADMIN`.
+  - `TechnologyInfo` gains `kind` ("product" or "area").
+  - `TECHNOLOGIES` stays the six products, so the trademark notice, home panels and product hubs are unchanged.
+  - New: `AREAS` (all seven), `GOVERNANCE_ADMIN`, `areaBySlug`, `TECHNOLOGY_TOPICS` and `isValidTopic`.
+  - Article types carry `topic`. The article-source parser accepts a `topic:` key and checks it against the technology.
+- **Adapter:** `topic` round-trips through create, update, summaries and search.
+- **Content:** all 24 launch files carry `topic:`, and `content/articles/README.md` documents it.
+- **Web:**
+  - Hubs group by the stored topic, and `ARTICLE_TOPIC` is deleted.
+  - The palette gains Governance & admin, and `ALL_AREAS` comes from `AREAS`.
+  - The `/governance` page lists its published guides and becomes indexable once it has one.
+  - The sitemap lists any area's hub that has a guide.
+  - `/learn?technology=governance` filters to Governance guides.
+- **Admin:**
+  - Technology choices include Governance & admin.
+  - A new "Hub section (optional)" picker lists the chosen technology's sections. It is disabled with no technology, and changing the technology clears it.
+  - Both admin APIs validate the topic against the technology.
+- **Docs:** `docs/06-data-model.md`.
+
+**Bug found and fixed:** BUG-022. The form never sent the technology, so every save cleared it. The form now sends both technology and topic.
+
+**Security review:**
+- The topic is validated on the server against a fixed list, in the same place as the technology, by the admin-only routes (`requireAdmin`, which re-reads the role from the database).
+- The importer uses the same validator.
+- The value is used only to match a section id; it is never rendered raw or used in a query string.
+- The new column needs no row-level security change.
+
+**Commands and results:**
+- **Domain content:** 27 tests pass (2 new).
+- **Content adapter:** 35 tests pass, including the Prisma integration tests against a local Postgres with the per-package test schemas provisioned. They now include a topic round-trip.
+- **Web:** typecheck, ESLint and Prettier clean; 583 unit tests pass (new: `lib/technology-hubs.test.ts`, admin API topic tests, Governance page and sitemap tests).
+- **e2e:** typecheck clean, 83 unit tests pass.
+- **Workspace:** `pnpm -r run typecheck` clean.
+
+**Not run:**
+- the full three-browser a11y gate (CI runs it);
+- a browser check of the admin form, because admin sign-in needs the email flow. The form's markup follows the existing technology field: a labelled select, with a hint and error linked by `aria-describedby`.
+
+**Risks:**
+- **Production migrations:** they must be applied before this code is deployed, or reading `topic` fails.
+- **BUG-022 exposure:** in production, a guide re-saved through the editor before this fix has no technology.
+
+**Remaining in MVP-033:** slice D (Updates page and badge).

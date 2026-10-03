@@ -46,6 +46,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "A tutorial",
       type: "TUTORIAL",
       technology: null,
+      topic: null,
       body: "# Heading\n\nBody text.",
       excerpt: "An excerpt.",
       authorUserId: author.id,
@@ -64,6 +65,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Original title",
       type: "PATTERN",
       technology: null,
+      topic: null,
       body: "Original body.",
       excerpt: null,
       authorUserId: author.id,
@@ -75,6 +77,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Updated title",
       type: "COMPARISON",
       technology: null,
+      topic: null,
       body: "Updated body.",
       excerpt: "Now has an excerpt.",
     });
@@ -94,6 +97,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Publish me",
       type: "TUTORIAL",
       technology: null,
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -118,6 +122,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Publish twice?",
       type: "TUTORIAL",
       technology: null,
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -138,6 +143,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Still a draft",
       type: "PATTERN",
       technology: null,
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -160,6 +166,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Draft listing",
       type: "TUTORIAL",
       technology: null,
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -170,6 +177,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Published listing",
       type: "TUTORIAL",
       technology: null,
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -209,6 +217,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Technology",
       type: "KPI_GUIDE",
       technology: "POWER_BI",
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,
@@ -221,6 +230,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: created.title,
       type: "KPI_GUIDE",
       technology: "POWER_APPS",
+      topic: null,
       body: created.body,
       excerpt: null,
     });
@@ -230,6 +240,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: created.title,
       type: "KPI_GUIDE",
       technology: null,
+      topic: null,
       body: created.body,
       excerpt: null,
     });
@@ -248,6 +259,8 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
         title: slug,
         type,
         technology,
+        // MVP-033: a topic round-trips to the summaries.
+        topic: technology === "POWER_APPS" ? "choose-and-plan" : null,
         body: "Body.",
         excerpt: null,
         authorUserId: author.id,
@@ -267,6 +280,9 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       "content-repo-tf-apps-tutorial",
     ]);
     expect(apps.every((a) => a.technology === "POWER_APPS")).toBe(true);
+    expect(
+      apps.filter((a) => a.slug.startsWith("content-repo-tf-")).map((a) => a.topic),
+    ).toEqual(["choose-and-plan", "choose-and-plan"]);
 
     const learnTab = await repo.listPublishedArticleSummaries({
       limit: 50,
@@ -295,6 +311,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
         title,
         type: "TUTORIAL",
         technology: "POWER_APPS",
+        topic: null,
         body,
         excerpt: null,
         authorUserId: author.id,
@@ -341,6 +358,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       title: "Restrict check",
       type: "TUTORIAL",
       technology: null,
+      topic: null,
       body: "Body.",
       excerpt: null,
       authorUserId: author.id,

@@ -3,6 +3,7 @@ title: "Designing a KPI card: target, trend and context"
 slug: designing-a-kpi-card
 type: KPI_GUIDE
 technology: POWER_BI
+topic: reports-and-kpis
 excerpt: "A big number on its own tells people nothing: they can't tell if 1.2M is good. A KPI card needs a target, a trend and enough context to read it correctly. Here is how to design one in Power BI, with the DAX behind it."
 ---
 The most common visual on any dashboard is a large number in a box. It's also the most often misread. "Revenue: 1.2M". Is that good? Compared with what? Is it going up? Is it this month or this year? Was the data refreshed this morning or last week?

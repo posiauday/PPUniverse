@@ -3,6 +3,7 @@ title: "Build your first Power Pages site on Dataverse"
 slug: first-power-pages-site
 type: TUTORIAL
 technology: POWER_PAGES
+topic: build-your-site
 excerpt: "Create a Power Pages site that lists, creates and updates Dataverse records for signed-in visitors, with security set up properly from the first page instead of bolted on before launch."
 ---
 Power Pages lets you build an external website on the same Dataverse data your apps and flows use: a place where customers, partners or citizens can apply, register, report or check a status. This tutorial builds a small site that lets signed-in visitors submit requests and see only their own.

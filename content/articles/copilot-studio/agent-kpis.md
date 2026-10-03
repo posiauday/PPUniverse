@@ -3,6 +3,7 @@ title: "Agent KPIs: resolution rate, escalation rate and answer quality"
 slug: agent-kpis
 type: KPI_GUIDE
 technology: COPILOT_STUDIO
+topic: monitor-and-cost
 excerpt: "Session counts show an agent is being used, not that it helps. How Copilot Studio defines resolution, escalation and abandonment, the traps in those definitions, and how to measure answer quality and value honestly."
 ---
 > [!NOTE]

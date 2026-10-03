@@ -3,6 +3,7 @@ title: "Grounding an agent safely: what to connect and what to keep out"
 slug: grounding-an-agent-safely
 type: PATTERN
 technology: COPILOT_STUDIO
+topic: knowledge-and-grounding
 excerpt: "An agent doesn't create new access, but it makes existing access easy to use. Oversharing that nobody noticed in SharePoint becomes an answer anyone can ask for. A pattern for connecting knowledge and tools without leaking what shouldn't leak."
 ---
 > [!NOTE]

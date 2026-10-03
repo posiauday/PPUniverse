@@ -1,28 +1,23 @@
-import { TECHNOLOGIES } from "@ppu/domain-content";
+import { AREAS, GOVERNANCE_ADMIN } from "@ppu/domain-content";
 import Link from "next/link";
 import { TECHNOLOGY_PALETTE } from "../../lib/technology-palette";
 
 /** Governance & admin, the seventh area (docs/final-decisions.md, 2026-10-02). */
 export const GOVERNANCE_AREA = {
-  key: "GOVERNANCE_ADMIN",
-  name: "Governance & admin",
-  slug: "governance",
-  tint: "bg-tech-gov",
-  ink: "text-tech-gov-ink",
-  dot: "bg-tech-gov-ink",
-  tagline: "Guardrails that don't slow makers down",
-} as const;
+  key: GOVERNANCE_ADMIN.technology,
+  name: GOVERNANCE_ADMIN.name,
+  slug: GOVERNANCE_ADMIN.slug,
+  ...TECHNOLOGY_PALETTE.GOVERNANCE_ADMIN,
+};
 
-/** Every area, in menu order: the six technologies, then Governance & admin. */
-export const ALL_AREAS = [
-  ...TECHNOLOGIES.map((entry) => ({
-    key: entry.technology,
-    name: entry.name,
-    slug: entry.slug,
-    ...TECHNOLOGY_PALETTE[entry.technology],
-  })),
-  GOVERNANCE_AREA,
-];
+/** Every area, in menu order: the six technologies, then Governance & admin
+ * (AREAS in @ppu/domain-content). */
+export const ALL_AREAS = AREAS.map((entry) => ({
+  key: entry.technology,
+  name: entry.name,
+  slug: entry.slug,
+  ...TECHNOLOGY_PALETTE[entry.technology],
+}));
 
 /** The "Other areas" row at the foot of every hub. */
 export function OtherAreas({ currentSlug }: { currentSlug: string }) {

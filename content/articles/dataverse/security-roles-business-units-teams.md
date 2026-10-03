@@ -3,6 +3,7 @@ title: "Security roles, business units and teams without the tangle"
 slug: security-roles-business-units-teams
 type: PATTERN
 technology: DATAVERSE
+topic: security-model
 excerpt: "Dataverse security is powerful and easy to get into a knot. A pattern for roles, business units and teams that gives each person exactly the access they need, stays readable as the organisation grows, and avoids the one mistake you can't undo."
 ---
 Dataverse security is a set of simple parts: privileges, access levels, roles, business units and teams. The tangle comes from combining them without a plan: a role per person, business units copied from the org chart, teams created ad hoc, and records shared by hand until nobody can say who sees what.

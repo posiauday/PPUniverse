@@ -77,7 +77,7 @@ describe("section tabs and paths", () => {
   });
 
   it("reserve one sitemap slot per technology hub", () => {
-    expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length);
+    expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length + 1);
   });
 });
 
@@ -161,8 +161,10 @@ describe("listSectionPathsWithContent", () => {
   it("returns only hubs with a published guide of any type (MVP-033)", async () => {
     const d = deps();
     d.listPublishedArticleSummaries.mockImplementation(async (options: { technology: string }) =>
-      options.technology === "POWER_BI" ? [{ slug: "k" }] : [],
+      options.technology === "POWER_BI" || options.technology === "GOVERNANCE_ADMIN"
+        ? [{ slug: "k" }]
+        : [],
     );
-    expect(await listSectionPathsWithContent(d.value)).toEqual(["/power-bi"]);
+    expect(await listSectionPathsWithContent(d.value)).toEqual(["/power-bi", "/governance"]);
   });
 });

@@ -205,6 +205,29 @@ describe("POST /api/admin/content", () => {
     );
   });
 
+  it.each([
+    ["a section of its technology", "POWER_BI", "dax", 201],
+    ["Governance & admin and its section", "GOVERNANCE_ADMIN", "data-policies", 201],
+    ["another technology's section", "POWER_APPS", "dax", 400],
+    ["a section with no technology", "", "dax", 400],
+    ["a non-string", "POWER_BI", 7, 400],
+  ])("checks the hub section (MVP-033): %s", async (_label, technology, topic, status) => {
+    getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
+    findUnique.mockResolvedValue({ role: "ADMIN" });
+    findArticleBySlug.mockResolvedValue(null);
+    createArticle.mockResolvedValue({ id: "new-article", ...VALID_BODY, status: "DRAFT" });
+
+    const response = await POST(makePostRequest({ ...VALID_BODY, technology, topic }));
+
+    expect(response.status).toBe(status);
+    if (status === 201) {
+      expect(createArticle).toHaveBeenCalledWith(expect.objectContaining({ technology, topic }));
+    } else {
+      expect((await response.json()).fieldErrors.topic).toBeDefined();
+      expect(createArticle).not.toHaveBeenCalled();
+    }
+  });
+
   it("creates the article as DRAFT, authored by the signed-in admin", async () => {
     getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
     findUnique.mockResolvedValue({ role: "ADMIN" });

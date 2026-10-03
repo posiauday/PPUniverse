@@ -3,6 +3,7 @@ title: "Approvals that don't stall: reminders, escalation and an audit trail"
 slug: approvals-that-dont-stall
 type: TUTORIAL
 technology: POWER_AUTOMATE
+topic: approvals
 excerpt: "An approval flow with no timeout waits until the run limit kills it, and nobody is told. Here is how to add a deadline, reminders, escalation to a second approver, and a record of every decision."
 ---
 The default approval flow has one weakness: it trusts the approver to answer. If they're on leave, the request sits in their inbox. After about a month the flow run hits its time limit and fails, and the person who asked is never told what happened.

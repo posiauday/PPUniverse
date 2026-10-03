@@ -3,6 +3,7 @@ title: "Web roles and table permissions: securing portal data"
 slug: web-roles-and-table-permissions
 type: PATTERN
 technology: POWER_PAGES
+topic: access-and-permissions
 excerpt: "On a Power Pages site, Dataverse security roles don't protect your data; web roles and table permissions do. A pattern for deciding who can see and change which records, and the shortcuts that quietly expose everything."
 ---
 The most common security mistake on Power Pages sites comes from Dataverse experience. Makers assume the security roles they set up for internal apps also protect the website. They don't. Visitors to a Power Pages site are **Contacts**, and what they can reach is decided by **web roles**, **table permissions** and **page permissions**.

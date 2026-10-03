@@ -1,4 +1,4 @@
-import { technologyBySlug } from "@ppu/domain-content";
+import { areaBySlug } from "@ppu/domain-content";
 import { JsonLd } from "@ppu/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../lib/seo/
 import { buildLearnIndexMetadata } from "../../lib/seo/metadata";
 import { LEARN_INDEX_DESCRIPTION, SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
-import { ALL_AREAS, GOVERNANCE_AREA } from "../[technology]/OtherAreas";
+import { ALL_AREAS } from "../[technology]/OtherAreas";
 import { ArticleList } from "./ArticleList";
 
 // See apps/web/app/page.tsx for why content pages render per-request.
@@ -39,12 +39,11 @@ const GOAL_DOT: Readonly<Record<string, string>> = {
 };
 
 /** The technology filter's value, from `?technology=<slug>`: a technology,
- * Governance & admin, or null (every guide) for anything else. */
+ * Governance & admin (any area), or null (every guide) for anything else. */
 function filterFrom(value: string | string[] | undefined) {
   const slug = typeof value === "string" ? value : undefined;
   if (!slug) return null;
-  if (slug === GOVERNANCE_AREA.slug) return { slug, name: GOVERNANCE_AREA.name, technology: null };
-  const entry = technologyBySlug(slug);
+  const entry = areaBySlug(slug);
   return entry ? { slug, name: entry.name, technology: entry.technology } : null;
 }
 
@@ -75,9 +74,8 @@ export default async function LearnIndexPage({
   const articles = await getArticles();
   const site = getSiteUrl();
   const filter = filterFrom((await searchParams)?.["technology"]);
-  // Governance & admin has no technology value yet (MVP-033 slice B), so it has no guides.
   const shown = filter
-    ? articles.filter((article) => filter.technology && article.technology === filter.technology)
+    ? articles.filter((article) => article.technology === filter.technology)
     : articles;
   const sections = ARTICLE_TYPE_SECTIONS.map((section) => ({
     ...section,

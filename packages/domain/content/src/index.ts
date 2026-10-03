@@ -13,11 +13,17 @@ export {
   type ArticleSourceResult,
 } from "./article-source.js";
 export {
+  AREAS,
+  GOVERNANCE_ADMIN,
   TECHNOLOGIES,
+  TECHNOLOGY_TOPICS,
+  areaBySlug,
   isValidTechnology,
+  isValidTopic,
   technologyBySlug,
   technologyInfo,
   type TechnologyInfo,
+  type TechnologyTopic,
 } from "./technology.js";
 export { SEARCH_MATCH_END, SEARCH_MATCH_START } from "./types.js";
 export type {
@@ -32,5 +38,6 @@ export type {
   ArticleType,
   ArticleUpdateInput,
   ContentRepository,
+  ProductTechnology,
   Technology,
 } from "./types.js";

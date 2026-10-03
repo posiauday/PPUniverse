@@ -6,10 +6,11 @@ import type {
   SearchResult,
 } from "@ppu/domain-catalog";
 import {
-  TECHNOLOGIES,
+  AREAS,
   type ArticleSummary,
   type ArticleType,
   type ContentRepository,
+  type ProductTechnology,
   type Technology,
   type TechnologyInfo,
 } from "@ppu/domain-content";
@@ -78,7 +79,7 @@ export const ASSET_TECHNOLOGY: Readonly<Record<AssetType, Technology | null>> = 
 };
 
 /** One-line descriptions: what each section covers, and nothing more. */
-export const TECHNOLOGY_BLURB: Readonly<Record<Technology, string>> = {
+export const TECHNOLOGY_BLURB: Readonly<Record<ProductTechnology, string>> = {
   POWER_APPS:
     "Build canvas and model-driven apps: galleries, forms, components and the formulas behind them.",
   POWER_AUTOMATE:
@@ -210,7 +211,8 @@ export function sectionHasContent(content: SectionContent): boolean {
  * MVP-033 the tabs redirect to the hub, so only hub paths are listed. */
 export async function listSectionPathsWithContent(deps: SectionDeps): Promise<string[]> {
   const paths: string[] = [];
-  for (const technology of TECHNOLOGIES) {
+  // Every area's hub, Governance & admin included (MVP-033), once it has a guide.
+  for (const technology of AREAS) {
     const guides = await deps.content.listPublishedArticleSummaries({
       limit: 1,
       technology: technology.technology,
@@ -222,5 +224,5 @@ export async function listSectionPathsWithContent(deps: SectionDeps): Promise<st
   return paths;
 }
 
-/** The most sitemap URLs the sections can take: one hub per technology. */
-export const MAX_SECTION_PATHS = TECHNOLOGIES.length;
+/** The most sitemap URLs the hubs can take: one per area. */
+export const MAX_SECTION_PATHS = AREAS.length;

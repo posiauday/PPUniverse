@@ -2,7 +2,14 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-02 — **MVP-033 (Navigation restructure) In Progress: slice C (technology hubs) is built and goes to review.**
+Last updated: 2026-10-03 — **MVP-033 slices B and C built** (PR #62):
+- **Hubs and Guides page:** the Guides page matches its board (TD-026 resolved).
+- **Content model:** articles now have a hub `topic` and can belong to Governance & admin (TD-025 resolved).
+- **Bug fixed:** BUG-022, where saving in the admin editor cleared an article's technology.
+- **Production:** apply migrations `20261003000000` and `20261003000100` with the 5432 connection before deploying.
+- **Next:** slice D (Updates page and badge).
+
+Last updated (previous): 2026-10-02 — **MVP-033 (Navigation restructure) In Progress: slice C (technology hubs) is built and goes to review.**
 - **Hubs:** each technology page is a map of its own sections, with a "New here?" path at the end. Old tab addresses redirect to the hub. Governance & admin is the 7th area, at `/governance`.
 - **Guides by goal:** `/learn` and the footer use the goal labels: Fix a problem · Choose the right tool · Design it to last · Measure success.
 - **Technologies menu:** the large menu from the approved board. It shows all 7 areas, each with its guide count, a start-here guide and its first sections. On phones, the menu shows the areas as tinted tiles.

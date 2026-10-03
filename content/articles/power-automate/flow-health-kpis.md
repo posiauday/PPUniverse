@@ -3,6 +3,7 @@ title: "Flow health KPIs: success rate, failure causes and hours saved"
 slug: flow-health-kpis
 type: KPI_GUIDE
 technology: POWER_AUTOMATE
+topic: run-and-monitor
 excerpt: "A flow that fails quietly costs more than no flow at all. Five KPIs that show whether your automations are healthy and paying off, where to get each number, and the traps in the built-in reports."
 ---
 Most organisations find out a flow is broken when someone complains. By then it may have been failing for days, and if it failed continuously for 14 days, Power Automate has already turned it off.

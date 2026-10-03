@@ -17,6 +17,7 @@ function summary(slug: string, technology: ArticleSummary["technology"]): Articl
     title: `Title of ${slug}`,
     type: "TUTORIAL",
     technology,
+    topic: null,
     excerpt: null,
     publishedAt: new Date("2026-10-01T00:00:00Z"),
   };

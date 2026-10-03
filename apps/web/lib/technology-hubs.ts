@@ -7,12 +7,16 @@ import type { ArticleSummary, Technology } from "@ppu/domain-content";
  * product, not one template copied everywhere. A KPI section exists only in
  * Power BI; measuring guides elsewhere sit in that product's own section.
  *
- * TD-025: a guide's section comes from ARTICLE_TOPIC below (by slug), not
- * from a database field yet. A guide not listed here still appears, in its
- * area's first section, so nothing published is ever hidden.
+ * A guide's section is its stored `topic` (MVP-033 slice B, which resolved
+ * TD-025). The section ids and names come from TECHNOLOGY_TOPICS in
+ * @ppu/domain-content; this file adds the hub copy (descriptions, planned
+ * guides), and a test keeps the two in step. A guide with no topic, or one
+ * that no longer matches, still appears, in its area's first section, so
+ * nothing published is ever hidden.
  */
 
-export type HubKey = Technology | "GOVERNANCE_ADMIN";
+/** Every area has a hub: the six products and Governance & admin. */
+export type HubKey = Technology;
 
 export interface HubTopic {
   /** Anchor id on the hub page. */
@@ -281,34 +285,6 @@ export const HUB_TOPICS: Readonly<Record<HubKey, readonly HubTopic[]>> = {
   ],
 };
 
-/** Each launch guide's section, as placed on the approved structure board. */
-export const ARTICLE_TOPIC: Readonly<Record<string, string>> = {
-  "canvas-vs-model-driven-apps": "choose-and-plan",
-  "power-apps-delegation-500-rows": "data-and-delegation",
-  "named-formulas-and-components": "formulas-and-components",
-  "measuring-power-apps-adoption": "adoption-and-usage",
-  "approvals-that-dont-stall": "approvals",
-  "try-catch-finally-scopes": "errors-and-limits",
-  "cloud-flows-or-logic-apps": "choose-the-tool",
-  "flow-health-kpis": "run-and-monitor",
-  "star-schema-from-messy-exports": "data-modelling",
-  "one-semantic-model-many-reports": "data-modelling",
-  "why-are-my-totals-wrong": "dax",
-  "designing-a-kpi-card": "reports-and-kpis",
-  "your-first-agent": "build-your-agent",
-  "knowledge-sources-compared": "knowledge-and-grounding",
-  "grounding-an-agent-safely": "knowledge-and-grounding",
-  "agent-kpis": "monitor-and-cost",
-  "design-your-first-dataverse-schema": "tables-and-schema",
-  "security-roles-business-units-teams": "security-model",
-  "dataverse-or-sharepoint-lists": "choose-dataverse",
-  "data-quality-kpis": "data-quality",
-  "first-power-pages-site": "build-your-site",
-  "web-roles-and-table-permissions": "access-and-permissions",
-  "power-pages-or-sharepoint": "choose",
-  "portal-kpis": "go-live-and-monitor",
-};
-
 /** Quick problem chips under each hub's search box (searches the site). */
 export const HUB_PROBLEMS: Readonly<Record<HubKey, readonly HubProblem[]>> = {
   POWER_APPS: [
@@ -358,8 +334,7 @@ export function groupIntoSections(key: HubKey, articles: readonly ArticleSummary
   const topics = HUB_TOPICS[key];
   const sections: HubSection[] = topics.map((topic) => ({ ...topic, guides: [] }));
   for (const article of articles) {
-    const id = ARTICLE_TOPIC[article.slug];
-    const section = sections.find((s) => s.id === id) ?? sections[0];
+    const section = sections.find((s) => s.id === article.topic) ?? sections[0];
     section?.guides.push(article);
   }
   return sections;

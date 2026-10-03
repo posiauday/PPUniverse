@@ -79,6 +79,7 @@ import HomePage, { generateMetadata as homeMetadata } from "../../app/page";
 import TechnologyPage, {
   generateMetadata as technologyMetadata,
 } from "../../app/[technology]/page";
+import GovernancePage, { generateMetadata as governanceMetadata } from "../../app/governance/page";
 import TechnologyTabPage, {
   generateMetadata as technologyTabMetadata,
 } from "../../app/[technology]/[tab]/page";
@@ -448,18 +449,18 @@ describe("technology sections (MVP-028)", () => {
   it("a hub with guides is indexable and lists each guide in its own section", async () => {
     content.listPublishedArticleSummaries.mockResolvedValue([
       summary("pa-guide"),
-      summary("power-apps-delegation-500-rows"),
+      { ...summary("pa-delegation"), topic: "data-and-delegation" },
     ]);
     const metadata = await technologyMetadata(tech("power-apps"));
     expect(metadata.robots).toEqual({ index: true, follow: true });
     expect(metadata.title).toBe(`Power Apps guides | ${SITE_NAME}`);
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
-    // An unmapped guide falls into the first section; a mapped one into its own.
+    // A guide with no topic falls into the first section; one with a topic into its own (MVP-033).
     const choose = markup.indexOf('id="choose-and-plan"');
     const data = markup.indexOf('id="data-and-delegation"');
     expect(markup.indexOf('href="/learn/pa-guide"')).toBeGreaterThan(choose);
     expect(markup.indexOf('href="/learn/pa-guide"')).toBeLessThan(data);
-    expect(markup.indexOf('href="/learn/power-apps-delegation-500-rows"')).toBeGreaterThan(data);
+    expect(markup.indexOf('href="/learn/pa-delegation"')).toBeGreaterThan(data);
     expect(markup).toContain('href="#start-here"');
     expect(markup).toContain('href="/governance"');
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
@@ -468,6 +469,21 @@ describe("technology sections (MVP-028)", () => {
     ]);
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith(
       expect.objectContaining({ technology: "POWER_APPS" }),
+    );
+  });
+
+  it("Governance & admin stays noindex with no guides, and lists its guides once published (MVP-033)", async () => {
+    expect((await governanceMetadata()).robots).toEqual({ index: false, follow: true });
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      { ...summary("dlp-guide"), technology: "GOVERNANCE_ADMIN", topic: "data-policies" },
+    ]);
+    expect((await governanceMetadata()).robots).toEqual({ index: true, follow: true });
+    const markup = renderToStaticMarkup(await GovernancePage());
+    expect(markup.indexOf('href="/learn/dlp-guide"')).toBeGreaterThan(
+      markup.indexOf('id="data-policies"'),
+    );
+    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith(
+      expect.objectContaining({ technology: "GOVERNANCE_ADMIN" }),
     );
   });
 
@@ -770,12 +786,12 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/terms" },
     ]);
     // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
-    // one each of MAX_SITEMAP_URLS (50,000) and the 24 technology section tabs
-    // are reserved (MVP-028); the remaining 49,971 is split between the catalog
-    // and content repositories
+    // one each of MAX_SITEMAP_URLS (50,000) and the 7 hubs (six products and
+    // Governance & admin, MVP-033) are reserved; the remaining 49,988 is split
+    // between the catalog and content repositories
     // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
     // so none is listed.
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_995);
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_994);
     expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_994);
   });
 });

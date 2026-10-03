@@ -34,6 +34,7 @@ export class PrismaContentRepository implements ContentRepository {
         title: input.title,
         type: input.type,
         technology: input.technology,
+        topic: input.topic,
         body: input.body,
         excerpt: input.excerpt,
         authorUserId: input.authorUserId,
@@ -52,6 +53,7 @@ export class PrismaContentRepository implements ContentRepository {
         title: input.title,
         type: input.type,
         technology: input.technology,
+        topic: input.topic,
         body: input.body,
         excerpt: input.excerpt,
       },
@@ -151,6 +153,7 @@ export class PrismaContentRepository implements ContentRepository {
         title: true,
         type: true,
         technology: true,
+        topic: true,
         excerpt: true,
         publishedAt: true,
       },
@@ -162,6 +165,7 @@ export class PrismaContentRepository implements ContentRepository {
       title: row.title,
       type: row.type as ArticleType,
       technology: row.technology as Technology | null,
+      topic: row.topic,
       excerpt: row.excerpt,
       // PUBLISHED rows always have publishedAt set.
       publishedAt: row.publishedAt as Date,
@@ -201,6 +205,7 @@ export class PrismaContentRepository implements ContentRepository {
         title: string;
         type: string;
         technology: string | null;
+        topic: string | null;
         excerpt: string | null;
         publishedAt: Date;
         titleMarked: string;
@@ -208,7 +213,7 @@ export class PrismaContentRepository implements ContentRepository {
       }>
     >`
       SELECT a."slug", a."title", a."type"::text AS "type",
-             a."technology"::text AS "technology", a."excerpt", a."publishedAt",
+             a."technology"::text AS "technology", a."topic", a."excerpt", a."publishedAt",
              ts_headline('english', ${titleSource}, q, ${TITLE_HEADLINE_OPTIONS}) AS "titleMarked",
              ts_headline('english', ${snippetSource}, q, ${SNIPPET_HEADLINE_OPTIONS}) AS "snippetMarked"
       FROM "articles" a, websearch_to_tsquery('english', ${query}) q
@@ -221,6 +226,7 @@ export class PrismaContentRepository implements ContentRepository {
       title: row.title,
       type: row.type as ArticleType,
       technology: row.technology as Technology | null,
+      topic: row.topic,
       excerpt: row.excerpt,
       publishedAt: row.publishedAt,
       titleMarked: row.titleMarked,
@@ -235,6 +241,7 @@ function toArticleRecord(row: {
   title: string;
   type: string;
   technology: string | null;
+  topic: string | null;
   body: string;
   excerpt: string | null;
   status: string;
@@ -249,6 +256,7 @@ function toArticleRecord(row: {
     title: row.title,
     type: row.type as ArticleType,
     technology: row.technology as Technology | null,
+    topic: row.topic,
     body: row.body,
     excerpt: row.excerpt,
     status: row.status as ArticleStatus,

@@ -51,6 +51,8 @@ enum Technology {
   COPILOT_STUDIO
   DATAVERSE
   POWER_PAGES
+  /// MVP-033: the cross-product Governance & admin area, not a product.
+  GOVERNANCE_ADMIN
 }
 
 enum ArticleStatus {
@@ -69,6 +71,9 @@ model Article {
   type         ArticleType
   /// MVP-028: the technology section this article appears in; null = none.
   technology   Technology?
+  /// MVP-033: the section of its area's hub (an id from TECHNOLOGY_TOPICS in
+  /// @ppu/domain-content); null = the area's first section.
+  topic        String?
   /// Markdown source — never rendered as raw HTML (see the file header comment).
   body         String        @db.Text
   /// Used for the page's meta description; null means none was supplied.

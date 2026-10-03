@@ -92,7 +92,7 @@ The plan is in `docs/plans/mvp-033-navigation-restructure.md`. It has four slice
   - **Done since (2026-10-02/03):** goal labels on `/learn` and in the footer, the Technologies mega menu, a visual check, and the planning updates. TD-026 (the rest of the Guides board) is resolved too.
   - **PR:** slice C goes into `develop`; the product owner merges it.
   - **Cloud container quirk:** `pnpm build` (Turborepo) fails there with "Exec format error". Build with `pnpm -r --filter "@ppu/web^..." run build`, then run `next build` in `apps/web`.
-- **B:** the content model. Add an article `topic` field and a GOVERNANCE_ADMIN area, with a migration, an admin topic picker and a backfill from `ARTICLE_TOPIC`. This resolves TD-025.
+- **B (built 2026-10-03, on this branch / PR #62):** `GOVERNANCE_ADMIN` technology, `articles.topic` (migrations `20261003000000` and `20261003000100`), `TECHNOLOGY_TOPICS` and `isValidTopic` in the domain, a hub-section picker in the admin editor, all 24 launch files carry `topic:`, and the Governance page lists its guides. TD-025 is resolved, and BUG-022 (editor saves cleared the technology) is fixed. **Production:** the product owner applies both migrations with the 5432 connection before the deploy.
 - **D:** an Updates page and model, an animated "new updates" badge in the top bar (static under reduced motion), and a Privacy notice update if the badge stores any read state.
 
 **Next after MVP-033:** our own drawn product icons to replace the coloured dots in the menu and cards, plus decorative animated placements. **Never use Microsoft product logos**: they are trademarks, and the project rules forbid implying endorsement.
