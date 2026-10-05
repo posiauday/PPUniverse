@@ -792,13 +792,22 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/terms" },
     ]);
     // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
-    // one each of MAX_SITEMAP_URLS (50,000) and the 7 hubs (six products and
-    // Governance & admin, MVP-033) are reserved; the remaining 49,988 is split
+    // one each of MAX_SITEMAP_URLS (50,000), and the 7 hubs (six products and
+    // Governance & admin, MVP-033) plus /updates are reserved; the remaining
+    // 49,987 is split
     // between the catalog and content repositories
     // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
     // so none is listed.
     expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_994);
-    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_994);
+    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_993);
+  });
+
+  it("sitemap.xml lists /updates once an update is published (open question 69)", async () => {
+    expect((await sitemap()).map((entry) => entry.url)).not.toContain(
+      "https://example.com/updates",
+    );
+    updates.listPublishedUpdateTimes.mockResolvedValueOnce([new Date("2026-10-03T00:00:00Z")]);
+    expect((await sitemap()).map((entry) => entry.url)).toContain("https://example.com/updates");
   });
 });
 

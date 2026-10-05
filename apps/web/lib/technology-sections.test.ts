@@ -76,8 +76,8 @@ describe("section tabs and paths", () => {
     expect(ASSET_TECHNOLOGY.GOVERNANCE_ASSET).toBeNull();
   });
 
-  it("reserve one sitemap slot per technology hub", () => {
-    expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length + 1);
+  it("reserve one sitemap slot per area hub, plus /updates", () => {
+    expect(MAX_SECTION_PATHS).toBe(TECHNOLOGIES.length + 2);
   });
 });
 
