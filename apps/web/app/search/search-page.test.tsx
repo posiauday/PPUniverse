@@ -34,6 +34,7 @@ const hit: ArticleSearchHit = {
   title: "Delegation in Power Apps: why your gallery stops at 500 rows",
   type: "TUTORIAL",
   technology: "POWER_APPS",
+  topic: null,
   excerpt: null,
   publishedAt: new Date("2026-09-30T00:00:00Z"),
   titleMarked: `${S}Delegation${E} in Power Apps: why your gallery stops at 500 rows`,

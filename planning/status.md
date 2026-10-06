@@ -2,7 +2,26 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-02 — **MVP-032 (About, Privacy and Terms) moves to QA**, and two security fixes are up for review.
+Last updated: 2026-10-03 — **MVP-033 (Navigation restructure) moves to QA:** all four slices are built in PR #62.
+- **Slice D:** the Updates page and deprecation tracker, the admin pages for updates, an animated "new" badge (browser-only storage, still under reduced motion), and the Privacy notice updated in the same change.
+- **Drafts:** four platform-update drafts are in `content/updates`, each checked against Microsoft Learn.
+- **Production:** apply migrations `20261003000000` to `20261003000300` with the 5432 connection before deploying. Then run `updates:import` and publish the drafts after checking them.
+- **Open questions:** 65 to 69 record the defaults applied.
+
+Last updated (previous): 2026-10-03 — **MVP-033 slices B and C built** (PR #62):
+- **Hubs and Guides page:** the Guides page matches its board (TD-026 resolved).
+- **Content model:** articles now have a hub `topic` and can belong to Governance & admin (TD-025 resolved).
+- **Bug fixed:** BUG-022, where saving in the admin editor cleared an article's technology.
+- **Production:** apply migrations `20261003000000` and `20261003000100` with the 5432 connection before deploying.
+- **Next:** slice D (Updates page and badge).
+
+Last updated (previous): 2026-10-02 — **MVP-033 (Navigation restructure) In Progress: slice C (technology hubs) is built and goes to review.**
+- **Hubs:** each technology page is a map of its own sections, with a "New here?" path at the end. Old tab addresses redirect to the hub. Governance & admin is the 7th area, at `/governance`.
+- **Guides by goal:** `/learn` and the footer use the goal labels: Fix a problem · Choose the right tool · Design it to last · Measure success.
+- **Technologies menu:** the large menu from the approved board. It shows all 7 areas, each with its guide count, a start-here guide and its first sections. On phones, the menu shows the areas as tinted tiles.
+- **Next:** the product owner reviews and merges the slice C PR into `develop`. Then slice B (topics in the content model) and slice D (Updates).
+
+Last updated (previous): 2026-10-02 — **MVP-032 (About, Privacy and Terms) moves to QA**, and two security fixes are up for review.
 - **Pages:** `/about`, `/privacy` and `/terms`, written by the agent at the product owner's instruction from an inventory of what the code does. They name the operator, Uday Posia (Saskatchewan, Canada), and `contact@lowcodestacks.com`, which the product owner must create before launch. Code samples are MIT; text is reserved; there is no compliance claim. A lawyer's review before launch is recommended.
 - **Security:** BUG-019 (sign-in links logged in production without an email key) and BUG-020 (uploads open to members) are fixed in PR #54.
 - **Next:** the product owner reviews and merges #53, #54 and the MVP-032 PR, retargeting MVP-032 to `develop` before #53's branch is deleted.
@@ -135,7 +154,7 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 3 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
+| QA | 4 | MVP-033 (Navigation restructure; PR #62), MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |

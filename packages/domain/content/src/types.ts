@@ -13,8 +13,19 @@
 export type ArticleType = "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE";
 
 /** MVP-028: the technology sections. See technology.ts for names and URLs. */
+/** The six Microsoft products, plus the cross-product Governance & admin area
+ * (MVP-033; docs/final-decisions.md, "Governance & admin area"). */
 export type Technology =
-  "POWER_APPS" | "POWER_AUTOMATE" | "POWER_BI" | "COPILOT_STUDIO" | "DATAVERSE" | "POWER_PAGES";
+  | "POWER_APPS"
+  | "POWER_AUTOMATE"
+  | "POWER_BI"
+  | "COPILOT_STUDIO"
+  | "DATAVERSE"
+  | "POWER_PAGES"
+  | "GOVERNANCE_ADMIN";
+
+/** A Technology that is a Microsoft product (everything but Governance & admin). */
+export type ProductTechnology = Exclude<Technology, "GOVERNANCE_ADMIN">;
 
 /** Mirrors packages/domain/catalog/src's ProductStatus pattern: DRAFT never
  * renders publicly; PUBLISHED does. `publishedAt` null means draft. */
@@ -33,6 +44,9 @@ export interface ArticleRecord {
   type: ArticleType;
   /** MVP-028: the technology section it appears in; null means none (cross-cutting). */
   technology: Technology | null;
+  /** MVP-033: the section of its area's hub (one of TECHNOLOGY_TOPICS[technology]);
+   * null means none chosen, and the hub shows it in the area's first section. */
+  topic: string | null;
   /** Markdown source. Never rendered as raw HTML — see apps/web's render path. */
   body: string;
   /** Used for the page's meta description; null means none was supplied. */
@@ -53,6 +67,9 @@ export interface ArticleCreateInput {
   title: string;
   type: ArticleType;
   technology: Technology | null;
+  /** MVP-033: the section of its area's hub (one of TECHNOLOGY_TOPICS[technology]);
+   * null means none chosen, and the hub shows it in the area's first section. */
+  topic: string | null;
   body: string;
   excerpt: string | null;
   authorUserId: string;
@@ -67,6 +84,9 @@ export interface ArticleUpdateInput {
   title: string;
   type: ArticleType;
   technology: Technology | null;
+  /** MVP-033: the section of its area's hub (one of TECHNOLOGY_TOPICS[technology]);
+   * null means none chosen, and the hub shows it in the area's first section. */
+  topic: string | null;
   body: string;
   excerpt: string | null;
 }
@@ -94,6 +114,9 @@ export interface ArticleSummary {
   title: string;
   type: ArticleType;
   technology: Technology | null;
+  /** MVP-033: the section of its area's hub (one of TECHNOLOGY_TOPICS[technology]);
+   * null means none chosen, and the hub shows it in the area's first section. */
+  topic: string | null;
   excerpt: string | null;
   publishedAt: Date;
 }

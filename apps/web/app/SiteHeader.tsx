@@ -1,20 +1,22 @@
-import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
 import { componentsEnabled } from "../lib/feature-flags";
-import { TECHNOLOGY_PALETTE } from "../lib/technology-palette";
+import { buildTechnologyMenu, type TechnologyMenuArea } from "../lib/technology-menu";
 import type { Theme } from "../lib/theme";
+import { ALL_AREAS } from "./[technology]/OtherAreas";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileMenu } from "./MobileMenu";
 import { TechnologiesMenu } from "./TechnologiesMenu";
 import { ThemeToggle } from "./ThemeToggle";
+import { UpdatesLink } from "./UpdatesLink";
 
-/** MVP-028: the six technology sections, from the one registry. */
-const TECHNOLOGY_LINKS = TECHNOLOGIES.map((entry) => ({
-  name: entry.name,
-  href: `/${entry.slug}`,
-  dot: TECHNOLOGY_PALETTE[entry.technology].dot,
+/** MVP-028: the six technology hubs from the one registry, then Governance &
+ * admin (MVP-033). The phone menu shows them as tinted tiles. */
+const TECHNOLOGY_LINKS = ALL_AREAS.map((area) => ({
+  name: area.name,
+  href: `/${area.slug}`,
+  tint: area.tint,
 }));
 
 /** The main links (docs/final-decisions.md, "Navigation restructure"): Guides,
@@ -42,14 +44,26 @@ const NAV_LINK =
  * html's scroll-padding-top (globals.css) keeps a focused or linked-to
  * element clear of it (WCAG 2.4.11, focus not obscured).
  */
-export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolean }) {
+export function SiteHeader({
+  theme,
+  signedIn,
+  menu = buildTechnologyMenu(ALL_AREAS, null),
+  updateTimes = [],
+}: {
+  theme: Theme;
+  signedIn: boolean;
+  /** The Technologies menu (lib/technology-menu.ts); without it, areas and sections only. */
+  menu?: readonly TechnologyMenuArea[];
+  /** Newest published update times, for the Updates badge (lib/update-times.ts). */
+  updateTimes?: readonly string[];
+}) {
   const account = signedIn
     ? { name: "Account", href: "/account/sessions" }
     : { name: "Sign in", href: "/signin" };
   const links = mainLinks();
   return (
     <header className="z-30 bg-background px-3 pt-3 pb-2 md:sticky md:top-0 md:px-6 md:pt-3.5">
-      <div className="mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-4 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
+      <div className="relative mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-4 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
         <Link
           href="/"
           className="inline-flex min-h-11 items-center gap-2 text-foreground no-underline md:mr-2 md:gap-2.5"
@@ -63,12 +77,14 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
           aria-label="Main"
           className="hidden grow items-center gap-x-1 text-[0.9375rem] font-medium lg:flex"
         >
-          <TechnologiesMenu items={TECHNOLOGY_LINKS} />
+          <TechnologiesMenu areas={menu} />
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={NAV_LINK}>
               {link.name}
             </Link>
           ))}
+          {/* MVP-033 slice D: Updates, with its "new" badge. */}
+          <UpdatesLink publishedTimes={updateTimes} className={NAV_LINK} />
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <HeaderSearch />
@@ -91,6 +107,7 @@ export function SiteHeader({ theme, signedIn }: { theme: Theme; signedIn: boolea
           technologies={TECHNOLOGY_LINKS}
           account={account}
           themeToggle={<ThemeToggle initialTheme={theme} />}
+          updateTimes={updateTimes}
         />
       </div>
     </header>

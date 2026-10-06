@@ -44,7 +44,7 @@ function contrast(a: string, b: string): number {
 }
 
 /** The six technology palettes (MVP-031): a tint and an ink each. */
-const TECH = ["apps", "automate", "bi", "copilot", "dataverse", "pages"] as const;
+const TECH = ["apps", "automate", "bi", "copilot", "dataverse", "pages", "gov"] as const;
 
 /** [text, background] pairs that carry body-size text: 4.5:1 (WCAG 1.4.3). */
 const TEXT_PAIRS: Array<[string, string]> = [

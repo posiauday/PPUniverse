@@ -1,4 +1,4 @@
-import type { Technology } from "@ppu/domain-content";
+import type { ProductTechnology } from "@ppu/domain-content";
 import { TECHNOLOGY_VISUALS } from "../home/TechnologyPanels";
 
 /** Rows in the Power Apps hero phone: an invented sample list, decoration only. */
@@ -19,7 +19,7 @@ const PHONE_ROWS = [
  * panel illustration. Hidden from assistive technology by the caller; the
  * mock app is always light, like a screenshot.
  */
-export function TechnologyHeroVisual({ technology }: { technology: Technology }) {
+export function TechnologyHeroVisual({ technology }: { technology: ProductTechnology }) {
   if (technology !== "POWER_APPS") {
     return (
       <div className="pointer-events-none absolute top-10 right-16 bottom-0 hidden w-[340px] flex-col lg:flex">

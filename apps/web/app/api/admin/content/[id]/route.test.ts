@@ -188,6 +188,31 @@ describe("PATCH /api/admin/content/[id]", () => {
     expect(findArticleBySlug).not.toHaveBeenCalled();
   });
 
+  it("stores the technology and hub section, and rejects a section from another technology (MVP-033)", async () => {
+    getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
+    findUnique.mockResolvedValue({ role: "ADMIN" });
+    findArticleById.mockResolvedValue(EXISTING_ARTICLE);
+    updateArticle.mockResolvedValue({ ...EXISTING_ARTICLE, ...VALID_UPDATE });
+
+    const ok = await PATCH(
+      makePatchRequest({ ...VALID_UPDATE, technology: "POWER_BI", topic: "dax" }),
+      { params },
+    );
+    expect(ok.status).toBe(200);
+    expect(updateArticle).toHaveBeenCalledWith(
+      EXISTING_ARTICLE.id,
+      expect.objectContaining({ technology: "POWER_BI", topic: "dax" }),
+    );
+
+    updateArticle.mockClear();
+    const wrong = await PATCH(
+      makePatchRequest({ ...VALID_UPDATE, technology: "POWER_APPS", topic: "dax" }),
+      { params },
+    );
+    expect(wrong.status).toBe(400);
+    expect(updateArticle).not.toHaveBeenCalled();
+  });
+
   it("never accepts a client-supplied status or publishedAt (not part of the update payload at all)", async () => {
     getServerSession.mockResolvedValue({ user: { id: "admin-1" } });
     findUnique.mockResolvedValue({ role: "ADMIN" });

@@ -1820,3 +1820,25 @@ The product owner clarified: *"if i open power apps section then i should see ev
 - **Each technology page opens as a map:** a short hero with a scoped "Stuck? Search …" box and three common problems, then **every section as a card**. Each card has a one-line description, its guides as links, coming guides marked "Coming", and "See all".
 - **A "Quick reference" row** per technology: limits tables, cheat sheets and an error index. This is the "reference" kind we lacked, and these are the pages people bookmark.
 - **The ordered "New here? Start with these 3" path sits at the end**, reached from a link in the hero, so it never blocks someone exploring.
+
+### Updates page details: open questions 65 to 69 (2026-10-05)
+Answered by the product owner in this session (multiple choice; for question 66 the product owner said *"which is better, research and keep that"*, delegating the choice to the agent's research):
+- **65, "new" for a first-time visitor:** updates published in the last **14 days** count as new; the badge shows at most "9+". This keeps the existing default.
+- **66, follow options:** an **RSS 2.0 feed** at `/updates/feed.xml`, linked from `/updates` ("Follow with RSS") and from the page's `<head>`. **No email newsletter for now.** Research:
+  - **RSS:** it collects no personal data, so the Privacy notice doesn't change. Google accepts RSS 2.0 and Atom 1.0 feeds as sitemaps for recent URLs (Google Search Central, "Build and submit a sitemap").
+  - **Email:** a weekly email is a commercial electronic message under Canada's anti-spam law (CASL). It needs recorded consent, sender identification, a working unsubscribe, a Privacy notice change and a sending pipeline. That makes it a separate story if wanted later.
+- **67 and 68:** tracker dates show **month and year only**, and the feed heading stays **"Latest"**. Both keep the existing defaults.
+- **69:** `/updates` **joins `sitemap.xml`** once it has a published update. A sitemap slot is reserved for it (`MAX_SECTION_PATHS`).
+
+## 2026-10-05 — Hosting plan and automatic production migrations
+
+### Netlify Personal plan (2026-10-05)
+The account ran out of Free-plan credits (300 a month; each production deploy costs 15), which paused production deploys. The product owner **bought the Netlify Personal plan** ("i bought 9 dollar plan"). This is the upgrade step ADR-005 names, confirmed by the product owner as that ADR requires. To keep within credits, production deploys still happen only on releases to `main`.
+
+### Production migrations run automatically on release (2026-10-05)
+The product owner asked to stop running migrations by hand (*"i want to make this database process automated i dont want to run command again and again"*). They approved storing the 5432 connection string in Netlify, which replaces the earlier deployment-guide rule "Never put the 5432 string in Netlify":
+- **What runs:** the Netlify **production** build (`apps/web/netlify.toml`, `[context.production]`) runs `packages/db/scripts/deploy-migrations.mjs` (`prisma migrate deploy`) before building the site.
+- **Why it's safe:** Netlify publishes a deploy only when its build succeeds. Migrations always land before the code that needs them, and a failed migration leaves the previous deploy live.
+- **The setting:** `MIGRATE_DATABASE_URL` holds the 5432 string, scoped to Builds and the Production context only, and marked secret. The product owner sets it; agents never handle it. The site's runtime keeps using the 6543 `DATABASE_URL`.
+- **Fail-safe:** a missing variable, an invalid URL, or a port-6543 URL fails the production build with a clear message. Deploy previews never run migrations.
+- **Approval:** merging the release PR into `main` is the deployment approval for its migrations (CLAUDE.md, "No direct production changes"). Migrations stay additive and reversible, as before.

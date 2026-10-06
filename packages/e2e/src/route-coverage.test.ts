@@ -107,6 +107,10 @@ describe("route coverage: negative controls (the guard can fail)", () => {
 
   it("allows only the listed share-image routes outside /api", () => {
     expect(handlersOutsideApi([...base, "og/route.tsx", "og/learn/[slug]/route.tsx"])).toEqual([]);
+    expect(handlersOutsideApi([...base, "updates/feed.xml/route.ts"])).toEqual([]);
+    expect(handlersOutsideApi([...base, "updates/other/route.ts"])).toEqual([
+      "updates/other/route.ts",
+    ]);
     expect(handlersOutsideApi([...base, "og/other/route.tsx"])).toEqual(["og/other/route.tsx"]);
   });
 });

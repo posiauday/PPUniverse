@@ -3,6 +3,7 @@ title: "Why are my totals wrong? Filter context explained"
 slug: why-are-my-totals-wrong
 type: TUTORIAL
 technology: POWER_BI
+topic: dax
 excerpt: "Every row in the table looks right and the total doesn't add up. It isn't a bug: Power BI recalculates the total rather than adding the rows. Here is why, and four patterns that make totals behave."
 ---
 You build a table visual, check a few rows against the source, and they're right. Then you look at the total row, and it isn't the sum of the rows above it. Sometimes it's bigger, sometimes smaller, sometimes blank.

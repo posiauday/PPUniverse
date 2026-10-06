@@ -6,10 +6,11 @@ import type {
   SearchResult,
 } from "@ppu/domain-catalog";
 import {
-  TECHNOLOGIES,
+  AREAS,
   type ArticleSummary,
   type ArticleType,
   type ContentRepository,
+  type ProductTechnology,
   type Technology,
   type TechnologyInfo,
 } from "@ppu/domain-content";
@@ -78,7 +79,7 @@ export const ASSET_TECHNOLOGY: Readonly<Record<AssetType, Technology | null>> = 
 };
 
 /** One-line descriptions: what each section covers, and nothing more. */
-export const TECHNOLOGY_BLURB: Readonly<Record<Technology, string>> = {
+export const TECHNOLOGY_BLURB: Readonly<Record<ProductTechnology, string>> = {
   POWER_APPS:
     "Build canvas and model-driven apps: galleries, forms, components and the formulas behind them.",
   POWER_AUTOMATE:
@@ -206,18 +207,23 @@ export function sectionHasContent(content: SectionContent): boolean {
   return content.kind === "articles" ? content.articles.length > 0 : content.groups.length > 0;
 }
 
-/** Every section tab path that has content, for sitemap.xml (MVP-028). */
+/** Every technology hub that has guides, for sitemap.xml (MVP-028). Since
+ * MVP-033 the tabs redirect to the hub, so only hub paths are listed. */
 export async function listSectionPathsWithContent(deps: SectionDeps): Promise<string[]> {
   const paths: string[] = [];
-  for (const technology of TECHNOLOGIES) {
-    for (const { tab } of SECTION_TABS) {
-      if (sectionHasContent(await loadSection(deps, technology, tab))) {
-        paths.push(sectionPath(technology, tab));
-      }
+  // Every area's hub, Governance & admin included (MVP-033), once it has a guide.
+  for (const technology of AREAS) {
+    const guides = await deps.content.listPublishedArticleSummaries({
+      limit: 1,
+      technology: technology.technology,
+    });
+    if (guides.length > 0) {
+      paths.push(sectionPath(technology, "learn"));
     }
   }
   return paths;
 }
 
-/** The most sitemap URLs the sections can take: six sections, four tabs each. */
-export const MAX_SECTION_PATHS = TECHNOLOGIES.length * SECTION_TABS.length;
+/** The sitemap slots reserved for hub-level pages: one per area, plus
+ * /updates (MVP-033, open question 69; added in app/sitemap.ts). */
+export const MAX_SECTION_PATHS = AREAS.length + 1;

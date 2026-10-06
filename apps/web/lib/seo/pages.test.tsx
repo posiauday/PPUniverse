@@ -32,6 +32,11 @@ const commerce = vi.hoisted(() => ({
 
 vi.mock("../catalog", () => ({ catalogRepository: repository }));
 vi.mock("../content", () => ({ contentRepository: content }));
+const updates = vi.hoisted(() => ({
+  listPublishedUpdates: vi.fn().mockResolvedValue([]),
+  listPublishedUpdateTimes: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("../updates", () => ({ updateRepository: updates }));
 vi.mock("../commerce", () => ({ commerceRepository: commerce }));
 vi.mock("@ppu/telemetry", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -79,6 +84,8 @@ import HomePage, { generateMetadata as homeMetadata } from "../../app/page";
 import TechnologyPage, {
   generateMetadata as technologyMetadata,
 } from "../../app/[technology]/page";
+import GovernancePage, { generateMetadata as governanceMetadata } from "../../app/governance/page";
+import UpdatesPage, { generateMetadata as updatesMetadata } from "../../app/updates/page";
 import TechnologyTabPage, {
   generateMetadata as technologyTabMetadata,
 } from "../../app/[technology]/[tab]/page";
@@ -308,14 +315,56 @@ describe("/learn hub (SEO story)", () => {
       summary("c1", "COMPARISON"),
     ]);
     const markup = renderToStaticMarkup(await LearnIndexPage());
-    expect(markup).toContain(">Tutorials</h2>");
-    expect(markup).toContain(">Comparisons</h2>");
-    expect(markup).not.toContain(">Patterns</h2>");
-    expect(markup.indexOf("Tutorials")).toBeLessThan(markup.indexOf("Comparisons"));
+    expect(markup).toContain(">Fix a problem</h2>");
+    expect(markup).toContain(">Choose the right tool</h2>");
+    expect(markup).not.toContain(">Design it to last</h2>");
+    expect(markup.indexOf("Fix a problem")).toBeLessThan(markup.indexOf("Choose the right tool"));
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",
       "BreadcrumbList",
     ]);
+  });
+
+  it("leads with a problem-first search, goal chips and a technology filter (TD-026)", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("t1", "TUTORIAL"),
+      summary("k1", "KPI_GUIDE"),
+    ]);
+    const markup = renderToStaticMarkup(await LearnIndexPage());
+    expect(markup).toContain("What are you");
+    expect(markup).toContain('action="/search"');
+    expect(markup).toContain('href="#tutorials"');
+    expect(markup).toContain('href="#kpi-guides"');
+    expect(markup).not.toContain('href="#patterns"');
+    expect(markup).toContain('href="/learn?technology=governance"');
+    expect(markup).toMatch(/aria-current="page"[^>]*>All technologies</);
+  });
+
+  it("narrows to one technology, and ignores an unknown one", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      { ...summary("apps-guide"), technology: "POWER_APPS", title: "Apps guide" },
+      { ...summary("bi-guide"), technology: "POWER_BI", title: "BI guide" },
+    ]);
+    const filtered = renderToStaticMarkup(
+      await LearnIndexPage({ searchParams: Promise.resolve({ technology: "power-bi" }) }),
+    );
+    expect(filtered).toContain("BI guide");
+    expect(filtered).not.toContain("Apps guide");
+    expect(filtered).toMatch(/aria-current="page"[^>]*>Power BI</);
+    const unknown = renderToStaticMarkup(
+      await LearnIndexPage({ searchParams: Promise.resolve({ technology: "nope" }) }),
+    );
+    expect(unknown).toContain("Apps guide");
+    expect(unknown).toContain("BI guide");
+  });
+
+  it("points an area with no guides yet to its hub", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([summary("t1", "TUTORIAL")]);
+    const markup = renderToStaticMarkup(
+      await LearnIndexPage({ searchParams: Promise.resolve({ technology: "governance" }) }),
+    );
+    expect(markup).toContain("No Governance &amp; admin guides are published yet.");
+    expect(markup).toContain('href="/governance"');
   });
 
   it("shows an empty state and no CollectionPage when nothing is published", async () => {
@@ -393,54 +442,60 @@ describe("technology sections (MVP-028)", () => {
     params: Promise.resolve({ technology, tab: t }),
   });
 
-  it("an empty tab renders a 'coming soon' state, stays noindex-follow, and emits no CollectionPage", async () => {
+  it("an empty hub shows every section as coming soon, stays noindex-follow, and emits no CollectionPage", async () => {
     const metadata = await technologyMetadata(tech("power-apps"));
     expect(metadata.robots).toEqual({ index: false, follow: true });
     expect(canonicalOf(metadata)).toBe("https://example.com/power-apps");
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
-    expect(markup).toContain("Coming soon.");
+    expect(markup).toContain("Everything in Power Apps");
+    expect(markup).toContain("Coming soon");
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual(["BreadcrumbList"]);
   });
 
-  it("a tab with content is indexable, lists it, and marks the current tab", async () => {
-    content.listPublishedArticleSummaries.mockResolvedValue([summary("pa-guide")]);
+  it("a hub with guides is indexable and lists each guide in its own section", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("pa-guide"),
+      { ...summary("pa-delegation"), topic: "data-and-delegation" },
+    ]);
     const metadata = await technologyMetadata(tech("power-apps"));
     expect(metadata.robots).toEqual({ index: true, follow: true });
-    expect(metadata.title).toBe(`Power Apps tutorials | ${SITE_NAME}`);
+    expect(metadata.title).toBe(`Power Apps guides | ${SITE_NAME}`);
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
-    expect(markup).toContain('href="/learn/pa-guide"');
-    // MVP-031: the count badge is aria-hidden, so the link's name stays "Learn".
-    expect(markup).toMatch(
-      /<a[^>]*aria-current="page"[^>]*>Learn(<span aria-hidden="true"[^>]*>\d+<\/span>)?<\/a>/,
-    );
-    expect(markup).toContain('href="/power-apps/architecture"');
+    // A guide with no topic falls into the first section; one with a topic into its own (MVP-033).
+    const choose = markup.indexOf('id="choose-and-plan"');
+    const data = markup.indexOf('id="data-and-delegation"');
+    expect(markup.indexOf('href="/learn/pa-guide"')).toBeGreaterThan(choose);
+    expect(markup.indexOf('href="/learn/pa-guide"')).toBeLessThan(data);
+    expect(markup.indexOf('href="/learn/pa-delegation"')).toBeGreaterThan(data);
+    expect(markup).toContain('href="#start-here"');
+    expect(markup).toContain('href="/governance"');
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",
       "BreadcrumbList",
     ]);
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith(
-      expect.objectContaining({ technology: "POWER_APPS", types: ["TUTORIAL", "COMPARISON"] }),
+      expect.objectContaining({ technology: "POWER_APPS" }),
     );
   });
 
-  it("the Components tab shows the technology's own categories' products", async () => {
-    repository.listCategories.mockResolvedValue([category]);
-    repository.searchProducts.mockResolvedValue({
-      items: [{ ...productRow, category }],
-      total: 1,
-      page: 1,
-      pageSize: 12,
-    });
-    const markup = renderToStaticMarkup(await TechnologyTabPage(tab("power-apps", "components")));
-    expect(markup).toContain('href="/products/sample-component"');
-    expect(markup).toContain(">Power Apps Components</h3>");
-    expect((await technologyTabMetadata(tab("power-apps", "components"))).robots).toEqual({
-      index: true,
-      follow: true,
-    });
-    // The same category belongs to no other technology.
-    const bi = renderToStaticMarkup(await TechnologyTabPage(tab("power-bi", "components")));
-    expect(bi).toContain("Coming soon.");
+  it("Governance & admin stays noindex with no guides, and lists its guides once published (MVP-033)", async () => {
+    expect((await governanceMetadata()).robots).toEqual({ index: false, follow: true });
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      { ...summary("dlp-guide"), technology: "GOVERNANCE_ADMIN", topic: "data-policies" },
+    ]);
+    expect((await governanceMetadata()).robots).toEqual({ index: true, follow: true });
+    const markup = renderToStaticMarkup(await GovernancePage());
+    expect(markup.indexOf('href="/learn/dlp-guide"')).toBeGreaterThan(
+      markup.indexOf('id="data-policies"'),
+    );
+    expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith(
+      expect.objectContaining({ technology: "GOVERNANCE_ADMIN" }),
+    );
+  });
+
+  it("an old tab address redirects permanently to its hub", async () => {
+    await expect(TechnologyTabPage(tab("power-apps", "kpis"))).rejects.toThrow(/NEXT_REDIRECT/);
+    expect((await technologyTabMetadata()).robots).toEqual({ index: false, follow: false });
   });
 
   it("an unknown technology or tab is noindex metadata and a 404", async () => {
@@ -448,10 +503,12 @@ describe("technology sections (MVP-028)", () => {
       index: false,
       follow: false,
     });
-    await expect(TechnologyPage(tech("sharepoint"))).rejects.toThrow();
-    await expect(TechnologyTabPage(tab("power-apps", "learn"))).rejects.toThrow();
-    await expect(TechnologyTabPage(tab("power-apps", "pricing"))).rejects.toThrow();
-    await expect(TechnologyTabPage(tab("nope", "kpis"))).rejects.toThrow();
+    await expect(TechnologyPage(tech("sharepoint"))).rejects.toThrow(
+      /NEXT_HTTP_ERROR_FALLBACK;404/,
+    );
+    await expect(TechnologyTabPage(tab("power-apps", "learn"))).rejects.toThrow(/404/);
+    await expect(TechnologyTabPage(tab("power-apps", "pricing"))).rejects.toThrow(/404/);
+    await expect(TechnologyTabPage(tab("nope", "kpis"))).rejects.toThrow(/404/);
   });
 });
 
@@ -735,13 +792,22 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/terms" },
     ]);
     // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
-    // one each of MAX_SITEMAP_URLS (50,000) and the 24 technology section tabs
-    // are reserved (MVP-028); the remaining 49,971 is split between the catalog
-    // and content repositories
+    // one each of MAX_SITEMAP_URLS (50,000), and the 7 hubs (six products and
+    // Governance & admin, MVP-033) plus /updates are reserved; the remaining
+    // 49,987 is split
+    // between the catalog and content repositories
     // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
     // so none is listed.
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_986);
-    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_985);
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_994);
+    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_993);
+  });
+
+  it("sitemap.xml lists /updates once an update is published (open question 69)", async () => {
+    expect((await sitemap()).map((entry) => entry.url)).not.toContain(
+      "https://example.com/updates",
+    );
+    updates.listPublishedUpdateTimes.mockResolvedValueOnce([new Date("2026-10-03T00:00:00Z")]);
+    expect((await sitemap()).map((entry) => entry.url)).toContain("https://example.com/updates");
   });
 });
 
@@ -752,5 +818,52 @@ describe("next.config headers", () => {
     for (const rule of rules) {
       expect(rule.headers).toEqual([{ key: "X-Robots-Tag", value: "noindex, nofollow" }]);
     }
+  });
+});
+
+describe("/updates (MVP-033 slice D)", () => {
+  const update = (
+    slug: string,
+    kind: string,
+    effective: string | null,
+    replacement: string | null,
+  ) => ({
+    id: slug,
+    slug,
+    title: `Title ${slug}`,
+    summary: "What changed.",
+    technology: "POWER_AUTOMATE",
+    kind,
+    action: "No action",
+    sourceUrl: `https://learn.microsoft.com/x#${slug}`,
+    effectiveDate: effective ? new Date(`${effective}T00:00:00Z`) : null,
+    replacement,
+    publishedAt: new Date("2026-10-01T00:00:00Z"),
+  });
+
+  it("stays noindex with an empty state until the first update is published", async () => {
+    updates.listPublishedUpdates.mockResolvedValue([]);
+    expect((await updatesMetadata()).robots).toEqual({ index: false, follow: true });
+    const markup = renderToStaticMarkup(await UpdatesPage());
+    expect(markup).toContain("No updates are published yet.");
+    expect(markup).not.toContain("Deprecation tracker");
+  });
+
+  it("lists updates with Microsoft's link, and tracks only dated deprecations and retirements", async () => {
+    updates.listPublishedUpdates.mockResolvedValue([
+      update("app-retired", "RETIREMENT", "2026-08-31", "Approvals app in Microsoft Teams"),
+      update("grid-deprecated", "DEPRECATION", "2026-03-01", null),
+      update("new-feature", "FEATURE", null, null),
+    ]);
+    expect((await updatesMetadata()).robots).toEqual({ index: true, follow: true });
+    const markup = renderToStaticMarkup(await UpdatesPage());
+    expect(markup).toContain('id="new-feature"');
+    expect(markup).toContain('href="https://learn.microsoft.com/x#new-feature"');
+    const tracker = markup.slice(markup.indexOf("Deprecation tracker"));
+    expect(tracker).toContain("Removed Aug 2026");
+    expect(tracker).toContain("Switch to: Approvals app in Microsoft Teams");
+    expect(tracker).toContain("Deprecated Mar 2026");
+    expect(tracker).not.toContain("Title new-feature");
+    expect(tracker.indexOf("app-retired")).toBeLessThan(tracker.indexOf("grid-deprecated"));
   });
 });

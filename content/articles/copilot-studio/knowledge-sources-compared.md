@@ -3,6 +3,7 @@ title: "Knowledge sources compared: SharePoint, websites, Dataverse and files"
 slug: knowledge-sources-compared
 type: COMPARISON
 technology: COPILOT_STUDIO
+topic: knowledge-and-grounding
 excerpt: "Where a Copilot Studio agent gets its answers decides who can see what, how fresh the answers are, and how much you have to maintain. A side-by-side comparison of the main knowledge sources and when to use each."
 ---
 > [!NOTE]

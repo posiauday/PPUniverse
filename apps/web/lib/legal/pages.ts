@@ -14,11 +14,18 @@
 export const OPERATOR_NAME = "Uday Posia";
 export const CONTACT_EMAIL = "contact@lowcodestacks.com";
 
-/** The date the Privacy notice and Terms took effect. Also the PolicyVersion
- * `version` recorded when someone accepts the Terms (migration
+/** The date the Terms took effect. Also the PolicyVersion `version` recorded
+ * when someone accepts the Terms (migration
  * 20261002000000_add_policy_versions_2026_10_02). */
 export const POLICY_EFFECTIVE_DATE = "2026-10-02";
 export const POLICY_EFFECTIVE_LABEL = "October 2, 2026";
+
+/** The date the current Privacy notice took effect: it changed when the
+ * Updates badge shipped (MVP-033 slice D), which keeps a date in the
+ * visitor's browser. Its PolicyVersion row is migration
+ * 20261003000300_add_privacy_policy_version_2026_10_03. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-03";
+export const PRIVACY_EFFECTIVE_LABEL = "October 3, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms";
@@ -80,7 +87,7 @@ export const PRIVACY_PAGE: InfoPage = {
   path: "/privacy",
   title: "Privacy notice",
   accent: "in plain words",
-  eyebrow: `Privacy · Effective ${POLICY_EFFECTIVE_LABEL}`,
+  eyebrow: `Privacy · Effective ${PRIVACY_EFFECTIVE_LABEL}`,
   description:
     "What LowCodeStacks collects, why, who processes it, and how to see, correct or delete your information. No ads, no analytics, no tracking cookies.",
   markdown: `This notice explains what personal information LowCodeStacks collects, why, and what you can do about it. It applies to lowcodestacks.com.
@@ -125,6 +132,10 @@ We use only the cookies the site needs:
 - **\`lcs-theme\`** remembers light or dark mode, and is set only if you choose one. It lasts a year.
 
 There are no advertising, analytics or tracking cookies.
+
+## Stored in your browser
+
+- **\`lcs-updates-last-visit\`** remembers when you last opened the Updates page, so the Updates badge can count what's new since then. It's kept in your browser's local storage only and is never sent to us. Clearing your browser's site data removes it.
 
 ## Why we use your information
 
@@ -174,7 +185,7 @@ LowCodeStacks is written for people who build business software, and isn't direc
 
 When this notice changes, we'll update it here and change its effective date. If a change affects how we use information you've already given us, we'll ask you first.
 
-This notice took effect on ${POLICY_EFFECTIVE_LABEL}.
+This notice took effect on ${PRIVACY_EFFECTIVE_LABEL}.
 `,
 };
 

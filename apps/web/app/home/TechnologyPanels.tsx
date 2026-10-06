@@ -1,4 +1,4 @@
-import { TECHNOLOGIES, type Technology } from "@ppu/domain-content";
+import { TECHNOLOGIES, type ProductTechnology, type Technology } from "@ppu/domain-content";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { TECHNOLOGY_PALETTE } from "../../lib/technology-palette";
@@ -139,7 +139,7 @@ const TRY_CATCH_PATH = "M52 34 C 150 34, 120 100, 165 100 S 230 166, 278 166";
 
 /** One illustration per technology. Fixed colours: they sit on white mock
  * surfaces, which read on both themes' tints. */
-export const TECHNOLOGY_VISUALS: Readonly<Record<Technology, ReactNode>> = {
+export const TECHNOLOGY_VISUALS: Readonly<Record<ProductTechnology, ReactNode>> = {
   POWER_APPS: (
     <>
       <div className="absolute -bottom-16 left-1/2 h-[260px] w-[184px] -translate-x-[30%] -rotate-6 rounded-[30px] bg-[#14141a] p-2.5 shadow-[0_30px_50px_-20px_rgb(91_33_182/0.6)] lg:-bottom-9">

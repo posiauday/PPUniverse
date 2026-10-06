@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { outlineOf } from "../article-outline";
 import { buildInfoPageMetadata } from "../seo/metadata";
 import { THEME_COOKIE, THEME_COOKIE_MAX_AGE_SECONDS } from "../theme";
+import { LAST_VISIT_KEY } from "../updates-visit";
 import {
   ABOUT_PAGE,
   CONTACT_EMAIL,
@@ -36,6 +37,11 @@ describe("About, Privacy and Terms", () => {
     expect(PRIVACY_PAGE.markdown).toContain(THEME_COOKIE);
     expect(THEME_COOKIE_MAX_AGE_SECONDS).toBe(60 * 60 * 24 * 365);
     expect(PRIVACY_PAGE.markdown).toMatch(/lasts a year/);
+  });
+
+  it("names the Updates badge's browser-only storage key the code actually uses (MVP-033)", () => {
+    expect(PRIVACY_PAGE.markdown).toContain(LAST_VISIT_KEY);
+    expect(PRIVACY_PAGE.markdown).toMatch(/never sent to us/);
   });
 
   it("names every service provider that processes personal information", () => {
