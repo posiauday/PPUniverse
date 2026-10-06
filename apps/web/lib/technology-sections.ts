@@ -224,5 +224,6 @@ export async function listSectionPathsWithContent(deps: SectionDeps): Promise<st
   return paths;
 }
 
-/** The most sitemap URLs the hubs can take: one per area. */
-export const MAX_SECTION_PATHS = AREAS.length;
+/** The sitemap slots reserved for hub-level pages: one per area, plus
+ * /updates (MVP-033, open question 69; added in app/sitemap.ts). */
+export const MAX_SECTION_PATHS = AREAS.length + 1;

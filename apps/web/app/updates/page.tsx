@@ -11,6 +11,7 @@ import { buildTechnologySectionMetadata } from "../../lib/seo/metadata";
 import { getSiteUrl } from "../../lib/site-url";
 import { paletteFor } from "../../lib/technology-palette";
 import { updateRepository } from "../../lib/updates";
+import { UPDATES_FEED_PATH, UPDATES_FEED_TITLE } from "../../lib/updates-feed";
 import { NewChip, NewSinceCount, UpdatesVisit } from "./UpdatesVisit";
 
 // See apps/web/app/page.tsx for why content pages render per-request.
@@ -27,13 +28,27 @@ const getUpdates = cache(() => updateRepository.listPublishedUpdates({ limit: UP
 
 export async function generateMetadata(): Promise<Metadata> {
   // noindex until the first update is published.
-  return buildTechnologySectionMetadata({
-    site: getSiteUrl(),
+  const site = getSiteUrl();
+  const metadata = buildTechnologySectionMetadata({
+    site,
     path: "/updates",
     title: TITLE,
     description: DESCRIPTION,
     hasContent: (await getUpdates()).length > 0,
   });
+  if (!site.ok) return metadata;
+  // The RSS feed, for feed readers that discover it from the page (open question 66).
+  return {
+    ...metadata,
+    alternates: {
+      ...metadata.alternates,
+      types: {
+        "application/rss+xml": [
+          { url: `${site.origin}${UPDATES_FEED_PATH}`, title: UPDATES_FEED_TITLE },
+        ],
+      },
+    },
+  };
 }
 
 function dateLabel(date: Date): string {
@@ -76,6 +91,25 @@ export default async function UpdatesPage() {
             capabilities now appear on its AI at Work roadmap. We read Microsoft&apos;s official
             pages and say, per product, what changed and whether you need to act: in our own words,
             always linked to Microsoft&apos;s.
+          </p>
+          <p className="mt-5">
+            <a
+              href={UPDATES_FEED_PATH}
+              type="application/rss+xml"
+              className="motion-press inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                width="16"
+                height="16"
+                fill="currentColor"
+              >
+                <circle cx="3" cy="13" r="2" />
+                <path d="M1 7a8 8 0 0 1 8 8h-2.5A5.5 5.5 0 0 0 1 9.5zM1 1a14 14 0 0 1 14 14h-2.5A11.5 11.5 0 0 0 1 3.5z" />
+              </svg>
+              Follow with RSS
+            </a>
           </p>
         </header>
 
