@@ -4628,3 +4628,33 @@ The technology tiles were removed from `/learn` because the board has none, so `
 **Remaining for MVP-038:**
 - the trust signals: source-checked date and badge, tested-by-us badge, last-reviewed date and "this changed" reports;
 - the hub Daily reference row (MVP-037).
+
+## 2026-10-06 — Content: the remaining approved Power Automate titles, the cross-technology research brief and article visuals decision
+
+**Built:**
+- **Seven Power Automate pages,** all from the 13 titles the product owner approved. Power Automate now has 19 items, and every hub section holds at least 2:
+  - Restore a deleted flow;
+  - Child flows that fail well;
+  - Approval actions compared;
+  - Cloud flow, agent flow or desktop flow?;
+  - Files and attachments in flows;
+  - Reminder emails for items due soon;
+  - UI elements that survive changes.
+- **Research brief** `docs/research/content-briefs/cross-technology-2026-10-06.md`:
+  - threads with verified or accepted answers (asked 8 Sep to 5 Oct 2026) from the Power Platform and Fabric communities, read only and paraphrased, with no usernames recorded;
+  - each theme checked against Microsoft Learn;
+  - proposed titles for Power BI, Power Pages, Copilot Studio and Power Apps, **awaiting the product owner's approval**.
+- **Two platform-update drafts:** the gateway sign-in update (enforced 31 Aug 2026), and old Power BI Desktop versions losing OneDrive and SharePoint saving (October 2026).
+- **Decision recorded:** "Article visuals" in `docs/final-decisions.md`, plus backlog story MVP-041. Answer chosen: "Diagrams + own screenshots", in the Daylight style with motion where it helps.
+
+**Caught while fact-checking (before commit):**
+- Microsoft says response actions belong **outside** scopes, so the child-flow pattern now sets variables in Try and Catch, and responds once after both scopes.
+- Microsoft's approval-actions comparison still mentions mobile-app push notifications. The page instead points mobile approvers to Teams, because the mobile app was retired on 31 August 2026.
+- An unsourced "SharePoint stores dates in UTC" line was softened. The reminder pattern compares calendar days after `convertTimeZone`, so it doesn't depend on it.
+
+**Checks:** content validation passes (56 tests).
+
+**Remaining:**
+- the product owner approves the cross-technology titles;
+- MVP-041 (article visuals) is built before any screenshot is added;
+- the remaining update candidates in the brief.
