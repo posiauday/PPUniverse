@@ -1843,3 +1843,26 @@ The product owner asked to stop running migrations by hand (*"i want to make thi
 - **Fail-safe:** a missing variable, an invalid URL, or a port-6543 URL fails the production build with a clear message. Deploy previews never run migrations.
 - **Amended 2026-10-06:** three production builds stopped with "port 6543", although the product owner's Netlify values all showed 5432. To stop depending on that value, the script now uses `MIGRATE_DATABASE_URL` if set, otherwise the site's `DATABASE_URL`. A Supabase pooler address on 6543 is switched to 5432, the same host, user and password in session mode (Supabase docs, "Connecting to Postgres"). The build log shows the variable name, host and port it used, never the password. `MIGRATE_DATABASE_URL` is now optional. A 6543 address on any other host still fails the build.
 - **Approval:** merging the release PR into `main` is the deployment approval for its migrations (CLAUDE.md, "No direct production changes"). Migrations stay additive and reversible, as before.
+
+## 2026-10-06 — Sign-in methods: Google, email and password, and the email link
+
+The product owner reviewed the sign-in research (email-link sign-in, and Microsoft Defender for Office 365 scanning links in work email before delivery). They chose by multiple choice:
+- **Google sign-in: yes.** Auth.js Google provider with the existing `Account` table and database sessions; no migration. Google verifies email addresses, so a Google sign-in links to an existing account with the same email.
+- **Email and password: yes, "build it properly".** Auth.js's Credentials provider requires JWT sessions, but this site uses database sessions, which back the session list on the Account page. So password sign-in is built as its own flow that creates the same database sessions, with:
+  - slow password hashing;
+  - a forgot-password email;
+  - attempt limits;
+  - a security review.
+
+  The Auth.js docs discourage passwords; the product owner chose them anyway.
+- **The email link stays, fixed.** The link opens a page with a "Sign me in" button. Email scanners open links but don't press buttons, so a scanner can't use up the link.
+- **Not chosen:** Apple (it needs the paid Apple Developer Program) and Microsoft (recommended for this audience, not selected).
+
+This replaces "Auth.js, **Magic Link only** for MVP". Delivery is three stories: MVP-034 (sign-in hardening, plus the security headers and `/admin` home page from the configuration review), MVP-035 (Google) and MVP-036 (email and password). Each one updates the Privacy notice where it changes what is collected.
+
+### Drafts import automatically on release (2026-10-06)
+After the first MVP-033 release, production still had no guides: the 24 launch guides and 4 updates had never been imported. The product owner asked not to run the import by hand (*"I have already set database url why i would need to do this"*). Agents can't run it from the product owner's machine, because that would mean handling the connection string. So the Netlify production build now imports drafts after building the site (`packages/adapters/content/scripts/import-drafts-on-deploy.mjs`):
+- **Drafts only:** it runs the existing `content:import` and `updates:import`. Both create DRAFTs, skip any slug that already exists, and never publish. This keeps the rule that the agent never publishes: the product owner publishes in `/admin/content` and `/admin/updates`.
+- **Settings:** it uses the build's `DATABASE_URL`, and `ARTICLE_AUTHOR_EMAIL` (an existing admin's email, set in Netlify by the product owner). Without the email, the step is skipped with a message.
+- **Never blocks a release:** a failed import is a warning in the build log, and the deploy goes ahead.
+- **Scope:** production only. Deploy previews never import.

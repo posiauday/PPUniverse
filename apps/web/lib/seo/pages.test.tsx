@@ -812,12 +812,32 @@ describe("robots.txt and sitemap.xml routes", () => {
 });
 
 describe("next.config headers", () => {
-  it("marks API, account and sign-in responses noindex, nofollow — and nothing else", async () => {
-    const rules = (await config.headers?.()) ?? [];
-    expect(rules.map((rule) => rule.source)).toEqual(["/api/:path*", "/account/:path*", "/signin"]);
+  it("marks API, account, sign-in and admin responses noindex, nofollow — and nothing else", async () => {
+    const rules = ((await config.headers?.()) ?? []).filter((rule) =>
+      rule.headers.some((header) => header.key === "X-Robots-Tag"),
+    );
+    expect(rules.map((rule) => rule.source)).toEqual([
+      "/api/:path*",
+      "/account/:path*",
+      "/signin",
+      "/signin/:path*",
+      "/admin",
+      "/admin/:path*",
+    ]);
     for (const rule of rules) {
       expect(rule.headers).toEqual([{ key: "X-Robots-Tag", value: "noindex, nofollow" }]);
     }
+  });
+
+  it("sends the browser security headers on every page (MVP-034)", async () => {
+    const all = ((await config.headers?.()) ?? []).find((rule) => rule.source === "/:path*");
+    const headers = Object.fromEntries((all?.headers ?? []).map((h) => [h.key, h.value]));
+    expect(headers["Content-Security-Policy"]).toContain("frame-ancestors 'none'");
+    expect(headers["X-Frame-Options"]).toBe("DENY");
+    expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
+    expect(headers["Permissions-Policy"]).toContain("camera=()");
+    // No robots header on every page: public pages must stay indexable.
+    expect(Object.keys(headers)).not.toContain("X-Robots-Tag");
   });
 });
 

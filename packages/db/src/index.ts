@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { pgSchemaOptions } from "./connection-options.js";
+import { schemaFromConnectionString } from "./database-schema.js";
 import { PrismaClient } from "./generated/client/client.js";
 
 declare global {
@@ -13,33 +13,27 @@ declare global {
 // it to real runtime JS instead of shipping raw generated TypeScript.
 //
 // @prisma/adapter-pg does NOT read a `?schema=` query parameter from the
-// connection string the way Prisma's migration engine does — it hands the
-// string straight to `pg`, which has no idea what `?schema=` means and just
-// falls back to Postgres's default `search_path` (`public`). Two separate
-// fixes were needed, found by tracing a real BUG-015 CI failure where the
-// connection string was visibly correct at runtime but every query still
-// hit `public`:
-//   1. PrismaPg's own second constructor argument (`{ schema }`) — this is
-//      what its ORM-generated queries (findMany, create, etc.) use to
-//      schema-qualify table references.
-//   2. The underlying `pg` Pool's own `options` (a libpq-style `-c
-//      search_path=...` startup parameter) — ORM queries alone aren't the
-//      whole surface: catalogRepository's full-text searchProducts() issues
-//      raw SQL (Prisma.sql) with UNQUALIFIED table names, which resolve
-//      against whatever the actual Postgres session's search_path is, not
-//      against PrismaPg's own `schema` option (that option only affects the
-//      ORM layer). Setting it at the connection level covers both.
-// Every DATABASE_URL in this repo already carries `?schema=`, so parsing it
-// out here keeps that one place as the source of truth rather than
-// requiring a second, separate schema value to be kept in sync.
+// connection string the way Prisma's migration engine does. It hands the
+// string straight to `pg`, which ignores `?schema=` (found by tracing a real
+// BUG-015 CI failure where every query hit `public`). The schema is
+// therefore applied where queries are written, never through session state
+// (MVP-030; see database-schema.ts):
+//   - ORM queries: PrismaPg's second constructor argument (`{ schema }`)
+//     schema-qualifies every table reference it generates.
+//   - Raw SQL (catalogRepository's full-text searchProducts()): qualified
+//     with `qualifiedTable()`.
+// No `-c search_path` startup option is sent. Transaction-mode poolers, such
+// as Supabase's on port 6543 (production, ADR-005), don't pass startup
+// parameters through, so the connection can't depend on one.
+// Every DATABASE_URL in this repo carries `?schema=`, so it stays the single
+// source of truth for the schema.
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env["DATABASE_URL"];
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set. See packages/db/.env.example.");
   }
-  // The search_path startup option is skipped for `public`; see connection-options.ts (MVP-030).
-  const { schema, options } = pgSchemaOptions(connectionString);
-  const adapter = new PrismaPg({ connectionString, options }, { schema });
+  const schema = schemaFromConnectionString(connectionString);
+  const adapter = new PrismaPg({ connectionString }, { schema });
   return new PrismaClient({ adapter });
 }
 
@@ -73,6 +67,12 @@ export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
 
 export * from "./generated/client/client.js";
 export { applyTestSchemaIsolation, deriveTestSchemaName } from "./test-schema-isolation.js";
+export {
+  getDatabaseSchema,
+  InvalidDatabaseSchemaError,
+  qualifiedTable,
+  schemaFromConnectionString,
+} from "./database-schema.js";
 export {
   assertSafeDatabaseTarget,
   DatabaseGuardError,
