@@ -1,6 +1,6 @@
 # Build plan: guide page and hub redesign with SEO additions
 
-**Status:** plan, for the product owner to review. The designs and decisions are approved (`docs/final-decisions.md`, 2026-10-06):
+**Status:** plan. The build starts after PR #75 is merged (product owner, 2026-10-06). The designs and decisions are approved (`docs/final-decisions.md`, 2026-10-06):
 - "Guide page and hub designs chosen";
 - "SEO additions alongside the guide-page redesign";
 - "A search phrase for every guide";
@@ -69,6 +69,6 @@
 1 → 3 → 2 → 4 → 5. The guide frame and hubs give the biggest visible and SEO gain first. Each slice is merged before the next starts.
 
 ## Waiting on the product owner
-1. Approve the hub headlines on the board.
-2. Approve the "How we write" page wording, including the sentence about AI-assisted drafts.
+1. ~~Approve the hub headlines on the board.~~ Power Automate and Power BI approved 2026-10-06; the other five are drafted in `docs/final-decisions.md`.
+2. ~~Approve the "How we write" page wording.~~ Approved 2026-10-06.
 3. Later, set `INDEXNOW_KEY` in Netlify (slice 5).

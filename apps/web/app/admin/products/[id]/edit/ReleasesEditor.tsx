@@ -141,7 +141,10 @@ export function ReleasesEditor({
                 <ul>
                   {release.files.map((file) => (
                     <li key={file.fileScanId}>
-                      {file.fileScanId} — {file.status}
+                      {/* A file scan id is one 25-character word: let it break, or
+                          it can overflow a 320px screen (BUG-024). */}
+                      <span className="[overflow-wrap:anywhere]">{file.fileScanId}</span> —{" "}
+                      {file.status}
                       {!isPublished ? (
                         <DetachFileButton
                           productId={productId}

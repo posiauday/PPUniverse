@@ -48,6 +48,7 @@ model User {
   releasePublishActions  ReleasePublishEvent[]
   productStatusActions   ProductStatusEvent[]
   orders                 Order[]
+  passwordCredential     PasswordCredential?
 
   @@map("users")
 }
@@ -95,4 +96,55 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// MVP-036 (docs/final-decisions.md, 2026-10-06, "Email and password sign-in:
+// rules"; docs/plans/mvp-036-password-sign-in.md). A password is attached to
+// an account only after its email has been confirmed, so the pending hash of a
+// sign-up waits on its PasswordToken, never on the user.
+
+// One scrypt hash per user (format in packages/domain/identity/src/password-hashing.ts).
+model PasswordCredential {
+  userId    String   @id
+  hash      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_credentials")
+}
+
+enum PasswordTokenPurpose {
+  CONFIRM_SIGNUP
+  SET_PASSWORD
+}
+
+// Emailed links. Only the SHA-256 of the token is stored; the raw token exists
+// only in the email. Single use (usedAt) and short-lived (expiresAt).
+model PasswordToken {
+  id          String               @id @default(cuid())
+  tokenHash   String               @unique
+  purpose     PasswordTokenPurpose
+  email       String
+  pendingHash String?
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime             @default(now())
+
+  @@index([expiresAt])
+  @@map("password_tokens")
+}
+
+// Failed sign-in and email-sending counters. The key is the SHA-256 of
+// "account:<email>", "ip:<address>", "mail:<email>" or "mail-ip:<address>",
+// so no address is stored in readable form.
+model AuthThrottle {
+  key         String    @id
+  failures    Int
+  windowStart DateTime
+  lockedUntil DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@map("auth_throttle")
 }

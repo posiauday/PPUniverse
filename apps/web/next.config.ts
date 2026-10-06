@@ -11,6 +11,8 @@ const NOINDEX_SOURCES = [
   "/account/:path*",
   "/signin",
   "/signin/:path*",
+  "/signup",
+  "/password/:path*",
   "/admin",
   "/admin/:path*",
 ];

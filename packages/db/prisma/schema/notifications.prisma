@@ -20,6 +20,8 @@
 enum EmailMessageType {
   SIGNIN_LINK
   DELETION_REQUEST_SUBMITTED
+  PASSWORD_CONFIRM
+  PASSWORD_SET_LINK
 }
 
 enum EmailSendStatus {

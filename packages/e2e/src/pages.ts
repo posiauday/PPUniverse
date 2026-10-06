@@ -1,5 +1,9 @@
-import { expect, type Page } from "@playwright/test";
-import { interceptSignInSend, type SignInInterception } from "./auth-intercept.js";
+import { expect, type Locator, type Page } from "@playwright/test";
+import {
+  answerPasswordApi,
+  interceptSignInSend,
+  type SignInInterception,
+} from "./auth-intercept.js";
 import { interceptAndHold } from "./held-requests.js";
 import { type GatedRoute } from "./page-routes.js";
 import { NO_MATCH_TERM, SEARCH_TERM, type FixtureSet } from "./seed.js";
@@ -45,6 +49,30 @@ export interface GatedPage {
 
 const SEND_LINK = /send sign-in link/i;
 const VALID_EMAIL = "e2e-a11y@example.invalid";
+/** Typed into password fields only where the API answer is faked; never stored anywhere. */
+const E2E_PASSWORD = "e2e only, never sent anywhere";
+/** Shaped like a real emailed token (43 base64url characters) so the page renders its form. */
+const E2E_LINK_TOKEN = "e2e-not-a-real-token-".padEnd(43, "x");
+
+/**
+ * Waits until React has hydrated `locator`'s element (MVP-036). Filling a
+ * controlled input before hydration loses the text: WebKit typed the email
+ * before hydration, React then reset it, and the form saw an empty field.
+ */
+async function whenHydrated(locator: Locator): Promise<Locator> {
+  // Hydration time depends on machine load (Firefox once took over 7.5 s with
+  // four workers), not on the page, so this wait is longer than the default.
+  await expect
+    .poll(
+      () =>
+        locator.evaluate((element) =>
+          Object.keys(element).some((key) => key.startsWith("__reactProps")),
+        ),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+  return locator;
+}
 
 /**
  * Reads observer liveness (round 2, decision 2026-09-22 "BUG-014 recurrence") and
@@ -651,6 +679,187 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/signin/confirm",
     prepare: async (page) => {
       await expect(page.getByRole("link", { name: /request a new sign-in link/i })).toBeVisible();
+    },
+  },
+  // MVP-036: email and password sign-in. Every API answer below is faked in the
+  // test (answerPasswordApi), so no account, email or token is ever touched.
+  {
+    id: "signin-password-missing",
+    route: "/signin",
+    description: "sign-in form after pressing Sign in without a password",
+    auth: "guest",
+    status: 200,
+    path: () => "/signin",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (
+        await whenHydrated(page.getByRole("button", { name: "Sign in", exact: true }))
+      ).click();
+      await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+    },
+  },
+  {
+    id: "signin-password-rejected",
+    route: "/signin",
+    description: "sign-in form after a wrong email or password",
+    auth: "guest",
+    status: 200,
+    path: () => "/signin",
+    prepare: async (page) => {
+      await answerPasswordApi(page, "signin", 401, { error: "invalid" });
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill(E2E_PASSWORD);
+      await (
+        await whenHydrated(page.getByRole("button", { name: "Sign in", exact: true }))
+      ).click();
+      await expect(page.getByLabel("Password", { exact: true })).toHaveAccessibleDescription(
+        /don.t match/i,
+      );
+    },
+  },
+  {
+    id: "signup-idle",
+    route: "/signup",
+    description: "create-account form, untouched",
+    auth: "guest",
+    status: 200,
+    path: () => "/signup",
+  },
+  {
+    id: "signup-weak-password",
+    route: "/signup",
+    description: "create-account form after a password that breaks several rules",
+    auth: "guest",
+    status: 200,
+    path: () => "/signup",
+    prepare: async (page) => {
+      await answerPasswordApi(page, "signup", 400, {
+        error: "weak-password",
+        problems: [
+          "Use at least 12 characters. A few words with spaces works well.",
+          "Don't use one character repeated.",
+        ],
+      });
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill("short");
+      await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
+      await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+    },
+  },
+  {
+    id: "signup-sent",
+    route: "/signup",
+    description: "create-account form after the confirmation email was sent",
+    auth: "guest",
+    status: 200,
+    path: () => "/signup",
+    prepare: async (page) => {
+      await answerPasswordApi(page, "signup", 200, { ok: true });
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill(E2E_PASSWORD);
+      await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
+      await expect(page.getByRole("status")).toContainText(/check your email/i);
+    },
+  },
+  {
+    id: "password-confirm",
+    route: "/password/confirm",
+    description: "new-account confirmation page with a token, before pressing the button",
+    auth: "guest",
+    status: 200,
+    path: () => `/password/confirm?token=${E2E_LINK_TOKEN}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("button", { name: "Confirm" })).toBeVisible();
+    },
+  },
+  {
+    id: "password-confirm-expired",
+    route: "/password/confirm",
+    description: "new-account confirmation page after the link turned out to be used",
+    auth: "guest",
+    status: 200,
+    path: () => `/password/confirm?token=${E2E_LINK_TOKEN}`,
+    prepare: async (page) => {
+      await answerPasswordApi(page, "confirm", 400, { error: "invalid-link" });
+      await (await whenHydrated(page.getByRole("button", { name: "Confirm" }))).click();
+      await expect(page.getByRole("heading", { level: 1 })).toContainText(/expired/i);
+    },
+  },
+  {
+    id: "password-confirm-incomplete",
+    route: "/password/confirm",
+    description: "new-account confirmation page opened without a token",
+    auth: "guest",
+    status: 200,
+    path: () => "/password/confirm",
+    prepare: async (page) => {
+      await expect(page.getByRole("link", { name: /start again/i })).toBeVisible();
+    },
+  },
+  {
+    id: "password-forgot-idle",
+    route: "/password/forgot",
+    description: "forgot-password form, untouched",
+    auth: "guest",
+    status: 200,
+    path: () => "/password/forgot",
+  },
+  {
+    id: "password-forgot-sent",
+    route: "/password/forgot",
+    description: "forgot-password form after asking for a link",
+    auth: "guest",
+    status: 200,
+    path: () => "/password/forgot",
+    prepare: async (page) => {
+      await answerPasswordApi(page, "forgot", 200, { ok: true });
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (await whenHydrated(page.getByRole("button", { name: "Email me a link" }))).click();
+      await expect(page.getByRole("status")).toContainText(/we.ve sent it a link/i);
+    },
+  },
+  {
+    id: "password-reset",
+    route: "/password/reset",
+    description: "new-password form from an emailed link, untouched",
+    auth: "guest",
+    status: 200,
+    path: () => `/password/reset?token=${E2E_LINK_TOKEN}`,
+  },
+  {
+    id: "password-reset-weak",
+    route: "/password/reset",
+    description: "new-password form after a password that is too short",
+    auth: "guest",
+    status: 200,
+    path: () => `/password/reset?token=${E2E_LINK_TOKEN}`,
+    prepare: async (page) => {
+      await answerPasswordApi(page, "reset", 400, {
+        error: "weak-password",
+        problems: ["Use at least 12 characters. A few words with spaces works well."],
+      });
+      await (await whenHydrated(page.getByLabel("New password", { exact: true }))).fill("short");
+      await (await whenHydrated(page.getByRole("button", { name: "Save password" }))).click();
+      await expect(page.getByLabel("New password", { exact: true })).toHaveAccessibleDescription(
+        /12 characters/i,
+      );
+    },
+  },
+  {
+    id: "password-reset-incomplete",
+    route: "/password/reset",
+    description: "new-password page opened without a token",
+    auth: "guest",
+    status: 200,
+    path: () => "/password/reset",
+    prepare: async (page) => {
+      await expect(page.getByRole("link", { name: /request a new link/i })).toBeVisible();
     },
   },
   {

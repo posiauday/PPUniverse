@@ -18,6 +18,8 @@ export function isTransactionalMessageType(type: EmailMessageType): boolean {
   switch (type) {
     case "SIGNIN_LINK":
     case "DELETION_REQUEST_SUBMITTED":
+    case "PASSWORD_CONFIRM":
+    case "PASSWORD_SET_LINK":
       return true;
   }
 }

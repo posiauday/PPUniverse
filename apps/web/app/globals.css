@@ -273,6 +273,12 @@ samp {
     width: 100%;
     max-width: 32rem;
   }
+  /* A plain link in a page's text is underlined, so it is never told apart
+     by nothing at all (WCAG 1.4.1); MVP-036's "Forgot your password?". */
+  main a:not([class]) {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
   label:not([class]),
   legend:not([class]) {
     font-weight: 600;

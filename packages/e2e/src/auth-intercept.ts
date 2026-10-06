@@ -49,3 +49,19 @@ export async function interceptSignInSend(
     invocationCount: () => invocations,
   };
 }
+
+/**
+ * Answers one of the password routes (MVP-036) INSIDE THE TEST, the same way
+ * `interceptSignInSend` does for the email link: no mail is sent, no account
+ * is touched, and nothing in the application changes for tests.
+ */
+export async function answerPasswordApi(
+  page: Page,
+  route: "signup" | "confirm" | "signin" | "forgot" | "reset",
+  status: number,
+  body: Record<string, unknown>,
+): Promise<void> {
+  await page.route(`**/api/auth/password/${route}`, async (request) => {
+    await request.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+  });
+}
