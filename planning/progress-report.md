@@ -4658,3 +4658,41 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - the product owner approves the cross-technology titles;
 - MVP-041 (article visuals) is built before any screenshot is added;
 - the remaining update candidates in the brief.
+
+## 2026-10-06 — Content: the 12 approved cross-technology titles, and four more update drafts
+
+**Built:** all 12 titles the product owner approved from `docs/research/content-briefs/cross-technology-2026-10-06.md`.
+- **Power BI:**
+  - Move, upgrade or share a gateway;
+  - Permissions cheat sheet;
+  - Refresh on your terms;
+  - Dynamic row-level security;
+  - Incremental refresh: set up and verify.
+- **Power Pages:**
+  - Licensing explained;
+  - Invite users;
+  - Web API cheat sheet, which leads with the **14 Sep 2026** wildcard removal.
+- **Copilot Studio:**
+  - Licensing and Copilot Credits;
+  - Ground an agent on Dataverse tables.
+- **Power Apps:** Save attachments and photos to SharePoint.
+- **Governance:** Why did I get a Dataverse capacity email?, including the September 2026 storage validation stages.
+- **Update drafts:**
+  - the Power Pages Web API wildcard removal (2026-09-14);
+  - table permissions always enforced on Power Pages forms and lists (June 2026).
+
+**Caught while fact-checking (before commit):**
+- **Test as role** in the service uses the tester's own UPN for dynamic RLS. The permissions cheat sheet now points to **View as → Other user** in Desktop instead.
+- Unverified claims were removed or softened:
+  - that Dataverse knowledge answers "respect each user's security", now Microsoft's general security statement with an instruction to test;
+  - invitation error codes;
+  - which features provision Dataverse (Approvals only, as documented);
+  - storage clean-up culprits, replaced with Microsoft's per-table methods.
+- The Power Pages Web API wrapper is labelled as a shortened version of Microsoft's sample.
+
+**Checks:** content validation passes (70 tests).
+
+**Remaining:**
+- the product owner reviews PR #75 and merges;
+- drafts import on the next release, and the product owner publishes them;
+- MVP-041 (article visuals) comes before any screenshot.
