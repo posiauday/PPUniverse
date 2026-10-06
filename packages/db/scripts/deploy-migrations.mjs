@@ -7,18 +7,22 @@
 // - migrations always land before the code that needs them goes live;
 // - if a migration fails, the build fails and the previous deploy stays live.
 //
-// Reads MIGRATE_DATABASE_URL (the 5432 session or direct connection string,
-// set in the Netlify UI for the Production context only). The app's own
-// DATABASE_URL is the 6543 transaction pooler, which migrations can't use.
-// The connection string is never printed.
+// The connection: MIGRATE_DATABASE_URL if set, otherwise the site's own
+// DATABASE_URL. Migrations can't run through Supabase's transaction pooler
+// (port 6543), so a Supabase pooler address on 6543 is switched to 5432, the
+// same host, user and password in session mode (Supabase docs, "Connecting to
+// Postgres": "Port 5432 reaches ... Supavisor for session mode"). Only the
+// variable name, host and port are ever printed, never the password.
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+const SUPABASE_POOLER_HOST = /\.pooler\.supabase\.com$/;
+
 /**
- * Decides whether to migrate, from the build environment. Pure, so it is
- * unit-tested (deploy-migrations.test.mjs).
+ * Decides whether and how to migrate, from the build environment. Pure, so it
+ * is unit-tested (deploy-migrations.test.mjs).
  * @param {Record<string, string | undefined>} env
- * @returns {{ run: true, url: string } | { run: false, message: string, fail: boolean }}
+ * @returns {{ run: true, url: string, message: string } | { run: false, message: string, fail: boolean }}
  */
 export function migrationPlan(env) {
   if (env.CONTEXT !== "production") {
@@ -28,32 +32,42 @@ export function migrationPlan(env) {
       message: `Skipping migrations: Netlify context is "${env.CONTEXT ?? "unset"}", not "production".`,
     };
   }
-  const url = env.MIGRATE_DATABASE_URL;
-  if (!url) {
+  const source = env.MIGRATE_DATABASE_URL ? "MIGRATE_DATABASE_URL" : "DATABASE_URL";
+  const value = env[source];
+  if (!value) {
     return {
       run: false,
       fail: true,
       message:
-        "MIGRATE_DATABASE_URL is not set. Add the Supabase 5432 connection string to Netlify " +
-        "(Site configuration > Environment variables, Production context). See docs/15-deployment.md.",
+        "Neither MIGRATE_DATABASE_URL nor DATABASE_URL is set for production builds in Netlify. " +
+        "See docs/15-deployment.md.",
     };
   }
-  let parsed;
+  let url;
   try {
-    parsed = new URL(url);
+    url = new URL(value);
   } catch {
-    return { run: false, fail: true, message: "MIGRATE_DATABASE_URL is not a valid URL." };
+    return { run: false, fail: true, message: `${source} is not a valid URL.` };
   }
-  if (parsed.port === "6543") {
-    return {
-      run: false,
-      fail: true,
-      message:
-        "MIGRATE_DATABASE_URL uses port 6543 (the transaction pooler), which migrations can't use. " +
-        "Use the 5432 session or direct connection string.",
-    };
+  let note = "";
+  if (url.port === "6543") {
+    if (!SUPABASE_POOLER_HOST.test(url.hostname)) {
+      return {
+        run: false,
+        fail: true,
+        message:
+          `${source} uses port 6543 (a transaction pooler) on a host that isn't Supabase's ` +
+          "pooler, so it can't be switched to session mode. Set MIGRATE_DATABASE_URL to a 5432 string.",
+      };
+    }
+    url.port = "5432";
+    note = " (switched from the transaction pooler, 6543, to session mode)";
   }
-  return { run: true, url };
+  return {
+    run: true,
+    url: url.toString(),
+    message: `Applying production migrations via ${source}: ${url.hostname}:${url.port || "5432"}${note}.`,
+  };
 }
 
 function main() {
@@ -63,7 +77,7 @@ function main() {
     process.exitCode = plan.fail ? 1 : 0;
     return;
   }
-  console.log("Applying production migrations (prisma migrate deploy)...");
+  console.log(plan.message);
   const result = spawnSync("pnpm", ["--filter", "@ppu/db", "exec", "prisma", "migrate", "deploy"], {
     stdio: "inherit",
     env: { ...process.env, DATABASE_URL: plan.url },
