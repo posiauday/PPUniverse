@@ -1970,3 +1970,17 @@ So, instead of a keywords tag:
 - **All 57 launch guides** were given a phrase. Where a guide didn't use its phrase, the excerpt or opening sentence was reworded naturally, usually by naming the product. **No approved title was changed.**
 - **Pages other than guides** (hubs, `/learn`, updates, About) get the same treatment in the redesign build (MVP-037, MVP-042): a unique, descriptive `<title>` and description that name the product and what the page helps with. A technology level is also added to the breadcrumb trail, so results read "LowCodeStacks › Power Automate › …".
 - **Limit:** phrases are chosen from how people word their questions in the official communities and on Microsoft Learn, not from search-volume data. Re-check them against Search Console's queries report after 4–8 weeks of data.
+
+### Approvals for the redesign (2026-10-06)
+The product owner chose by multiple choice:
+- **Hub headlines approved:**
+  - Power Automate: "Flows that run, and tell you when they don't";
+  - Power BI: "From messy exports to numbers people trust".
+- **Drafted for the other five, not yet approved:**
+  - Power Apps: "Apps people open every day, built to last";
+  - Copilot Studio: "Agents that answer from your data, and only what they should";
+  - Dataverse: "Tables that stay tidy, secure and fast";
+  - Power Pages: "Websites for your customers, secured by design";
+  - Governance & admin: "Room to build, with guardrails that hold".
+- **"How we write and check guides" wording approved as shown on the board,** including "Drafts are written with the help of AI, then fact-checked line by line."
+- **Build timing:** the redesign build (`docs/plans/guide-and-hub-redesign.md`) starts **after PR #75 is merged**.
