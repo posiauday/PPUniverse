@@ -1873,3 +1873,16 @@ The product owner approved the proposal ("Continue", in reply to it) and with it
 - **Method:** a short research brief per section (`docs/research/content-briefs/<technology>/<section>.md`: real problems, search phrases, gaps, sources, proposed titles), the product owner's yes or no on the titles, then drafts. Drafts are checked against Microsoft Learn and imported; the product owner publishes.
 - **Order:** the highest daily demand first, starting with Power Automate, then Power BI *Refresh & gateways*. The hubs' top-fix chips get their own guides early.
 - Still open from that plan: analytics (Search Console only, or privacy-friendly analytics).
+
+## 2026-10-06 — Article visuals: our own diagrams, our own screenshots, in the Daylight style
+
+The product owner asked how images and snapshots would make the guides easier to follow, and chose by multiple choice **"Diagrams + own screenshots"**. They then added that the pages follow the design system, *"and motion graphics where possible for every page"*.
+- **Diagrams:** drawn by us as graphics in the Daylight tokens: decision charts, flow layouts, checklists as pictures. We use only our own glyphs, never Microsoft product logos or icons, which are trademarks.
+- **Screenshots:** only ones **we take ourselves**, from a test account with made-up data. The product owner signs in; the agent never handles credentials. Each screenshot is cropped, given numbered callouts, and labelled with the date it was taken. Microsoft's screenshots from Learn are never copied. **Before the first screenshot is published,** Microsoft's published rules on using screenshots of its products are checked and recorded here. The product owner noted that **most of the site's content is free to read**. The check therefore covers both free educational pages and paid marketplace pages, and screenshots are used only where the rules allow for that kind of page.
+- **Motion where it helps understanding** (for example, a flow's steps lighting up in order), following the design system's motion rules:
+  - the resting state is the finished picture;
+  - all motion stops under `prefers-reduced-motion`;
+  - anything moving for longer than 5 seconds has a pause control (WCAG 2.2.2).
+- **Accessibility:** every image has alt text, and the steps it shows are also written in the text.
+- **Safety:** images are served only from this site. Articles can't load images from other domains. A test fails any article whose image file is missing or has no alt text.
+- **Delivery:** story MVP-041 (article visuals), built as a vertical slice: the article image component, storage in the repo, the validation test, and the accessibility checks. It comes before the first screenshots are added.
