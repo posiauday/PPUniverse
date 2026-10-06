@@ -24,6 +24,15 @@
   # BUG-021: ".next" here made the Next.js plugin look in the repository root.
   publish = "apps/web/.next"
 
+# Production only: apply pending database migrations first, then build
+# (docs/final-decisions.md, 2026-10-05, "Production migrations run
+# automatically on release"). A failed migration fails the build, and Netlify
+# keeps the previous deploy live. Needs MIGRATE_DATABASE_URL (the Supabase 5432
+# string) in the Netlify UI, scoped to Builds and the Production context only.
+# Deploy previews use [build] above and never touch the production database.
+[context.production]
+  command = "node packages/db/scripts/deploy-migrations.mjs && pnpm turbo run build --filter=@ppu/web"
+
 [build.environment]
   # Matches CI (.github/workflows).
   NODE_VERSION = "22"
