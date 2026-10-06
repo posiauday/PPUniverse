@@ -24,16 +24,19 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
 2. **Copy two connection strings** from the project's **Connect** panel:
    - **Transaction pooler** (port **6543**). The site uses this. Add `?schema=public` to the end.
    - **Direct connection, or the session pooler** (port **5432**). Migrations use this. Also add `?schema=public`.
-3. **Apply the migrations**, from your own machine, using the **5432** string:
+3. **Migrations run automatically on every production release** (`docs/final-decisions.md`, 2026-10-05, "Production migrations run automatically on release"). The Netlify production build runs `packages/db/scripts/deploy-migrations.mjs` before building the site.
+   - **Set it up once:** in Netlify, go to **Site configuration > Environment variables** and add `MIGRATE_DATABASE_URL` with the **5432** string plus `?schema=public`. Scope it to **Builds** only and to the **Production** context only, and mark it secret. The site's runtime never reads it.
+   - **What the build does:** it applies pending migrations, then builds. If a migration fails, the build fails and Netlify keeps the previous deploy live. If the variable is missing or uses port 6543, the production build fails with a message saying so. Deploy previews never run migrations.
+   - **To run migrations by hand** (first setup, or recovery), from your own machine:
 
-   ```bash
-   DATABASE_URL="<5432 connection string>?schema=public" pnpm --filter @ppu/db exec prisma migrate deploy
-   ```
+     ```bash
+     DATABASE_URL="<5432 connection string>?schema=public" pnpm --filter @ppu/db exec prisma migrate deploy
+     ```
 
    The migrations also enable row-level security on every table (`docs/final-decisions.md`, 2026-09-17).
 
 > [!WARNING]
-> Never put the 5432 string in Netlify, and never run the test-schema provisioning script (`packages/db/scripts/provision-test-schemas.mjs`) against the production project.
+> The 5432 string goes in Netlify only as `MIGRATE_DATABASE_URL`, scoped to Builds and Production. Never set it as `DATABASE_URL`: the site must use the 6543 pooler. Never run the test-schema provisioning script (`packages/db/scripts/provision-test-schemas.mjs`) against the production project.
 
 Why two strings: serverless functions open many short-lived connections, and Supabase recommends its transaction pooler for them. Migrations need a session or direct connection. The app sends the `search_path` startup option only for non-`public` schemas, because transaction poolers don't pass startup options through (`packages/db/src/connection-options.ts`).
 
