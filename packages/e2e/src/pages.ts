@@ -615,7 +615,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/admin",
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin");
-      await expect(page.getByRole("link", { name: "Guides" })).toBeVisible();
+      await expect(
+        page.getByRole("main").getByRole("link", { name: "Guides", exact: true }),
+      ).toBeVisible();
     },
   },
   {
