@@ -606,6 +606,54 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // MVP-034: the admin home lists every admin area.
+    id: "admin-home",
+    route: "/admin",
+    description: "admin home, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin");
+      await expect(
+        page.getByRole("main").getByRole("link", { name: "Guides", exact: true }),
+      ).toBeVisible();
+    },
+  },
+  {
+    // MVP-034: the admin home is the same 404 as every admin page for a member.
+    id: "admin-home-denied",
+    route: null,
+    description: "admin home, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin",
+  },
+  {
+    // MVP-034: where the emailed sign-in link lands. A made-up token: the
+    // page only renders the form, and nothing is submitted.
+    id: "signin-confirm",
+    route: "/signin/confirm",
+    description: "sign-in confirmation page with a token, before pressing the button",
+    auth: "guest",
+    status: 200,
+    path: () => "/signin/confirm?token=e2e-not-a-real-token&email=reader%40example.com",
+    prepare: async (page) => {
+      await expect(page.getByRole("button", { name: "Sign me in" })).toBeVisible();
+    },
+  },
+  {
+    id: "signin-confirm-incomplete",
+    route: "/signin/confirm",
+    description: "sign-in confirmation page opened without a token",
+    auth: "guest",
+    status: 200,
+    path: () => "/signin/confirm",
+    prepare: async (page) => {
+      await expect(page.getByRole("link", { name: /request a new sign-in link/i })).toBeVisible();
+    },
+  },
+  {
     // "denied": a signed-in MEMBER is refused this page outright — the
     // identical Next.js not-found response an unauthenticated visitor gets
     // (docs/final-decisions.md, "MVP-020 open questions 46, 47 and 48",
