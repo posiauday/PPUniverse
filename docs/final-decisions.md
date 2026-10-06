@@ -1843,3 +1843,43 @@ The product owner asked to stop running migrations by hand (*"i want to make thi
 - **Fail-safe:** a missing variable, an invalid URL, or a port-6543 URL fails the production build with a clear message. Deploy previews never run migrations.
 - **Amended 2026-10-06:** three production builds stopped with "port 6543", although the product owner's Netlify values all showed 5432. To stop depending on that value, the script now uses `MIGRATE_DATABASE_URL` if set, otherwise the site's `DATABASE_URL`. A Supabase pooler address on 6543 is switched to 5432, the same host, user and password in session mode (Supabase docs, "Connecting to Postgres"). The build log shows the variable name, host and port it used, never the password. `MIGRATE_DATABASE_URL` is now optional. A 6543 address on any other host still fails the build.
 - **Approval:** merging the release PR into `main` is the deployment approval for its migrations (CLAUDE.md, "No direct production changes"). Migrations stay additive and reversible, as before.
+
+## 2026-10-06 — Hub framing, reference pages, trust signals and community solutions
+
+### Hub taglines, top-fix chips, daily reference row, scoped search (approved)
+The product owner approved the proposal in `docs/research/technology-daily-needs.md`: each hub describes the product's job, not one guide's problem. They also asked to start writing content now, researched in depth.
+- **Taglines:**
+  - Power Apps "Build, fix and speed up your apps";
+  - Power Automate "Flows that run, and tell you when they don't";
+  - Power BI "Reports people trust, refreshed on time";
+  - Copilot Studio "Agents that answer well and act safely";
+  - Dataverse "Data your apps and flows can rely on";
+  - Power Pages "Secure sites for people outside your org";
+  - Governance & admin keeps "Guardrails that don't slow makers down".
+- **Top-fix chips:** each hub's chips come from Microsoft's most-documented problems for that product (the research note lists them).
+- **Daily reference row:** a row of quick-lookup pages on every hub (error codes, limits, cheat sheets, checklists). This delivers the "Quick reference" row approved on 2026-10-02. It is a new content kind, `REFERENCE`.
+- **Scoped search:** a hub's search box searches that technology only.
+- **Process:** drawn on the design board first, then built; same design system.
+
+### Trust signals on fixes and reference pages (approved)
+The product owner selected all four:
+1. **Source-checked:** "Checked against Microsoft Learn on <date>", with every step linked to Microsoft's page.
+2. **Tested by us:** shown only when an admin records that the fix was run in a real tenant, with the date and product version. Agents never mark something tested.
+3. **"Did this fix it?" votes:** anonymous Yes/No, with no sign-in and no personal data stored. A fix shows as "Accepted" once enough readers say yes; the threshold is set when built.
+4. **Last-reviewed date and "this changed" reports:** pages are re-checked after 6 months, or sooner if readers report a change.
+
+### Community solutions (approved in principle; approach researched)
+The product owner asked to let readers add their own solutions, which can be marked as the solution, and asked for the best approach. Research:
+- Google's spam policies make site owners responsible for user-generated spam.
+- Google recommends `rel="ugc"` on links in user content.
+- The BRD scopes the first release as "not a complete social network".
+
+The approach:
+- **Who can post:** signed-in readers only, rate-limited.
+- **Moderation first:** a submission is hidden until an admin approves it.
+- **Format:** plain text and code blocks only, with no HTML; links get `rel="ugc nofollow"`.
+- **Accepted answer:** an admin can mark one community solution as the accepted fix, pinned with a badge.
+- **Reports:** readers can report a posted solution.
+- **Before it ships:** Terms (a licence for what people post) and Privacy (display name) updates, which need the product owner's approval of the wording.
+
+Delivery: MVP-037 (hub framing), MVP-038 (reference type and trust signals 1, 2 and 4), MVP-039 (votes and accepted fixes), MVP-040 (community solutions). Content is written in parallel as drafts, researched against Microsoft Learn; agents never publish.
