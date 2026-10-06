@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-03 — **MVP-033 (Navigation restructure) moves to QA:** all four slices are built in PR #62.
+Last updated: 2026-10-06 — **MVP-036 (Email and password sign-in) moves to QA:** sign-up with a confirmed email, sign-in, forgot and reset password, in its own PR.
+- **Security:** scrypt hashing, the Have I Been Pwned check, attempt limits per account and per IP address, and single-use 1-hour links. The as-built review found and fixed two timing leaks: `docs/plans/mvp-036-password-sign-in.md`.
+- **Privacy notice:** new version 2026-10-07 (migration `20261007000100`).
+- **Board correction:** MVP-034 (PR #71) and MVP-035 (PR #72) were already merged into `develop`, but the backlog still showed In Progress and Backlog. Both are now QA.
+- **Next:** the product owner merges the MVP-036 PR. Then the guide and hub redesign (MVP-037, 038, 039, 041, 042; `docs/plans/guide-and-hub-redesign.md`).
+
+Last updated (previous): 2026-10-03 — **MVP-033 (Navigation restructure) moves to QA:** all four slices are built in PR #62.
 - **Slice D:** the Updates page and deprecation tracker, the admin pages for updates, an animated "new" badge (browser-only storage, still under reduced motion), and the Privacy notice updated in the same change.
 - **Drafts:** four platform-update drafts are in `content/updates`, each checked against Microsoft Learn.
 - **Production:** apply migrations `20261003000000` to `20261003000300` with the 5432 connection before deploying. Then run `updates:import` and publish the drafts after checking them.
@@ -151,14 +157,14 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
+| Backlog | 11 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-038, MVP-039, MVP-040, MVP-041, MVP-042 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 4 | MVP-033 (Navigation restructure; PR #62), MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
+| In Progress | 3 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-037 |
+| QA | 7 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **32** | |
+| **Total** | **42** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -252,11 +258,12 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 19 / 32 (59%)
-- Stories in QA: 3 / 32 (MVP-029, MVP-031, MVP-032)
-- Points done: 139 / 232 (60%)
-- P0 points done: 103 / 145 (71%)
-- P1 points done: 36 / 87 (41%)
+- Stories done: 19 / 40 active (48%); 2 more are Superseded (42 on the board)
+- Stories in QA: 7 / 40 (MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036)
+- Points done: 139 / 283 (49%), not counting the 13 Superseded points
+- P0 points done: 103 / 132 (78%)
+- P1 points done: 36 / 141 (26%)
+- P2 points done: 0 / 10
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
 - Open tech debt: 19 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-024 added by MVP-031; TD-010 partially resolved
 - Stories blocked: 0
@@ -264,6 +271,8 @@ Full detail on every story is in `planning/progress-report.md`.
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
 
 ## Remaining work summary
+
+**Updated 2026-10-06: 21 of 40 active stories remain (144 of 283 points).** 7 of them are in QA, mostly waiting for product-owner review, merge or publishing: MVP-029, 031, 032, 033, 034, 035 and 036. The table below is the earlier per-sprint view (2026-09-28), kept for history. Sprint 8 adds MVP-034 to MVP-042: MVP-034, 035 and 036 are in QA; MVP-037 is in progress; MVP-038 to 042 are in the backlog.
 
 **7 of 25 stories remain as active backlog work (44 of 170 points)** — updated 2026-09-28. MVP-014 (3 points) and MVP-019 (13 points) are now Done. Two stories (MVP-011, MVP-013, 13 points combined) are Superseded, not Done and not counted as remaining; they are off the active board per `docs/final-decisions.md`, "First-party-only publishing model." (16 Done + 7 remaining + 2 Superseded = 25 total.)
 
@@ -298,6 +307,16 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 MVP-025 cannot start until every P0 story above it is Done.
 
 ## Next story recommendation
+
+**Updated 2026-10-06.** By dependency (every `Depends on` story Done), four stories are unblocked:
+- MVP-007, gated by open questions 3 and 7;
+- MVP-024;
+- **MVP-041 (Article visuals)**;
+- **MVP-042 (SEO additions)**.
+
+**Recommended next: MVP-041 and MVP-042,** the product owner's chosen next work after password sign-in. They are the first, dependency-free slices of the guide and hub redesign (`docs/plans/guide-and-hub-redesign.md`).
+
+MVP-037 (Hub framing) is already in progress, but it formally waits on MVP-033, which is in QA until the product owner closes it. MVP-040 (Community solutions) now needs only MVP-038, because MVP-036 gives it signed-in readers with passwords once MVP-036 is Done.
 
 **Updated 2026-09-28.** MVP-014 and MVP-019 are **Done**. Every remaining story is now either blocked on another story or gated on an open product decision. The launch critical path is `MVP-007` (Checkout) → `MVP-008` (webhook fulfilment) → `MVP-009` (signed downloads) → `MVP-025`, and it starts with **MVP-007, which is Ready by dependency but gated on open questions 3 (countries/currencies/tax/refunds) and 7 (pricing)** — answers only the product owner can give. The Stripe direction and MVP-007 pre-work already exist on the unmerged `docs/mvp-007-stripe-checkout-prework` branch, so answering those two questions is the single highest-leverage unblock. **MVP-024 (Support case workflow, P1)** is newly dependency-unblocked by MVP-019, but its acceptance criterion links a case to an *order*, and no `Order` model exists until MVP-007/008 — it can only be partly built today. Recommendation: answer open questions 3 and 7 so MVP-007 can start; MVP-024 pre-work is the fallback if those answers are not coming soon.
 

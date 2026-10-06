@@ -21,11 +21,11 @@ export const POLICY_EFFECTIVE_DATE = "2026-10-02";
 export const POLICY_EFFECTIVE_LABEL = "October 2, 2026";
 
 /** The date the current Privacy notice took effect: it last changed when
- * Google sign-in was added (MVP-035), after the Updates badge (MVP-033).
- * Its PolicyVersion row is migration
- * 20261006000000_add_privacy_policy_version_2026_10_06. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-06";
-export const PRIVACY_EFFECTIVE_LABEL = "October 6, 2026";
+ * email and password sign-in was added (MVP-036), after Google sign-in
+ * (MVP-035). Its PolicyVersion row is migration
+ * 20261007000100_add_privacy_policy_version_2026_10_07. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-07";
+export const PRIVACY_EFFECTIVE_LABEL = "October 7, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms";
@@ -111,11 +111,13 @@ LowCodeStacks is run by ${OPERATOR_NAME}, in Saskatchewan, Canada, who is respon
 
 ## When you sign in
 
-You can sign in with a link sent to your email, or with your Google account. When you sign in, we store:
+You can sign in with a password, with a link sent to your email, or with your Google account. When you sign in, we store:
 
 - **Your email address**, and when you confirmed it.
 - **If you use Google:** Google tells us your email address, your name and your Google account's ID, which we store so we know it's you next time. We don't store your profile photo or any access to your Google account, and we never act in your Google account. Google's own privacy policy covers what Google does when you use it to sign in.
-- **Your sign-in sessions:** when each started and when it expires (after 30 days). You can see and end them on your account page. Sign-in links expire after 24 hours.
+- **If you choose a password:** only a scrambled form of it (a salted hash), never the password itself. When you choose one, our server checks it against Have I Been Pwned's list of passwords exposed in data breaches. Only the first 5 characters of a hash of your password are sent, so the service never learns your password or your email address.
+- **Failed sign-in attempts:** to stop people guessing passwords, we count recent failed attempts for each email address and each network (IP) address. Both are stored only as hashes, and each count is deleted a day after it was last used.
+- **Your sign-in sessions:** when each started and when it expires (after 30 days). You can see and end them on your account page. Sign-in links expire after 24 hours. Links to confirm your email or set a password expire after 1 hour, and are deleted a day after that.
 - **Your choices:** whether you accepted the Terms, and whether you agreed to receive optional emails, each with the date.
 - **A record of emails we sent you:** the type of email and whether it was sent. Not the address or the content.
 - **Deletion requests**, if you make one, and what happened to them.
@@ -123,7 +125,7 @@ You can sign in with a link sent to your email, or with your Google account. Whe
 
 ## Emails
 
-We send email only when you ask for it: a sign-in link, or confirmation of a request you made. We don't currently send newsletters or marketing email. If we ever do, it will be only to people who opt in, every message will have an unsubscribe link, and you can switch it off on your account page at any time.
+We send email only when you ask for it: a sign-in link, a link to confirm your email or set a password, or confirmation of a request you made. We don't currently send newsletters or marketing email. If we ever do, it will be only to people who opt in, every message will have an unsubscribe link, and you can switch it off on your account page at any time.
 
 ## Cookies
 
@@ -155,6 +157,7 @@ We use a few service providers to run the site. They process information only to
 - **Supabase** hosts the database that stores account information.
 - **Resend** delivers the emails you ask for.
 - **Google** confirms who you are, if you choose to sign in with Google.
+- **Have I Been Pwned** checks new passwords against passwords exposed in data breaches. It receives only the first 5 characters of a hash, never your password or anything that identifies you.
 
 These providers may store or process information outside Canada, including in the United States. While it's there, it can be accessed by courts, law enforcement and national security authorities of that country under its laws.
 
@@ -163,7 +166,8 @@ We don't sell, rent or trade personal information. We would disclose it only if 
 ## How long we keep it
 
 - Account information is kept while your account exists.
-- Sign-in sessions expire after 30 days, and sign-in links after 24 hours.
+- Sign-in sessions expire after 30 days, sign-in links after 24 hours, and password links after 1 hour.
+- Counts of failed sign-in attempts are deleted a day after they were last used.
 - Records of your choices and of deletion requests are kept as proof of what you asked for, even after the rest of your account information is removed.
 - Logs are kept only as long as needed to run and protect the site.
 
@@ -177,7 +181,7 @@ If you're not satisfied with how we handle a privacy concern, please tell us fir
 
 ## How we protect it
 
-The site is served only over HTTPS. Sign-in links are single-use and expire. Account pages are visible only to you, and administrative actions are limited to the site's operator.
+The site is served only over HTTPS. Sign-in links are single-use and expire. Passwords are stored only as salted hashes. After 5 wrong passwords in 15 minutes, sign-in with a password is paused for 15 minutes, and choosing a new password signs you out on every other device. Account pages are visible only to you, and administrative actions are limited to the site's operator.
 
 ## Children
 

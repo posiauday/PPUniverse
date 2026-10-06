@@ -87,6 +87,14 @@ Without these two settings the site offers the email link only. To turn Google s
 
 The site stores only who the Google account is (its ID, email and name), never Google tokens or the profile photo (`apps/web/lib/google-auth.ts`).
 
+## 2c. Email and password sign-in (MVP-036)
+
+Nothing to set up: it uses the Resend settings from step 2 for its emails, and the leaked-password check (Have I Been Pwned's range API) needs no key. The migration `20261007000000_add_password_sign_in` runs with the others on deploy.
+
+- **Origin check:** every password form request must come from the address in `NEXT_PUBLIC_SITE_URL` (or `NEXTAUTH_URL` when that is unset). On production that is always true, because Netlify redirects `www` to the primary domain. On a **deploy preview**, which has its own address, the password forms answer "something went wrong": test them on production or locally.
+- **If Have I Been Pwned can't be reached** within 2 seconds, sign-up still works with the local checks, and the log shows `auth.password.breach_check_unavailable`.
+- **Locked out yourself?** After 5 wrong passwords in 15 minutes, password sign-in for that email pauses for 15 minutes. The email link and Google still work.
+
 ## 3. Netlify: the site
 
 1. Create a free Netlify account and choose **Add new project → Import an existing project → GitHub**, then pick `posiauday/PPUniverse`.
