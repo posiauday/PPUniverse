@@ -1891,3 +1891,13 @@ The product owner asked how images and snapshots would make the guides easier to
 - **Accessibility:** every image has alt text, and the steps it shows are also written in the text.
 - **Safety:** images are served only from this site. Articles can't load images from other domains. A test fails any article whose image file is missing or has no alt text.
 - **Delivery:** story MVP-041 (article visuals), built as a vertical slice: the article image component, storage in the repo, the validation test, and the accessibility checks. It comes before the first screenshots are added.
+
+## 2026-10-06 — SEO additions alongside the guide-page redesign
+
+The product owner reviewed `docs/research/seo-audit-2026-10-06.md` and chose all four proposed additions, by multiple choice:
+1. **Image in guide structured data:** each guide's existing 1200×630 share image (`/og/learn/{slug}`) becomes the `image` of its `TechArticle` JSON-LD.
+2. **A "How we write and check guides" page:** public, and linked from every guide. It explains research, the check against Microsoft Learn, product-owner review and the dates shown. The wording is shown to the product owner before it ships. Follows Google's guidance on explaining how content is created.
+3. **IndexNow ping on publish:** when an article or update is published, its URL is sent to `api.indexnow.org`, with the key file hosted on the site. Only public page URLs are sent, never personal data. Bing and other engines take part; Google isn't mentioned as a participant. A failed ping never blocks publishing.
+4. **A page-speed check in CI:** a Lighthouse budget keeps pages within Google's Core Web Vitals targets (LCP ≤ 2.5 s, INP < 200 ms, CLS < 0.1), so the new visuals and motion can't slow pages down.
+
+Also decided: start the guide-page and hub designs **now**, with 3 concepts on the design board, before PR #75 merges. Not adopted: FAQ and HowTo structured data, which Google no longer shows. Delivery: story MVP-042, built together with the chosen design.
