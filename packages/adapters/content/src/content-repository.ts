@@ -183,6 +183,7 @@ export class PrismaContentRepository implements ContentRepository {
   async searchPublishedArticles(options: {
     query: string;
     limit: number;
+    technology?: Technology;
   }): Promise<ArticleSearchHit[]> {
     const query = options.query.trim();
     if (!query) return [];
@@ -199,6 +200,10 @@ export class PrismaContentRepository implements ContentRepository {
       '\\]\\([^)]*\\)|[][#*_\`>|]', ' ', 'g'
     )`;
     const titleSource = Prisma.sql`translate(a."title", ${MARKERS}, '')`;
+    // A hub's search box (MVP-037) narrows to its own area; a bound parameter, never spliced.
+    const inArea = options.technology
+      ? Prisma.sql`AND a."technology"::text = ${options.technology}`
+      : Prisma.empty;
     const rows = await this.db.$queryRaw<
       Array<{
         slug: string;
@@ -217,7 +222,7 @@ export class PrismaContentRepository implements ContentRepository {
              ts_headline('english', ${titleSource}, q, ${TITLE_HEADLINE_OPTIONS}) AS "titleMarked",
              ts_headline('english', ${snippetSource}, q, ${SNIPPET_HEADLINE_OPTIONS}) AS "snippetMarked"
       FROM ${Prisma.raw(qualifiedTable("articles"))} a, websearch_to_tsquery('english', ${query}) q
-      WHERE a."status" = 'PUBLISHED' AND ${document} @@ q
+      WHERE a."status" = 'PUBLISHED' AND ${document} @@ q ${inArea}
       ORDER BY ts_rank(${document}, q) DESC, a."publishedAt" DESC, a."slug" ASC
       LIMIT ${options.limit}
     `;

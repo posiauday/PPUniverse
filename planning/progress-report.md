@@ -4760,3 +4760,35 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - **Second run:**
   - the identity adapter's password-flow integration test timed out at 5 s on the runner. Its package now allows 60 s, like `domain-identity`.
   - An intermittent overflow on the admin product editor was found in already-delivered work: [BUG-024](bugs/BUG-024.md), fixed in this PR.
+
+## 2026-10-06 — MVP-037: Fix first hubs on every area (status QA)
+
+**Story:** MVP-037 (Hub framing), built to the chosen H1 "Fix first" board on all seven areas, with Power BI drawn as the H2 journey (`docs/final-decisions.md`, "Guide page and hub designs chosen"). The product owner chose hubs first and delegated the five unapproved headlines; both are recorded in `docs/final-decisions.md`, "Hub headlines (all seven) and hub build order".
+
+**What each hub has:**
+- **Hero:** the area's name and headline, a search box limited to that area (`/search?tech=…`), and two to five "Most-needed fixes". Each fix links straight to its guide, and only shows while that guide is published.
+- **Hero picture (from 1280 px):** a flow mid-run for Power Automate, rising bars for Power BI, and the existing art for the other areas.
+- **"Look it up · keep these open":** the area's quick-reference guides, up to three.
+- **Every area:** each section as a card. Its guides carry Fix, Choose, Design, Measure or Look it up badges. The card shows the title up to its colon; the link's label is the full title (WCAG 2.5.3). Power BI shows five numbered stops instead, from "Model the data" to "Share it safely".
+- **"What changed":** the area's two latest updates, linking to `/updates#slug`.
+- **Search title and description:** per hub (`HUB_SEO`).
+
+**Files:**
+- **Hub:** `apps/web/lib/technology-hubs.ts` (headlines, fixes, journey, SEO; four stale "Coming" items removed); `apps/web/app/[technology]/{TechnologyHub,TechnologyHeroVisual,page}.tsx`; `apps/web/app/governance/page.tsx`; `apps/web/app/globals.css` (travel, blink and draw motions; reduced motion stops them).
+- **Search:** `apps/web/app/search/page.tsx` (the `tech` filter); `packages/domain/content/src/{types,updates}.ts` and `packages/adapters/content/src/{content-repository,update-repository}.ts` (optional technology filters, as bound parameters).
+- **Tests:** `technology-hubs.test.ts` (fixes point at real guides in the same area; journey matches the sections; SEO lengths), `pages.test.tsx`, `search-page.test.tsx`, the two adapter integration tests, and `packages/e2e/src/pages.ts`.
+
+**Caught and fixed before Done:**
+- A long unbreakable word (USERPRINCIPALNAME) overflowed a journey card.
+- At 1024 px the existing hero art overlapped the longer headlines. Hero art now shows from 1280 px.
+- A visually hidden span for the rest of each title gave links the wrong name ("E2E fixture : published"); links now carry an `aria-label`.
+- Exact h1 checks in the gate are now "contains the area name".
+
+**Commands:**
+- Web lint, typecheck and 649 tests pass; content adapter integration tests (12) pass against Postgres; build passes.
+- Accessibility gate, hub states plus distinct titles: 87 passed in all three browsers, Playwright exit 0.
+- Rendered against all 57 guides and 8 updates in a throwaway UTF-8 database, at 375 / 1024 / 1280 / 1440 px, light and dark.
+
+**Tech debt:** [TD-030](tech-debt/TD-030.md). Accessibility shards were cancelled at the 20-minute limit on four PRs today, with no failed test. Recommended fix: a fifth shard. A budget change needs the product owner.
+
+**Remaining:** CI on the PR; the product owner reviews and merges. Next: slice 1, the shared guide frame (MVP-038 part, MVP-042 part).

@@ -94,7 +94,7 @@ export interface UpdateRepository {
   /** Every update, every status, newest first: the admin list. */
   listUpdates(): Promise<UpdateRecord[]>;
   /** PUBLISHED updates, newest published first, at most `limit`. */
-  listPublishedUpdates(options: { limit: number }): Promise<PublishedUpdate[]>;
+  listPublishedUpdates(options: { limit: number; technology?: Technology }): Promise<PublishedUpdate[]>;
   /** The publishedAt of the newest PUBLISHED updates: all the header badge needs. */
   listPublishedUpdateTimes(limit: number): Promise<Date[]>;
 }

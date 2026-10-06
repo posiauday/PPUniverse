@@ -344,6 +344,17 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       expect(hits[1]?.snippetMarked).not.toContain(leftover);
     }
 
+    // A hub's search box (MVP-037): only that area's guides.
+    const apps = await repo.searchPublishedArticles({
+      query: "zyxquark",
+      limit: 10,
+      technology: "POWER_APPS",
+    });
+    expect(apps.map((hit) => hit.slug)).toEqual(["content-repo-search-title", "content-repo-search-body"]);
+    expect(
+      await repo.searchPublishedArticles({ query: "zyxquark", limit: 10, technology: "POWER_BI" }),
+    ).toEqual([]);
+
     expect(await repo.searchPublishedArticles({ query: "   ", limit: 10 })).toEqual([]);
     // Unbalanced quotes and operators are accepted, never a syntax error.
     await expect(

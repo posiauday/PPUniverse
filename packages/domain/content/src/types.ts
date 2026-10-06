@@ -172,5 +172,10 @@ export interface ContentRepository {
   /** PUBLISHED Articles matching a site search (MVP-031, open question 63),
    * best match first, at most `limit`. Full-text over the title, excerpt and
    * body, weighted in that order. A blank query matches nothing. */
-  searchPublishedArticles(options: { query: string; limit: number }): Promise<ArticleSearchHit[]>;
+  /** With `technology`, only that area's guides (a hub's own search box, MVP-037). */
+  searchPublishedArticles(options: {
+    query: string;
+    limit: number;
+    technology?: Technology;
+  }): Promise<ArticleSearchHit[]>;
 }

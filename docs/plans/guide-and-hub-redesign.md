@@ -66,9 +66,9 @@
 - End-to-end tests: the accessibility gate pages above; ticking steps updates the count; the pause control stops motion.
 
 ## Order
-1 → 3 → 2 → 4 → 5. The guide frame and hubs give the biggest visible and SEO gain first. Each slice is merged before the next starts.
+**3 → 1 → 2 → 4 → 5** (product owner, 2026-10-06: hubs first). Originally 1 → 3 → 2 → 4 → 5. The hubs and the guide frame give the biggest visible and SEO gain first. Each slice is merged before the next starts.
 
 ## Waiting on the product owner
-1. ~~Approve the hub headlines on the board.~~ Power Automate and Power BI approved 2026-10-06; the other five are drafted in `docs/final-decisions.md`.
+1. ~~Approve the hub headlines on the board.~~ Power Automate and Power BI approved 2026-10-06. The other five were delegated to the agent the same day: see `docs/final-decisions.md`, "Hub headlines (all seven)".
 2. ~~Approve the "How we write" page wording.~~ Approved 2026-10-06.
 3. Later, set `INDEXNOW_KEY` in Netlify (slice 5).
