@@ -4556,3 +4556,20 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - **Publishing:** the four drafts are only drafts. The product owner imports them (`updates:import`), checks each link, and publishes.
 
 **Remaining:** the product owner reviews PR #62, applies the migrations, imports and publishes the drafts, and answers open questions 65 to 69. MVP-033 is in **QA**.
+
+## 2026-10-05 — MVP-033 follow-up: Updates RSS feed and sitemap (open questions 65 to 69)
+
+**Decided:** the product owner answered open questions 65 to 69. For 66 the choice was delegated to research: RSS now, no email newsletter. See `docs/final-decisions.md`, "Updates page details: open questions 65 to 69".
+
+**Built:**
+- **Feed:** `lib/updates-feed.ts` (`buildUpdatesFeed`, RSS 2.0, XML-escaped) and the route `app/updates/feed.xml/route.ts`. It returns a 404 without a valid site origin, and a database error propagates rather than serving an empty feed.
+- **Updates page:** `/updates` gets a "Follow with RSS" link and the feed in its `<head>`.
+- **Sitemap:** `/updates` is listed once an update is published, and `MAX_SECTION_PATHS` reserves a slot for it.
+
+**Review of PR #62 (the cloud session):**
+- **Checked:** migrations, admin Updates authorization, source-link validation, the badge's storage and privacy text, the import script, TD-027, and the four update drafts against Microsoft's "important changes coming" page.
+- **Result:** nothing needed correcting.
+
+**Commands:** web typecheck, lint and unit tests (`lib`, `app`).
+
+**Remaining:** visual check of the RSS link (the CI a11y gate covers `/updates`); the release steps listed in PR #63's notes.
