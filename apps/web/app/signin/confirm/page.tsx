@@ -20,7 +20,7 @@ export default async function ConfirmSignInPage({ searchParams }: ConfirmPagePro
   const fields = confirmFormFields(await searchParams);
   if (!fields) {
     return (
-      <main>
+      <main className="[overflow-wrap:anywhere]">
         <h1>This sign-in link is incomplete</h1>
         <p>
           The link may have been cut off by your email app.{" "}
@@ -30,7 +30,7 @@ export default async function ConfirmSignInPage({ searchParams }: ConfirmPagePro
     );
   }
   return (
-    <main>
+    <main className="[overflow-wrap:anywhere]">
       <h1>Sign in to {SITE_NAME}</h1>
       <p>
         You&rsquo;re signing in as <strong>{fields.email}</strong>. Press the button to finish. The
