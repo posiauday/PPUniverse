@@ -4752,3 +4752,11 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - CI's full accessibility matrix on the PR.
 - The product owner reviews and merges.
 - After the next release, try sign-up on production with a real inbox.
+
+**CI follow-up (same day):**
+- **First run:**
+  - a JSON file failed the format check: my local check covered source files only;
+  - shard 4 passed all 477 tests, then hit the 20-minute job limit.
+- **Second run:**
+  - the identity adapter's password-flow integration test timed out at 5 s on the runner. Its package now allows 60 s, like `domain-identity`.
+  - An intermittent overflow on the admin product editor was found in already-delivered work: [BUG-024](bugs/BUG-024.md), fixed in this PR.
