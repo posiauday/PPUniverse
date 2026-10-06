@@ -1901,3 +1901,15 @@ The product owner reviewed `docs/research/seo-audit-2026-10-06.md` and chose all
 4. **A page-speed check in CI:** a Lighthouse budget keeps pages within Google's Core Web Vitals targets (LCP ≤ 2.5 s, INP < 200 ms, CLS < 0.1), so the new visuals and motion can't slow pages down.
 
 Also decided: start the guide-page and hub designs **now**, with 3 concepts on the design board, before PR #75 merges. Not adopted: FAQ and HowTo structured data, which Google no longer shows. Delivery: story MVP-042, built together with the chosen design.
+
+## 2026-10-06 — Guide page and hub designs chosen
+
+The product owner reviewed the design board's new row (G1–G3 guide concepts, H1–H2 hub concepts, and the "How we write" page) and chose by multiple choice:
+- **Guide page: "Mix by guide type".** One shared frame for every guide: G1's header, with the trust strip (Microsoft Learn check, date, number of sources, "How we write guides"), an optional quick-answer card, table of contents, side column, "Did this fix it?" and sources. Then by type:
+  - **Fix** guides (TUTORIAL) add G2's symptom picker and tick-off steps with a progress count;
+  - **Design** guides (PATTERN) add G3's animated diagram and Do / Don't cards;
+  - **Choose, Measure and Look it up** guides use the shared frame alone.
+- **Hubs: "H1, plus H2's journey for Power BI".** H1 (hub search, most-needed fixes, the "Look it up" row, every section with its guides, "What changed") is the standard hub. Power BI uses H2's numbered journey for its sections.
+- **Still to approve:** the hub headlines on the board, and the "How we write" page wording (including the AI-assistance sentence). Both are shown again before they ship.
+
+All motion follows the design system's rules: the resting state is the finished picture, it stops under `prefers-reduced-motion`, and anything moving for more than 5 seconds has a pause control. Delivery: MVP-037 (hub framing), MVP-038 (trust signals), MVP-039 (votes), MVP-041 (visuals) and MVP-042 (SEO), sequenced in `docs/plans/guide-and-hub-redesign.md`.
