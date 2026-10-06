@@ -25,8 +25,8 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
    - **Transaction pooler** (port **6543**). The site uses this. Add `?schema=public` to the end.
    - **Direct connection, or the session pooler** (port **5432**). Migrations use this. Also add `?schema=public`.
 3. **Migrations run automatically on every production release** (`docs/final-decisions.md`, 2026-10-05, "Production migrations run automatically on release"). The Netlify production build runs `packages/db/scripts/deploy-migrations.mjs` before building the site.
-   - **Set it up once:** in Netlify, go to **Site configuration > Environment variables** and add `MIGRATE_DATABASE_URL` with the **5432** string plus `?schema=public`. Scope it to **Builds** only and to the **Production** context only, and mark it secret. The site's runtime never reads it.
-   - **What the build does:** it applies pending migrations, then builds. If a migration fails, the build fails and Netlify keeps the previous deploy live. If the variable is missing or uses port 6543, the production build fails with a message saying so. Deploy previews never run migrations.
+   - **No extra setup is needed.** The script uses `MIGRATE_DATABASE_URL` if it's set, otherwise the site's own `DATABASE_URL`. Migrations can't use Supabase's transaction pooler (port 6543), so a Supabase pooler address on 6543 is switched to port **5432** (session mode). Supabase uses the same host, user and password for both. `MIGRATE_DATABASE_URL` is optional: set it only to migrate through a different connection, scoped to **Builds** and **Production**, and marked secret.
+   - **What the build does:** it logs which variable it used and the host and port (never the password), applies pending migrations, then builds. If a migration fails, the build fails and Netlify keeps the previous deploy live. If no usable connection is set, or a 6543 address isn't Supabase's pooler, the production build fails with a message saying so. Deploy previews never run migrations.
    - **To run migrations by hand** (first setup, or recovery), from your own machine:
 
      ```bash
