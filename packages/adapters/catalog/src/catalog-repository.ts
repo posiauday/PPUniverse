@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from "@ppu/db";
+import { Prisma, qualifiedTable, type PrismaClient } from "@ppu/db";
 import {
   isValidProductStatusTransition,
   isValidProductStatusChangeTransition,
@@ -164,6 +164,9 @@ export class PrismaCatalogRepository implements CatalogRepository {
    * returns the total matching row count on every row without a second
    * round trip; LIMIT/OFFSET is applied after that window computation, so
    * the total is correct even though only one page of rows comes back.
+   * Table names are schema-qualified with `qualifiedTable()` so the query
+   * never depends on the session's search_path (MVP-030: transaction
+   * poolers don't carry it).
    */
   async searchProducts(options: SearchOptions): Promise<SearchResult> {
     const offset = (options.page - 1) * options.pageSize;
@@ -192,8 +195,8 @@ export class PrismaCatalogRepository implements CatalogRepository {
         c."id" AS "categoryRowId", c."slug" AS "categorySlug", c."name" AS "categoryName",
         c."description" AS "categoryDescription", c."assetType" AS "categoryAssetType",
         COUNT(*) OVER() AS "total"
-      FROM "products" p
-      JOIN "categories" c ON c."id" = p."categoryId"
+      FROM ${Prisma.raw(qualifiedTable("products"))} p
+      JOIN ${Prisma.raw(qualifiedTable("categories"))} c ON c."id" = p."categoryId"
       WHERE ${whereSql}
       ORDER BY ${orderBySql}
       LIMIT ${options.pageSize} OFFSET ${offset}

@@ -21,24 +21,49 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
 ## 1. Supabase: database and migrations
 
 1. **Use the Supabase project** recorded in `docs/final-decisions.md`, or create one. Note its **region**: the Netlify functions region should match it (open question 5).
-2. **Copy two connection strings** from the project's **Connect** panel:
-   - **Transaction pooler** (port **6543**). The site uses this. Add `?schema=public` to the end.
-   - **Direct connection, or the session pooler** (port **5432**). Migrations use this. Also add `?schema=public`.
+2. **Copy two connection strings** from the project's **Connect** panel, and put your database password into each in place of `[YOUR-PASSWORD]`:
+   - **Transaction pooler**, host `aws-0-<region>.pooler.supabase.com`, port **6543**. **The site uses this**, and it goes into Netlify. Add `?schema=public` to the end.
+   - **Session pooler**, the same host, port **5432**. **Migrations use this.** Release builds switch to it automatically, so you only need it to run migrations or imports by hand. Add `?schema=public` to the end.
+
+   Use a database password with **only letters and digits**. `@`, `#`, `/`, `:` and `?` break the connection string unless they're percent-encoded. Each string must contain exactly **one** `@`, before the host.
+
+   **Don't use the "Direct connection"** (`db.<ref>.supabase.co`) for migrations. On the free plan it's reachable only over IPv6, and many home networks are IPv4-only, so it fails with "Can't reach database server".
 3. **Migrations run automatically on every production release** (`docs/final-decisions.md`, 2026-10-05, "Production migrations run automatically on release"). The Netlify production build runs `packages/db/scripts/deploy-migrations.mjs` before building the site.
    - **No extra setup is needed.** The script uses `MIGRATE_DATABASE_URL` if it's set, otherwise the site's own `DATABASE_URL`. Migrations can't use Supabase's transaction pooler (port 6543), so a Supabase pooler address on 6543 is switched to port **5432** (session mode). Supabase uses the same host, user and password for both. `MIGRATE_DATABASE_URL` is optional: set it only to migrate through a different connection, scoped to **Builds** and **Production**, and marked secret.
    - **What the build does:** it logs which variable it used and the host and port (never the password), applies pending migrations, then builds. If a migration fails, the build fails and Netlify keeps the previous deploy live. If no usable connection is set, or a 6543 address isn't Supabase's pooler, the production build fails with a message saying so. Deploy previews never run migrations.
-   - **To run migrations by hand** (first setup, or recovery), from your own machine:
+   - **To run migrations by hand** (first setup, or recovery): from your own machine, with the **Session pooler (5432)** string, in a checkout where `pnpm install` has been run.
 
-     ```bash
-     DATABASE_URL="<5432 connection string>?schema=public" pnpm --filter @ppu/db exec prisma migrate deploy
-     ```
+   **Windows Command Prompt** (one line at a time):
 
-   The migrations also enable row-level security on every table (`docs/final-decisions.md`, 2026-09-17).
+   ```bat
+   cd <repo>\packages\db
+   set "DATABASE_URL=<session pooler string>?schema=public"
+   npx prisma migrate deploy
+   ```
+
+   **PowerShell:**
+
+   ```powershell
+   cd <repo>\packages\db
+   $env:DATABASE_URL = "<session pooler string>?schema=public"
+   npx prisma migrate deploy
+   ```
+
+   **Git Bash, macOS or Linux:**
+
+   ```bash
+   cd <repo>/packages/db
+   DATABASE_URL="<session pooler string>?schema=public" npx prisma migrate deploy
+   ```
+
+   It should end with "All migrations have been successfully applied." The migrations enable row-level security on every table, including Prisma's own `_prisma_migrations` (migration `20261006000100_enable_rls_prisma_migrations`).
 
 > [!WARNING]
-> The 5432 string goes in Netlify only as `MIGRATE_DATABASE_URL`, scoped to Builds and Production. Never set it as `DATABASE_URL`: the site must use the 6543 pooler. Never run the test-schema provisioning script (`packages/db/scripts/provision-test-schemas.mjs`) against the production project.
+> - **Never run migrations through the 6543 transaction pooler.** Prisma takes a session-level advisory lock while migrating, and the transaction pooler can't hold one, so `migrate deploy` **hangs** after printing the datasource line. If that happens, press Ctrl+C and use the 5432 string.
+> - **The 5432 string goes in Netlify only as `MIGRATE_DATABASE_URL`** (optional; builds and Production only). Never set it as `DATABASE_URL`: the site must use the 6543 pooler.
+> - **Never run the test-schema provisioning script** (`packages/db/scripts/provision-test-schemas.mjs`) against the production project.
 
-Why two strings: serverless functions open many short-lived connections, and Supabase recommends its transaction pooler for them. Migrations need a session or direct connection. The app sends the `search_path` startup option only for non-`public` schemas, because transaction poolers don't pass startup options through (`packages/db/src/connection-options.ts`).
+Why two strings: serverless functions open many short-lived connections, and Supabase recommends its transaction pooler for them. Migrations need a session connection. The app never relies on session state such as `search_path`: every query is schema-qualified (`packages/db/src/database-schema.ts`), so it works through the transaction pooler.
 
 ## 2. Resend: sign-in email
 
@@ -69,6 +94,7 @@ Why two strings: serverless functions open many short-lived connections, and Sup
 | `RESEND_API_KEY` | The Resend key | Secret. **Required for sign-in.** Without it, production sends no email: sign-in shows "couldn't send", and nothing about the message is logged (BUG-019). Never set `EMAIL_TRANSPORT` in production; it exists only for test servers |
 | `EMAIL_UNSUBSCRIBE_SECRET` | A new random value | Secret. Never the same as `NEXTAUTH_SECRET` |
 | `SENTRY_DSN` | Leave unset for now | Optional |
+| `AWS_LAMBDA_JS_RUNTIME` | `nodejs22.x` | Not secret. Pins the **server functions** to Node 22, matching CI. `NODE_VERSION` in `netlify.toml` only sets the build image, and Netlify reads this variable only from the UI, CLI or API, never from `netlify.toml`. Without it, the first deploy ran on `nodejs24.x` |
 
 The `S3_*` and `CLAMAV_*` variables aren't needed at launch: no uploads or downloads happen until product downloads are built.
 
@@ -78,7 +104,7 @@ The `S3_*` and `CLAMAV_*` variables aren't needed at launch: no uploads or downl
 
 Netlify's documentation doesn't name Next.js 16 or `next/og` specifically, so the first build must confirm them. Check on the first deploy:
 
-- [ ] The build succeeds with pnpm (from `packageManager` in the root `package.json`) and Node 22.
+- [ ] The build succeeds with pnpm (from `packageManager` in the root `package.json`) and Node 22, and the deploy's server function reports runtime `nodejs22.x` (it shows `nodejs24.x` if `AWS_LAMBDA_JS_RUNTIME` is missing).
 - [ ] `/`, `/learn`, an article page, `/power-apps` and its tabs, and a product page all render, with data.
 - [ ] `/search?q=dataverse` returns results. This uses raw SQL through the transaction pooler.
 - [ ] `/og` and an article's share image return a PNG.
@@ -100,10 +126,31 @@ Use your real sign-in email. Sign out and back in, then open `/admin`.
 
 ## 6. Import the launch articles as drafts
 
-From your machine, using the **5432** string and your admin email:
+From your machine, with the **Session pooler (5432)** string and your admin email, after `pnpm build` has been run once in the checkout (the script uses the built adapter in `dist/`).
+
+**Windows Command Prompt:**
+
+```bat
+cd <repo>\packages\adapters\content
+set "DATABASE_URL=<session pooler string>?schema=public"
+set "ARTICLE_AUTHOR_EMAIL=you@example.com"
+node scripts\import-articles.mjs
+```
+
+**PowerShell:**
+
+```powershell
+cd <repo>\packages\adapters\content
+$env:DATABASE_URL = "<session pooler string>?schema=public"
+$env:ARTICLE_AUTHOR_EMAIL = "you@example.com"
+node scripts\import-articles.mjs
+```
+
+**Git Bash, macOS or Linux:**
 
 ```bash
-DATABASE_URL="<5432 connection string>?schema=public" ARTICLE_AUTHOR_EMAIL="you@example.com" pnpm --filter @ppu/adapter-content content:import
+cd <repo>/packages/adapters/content
+DATABASE_URL="<session pooler string>?schema=public" ARTICLE_AUTHOR_EMAIL="you@example.com" node scripts/import-articles.mjs
 ```
 
 The import creates **drafts only**. It skips any slug that already exists and imports nothing if any file is invalid. Review and publish each article in `/admin/content`.

@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from "@ppu/db";
+import { Prisma, qualifiedTable, type PrismaClient } from "@ppu/db";
 import {
   isValidArticleStatusTransition,
   SEARCH_MATCH_END,
@@ -216,7 +216,7 @@ export class PrismaContentRepository implements ContentRepository {
              a."technology"::text AS "technology", a."topic", a."excerpt", a."publishedAt",
              ts_headline('english', ${titleSource}, q, ${TITLE_HEADLINE_OPTIONS}) AS "titleMarked",
              ts_headline('english', ${snippetSource}, q, ${SNIPPET_HEADLINE_OPTIONS}) AS "snippetMarked"
-      FROM "articles" a, websearch_to_tsquery('english', ${query}) q
+      FROM ${Prisma.raw(qualifiedTable("articles"))} a, websearch_to_tsquery('english', ${query}) q
       WHERE a."status" = 'PUBLISHED' AND ${document} @@ q
       ORDER BY ts_rank(${document}, q) DESC, a."publishedAt" DESC, a."slug" ASC
       LIMIT ${options.limit}

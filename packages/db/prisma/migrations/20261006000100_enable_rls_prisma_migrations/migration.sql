@@ -1,0 +1,17 @@
+-- Row Level Security on Prisma's own migration-history table (MVP-030 review).
+--
+-- Every application table has RLS enabled with zero policies
+-- (docs/final-decisions.md 2026-09-17; rationale in migration
+-- 20260917020000_enable_row_level_security). `_prisma_migrations` is created
+-- by `prisma migrate deploy` itself, not by any migration, so it was the one
+-- table left without RLS. On Supabase that exposed it to the anon and
+-- authenticated roles through the PostgREST API: anyone holding the public
+-- anon key could read it, or insert rows marking a future migration as
+-- already applied so that `migrate deploy` would skip it.
+--
+-- Prisma creates the table before applying migrations, so it always exists
+-- here. Prisma connects as the table's owner, which bypasses RLS, so
+-- migration bookkeeping is unaffected. Enabling RLS on a table that already
+-- has it (production, where this was first applied by hand on 2026-10-01) is
+-- a no-op.
+ALTER TABLE "_prisma_migrations" ENABLE ROW LEVEL SECURITY;
