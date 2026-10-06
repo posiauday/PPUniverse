@@ -25,9 +25,27 @@ describe("parseArticleSource", () => {
         technology: "POWER_APPS",
         topic: "data-and-delegation",
         excerpt: "Why an app shows only part of your data.",
+        searchPhrase: null,
         body: "## Why it happens\n\nBody text.",
       },
     });
+  });
+
+  it("reads an optional search phrase, and refuses a keyword list or an over-long one", () => {
+    const withPhrase = parseArticleSource(
+      VALID.replace("excerpt:", 'searchPhrase: "power apps delegation 500 rows"\nexcerpt:'),
+    );
+    expect(withPhrase.ok && withPhrase.article.searchPhrase).toBe("power apps delegation 500 rows");
+    const list = parseArticleSource(
+      VALID.replace("excerpt:", "searchPhrase: delegation, power apps, 500 rows\nexcerpt:"),
+    );
+    expect(!list.ok && list.errors).toEqual([
+      "searchPhrase is one phrase, not a comma-separated keyword list",
+    ]);
+    const long = parseArticleSource(
+      VALID.replace("excerpt:", `searchPhrase: ${"a ".repeat(41)}\nexcerpt:`),
+    );
+    expect(!long.ok && long.errors).toEqual(["searchPhrase must be 80 characters or fewer"]);
   });
 
   it("accepts CRLF files and an omitted technology or excerpt", () => {
@@ -67,7 +85,7 @@ describe("parseArticleSource", () => {
     expect(!result.ok && result.errors).toEqual([
       "title is required and must be 200 characters or fewer",
       "slug must be lower-case and hyphen-separated",
-      "type must be TUTORIAL, PATTERN, COMPARISON or KPI_GUIDE",
+      "type must be TUTORIAL, PATTERN, COMPARISON, KPI_GUIDE or REFERENCE",
       "technology must be one of the seven areas, or omitted",
       "body is required",
     ]);

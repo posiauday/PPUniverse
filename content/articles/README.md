@@ -10,11 +10,12 @@ Each article is one Markdown file, reviewed in a pull request, then imported as 
 ---
 title: "The article's title"
 slug: the-article-slug
-type: TUTORIAL            # TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE
+type: TUTORIAL            # TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE | REFERENCE
 technology: POWER_APPS    # optional: one of the six products, or GOVERNANCE_ADMIN
 topic: data-and-delegation # optional: the hub section, one of that technology's
                           # TECHNOLOGY_TOPICS ids (packages/domain/content/src/technology.ts)
 excerpt: "One or two sentences for search results and cards."
+searchPhrase: "the words people type to find it"  # required for launch content
 ---
 The Markdown body.
 ```
@@ -28,7 +29,11 @@ In the body:
 ## Rules
 - **Original writing only.** Cite Microsoft Learn and other sources in a closing "Sources" list, and never copy their text.
 - **Examples** follow Microsoft's documented behaviour. Say "tested" only when an example has actually been run.
-- **Checks:** CI validates every file (`packages/adapters/content/src/content-files.test.ts`): it must parse, pass the admin editor's rules, have a unique slug, and sit in the right folder.
+- **Search phrase.** Pick the words a person would actually type, such as `power automate flow not triggering`. One phrase per article, never a list, and never the same as another article's. Use it naturally:
+  - every word of it in the title or the first 160 characters of the excerpt, with at least half in the title;
+  - at least half its words in the opening, before the first `##`;
+  - the exact phrase at most four times in the body. Repeating keywords is treated as spam by Google, and Google ignores the meta keywords tag.
+- **Checks:** CI validates every file (`packages/adapters/content/src/content-files.test.ts`): it must parse, pass the admin editor's rules, have a unique slug and title, sit in the right folder, and pass the search-phrase rules above.
 
 ## Import
 ```

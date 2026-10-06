@@ -5,6 +5,7 @@ type: KPI_GUIDE
 technology: POWER_APPS
 topic: adoption-and-usage
 excerpt: "Launches and active users tell you an app was opened, not that it helped. Six KPIs that show whether a Power Apps app is adopted and worth it, where each number comes from, and how to report time saved honestly."
+searchPhrase: "measure power apps adoption"
 ---
 "How many people use the app?" is the first question every sponsor asks, and the least useful answer is a single number of launches. An app can be opened a thousand times by people who give up, or fifty times by a team that now finishes a week's work in a day.
 

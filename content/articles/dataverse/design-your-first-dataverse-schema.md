@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: DATAVERSE
 topic: tables-and-schema
 excerpt: "Table names you can't change, an ownership setting you can't undo, and a lookup that reveals names to people who shouldn't see them. The decisions to get right before you create your first Dataverse table, worked through on a real example."
+searchPhrase: "dataverse table design"
 ---
 Dataverse makes creating a table look easy, and it is. What it doesn't make obvious is that several choices you make in the first five minutes can't be changed later. This tutorial works through a small schema and points out each decision that's permanent, so you make it on purpose.
 

@@ -5,6 +5,7 @@ type: KPI_GUIDE
 technology: DATAVERSE
 topic: data-quality
 excerpt: "Every report and agent built on Dataverse is only as good as the rows underneath it. Four KPIs that show whether the data can be trusted, how to measure each one, and which Dataverse features stop the problems at the source."
+searchPhrase: "dataverse data quality"
 ---
 When a report shows the wrong number or an agent gives a wrong answer, the cause is often not the report or the agent. It's the data: missing values, duplicate customers, records nobody has touched in years. Data quality is rarely measured, so it's rarely noticed until it causes a visible mistake.
 

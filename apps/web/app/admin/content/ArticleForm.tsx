@@ -8,7 +8,7 @@ import { TECHNOLOGY_OPTIONS, topicOptions } from "../../../lib/technology-option
 export interface ArticleFormValues {
   slug: string;
   title: string;
-  type: "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE";
+  type: "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE" | "REFERENCE";
   /** "" means no technology section (MVP-028). */
   technology: string;
   /** "" means none: the hub shows it in the area's first section (MVP-033). */

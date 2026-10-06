@@ -27,6 +27,7 @@ const SECTION_LINE: Readonly<Record<string, string>> = {
   COMPARISON: "Decide before you build.",
   PATTERN: "Structures that hold up as things grow.",
   KPI_GUIDE: "Know whether it's working.",
+  REFERENCE: "Error codes, limits and cheat sheets to keep open.",
 };
 
 /** Each goal's marker colour on the board: coral, violet, teal, amber. Written
@@ -36,6 +37,7 @@ const GOAL_DOT: Readonly<Record<string, string>> = {
   COMPARISON: "bg-accent",
   PATTERN: "bg-tech-copilot-ink",
   KPI_GUIDE: "bg-tech-bi-ink",
+  REFERENCE: "bg-tech-automate-ink",
 };
 
 /** The technology filter's value, from `?technology=<slug>`: a technology,

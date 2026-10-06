@@ -4602,3 +4602,97 @@ The technology tiles were removed from `/learn` because the board has none, so `
 **Commands:** web typecheck, lint and unit tests (`lib`, `app`).
 
 **Remaining:** visual check of the RSS link (the CI a11y gate covers `/updates`); the release steps listed in PR #63's notes.
+
+## 2026-10-06 — MVP-038 (partial): REFERENCE type and the first seven reference pages
+
+**Built:**
+- **`REFERENCE` article type:** an additive enum migration `20261006000200`, the content model, admin form and validation, and a "Look it up" section on `/learn`.
+- **Seven reference pages,** one per area, imported as drafts on release:
+  - Power Automate: cloud flow error codes;
+  - Power Apps: delegation cheat sheet;
+  - Power BI: refresh failures checklist;
+  - Dataverse: access cheat sheet;
+  - Copilot Studio: knowledge limits and fixes;
+  - Power Pages: data security checklist;
+  - Governance: data policy checklist.
+- **Research:** every page is original writing, checked against Microsoft Learn on 2026-10-06, with 6–9 sources each.
+- **Caught while fact-checking (before commit):**
+  - a SharePoint `UpdateIf`/`RemoveIf` claim, rewritten to match Microsoft's footnote;
+  - `App.Formulas` named-formula syntax;
+  - a Dataverse team-role rule where Microsoft's older developer page and newer admin page disagree (the newer, specific rule is used);
+  - an unverified "generative is the default" claim, removed;
+  - Microsoft's two pages disagree on Power Automate request limits; both figures are explained (per-flow during the transition, per-user after).
+
+**Checks:** content validation (31 files), and domain and web unit tests pass.
+
+**Remaining for MVP-038:**
+- the trust signals: source-checked date and badge, tested-by-us badge, last-reviewed date and "this changed" reports;
+- the hub Daily reference row (MVP-037).
+
+## 2026-10-06 — Content: the remaining approved Power Automate titles, the cross-technology research brief and article visuals decision
+
+**Built:**
+- **Seven Power Automate pages,** all from the 13 titles the product owner approved. Power Automate now has 19 items, and every hub section holds at least 2:
+  - Restore a deleted flow;
+  - Child flows that fail well;
+  - Approval actions compared;
+  - Cloud flow, agent flow or desktop flow?;
+  - Files and attachments in flows;
+  - Reminder emails for items due soon;
+  - UI elements that survive changes.
+- **Research brief** `docs/research/content-briefs/cross-technology-2026-10-06.md`:
+  - threads with verified or accepted answers (asked 8 Sep to 5 Oct 2026) from the Power Platform and Fabric communities, read only and paraphrased, with no usernames recorded;
+  - each theme checked against Microsoft Learn;
+  - proposed titles for Power BI, Power Pages, Copilot Studio and Power Apps, **awaiting the product owner's approval**.
+- **Two platform-update drafts:** the gateway sign-in update (enforced 31 Aug 2026), and old Power BI Desktop versions losing OneDrive and SharePoint saving (October 2026).
+- **Decision recorded:** "Article visuals" in `docs/final-decisions.md`, plus backlog story MVP-041. Answer chosen: "Diagrams + own screenshots", in the Daylight style with motion where it helps.
+
+**Caught while fact-checking (before commit):**
+- Microsoft says response actions belong **outside** scopes, so the child-flow pattern now sets variables in Try and Catch, and responds once after both scopes.
+- Microsoft's approval-actions comparison still mentions mobile-app push notifications. The page instead points mobile approvers to Teams, because the mobile app was retired on 31 August 2026.
+- An unsourced "SharePoint stores dates in UTC" line was softened. The reminder pattern compares calendar days after `convertTimeZone`, so it doesn't depend on it.
+
+**Checks:** content validation passes (56 tests).
+
+**Remaining:**
+- the product owner approves the cross-technology titles;
+- MVP-041 (article visuals) is built before any screenshot is added;
+- the remaining update candidates in the brief.
+
+## 2026-10-06 — Content: the 12 approved cross-technology titles, and four more update drafts
+
+**Built:** all 12 titles the product owner approved from `docs/research/content-briefs/cross-technology-2026-10-06.md`.
+- **Power BI:**
+  - Move, upgrade or share a gateway;
+  - Permissions cheat sheet;
+  - Refresh on your terms;
+  - Dynamic row-level security;
+  - Incremental refresh: set up and verify.
+- **Power Pages:**
+  - Licensing explained;
+  - Invite users;
+  - Web API cheat sheet, which leads with the **14 Sep 2026** wildcard removal.
+- **Copilot Studio:**
+  - Licensing and Copilot Credits;
+  - Ground an agent on Dataverse tables.
+- **Power Apps:** Save attachments and photos to SharePoint.
+- **Governance:** Why did I get a Dataverse capacity email?, including the September 2026 storage validation stages.
+- **Update drafts:**
+  - the Power Pages Web API wildcard removal (2026-09-14);
+  - table permissions always enforced on Power Pages forms and lists (June 2026).
+
+**Caught while fact-checking (before commit):**
+- **Test as role** in the service uses the tester's own UPN for dynamic RLS. The permissions cheat sheet now points to **View as → Other user** in Desktop instead.
+- Unverified claims were removed or softened:
+  - that Dataverse knowledge answers "respect each user's security", now Microsoft's general security statement with an instruction to test;
+  - invitation error codes;
+  - which features provision Dataverse (Approvals only, as documented);
+  - storage clean-up culprits, replaced with Microsoft's per-table methods.
+- The Power Pages Web API wrapper is labelled as a shortened version of Microsoft's sample.
+
+**Checks:** content validation passes (70 tests).
+
+**Remaining:**
+- the product owner reviews PR #75 and merges;
+- drafts import on the next release, and the product owner publishes them;
+- MVP-041 (article visuals) comes before any screenshot.

@@ -4,7 +4,8 @@ slug: try-catch-finally-scopes
 type: PATTERN
 technology: POWER_AUTOMATE
 topic: errors-and-limits
-excerpt: "By default a failed action just stops the flow, and the owner may never hear about it. The try-catch-finally pattern with scopes makes every failure visible, logged and handled."
+excerpt: "In Power Automate, a failed action just stops the flow by default, and the owner may never hear about it. The try-catch-finally pattern with scopes makes every failure visible, logged and handled."
+searchPhrase: "power automate try catch"
 ---
 When an action in a cloud flow fails, the flow stops and the run is marked failed. The owner may or may not get an email: Microsoft sends per-run failure alerts only for some errors, and only if alerts are on for that flow. For anything that matters, the business finds out when someone asks, "why didn't I get my confirmation?"
 
