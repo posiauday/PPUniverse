@@ -806,6 +806,62 @@ samp {
    the accessibility gate caught in CI (it runs with reduced motion on):
    focus rings measured as the element's white text colour at the default
    3px width, mid-transition. `none` has no in-between state to observe. */
+/* "Continue with Google" (apps/web/app/signin/GoogleButton.tsx): Google's
+   light theme, exactly -- #FFFFFF fill, #747775 1px stroke, #1F1F1F text,
+   Google Sans Medium 14/20, 12px / 10px / 12px padding -- in both site
+   themes (see the component for why). Fixed colours, not theme tokens, on
+   purpose: they are Google's, not ours. 44px tall and as wide as the form's
+   fields, like the site's other primary controls. Hover adds the same grey
+   state layer and lift as Google's own button. */
+.google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 32rem;
+  min-height: 2.75rem;
+  padding: 0 12px;
+  border: 1px solid #747775;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f1f1f;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+.google-button svg {
+  flex: none;
+}
+.google-button:hover {
+  background-color: #f2f2f2;
+  box-shadow:
+    0 1px 2px 0 rgb(60 64 67 / 0.3),
+    0 1px 3px 1px rgb(60 64 67 / 0.15);
+}
+
+/* The "or" rule between Google and the email form on /signin. */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  max-width: 32rem;
+  margin-block: 1.5rem 0.25rem;
+  color: var(--color-muted-foreground);
+  font-size: 0.875rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--color-border);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

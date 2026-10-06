@@ -52,7 +52,13 @@ vi.mock("next-auth/next", () => ({ getServerSession: vi.fn().mockResolvedValue(n
 // Next.js build; these tests read the layout's metadata, not its fonts.
 vi.mock("next/font/google", () => {
   const font = () => ({ className: "font", variable: "--font", style: {} });
-  return { Bricolage_Grotesque: font, Instrument_Serif: font, Geist: font, Geist_Mono: font };
+  return {
+    Bricolage_Grotesque: font,
+    Instrument_Serif: font,
+    Geist: font,
+    Geist_Mono: font,
+    Google_Sans: font,
+  };
 });
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
