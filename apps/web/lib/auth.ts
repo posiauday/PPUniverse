@@ -3,6 +3,7 @@ import { prisma } from "@ppu/db";
 import type { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { EMAIL_FROM, notificationService } from "./email";
+import { googleCredentials, googleProvider, withoutStoredTokens } from "./google-auth";
 import { SITE_NAME } from "./seo/site";
 import { confirmLinkFrom } from "./signin-confirm";
 
@@ -11,8 +12,12 @@ import { confirmLinkFrom } from "./signin-confirm";
 // Resend-or-console selection, shared with every other send site so there
 // is never a second parallel sending path.
 
+// MVP-035: on only when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set.
+const google = googleCredentials();
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Linking a Google account stores who it is, never Google's tokens.
+  adapter: withoutStoredTokens(PrismaAdapter(prisma)),
   session: { strategy: "database" },
   pages: { signIn: "/signin" },
   callbacks: {
@@ -50,5 +55,6 @@ export const authOptions: NextAuthOptions = {
         });
       },
     }),
+    ...(google ? [googleProvider(google)] : []),
   ],
 };

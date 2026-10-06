@@ -1,9 +1,17 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getProviders, signIn } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 
 export default function SignInPage() {
+  // MVP-035: the Google button shows only when the server has Google sign-in
+  // turned on (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET set).
+  const [googleOn, setGoogleOn] = useState(false);
+  useEffect(() => {
+    getProviders()
+      .then((providers) => setGoogleOn(Boolean(providers?.["google"])))
+      .catch(() => setGoogleOn(false));
+  }, []);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +65,17 @@ export default function SignInPage() {
   return (
     <main>
       <h1>Sign in</h1>
+      {googleOn ? (
+        <>
+          <button
+            type="button"
+            onClick={() => void signIn("google", { callbackUrl: "/account/sessions" })}
+          >
+            Continue with Google
+          </button>
+          <p>Or use your email:</p>
+        </>
+      ) : null}
       <p>
         Enter your email address. We&rsquo;ll send you a link to sign in — no password needed. New
         here? The same link creates your account and verifies your email.

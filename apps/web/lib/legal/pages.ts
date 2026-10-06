@@ -20,12 +20,12 @@ export const CONTACT_EMAIL = "contact@lowcodestacks.com";
 export const POLICY_EFFECTIVE_DATE = "2026-10-02";
 export const POLICY_EFFECTIVE_LABEL = "October 2, 2026";
 
-/** The date the current Privacy notice took effect: it changed when the
- * Updates badge shipped (MVP-033 slice D), which keeps a date in the
- * visitor's browser. Its PolicyVersion row is migration
- * 20261003000300_add_privacy_policy_version_2026_10_03. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-03";
-export const PRIVACY_EFFECTIVE_LABEL = "October 3, 2026";
+/** The date the current Privacy notice took effect: it last changed when
+ * Google sign-in was added (MVP-035), after the Updates badge (MVP-033).
+ * Its PolicyVersion row is migration
+ * 20261006000000_add_privacy_policy_version_2026_10_06. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-06";
+export const PRIVACY_EFFECTIVE_LABEL = "October 6, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms";
@@ -111,9 +111,10 @@ LowCodeStacks is run by ${OPERATOR_NAME}, in Saskatchewan, Canada, who is respon
 
 ## When you sign in
 
-Signing in is by a link sent to your email; there's no password. When you sign in, we store:
+You can sign in with a link sent to your email, or with your Google account. When you sign in, we store:
 
 - **Your email address**, and when you confirmed it.
+- **If you use Google:** Google tells us your email address, your name and your Google account's ID, which we store so we know it's you next time. We don't store your profile photo or any access to your Google account, and we never act in your Google account. Google's own privacy policy covers what Google does when you use it to sign in.
 - **Your sign-in sessions:** when each started and when it expires (after 30 days). You can see and end them on your account page. Sign-in links expire after 24 hours.
 - **Your choices:** whether you accepted the Terms, and whether you agreed to receive optional emails, each with the date.
 - **A record of emails we sent you:** the type of email and whether it was sent. Not the address or the content.
@@ -153,6 +154,7 @@ We use a few service providers to run the site. They process information only to
 - **Netlify** hosts the website.
 - **Supabase** hosts the database that stores account information.
 - **Resend** delivers the emails you ask for.
+- **Google** confirms who you are, if you choose to sign in with Google.
 
 These providers may store or process information outside Canada, including in the United States. While it's there, it can be accessed by courts, law enforcement and national security authorities of that country under its laws.
 
