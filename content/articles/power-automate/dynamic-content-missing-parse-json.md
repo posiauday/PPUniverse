@@ -5,8 +5,9 @@ type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: triggers-and-design
 excerpt: "Why a field you know exists doesn't appear in the dynamic content picker, why Apply to each appears out of nowhere, and how to read any value from webhook or HTTP JSON with Parse JSON or a safe expression."
+searchPhrase: "dynamic content missing parse json"
 ---
-You know the value is there: you can see it in the run history. But the dynamic content picker doesn't offer it, or shows "No dynamic content available", or picking it wraps your action in an **Apply to each** you didn't ask for. Here's what's going on, and how to get any value out.
+You know the value is there: you can see it in the run history. But it's missing from the dynamic content picker, or the picker shows "No dynamic content available", or picking it wraps your action in an **Apply to each** you didn't ask for. Here's what's going on, and how to get any value out with **Parse JSON** or an expression.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.

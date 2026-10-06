@@ -4,7 +4,8 @@ slug: star-schema-from-messy-exports
 type: TUTORIAL
 technology: POWER_BI
 topic: data-modelling
-excerpt: "One wide export loaded as one table works until the report grows. Here is how to split a flat file into fact and dimension tables in Power Query, step by step, so the model stays fast and the numbers stay right."
+excerpt: "One wide export loaded as one Power BI table works until the report grows. Here is how to split a flat file into fact and dimension tables in Power Query, step by step, so the model stays fast and the numbers stay right."
+searchPhrase: "power bi star schema"
 ---
 Most Power BI reports start the same way: someone exports a spreadsheet from a system, loads it as a single table, and builds visuals on it. It works at first. Then the file grows, a second export arrives that needs to line up with the first, and totals start behaving strangely.
 

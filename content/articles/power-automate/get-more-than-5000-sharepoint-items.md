@@ -5,8 +5,9 @@ type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: triggers-and-design
 excerpt: "Why Get items returns 100 rows, stops at 5,000 or fails with 'exceeds the list view threshold', and the four fixes in order: Top Count, pagination, indexed columns, and a loop for lists beyond 100,000 items."
+searchPhrase: "get items more than 5000 power automate"
 ---
-Your list has 12,000 items and the flow processes 100. Or it processes exactly 5,000, or fails with *"The attempted operation is prohibited because it exceeds the list view threshold."* Three different limits cause these, and each has its own fix.
+Your SharePoint list has 12,000 items and the Power Automate flow processes 100. Or it processes exactly 5,000, or fails with *"The attempted operation is prohibited because it exceeds the list view threshold."* Three different limits cause these, and each has its own fix.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.

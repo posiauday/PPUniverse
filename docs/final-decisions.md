@@ -1844,6 +1844,45 @@ The product owner asked to stop running migrations by hand (*"i want to make thi
 - **Amended 2026-10-06:** three production builds stopped with "port 6543", although the product owner's Netlify values all showed 5432. To stop depending on that value, the script now uses `MIGRATE_DATABASE_URL` if set, otherwise the site's `DATABASE_URL`. A Supabase pooler address on 6543 is switched to 5432, the same host, user and password in session mode (Supabase docs, "Connecting to Postgres"). The build log shows the variable name, host and port it used, never the password. `MIGRATE_DATABASE_URL` is now optional. A 6543 address on any other host still fails the build.
 - **Approval:** merging the release PR into `main` is the deployment approval for its migrations (CLAUDE.md, "No direct production changes"). Migrations stay additive and reversible, as before.
 
+## 2026-10-06 — Hub framing, reference pages, trust signals and community solutions
+
+### Hub taglines, top-fix chips, daily reference row, scoped search (approved)
+The product owner approved the proposal in `docs/research/technology-daily-needs.md`: each hub describes the product's job, not one guide's problem. They also asked to start writing content now, researched in depth.
+- **Taglines:**
+  - Power Apps "Build, fix and speed up your apps";
+  - Power Automate "Flows that run, and tell you when they don't";
+  - Power BI "Reports people trust, refreshed on time";
+  - Copilot Studio "Agents that answer well and act safely";
+  - Dataverse "Data your apps and flows can rely on";
+  - Power Pages "Secure sites for people outside your org";
+  - Governance & admin keeps "Guardrails that don't slow makers down".
+- **Top-fix chips:** each hub's chips come from Microsoft's most-documented problems for that product (the research note lists them).
+- **Daily reference row:** a row of quick-lookup pages on every hub (error codes, limits, cheat sheets, checklists). This delivers the "Quick reference" row approved on 2026-10-02. It is a new content kind, `REFERENCE`.
+- **Scoped search:** a hub's search box searches that technology only.
+- **Process:** drawn on the design board first, then built; same design system.
+
+### Trust signals on fixes and reference pages (approved)
+The product owner selected all four:
+1. **Source-checked:** "Checked against Microsoft Learn on <date>", with every step linked to Microsoft's page.
+2. **Tested by us:** shown only when an admin records that the fix was run in a real tenant, with the date and product version. Agents never mark something tested.
+3. **"Did this fix it?" votes:** anonymous Yes/No, with no sign-in and no personal data stored. A fix shows as "Accepted" once enough readers say yes; the threshold is set when built.
+4. **Last-reviewed date and "this changed" reports:** pages are re-checked after 6 months, or sooner if readers report a change.
+
+### Community solutions (approved in principle; approach researched)
+The product owner asked to let readers add their own solutions, which can be marked as the solution, and asked for the best approach. Research:
+- Google's spam policies make site owners responsible for user-generated spam.
+- Google recommends `rel="ugc"` on links in user content.
+- The BRD scopes the first release as "not a complete social network".
+
+The approach:
+- **Who can post:** signed-in readers only, rate-limited.
+- **Moderation first:** a submission is hidden until an admin approves it.
+- **Format:** plain text and code blocks only, with no HTML; links get `rel="ugc nofollow"`.
+- **Accepted answer:** an admin can mark one community solution as the accepted fix, pinned with a badge.
+- **Reports:** readers can report a posted solution.
+- **Before it ships:** Terms (a licence for what people post) and Privacy (display name) updates, which need the product owner's approval of the wording.
+
+Delivery: MVP-037 (hub framing), MVP-038 (reference type and trust signals 1, 2 and 4), MVP-039 (votes and accepted fixes), MVP-040 (community solutions). Content is written in parallel as drafts, researched against Microsoft Learn; agents never publish.
 ## 2026-10-06 — Sign-in methods: Google, email and password, and the email link
 
 The product owner reviewed the sign-in research (email-link sign-in, and Microsoft Defender for Office 365 scanning links in work email before delivery). They chose by multiple choice:
@@ -1873,3 +1912,61 @@ The product owner approved the proposal ("Continue", in reply to it) and with it
 - **Method:** a short research brief per section (`docs/research/content-briefs/<technology>/<section>.md`: real problems, search phrases, gaps, sources, proposed titles), the product owner's yes or no on the titles, then drafts. Drafts are checked against Microsoft Learn and imported; the product owner publishes.
 - **Order:** the highest daily demand first, starting with Power Automate, then Power BI *Refresh & gateways*. The hubs' top-fix chips get their own guides early.
 - Still open from that plan: analytics (Search Console only, or privacy-friendly analytics).
+- **Approved titles, second round (2026-10-06):** the product owner selected every proposed title in `docs/research/content-briefs/cross-technology-2026-10-06.md`:
+  - **Power BI:** gateway moves and sharing; permissions cheat sheet; refresh on your terms; dynamic RLS; incremental refresh;
+  - **Power Pages:** licensing explained; invitations; Web API cheat sheet;
+  - **Copilot Studio:** licensing and Copilot Credits; Dataverse tables as knowledge;
+  - **Power Apps:** attachments and photos to SharePoint; the Dataverse capacity email.
+
+## 2026-10-06 — Article visuals: our own diagrams, our own screenshots, in the Daylight style
+
+The product owner asked how images and snapshots would make the guides easier to follow, and chose by multiple choice **"Diagrams + own screenshots"**. They then added that the pages follow the design system, *"and motion graphics where possible for every page"*.
+- **Diagrams:** drawn by us as graphics in the Daylight tokens: decision charts, flow layouts, checklists as pictures. We use only our own glyphs, never Microsoft product logos or icons, which are trademarks.
+- **Screenshots:** only ones **we take ourselves**, from a test account with made-up data. The product owner signs in; the agent never handles credentials. Each screenshot is cropped, given numbered callouts, and labelled with the date it was taken. Microsoft's screenshots from Learn are never copied. **Before the first screenshot is published,** Microsoft's published rules on using screenshots of its products are checked and recorded here. The product owner noted that **most of the site's content is free to read**. The check therefore covers both free educational pages and paid marketplace pages, and screenshots are used only where the rules allow for that kind of page.
+- **Motion where it helps understanding** (for example, a flow's steps lighting up in order), following the design system's motion rules:
+  - the resting state is the finished picture;
+  - all motion stops under `prefers-reduced-motion`;
+  - anything moving for longer than 5 seconds has a pause control (WCAG 2.2.2).
+- **Accessibility:** every image has alt text, and the steps it shows are also written in the text.
+- **Safety:** images are served only from this site. Articles can't load images from other domains. A test fails any article whose image file is missing or has no alt text.
+- **Delivery:** story MVP-041 (article visuals), built as a vertical slice: the article image component, storage in the repo, the validation test, and the accessibility checks. It comes before the first screenshots are added.
+
+## 2026-10-06 — SEO additions alongside the guide-page redesign
+
+The product owner reviewed `docs/research/seo-audit-2026-10-06.md` and chose all four proposed additions, by multiple choice:
+1. **Image in guide structured data:** each guide's existing 1200×630 share image (`/og/learn/{slug}`) becomes the `image` of its `TechArticle` JSON-LD.
+2. **A "How we write and check guides" page:** public, and linked from every guide. It explains research, the check against Microsoft Learn, product-owner review and the dates shown. The wording is shown to the product owner before it ships. Follows Google's guidance on explaining how content is created.
+3. **IndexNow ping on publish:** when an article or update is published, its URL is sent to `api.indexnow.org`, with the key file hosted on the site. Only public page URLs are sent, never personal data. Bing and other engines take part; Google isn't mentioned as a participant. A failed ping never blocks publishing.
+4. **A page-speed check in CI:** a Lighthouse budget keeps pages within Google's Core Web Vitals targets (LCP ≤ 2.5 s, INP < 200 ms, CLS < 0.1), so the new visuals and motion can't slow pages down.
+
+Also decided: start the guide-page and hub designs **now**, with 3 concepts on the design board, before PR #75 merges. Not adopted: FAQ and HowTo structured data, which Google no longer shows. Delivery: story MVP-042, built together with the chosen design.
+
+## 2026-10-06 — Guide page and hub designs chosen
+
+The product owner reviewed the design board's new row (G1–G3 guide concepts, H1–H2 hub concepts, and the "How we write" page) and chose by multiple choice:
+- **Guide page: "Mix by guide type".** One shared frame for every guide: G1's header, with the trust strip (Microsoft Learn check, date, number of sources, "How we write guides"), an optional quick-answer card, table of contents, side column, "Did this fix it?" and sources. Then by type:
+  - **Fix** guides (TUTORIAL) add G2's symptom picker and tick-off steps with a progress count;
+  - **Design** guides (PATTERN) add G3's animated diagram and Do / Don't cards;
+  - **Choose, Measure and Look it up** guides use the shared frame alone.
+- **Hubs: "H1, plus H2's journey for Power BI".** H1 (hub search, most-needed fixes, the "Look it up" row, every section with its guides, "What changed") is the standard hub. Power BI uses H2's numbered journey for its sections.
+- **Still to approve:** the hub headlines on the board, and the "How we write" page wording (including the AI-assistance sentence). Both are shown again before they ship.
+
+All motion follows the design system's rules: the resting state is the finished picture, it stops under `prefers-reduced-motion`, and anything moving for more than 5 seconds has a pause control. Delivery: MVP-037 (hub framing), MVP-038 (trust signals), MVP-039 (votes), MVP-041 (visuals) and MVP-042 (SEO), sequenced in `docs/plans/guide-and-hub-redesign.md`.
+
+## 2026-10-06 — A search phrase for every guide
+
+The product owner asked: *"Make sure every page, article or whatever has good keywords so search engines find it easily."* Google's own documentation (checked 2026-10-06) says:
+- the **meta keywords tag is not used** by Google Search;
+- what helps is **descriptive, unique titles**, a **short description**, and using **the words people search for**;
+- **repeating keywords is against its spam policies**.
+
+So, instead of a keywords tag:
+- **Every guide names one `searchPhrase`** in its front matter: the words a person would type, such as `power automate flow not triggering`. It is required for launch content, unique per guide, never a list, and at most 80 characters. It isn't stored in the database.
+- **A CI gate checks each guide uses its phrase naturally** (`packages/adapters/content/src/content-files.test.ts`):
+  - every word of it is in the title or the first 160 characters of the excerpt (the meta description), and at least half are in the title;
+  - at least half are in the opening paragraph;
+  - the exact phrase appears no more than four times in the body.
+  - Titles must also be unique.
+- **All 57 launch guides** were given a phrase. Where a guide didn't use its phrase, the excerpt or opening sentence was reworded naturally, usually by naming the product. **No approved title was changed.**
+- **Pages other than guides** (hubs, `/learn`, updates, About) get the same treatment in the redesign build (MVP-037, MVP-042): a unique, descriptive `<title>` and description that name the product and what the page helps with. A technology level is also added to the breadcrumb trail, so results read "LowCodeStacks › Power Automate › …".
+- **Limit:** phrases are chosen from how people word their questions in the official communities and on Microsoft Learn, not from search-volume data. Re-check them against Search Console's queries report after 4–8 weeks of data.

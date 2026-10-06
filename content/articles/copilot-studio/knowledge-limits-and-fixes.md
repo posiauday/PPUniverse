@@ -5,6 +5,7 @@ type: REFERENCE
 technology: COPILOT_STUDIO
 topic: knowledge-and-grounding
 excerpt: "Every knowledge-source limit in one place (websites, SharePoint, files, Dataverse), the sign-in setting each channel needs, and a checklist for when an agent answers 'I don't know' or won't publish."
+searchPhrase: "copilot studio knowledge limits"
 ---
 An agent that can't find an answer it should know is rarely broken. Usually a limit was reached quietly, a file is too big to read, or the agent's sign-in setting doesn't fit the source or channel. This page puts those rules side by side.
 

@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: POWER_APPS
 topic: data-and-delegation
 excerpt: "Your app shows some records but not others, and there is no error. Here is why delegation causes it, how to spot it, and the formula rewrites that fix it."
+searchPhrase: "power apps delegation 500 rows"
 ---
 If a gallery shows only some of your records, or a search can't find an item you know exists, the cause is almost always **delegation**. Part of the formula can't run on the data source, so Power Apps downloads only the first 500 rows and works on those. Nothing errors. The results are just incomplete.
 

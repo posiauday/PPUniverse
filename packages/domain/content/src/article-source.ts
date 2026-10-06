@@ -22,11 +22,16 @@ import type { ArticleType, Technology } from "./types.js";
  *   technology: POWER_APPS
  *   topic: data-and-delegation
  *   excerpt: "Why an app shows only part of your data, and how to fix it."
+ *   searchPhrase: "power apps delegation 500 rows"
  *   ---
  *   Body...
  *
- * Only these six keys are allowed (`topic`, MVP-033, is one of the
+ * Only these seven keys are allowed (`topic`, MVP-033, is one of the
  * technology's hub sections and needs a technology), each on one line; values may be quoted.
+ * `searchPhrase` (2026-10-06) is the words people type to find the page. It is
+ * optional here and isn't stored; the content gate (content-files.test.ts)
+ * requires it for launch content and checks that the title, excerpt and
+ * opening paragraph use it.
  * Every value goes through exactly the validators the admin editor's API
  * uses, so an imported article is one the editor would have accepted.
  */
@@ -38,14 +43,19 @@ export interface ArticleSource {
   technology: Technology | null;
   topic: string | null;
   excerpt: string | null;
+  /** The search phrase the page targets, or null when omitted. Not persisted. */
+  searchPhrase: string | null;
   body: string;
 }
 
 export type ArticleSourceResult =
   { ok: true; article: ArticleSource } | { ok: false; errors: string[] };
 
-const KEYS = ["title", "slug", "type", "technology", "topic", "excerpt"] as const;
+const KEYS = ["title", "slug", "type", "technology", "topic", "excerpt", "searchPhrase"] as const;
 type Key = (typeof KEYS)[number];
+
+/** Longest allowed search phrase: a few words, never a keyword list. */
+export const MAX_SEARCH_PHRASE_LENGTH = 80;
 
 function unquote(value: string): string {
   const trimmed = value.trim();
@@ -85,6 +95,7 @@ export function parseArticleSource(text: string): ArticleSourceResult {
   const technologyValue = fields.technology ?? "";
   const excerptValue = fields.excerpt ?? "";
   const topicValue = fields.topic ?? "";
+  const searchPhraseValue = (fields.searchPhrase ?? "").trim();
 
   if (!isValidArticleTitle(title))
     errors.push("title is required and must be 200 characters or fewer");
@@ -102,6 +113,10 @@ export function parseArticleSource(text: string): ArticleSourceResult {
   const excerpt = excerptValue === "" ? null : excerptValue;
   if (!isValidArticleExcerpt(excerpt)) errors.push("excerpt must be 500 characters or fewer");
   if (!isValidArticleBody(body)) errors.push("body is required");
+  if (searchPhraseValue.length > MAX_SEARCH_PHRASE_LENGTH)
+    errors.push(`searchPhrase must be ${MAX_SEARCH_PHRASE_LENGTH} characters or fewer`);
+  if (searchPhraseValue.includes(","))
+    errors.push("searchPhrase is one phrase, not a comma-separated keyword list");
 
   if (errors.length > 0) return { ok: false, errors };
   return {
@@ -113,6 +128,7 @@ export function parseArticleSource(text: string): ArticleSourceResult {
       technology: technologyValue === "" ? null : (technologyValue as Technology),
       topic: topicValue === "" ? null : topicValue,
       excerpt,
+      searchPhrase: searchPhraseValue === "" ? null : searchPhraseValue,
       body,
     },
   };

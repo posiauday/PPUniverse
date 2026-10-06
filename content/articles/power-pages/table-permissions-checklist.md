@@ -5,6 +5,7 @@ type: REFERENCE
 technology: POWER_PAGES
 topic: access-and-permissions
 excerpt: "A pre-launch and troubleshooting checklist for Power Pages: the access types and privileges in table permissions, the settings that leave data open to anonymous visitors, and the fixes for common sign-in and permission errors."
+searchPhrase: "power pages table permissions"
 ---
 A Power Pages site is the one Power Platform product that faces the open internet, so its mistakes are public. Almost every data leak or "users can't see their records" ticket comes down to table permissions and web roles. Use this checklist before go-live and whenever access looks wrong.
 

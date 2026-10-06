@@ -4,9 +4,10 @@ slug: why-didnt-my-trigger-fire
 type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: triggers-and-design
-excerpt: "The flow is on, the item was created, nothing ran. Ten checks in the order that finds the cause fastest: flow status, run history, trigger conditions, polling delays, connections, data policies, admin mode, licences and suspension rules."
+excerpt: "Your Power Automate flow is on, the item was created, nothing ran. Ten checks in the order that finds the cause fastest: flow status, run history, trigger conditions, polling delays, connections, data policies, admin mode, licences and suspension rules."
+searchPhrase: "power automate flow not triggering"
 ---
-A flow that never starts gives you nothing to debug: no red action, no error, just an empty run history. Work through these checks in order; the first few catch most cases.
+A Power Automate flow that isn't triggering gives you nothing to debug: no red action, no error, just an empty run history. Work through these checks in order; the first few catch most cases.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
