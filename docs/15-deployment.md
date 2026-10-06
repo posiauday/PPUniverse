@@ -23,7 +23,7 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
 1. **Use the Supabase project** recorded in `docs/final-decisions.md`, or create one. Note its **region**: the Netlify functions region should match it (open question 5).
 2. **Copy two connection strings** from the project's **Connect** panel, and put your database password into each in place of `[YOUR-PASSWORD]`:
    - **Transaction pooler**, host `aws-0-<region>.pooler.supabase.com`, port **6543**. **The site uses this**, and it goes into Netlify. Add `?schema=public` to the end.
-   - **Session pooler**, the same host, port **5432**. **Migrations and imports use this**, from your machine only. Add `?schema=public` to the end.
+   - **Session pooler**, the same host, port **5432**. **Migrations use this.** Release builds switch to it automatically, so you only need it to run migrations or imports by hand. Add `?schema=public` to the end.
 
    Use a database password with **only letters and digits**. `@`, `#`, `/`, `:` and `?` break the connection string unless they're percent-encoded. Each string must contain exactly **one** `@`, before the host.
 
@@ -56,7 +56,7 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
    DATABASE_URL="<session pooler string>?schema=public" npx prisma migrate deploy
    ```
 
-   It should end with "All migrations have been successfully applied." The migrations enable row-level security on every table, including Prisma's own `_prisma_migrations` (migration `20261001000000_enable_rls_prisma_migrations`).
+   It should end with "All migrations have been successfully applied." The migrations enable row-level security on every table, including Prisma's own `_prisma_migrations` (migration `20261006000100_enable_rls_prisma_migrations`).
 
 > [!WARNING]
 > - **Never run migrations through the 6543 transaction pooler.** Prisma takes a session-level advisory lock while migrating, and the transaction pooler can't hold one, so `migrate deploy` **hangs** after printing the datasource line. If that happens, press Ctrl+C and use the 5432 string.
