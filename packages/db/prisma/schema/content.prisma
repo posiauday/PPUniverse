@@ -39,6 +39,9 @@ enum ArticleType {
   /// MVP-028: feeds a technology section's KPIs tab (docs/final-decisions.md,
   /// "Technology sections (MVP-028)").
   KPI_GUIDE
+  /// MVP-038: quick-lookup pages for each hub's Daily reference row
+  /// (docs/final-decisions.md, 2026-10-06, "Hub framing").
+  REFERENCE
 }
 
 /// MVP-028: the six technology sections (docs/final-decisions.md,

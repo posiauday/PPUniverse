@@ -6,6 +6,7 @@ export const ARTICLE_TYPE_LABEL: Record<ArticleType, string> = {
   PATTERN: "Pattern",
   COMPARISON: "Comparison",
   KPI_GUIDE: "KPI guide",
+  REFERENCE: "Quick reference",
 };
 
 /** Section headings on the /learn hub and the footer, in display order: the
@@ -16,6 +17,8 @@ export const ARTICLE_TYPE_SECTIONS: ReadonlyArray<{ type: ArticleType; heading: 
   { type: "COMPARISON", heading: "Choose the right tool" },
   { type: "PATTERN", heading: "Design it to last" },
   { type: "KPI_GUIDE", heading: "Measure success" },
+  // MVP-038: the quick-lookup pages behind each hub's Daily reference row.
+  { type: "REFERENCE", heading: "Look it up" },
 ];
 
 /** Stable anchors for the /learn hub's sections. They keep the type names, so
@@ -25,4 +28,5 @@ export const SECTION_ANCHOR: Record<ArticleType, string> = {
   PATTERN: "patterns",
   COMPARISON: "comparisons",
   KPI_GUIDE: "kpi-guides",
+  REFERENCE: "reference",
 };

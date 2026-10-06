@@ -59,7 +59,7 @@ function validateArticleFields(body: ArticleInputBody): Record<string, string[]>
     fieldErrors["title"] = ["title is required and must be 200 characters or fewer."];
   }
   if (typeof body.type !== "string" || !isValidArticleType(body.type)) {
-    fieldErrors["type"] = ["type must be one of TUTORIAL, PATTERN, COMPARISON, KPI_GUIDE."];
+    fieldErrors["type"] = ["type must be one of TUTORIAL, PATTERN, COMPARISON, KPI_GUIDE, REFERENCE."];
   }
   // MVP-028: optional -- absent, null or "" means no technology section.
   const technology = technologyOf(body);

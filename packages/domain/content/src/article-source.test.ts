@@ -67,7 +67,7 @@ describe("parseArticleSource", () => {
     expect(!result.ok && result.errors).toEqual([
       "title is required and must be 200 characters or fewer",
       "slug must be lower-case and hyphen-separated",
-      "type must be TUTORIAL, PATTERN, COMPARISON or KPI_GUIDE",
+      "type must be TUTORIAL, PATTERN, COMPARISON, KPI_GUIDE or REFERENCE",
       "technology must be one of the seven areas, or omitted",
       "body is required",
     ]);

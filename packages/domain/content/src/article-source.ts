@@ -90,7 +90,7 @@ export function parseArticleSource(text: string): ArticleSourceResult {
     errors.push("title is required and must be 200 characters or fewer");
   if (!isValidArticleSlug(slug)) errors.push("slug must be lower-case and hyphen-separated");
   if (!isValidArticleType(type))
-    errors.push("type must be TUTORIAL, PATTERN, COMPARISON or KPI_GUIDE");
+    errors.push("type must be TUTORIAL, PATTERN, COMPARISON, KPI_GUIDE or REFERENCE");
   if (technologyValue !== "" && !isValidTechnology(technologyValue)) {
     errors.push("technology must be one of the seven areas, or omitted");
   }

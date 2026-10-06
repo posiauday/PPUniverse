@@ -10,7 +10,7 @@
  * this package.
  */
 
-export type ArticleType = "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE";
+export type ArticleType = "TUTORIAL" | "PATTERN" | "COMPARISON" | "KPI_GUIDE" | "REFERENCE";
 
 /** MVP-028: the technology sections. See technology.ts for names and URLs. */
 /** The six Microsoft products, plus the cross-product Governance & admin area
