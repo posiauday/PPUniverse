@@ -10,7 +10,7 @@ Each article is one Markdown file, reviewed in a pull request, then imported as 
 ---
 title: "The article's title"
 slug: the-article-slug
-type: TUTORIAL            # TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE
+type: TUTORIAL            # TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE | REFERENCE
 technology: POWER_APPS    # optional: one of the six products, or GOVERNANCE_ADMIN
 topic: data-and-delegation # optional: the hub section, one of that technology's
                           # TECHNOLOGY_TOPICS ids (packages/domain/content/src/technology.ts)

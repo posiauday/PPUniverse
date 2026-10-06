@@ -1866,3 +1866,10 @@ After the first MVP-033 release, production still had no guides: the 24 launch g
 - **Settings:** it uses the build's `DATABASE_URL`, and `ARTICLE_AUTHOR_EMAIL` (an existing admin's email, set in Netlify by the product owner). Without the email, the step is skipped with a message.
 - **Never blocks a release:** a failed import is a warning in the build log, and the deploy goes ahead.
 - **Scope:** production only. Deploy previews never import.
+
+### Content plan targets and order (2026-10-06)
+The product owner approved the proposal ("Continue", in reply to it) and with it `docs/research/content-research-plan.md`'s method:
+- **Target for the first full round:** every hub section holds **2–4 items**, about 15–20 per technology and about 110–130 in total. Each item is one of the five kinds: Fix, Choose, Design, Measure, Look it up.
+- **Method:** a short research brief per section (`docs/research/content-briefs/<technology>/<section>.md`: real problems, search phrases, gaps, sources, proposed titles), the product owner's yes or no on the titles, then drafts. Drafts are checked against Microsoft Learn and imported; the product owner publishes.
+- **Order:** the highest daily demand first, starting with Power Automate, then Power BI *Refresh & gateways*. The hubs' top-fix chips get their own guides early.
+- Still open from that plan: analytics (Search Console only, or privacy-friendly analytics).
