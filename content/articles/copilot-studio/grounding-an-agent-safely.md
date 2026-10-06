@@ -4,7 +4,8 @@ slug: grounding-an-agent-safely
 type: PATTERN
 technology: COPILOT_STUDIO
 topic: knowledge-and-grounding
-excerpt: "An agent doesn't create new access, but it makes existing access easy to use. Oversharing that nobody noticed in SharePoint becomes an answer anyone can ask for. A pattern for connecting knowledge and tools without leaking what shouldn't leak."
+excerpt: "A Copilot Studio agent doesn't create new access, but it makes existing access easy to use. Oversharing that nobody noticed in SharePoint becomes an answer anyone can ask for. A pattern for connecting knowledge and tools without leaking what shouldn't leak."
+searchPhrase: "grounding a copilot agent safely"
 ---
 > [!NOTE]
 > **As of September 2026.** Copilot Studio's security and governance controls are changing quickly, including agent identities and data policies. This article describes the controls documented for agents built with the standard harness. Check Microsoft Learn for what's available in your tenant.

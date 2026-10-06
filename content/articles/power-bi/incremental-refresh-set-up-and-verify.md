@@ -4,7 +4,8 @@ slug: incremental-refresh-set-up-and-verify
 type: TUTORIAL
 technology: POWER_BI
 topic: refresh-and-gateways
-excerpt: "Load only the recent part of a big table on each refresh. RangeStart and RangeEnd, the policy settings in plain words, the query-folding trap that quietly loads everything, the republishing rule, and four ways to confirm each refresh really is incremental."
+excerpt: "Load only the recent part of a big Power BI table on each refresh. RangeStart and RangeEnd, the policy settings in plain words, the query-folding trap that quietly loads everything, the republishing rule, and four ways to confirm each refresh really is incremental."
+searchPhrase: "power bi incremental refresh"
 ---
 A 50-million-row fact table doesn't need to reload ten years of history every night. **Incremental refresh** splits the table into date partitions, refreshes only the recent ones, and leaves history alone. It works on **Pro** as well as Premium and PPU. The hard part isn't turning it on; it's being sure it's actually incremental.
 

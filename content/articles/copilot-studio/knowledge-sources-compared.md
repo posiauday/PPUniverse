@@ -5,6 +5,7 @@ type: COMPARISON
 technology: COPILOT_STUDIO
 topic: knowledge-and-grounding
 excerpt: "Where a Copilot Studio agent gets its answers decides who can see what, how fresh the answers are, and how much you have to maintain. A side-by-side comparison of the main knowledge sources and when to use each."
+searchPhrase: "copilot studio knowledge sources"
 ---
 > [!NOTE]
 > **As of September 2026.** Knowledge options in Copilot Studio change often. This comparison describes agents built with the standard harness. Limits and the list of available sources can differ by environment, licence and region, so check the current Microsoft Learn pages before you design around a number.

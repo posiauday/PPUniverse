@@ -5,6 +5,7 @@ type: REFERENCE
 technology: POWER_PAGES
 topic: liquid-and-code
 excerpt: "Everything to make /_api calls work: the site settings per table, why Webapi/<table>/fields = * stopped working on 14 September 2026 and how to fix it, the CSRF token wrapper, table permissions, what the Web API can't do, and every status and error code with its fix."
+searchPhrase: "power pages web api"
 ---
 The Power Pages Web API lets your page scripts create, read, update and delete Dataverse rows through `/_api/…`, without a form. It's a **subset** of the Dataverse Web API, so the setup and limits differ. Here's all of it on one page.
 

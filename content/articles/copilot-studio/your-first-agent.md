@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: COPILOT_STUDIO
 topic: build-your-agent
 excerpt: "Build a Copilot Studio agent that answers questions from your own content, and test it properly before anyone else sees it. Instructions that work, knowledge that's scoped, and a repeatable test set."
+searchPhrase: "first copilot studio agent"
 ---
 > [!NOTE]
 > **As of September 2026.** Copilot Studio changes often. This tutorial describes agents built with the **standard harness**, the long-standing building experience. Microsoft is also rolling out a new experience built on the GitHub Copilot harness, where some screens and names differ. Check Microsoft Learn for the version you see.

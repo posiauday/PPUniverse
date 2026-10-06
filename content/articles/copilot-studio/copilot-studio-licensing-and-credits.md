@@ -5,6 +5,7 @@ type: REFERENCE
 technology: COPILOT_STUDIO
 topic: monitor-and-cost
 excerpt: "Makers need a licence; the people chatting with your agent usually don't. How Copilot Credits are bought and spent, what each feature costs, what's free for Microsoft 365 Copilot users, how the GitHub Copilot harness bills differently, and what happens when credits run out."
+searchPhrase: "copilot studio licensing credits"
 ---
 Two questions come up again and again: **"Does everyone who uses my agent need a licence?"** and **"Why did we run out of credits?"** The short answers are *usually not*, and *because credits pay for activity, not people*. Here are the details.
 

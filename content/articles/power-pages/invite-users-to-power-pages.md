@@ -5,8 +5,9 @@ type: TUTORIAL
 technology: POWER_PAGES
 topic: sign-in-and-identity
 excerpt: "Let only the people you choose sign up. Create single or group invitations that assign web roles on redemption, send them, make the site invitation-only so nobody can bypass the code, and fix the usual problems: no email, wrong address, 'email already in use'."
+searchPhrase: "power pages invitation"
 ---
-Invitations are how you let **specific** people onto a site: partners, members, a pilot group. Each invitation carries a code. When someone redeems it while signing up, their account links to a **contact you prepared**, and they can automatically get **web roles**, an **account**, or a workflow. Here's the full setup and the fixes for when it misbehaves.
+Invitations are how you let **specific** people onto a Power Pages site: partners, members, a pilot group. Each invitation carries a code. When someone redeems it while signing up, their account links to a **contact you prepared**, and they can automatically get **web roles**, an **account**, or a workflow. Here's the full setup and the fixes for when it misbehaves.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.

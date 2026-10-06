@@ -4,7 +4,8 @@ slug: one-semantic-model-many-reports
 type: PATTERN
 technology: POWER_BI
 topic: data-modelling
-excerpt: "When every report brings its own copy of the data, every report defines revenue a little differently. Shared semantic models fix that. Here is how to set one up, let people build on it, and keep it trustworthy."
+excerpt: "When every report brings its own copy of the data, every report defines revenue a little differently. One shared semantic model for multiple reports fixes that. Here is how to set one up, let people build on it, and keep it trustworthy."
+searchPhrase: "semantic model for multiple reports"
 ---
 In most organisations, Power BI grows one report at a time. Each report author imports the data they need, writes their own measures, and publishes. A year later there are twelve definitions of "active customer", refreshes are hammering the source system twelve times a night, and two directors bring different revenue figures to the same meeting.
 

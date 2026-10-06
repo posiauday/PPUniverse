@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: GOVERNANCE_ADMIN
 topic: licensing
 excerpt: "Weekly 'running low' or 'over capacity' emails about Dataverse storage, often in tenants that never meant to use Dataverse. Where the usage comes from, how borrowing between database, file and log works, what's blocked when you're over, the new sandbox restrictions, and how to get back under."
+searchPhrase: "dataverse storage capacity"
 ---
 Many admins, and even makers, get a weekly email saying Dataverse storage is **running low** or **over capacity**, sometimes in a tenant that "doesn't use Dataverse". Here's what triggers it, what really happens if you ignore it, and how to fix it.
 

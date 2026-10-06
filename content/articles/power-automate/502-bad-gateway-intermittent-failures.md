@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: errors-and-limits
 excerpt: "A flow that worked for months starts failing at random with 502, 500, 503 or 504. How to tell a temporary service problem from your own fault, set retries that actually help, make the flow survive the next outage, and report it with the evidence support needs."
+searchPhrase: "502 bad gateway power automate"
 ---
 Intermittent failures are the most frustrating kind: the same flow, the same data, sometimes green and sometimes red with **502 Bad Gateway** or **500 InternalServerError**. Usually the problem isn't in your flow at all. This page helps you prove that quickly, keep the flow working through it, and know when it *is* yours to fix.
 

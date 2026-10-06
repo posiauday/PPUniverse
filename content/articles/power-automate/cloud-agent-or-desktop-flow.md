@@ -5,6 +5,7 @@ type: COMPARISON
 technology: POWER_AUTOMATE
 topic: choose-the-tool
 excerpt: "Three kinds of flow, three ways to pay. What each is for, how it's licensed or billed, what it can't do, and a quick way to pick: connectors and APIs, an agent's tools, or clicking through an app that has no API."
+searchPhrase: "agent flow vs cloud flow"
 ---
 Power Automate cloud flows, Copilot Studio agent flows and Power Automate desktop flows all automate steps, and from a distance they look alike. They're licensed differently, managed in different places, and each has things it can't do. Choose before you build, because switching later isn't always possible.
 

@@ -5,6 +5,7 @@ type: REFERENCE
 technology: DATAVERSE
 topic: security-model
 excerpt: "How Dataverse decides whether someone can see or change a row, what each privilege and access level really grants, and the fix for every common access error, from 'missing privilege' to 'can't open the environment'."
+searchPhrase: "dataverse missing privilege error"
 ---
 "It works for me but not for them" is the most common Dataverse support request. Dataverse runs two checks every time someone touches a row, and almost every access error means one of them failed. Once you know which one, the fix is quick.
 

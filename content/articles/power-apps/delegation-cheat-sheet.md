@@ -4,7 +4,8 @@ slug: delegation-cheat-sheet
 type: REFERENCE
 technology: POWER_APPS
 topic: data-and-delegation
-excerpt: "Which Power Fx functions and operators run on the data source, and which quietly stop at 500 rows, for SharePoint, Dataverse and SQL Server, with the delegable rewrite for each common trap."
+excerpt: "Which Power Apps functions and operators run on the data source, and which quietly stop at 500 rows, for SharePoint, Dataverse and SQL Server, with the delegable rewrite for each common trap."
+searchPhrase: "power apps delegation cheat sheet"
 ---
 A canvas app only sees every row when the data source does the work. When a formula can't be handed to the source (it isn't **delegable**), Power Apps fetches the first 500 rows (2,000 at most) and works on those. Anything past that is silently missing. This page is the lookup table: what each source accepts, and how to rewrite the formulas that don't fit.
 

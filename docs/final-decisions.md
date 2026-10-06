@@ -1952,3 +1952,21 @@ The product owner reviewed the design board's new row (G1–G3 guide concepts, H
 - **Still to approve:** the hub headlines on the board, and the "How we write" page wording (including the AI-assistance sentence). Both are shown again before they ship.
 
 All motion follows the design system's rules: the resting state is the finished picture, it stops under `prefers-reduced-motion`, and anything moving for more than 5 seconds has a pause control. Delivery: MVP-037 (hub framing), MVP-038 (trust signals), MVP-039 (votes), MVP-041 (visuals) and MVP-042 (SEO), sequenced in `docs/plans/guide-and-hub-redesign.md`.
+
+## 2026-10-06 — A search phrase for every guide
+
+The product owner asked: *"Make sure every page, article or whatever has good keywords so search engines find it easily."* Google's own documentation (checked 2026-10-06) says:
+- the **meta keywords tag is not used** by Google Search;
+- what helps is **descriptive, unique titles**, a **short description**, and using **the words people search for**;
+- **repeating keywords is against its spam policies**.
+
+So, instead of a keywords tag:
+- **Every guide names one `searchPhrase`** in its front matter: the words a person would type, such as `power automate flow not triggering`. It is required for launch content, unique per guide, never a list, and at most 80 characters. It isn't stored in the database.
+- **A CI gate checks each guide uses its phrase naturally** (`packages/adapters/content/src/content-files.test.ts`):
+  - every word of it is in the title or the first 160 characters of the excerpt (the meta description), and at least half are in the title;
+  - at least half are in the opening paragraph;
+  - the exact phrase appears no more than four times in the body.
+  - Titles must also be unique.
+- **All 57 launch guides** were given a phrase. Where a guide didn't use its phrase, the excerpt or opening sentence was reworded naturally, usually by naming the product. **No approved title was changed.**
+- **Pages other than guides** (hubs, `/learn`, updates, About) get the same treatment in the redesign build (MVP-037, MVP-042): a unique, descriptive `<title>` and description that name the product and what the page helps with. A technology level is also added to the breadcrumb trail, so results read "LowCodeStacks › Power Automate › …".
+- **Limit:** phrases are chosen from how people word their questions in the official communities and on Microsoft Learn, not from search-volume data. Re-check them against Search Console's queries report after 4–8 weeks of data.

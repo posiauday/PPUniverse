@@ -5,8 +5,9 @@ type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: triggers-and-design
 excerpt: "Save email attachments, Microsoft Forms uploads and SharePoint list attachments into a library folder. The trigger settings that matter, how to skip signature images, why .msg attachments don't show up, and the fixes for empty files and 400 Bad Request."
+searchPhrase: "save email attachments to sharepoint"
 ---
-Most file flows come down to the same move: **get a file's name and content from one place, and create a file with them somewhere else.** The tricky part is getting the content, which differs by source. Here are the three sources people ask about most.
+Most file flows, such as saving email attachments to SharePoint, come down to the same move: **get a file's name and content from one place, and create a file with them somewhere else.** The tricky part is getting the content, which differs by source. Here are the three sources people ask about most.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.

@@ -4,7 +4,8 @@ slug: refresh-on-your-terms
 type: TUTORIAL
 technology: POWER_BI
 topic: refresh-and-gateways
-excerpt: "Refresh only the table that changed, refresh data without pulling in schema changes, retry failed refreshes automatically, and trigger refresh from Power Automate when the data is ready instead of on a fixed clock. With the limits for each."
+excerpt: "Refresh only the Power BI table that changed, refresh data without pulling in schema changes, retry failed refreshes automatically, and trigger refresh from Power Automate when the data is ready instead of on a fixed clock. With the limits for each."
+searchPhrase: "power bi refresh retry"
 ---
 Scheduled refresh at fixed times works until it doesn't: the data lands late, one huge table makes everything slow, or a refresh fails at 3 a.m. and nobody re-runs it. Power BI now gives you finer control. Here's what to use, and when.
 

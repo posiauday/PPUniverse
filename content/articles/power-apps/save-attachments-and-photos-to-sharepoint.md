@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: POWER_APPS
 topic: data-and-delegation
 excerpt: "Canvas apps can't write files to a SharePoint document library on their own. Here's the pattern that works: a Power Apps (V2) flow with a File input, called from the app with an attachment, a camera photo or a generated PDF. Plus list attachments with no flow, and the Dataverse file-column alternative."
+searchPhrase: "save power apps attachments to sharepoint"
 ---
 A canvas app can **attach** files to a SharePoint **list item**, but it can't put a file into a **document library** by itself. The reliable way is to hand the file to a small **Power Automate flow** that runs **Create file**. Here's how, for the three things people usually want to save: an attachment, a photo and a PDF.
 

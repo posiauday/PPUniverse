@@ -4,7 +4,8 @@ slug: child-flows-that-fail-well
 type: PATTERN
 technology: POWER_AUTOMATE
 topic: errors-and-limits
-excerpt: "Split a big flow into child flows without losing track of failures. Set up the child so it always reports back, let the parent decide what to do, avoid the 'child workflows only support embedded connections' error, and license it correctly."
+excerpt: "Child flow error handling that works: split a big flow without losing track of failures. Set up the child so it always reports back, let the parent decide what to do, avoid the 'child workflows only support embedded connections' error, and license it correctly."
+searchPhrase: "child flow error handling"
 ---
 A flow with a hundred actions is hard to read and harder to fix. **Child flows** let you split it into small flows that each do one job, such as "create the customer" or "file the document", and reuse them from many parent flows. The catch: when a child fails, the parent sees only a vague **ActionFailed**. This pattern makes the child report back clearly, so the parent can decide what to do.
 

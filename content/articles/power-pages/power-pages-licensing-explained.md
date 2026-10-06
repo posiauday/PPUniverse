@@ -5,6 +5,7 @@ type: REFERENCE
 technology: POWER_PAGES
 topic: go-live-and-monitor
 excerpt: "How Power Pages counts users each month, who is never counted, and how internal staff with Power Apps or Dynamics 365 licences are handled. Plus subscription packs versus pay-as-you-go, the pages and visitors that are exempt, and where to watch consumption."
+searchPhrase: "power pages licensing authenticated users"
 ---
 Power Pages isn't licensed per page view or per login any more. It's licensed per **unique user, per website, per calendar month**, in two kinds: **authenticated** (signed in) and **anonymous** (just browsing). Knowing exactly who counts saves real money, and avoids surprises at go-live.
 

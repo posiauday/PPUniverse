@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: POWER_BI
 topic: refresh-and-gateways
 excerpt: "Move a gateway to new servers, add a second member to a cluster, update it month by month, and give people access to the gateway and its connections. Plus why someone 'can't see the gateway', and what to check when it's unreachable."
+searchPhrase: "move on-premises data gateway"
 ---
 The on-premises data gateway is the bridge between Power BI (and Power Apps, Power Automate and Fabric) and data inside your network. Most gateway trouble comes from four jobs: **moving** it, **updating** it, **sharing** it, and **network** changes. Done in the right order, none of them needs to break a single refresh.
 

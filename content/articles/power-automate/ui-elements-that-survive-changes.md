@@ -4,7 +4,8 @@ slug: ui-elements-that-survive-changes
 type: PATTERN
 technology: POWER_AUTOMATE
 topic: desktop-flows
-excerpt: "'Failed to get UI element' after an app update, a new window title or a different screen? Make selectors that keep working: find what changes, remove the dynamic parts, add fallback selectors, wait for the screen, and repair quickly when it does break."
+excerpt: "UI element not found in a Power Automate desktop flow after an app update, a new window title or a different screen? Make selectors that keep working: find what changes, remove the dynamic parts, add fallback selectors, wait for the screen, and repair quickly when it does break."
+searchPhrase: "power automate desktop ui element not found"
 ---
 A desktop flow finds buttons, fields and windows through **selectors**: a path of attributes such as name, class and automation ID, from the window down to the element. When any part of that path changes, the action fails with **"Failed to get UI element"** or **"Failed to get window"**. Usually the cause is a window title with a number in it, an app update, or a different screen size. This pattern makes selectors that bend instead of break.
 

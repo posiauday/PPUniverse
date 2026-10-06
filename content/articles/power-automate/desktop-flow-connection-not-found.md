@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: desktop-flows
 excerpt: "The machine runtime says Connected but the cloud flow can't run the desktop flow. The checks for machine, connection, session and credentials, and the fix for each common error code: MachineNotFound, WindowsIdentityIncorrect, AttendedUserSessionNotActive, SessionExistsForTheUserWhenUnattended and more."
+searchPhrase: "desktop flow connection not found"
 ---
 A cloud flow that runs a desktop flow depends on four things lining up: the **machine** is registered and online, the **desktop flow connection** works, the right **Windows session** exists (or doesn't), and the **credentials** can sign in. "Connected" in the machine runtime only proves the first. Here's how to check the rest.
 

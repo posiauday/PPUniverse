@@ -4,7 +4,8 @@ slug: agent-on-dataverse-tables
 type: TUTORIAL
 technology: COPILOT_STUDIO
 topic: knowledge-and-grounding
-excerpt: "Add Dataverse tables as knowledge so the agent answers from your own records, such as cases, assets or orders, with each user seeing only what they're allowed to. The prerequisites, the 15-table limit, searching notes and attached files (preview), and the fixes when the agent ignores the source."
+excerpt: "Add Dataverse tables as knowledge in Copilot Studio so the agent answers from your own records, such as cases, assets or orders, with each user seeing only what they're allowed to. The prerequisites, the 15-table limit, searching notes and attached files (preview), and the fixes when the agent ignores the source."
+searchPhrase: "ground copilot studio agent on dataverse tables"
 ---
 Most business answers live in **Dataverse**: cases, orders, assets, contacts. Adding tables as **knowledge** lets an agent answer questions like "which high-priority cases opened this week are still unresolved?" straight from those rows. Since September 2026 it can also reason over **notes and attached files** in those rows, in preview.
 

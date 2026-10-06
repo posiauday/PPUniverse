@@ -4,9 +4,10 @@ slug: dynamic-row-level-security
 type: PATTERN
 technology: POWER_BI
 topic: security-and-sharing
-excerpt: "One role, every user sees only their rows. Build the user-mapping table, put the filter on the right table, avoid the bidirectional trap, assign people in the service, and test it properly, including guest users and why 'Test as role' can fool you."
+excerpt: "Dynamic row-level security in Power BI: one role, and every user sees only their rows. Build the user-mapping table, put the filter on the right table, avoid the bidirectional trap, assign people in the service, and test it properly, including guest users and why 'Test as role' can fool you."
+searchPhrase: "power bi dynamic row level security"
 ---
-Static RLS needs a role per region. **Dynamic** RLS uses one role whose rule asks "who's signed in?" and looks that person up in a mapping table. When it works, it's elegant. When it doesn't, users see **everything** or **nothing**. This pattern avoids both.
+Static RLS in Power BI needs a role per region. **Dynamic** row-level security uses one role whose rule asks "who's signed in?" and looks that person up in a mapping table. When it works, it's elegant. When it doesn't, users see **everything** or **nothing**. This pattern avoids both.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.

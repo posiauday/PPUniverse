@@ -5,6 +5,7 @@ type: TUTORIAL
 technology: POWER_AUTOMATE
 topic: run-and-monitor
 excerpt: "Why flows belong in solutions, how to add existing flows (one at a time or in bulk), what to set up so they deploy cleanly, and how to read and fix 'Import failed due to missing dependencies'."
+searchPhrase: "move flow to solution missing dependencies"
 ---
 A flow built straight in **My flows** works fine until you need to move it to test or production, hand it to someone else, or call it from an agent. Then you need it in a **solution**: a package of the flow and everything it depends on, which is how Power Platform moves work between environments. This guide covers getting flows in, and getting solutions to import.
 

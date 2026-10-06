@@ -5,6 +5,7 @@ type: PATTERN
 technology: POWER_AUTOMATE
 topic: triggers-and-design
 excerpt: "Send a reminder a set number of days before a SharePoint due date. A daily scheduled flow that works in your time zone, filters the list efficiently, avoids double-sending, and can send one digest per person instead of a flood of emails."
+searchPhrase: "send reminder email before due date"
 ---
 "Email the owner three days before the due date" sounds simple, and it nearly is. The usual problems are **time zones** (reminders a day early or late), **filters** that miss items, and **duplicates**. This pattern handles all three.
 

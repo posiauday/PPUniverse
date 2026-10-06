@@ -5,6 +5,7 @@ type: REFERENCE
 technology: POWER_AUTOMATE
 topic: triggers-and-design
 excerpt: "Copy-ready filter queries for Get items (SharePoint), List rows (Dataverse) and Get rows (SQL Server): operators, text, dates, lookups and choices, what each source doesn't support, and the errors that mean your syntax is off."
+searchPhrase: "odata filter query sharepoint"
 ---
 A **Filter Query** makes the data source do the filtering, so the flow fetches only the rows it needs instead of everything followed by a **Filter array**. It's faster, uses fewer requests, and is often the only way to work with large lists. But each connector speaks its own dialect, and a filter that works on Dataverse fails on SharePoint. This page lists what each one accepts.
 

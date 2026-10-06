@@ -5,8 +5,9 @@ type: REFERENCE
 technology: POWER_AUTOMATE
 topic: errors-and-limits
 excerpt: "Every common Power Automate error, from 401 and 429 to ExpressionEvaluationFailed and FlowRunQuotaExceeded: what it means, how to confirm the cause in run history, the fix, and how to stop it happening again."
+searchPhrase: "power automate error codes"
 ---
-A red action in run history tells you *that* something failed. The code on it tells you *why*, but only once you know where to look and what each code really points to. Keep this page open next to your run history.
+A red action in Power Automate's run history tells you *that* something failed. The error code on it tells you *why*, but only once you know where to look and what each code really points to. Keep this page open next to your run history.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Limits change over time; the **Sources** list at the end links to Microsoft's current pages.

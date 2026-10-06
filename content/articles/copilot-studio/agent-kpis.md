@@ -5,6 +5,7 @@ type: KPI_GUIDE
 technology: COPILOT_STUDIO
 topic: monitor-and-cost
 excerpt: "Session counts show an agent is being used, not that it helps. How Copilot Studio defines resolution, escalation and abandonment, the traps in those definitions, and how to measure answer quality and value honestly."
+searchPhrase: "copilot studio agent kpis"
 ---
 > [!NOTE]
 > **As of September 2026.** Copilot Studio analytics change often, and some reports differ between agents using generative orchestration and classic agents. The definitions below come from Microsoft's documentation at the time of writing.

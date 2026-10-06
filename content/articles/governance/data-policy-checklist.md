@@ -5,6 +5,7 @@ type: REFERENCE
 technology: GOVERNANCE_ADMIN
 topic: data-policies
 excerpt: "How Power Platform data policies decide what makers can connect, the rules that surprise admins (combined policies, unblockable connectors, HTTP and child flows), a safe rollout checklist, and what to do when a policy suspends a flow."
+searchPhrase: "power platform dlp policy"
 ---
 Data policies (still widely called **DLP policies**) decide which connectors can be used together in an app, flow or agent, and which can't be used at all. Done well, they stop company data quietly flowing to personal services without slowing makers down. Done badly, one change suspends dozens of flows overnight. This page is the admin's reference for doing it well.
 

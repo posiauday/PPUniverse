@@ -5,6 +5,7 @@ type: REFERENCE
 technology: POWER_BI
 topic: security-and-sharing
 excerpt: "Who can see, edit, share and build on what. Workspace roles side by side, the four semantic model permissions, how apps and sharing grant access, what RLS does and doesn't restrict, and answers to the questions people ask every week."
+searchPhrase: "power bi workspace roles permissions"
 ---
 Power BI access comes from three places: **workspace roles**, **item permissions** (especially on semantic models) and **apps or sharing links**. Most "why can they see that?" and "why can't they see this?" questions come down to how these combine. Look it up here.
 

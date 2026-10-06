@@ -5,6 +5,7 @@ type: REFERENCE
 technology: POWER_BI
 topic: refresh-and-gateways
 excerpt: "Why a Power BI semantic model stops refreshing, in the order to check it: credentials, gateway, privacy levels, time-outs, size limits and paused schedules, with the fix for each and the limits that cause them."
+searchPhrase: "power bi refresh failed"
 ---
 A failed refresh shows up as a stale report, a warning icon in the workspace or an email to the model owner. The cause is almost always one of a handful of things, and checking them in the right order saves an afternoon.
 
