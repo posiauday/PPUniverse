@@ -16,8 +16,11 @@
  * send a message (docs/final-decisions.md, "MVP-018 open question 49",
  * option (a)) — every other state (UNDER_REVIEW, WITHDRAWN, APPROVED,
  * DENIED, COMPLETED) is deliberately not a value here, not even
- * reserved-but-unused. */
-export type EmailMessageType = "SIGNIN_LINK" | "DELETION_REQUEST_SUBMITTED";
+ * reserved-but-unused.
+ * PASSWORD_CONFIRM and PASSWORD_SET_LINK: MVP-036's email and password sign-in
+ * (confirm a sign-up; set or reset a password). */
+export type EmailMessageType =
+  "SIGNIN_LINK" | "DELETION_REQUEST_SUBMITTED" | "PASSWORD_CONFIRM" | "PASSWORD_SET_LINK";
 
 export type EmailSendStatus = "SENT" | "FAILED" | "SKIPPED_NO_CONSENT";
 

@@ -812,7 +812,7 @@ describe("robots.txt and sitemap.xml routes", () => {
 });
 
 describe("next.config headers", () => {
-  it("marks API, account, sign-in and admin responses noindex, nofollow — and nothing else", async () => {
+  it("marks API, account, sign-in, sign-up, password and admin responses noindex, nofollow — and nothing else", async () => {
     const rules = ((await config.headers?.()) ?? []).filter((rule) =>
       rule.headers.some((header) => header.key === "X-Robots-Tag"),
     );
@@ -821,6 +821,8 @@ describe("next.config headers", () => {
       "/account/:path*",
       "/signin",
       "/signin/:path*",
+      "/signup",
+      "/password/:path*",
       "/admin",
       "/admin/:path*",
     ]);

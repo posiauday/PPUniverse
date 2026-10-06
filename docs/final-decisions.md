@@ -1984,3 +1984,26 @@ The product owner chose by multiple choice:
   - Governance & admin: "Room to build, with guardrails that hold".
 - **"How we write and check guides" wording approved as shown on the board,** including "Drafts are written with the help of AI, then fact-checked line by line."
 - **Build timing:** the redesign build (`docs/plans/guide-and-hub-redesign.md`) starts **after PR #75 is merged**.
+
+## 2026-10-06 — Email and password sign-in: rules (MVP-036)
+
+The product owner restated that **only signed-in readers may comment or post**, and that email and password sign-in is a must alongside Google and the email link. They chose by multiple choice:
+- **Minimum length: 12 characters.** This is below NIST SP 800-63B rev. 4's 15-character minimum for password-only accounts; the product owner chose it knowingly. Following the rest of NIST:
+  - accept at least 64 characters (the build allows 128) and any Unicode;
+  - no composition rules (no "must contain a symbol");
+  - no forced periodic changes;
+  - a change is required only when there is evidence the password was compromised.
+- **Leaked-password check: Have I Been Pwned's Pwned Passwords range API.** It is free, needs no API key and has no attribution requirement (checked 2026-10-06). Only the first 5 characters of the password's SHA-1 hash are sent, with the `Add-Padding` header, and the password never leaves the server.
+
+  If the service can't be reached within 2 seconds, local checks still apply: the password can't contain the email's name part or the site name, or be one repeated character. Sign-up isn't blocked by an outage, and the outage is logged.
+
+  The Privacy notice names the service.
+- **Confirm the email before the first password sign-in: yes.** Sign-up emails a confirmation link, and the password works only after it's clicked.
+
+  If the email already has an account (from Google or the email link), sign-up never reveals that. Instead, the owner of the address gets an email with a link to set a password. One email always means one account.
+
+**Engineering defaults** (reversible, from OWASP's password storage cheat sheet):
+- Hashing with Node's built-in **scrypt** (N=2^17, r=8, p=1, a 16-byte random salt and 64-byte key), compared in constant time. Node's built-in, so there's no native dependency on Netlify.
+- Sign-in creates the same **database session** the other methods create, so the Account sessions page keeps working.
+- Failed attempts are limited per account and per IP address, through a database table. Serverless memory can't be trusted.
+- Reset and confirmation links are single-use, expire after 1 hour, and are stored only as SHA-256 hashes.

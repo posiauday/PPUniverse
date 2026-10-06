@@ -4696,3 +4696,67 @@ The technology tiles were removed from `/learn` because the board has none, so `
 - the product owner reviews PR #75 and merges;
 - drafts import on the next release, and the product owner publishes them;
 - MVP-041 (article visuals) comes before any screenshot.
+
+## 2026-10-06 — MVP-036: email and password sign-in (status QA)
+
+**Story completed (to QA):** MVP-036, under `docs/final-decisions.md` "Email and password sign-in: rules (MVP-036)". Signed-in readers can now use a password, alongside the email link and Google.
+- **Sign up** (`/signup`): the password works only after the emailed link is confirmed.
+- **Sign in** on `/signin`: one form, with "Sign in" and "Send sign-in link".
+- **Forgot and reset** (`/password/forgot`, `/password/reset`): the reset also lets Google or email-link users add a password, and ends every other session.
+- **Confirm** (`/password/confirm`): a button, so email link scanners can't use the link up.
+- Every method creates the same database session, so `/account/sessions` lists them all.
+
+**Files changed:**
+- **Domain** (`packages/domain/identity`): `password-policy.ts`, `password-hashing.ts` (scrypt, N=2^17), `sign-in-throttle.ts`, `password-auth.ts` (the flows), `password-auth-memory.ts`, with tests.
+- **Adapters** (`packages/adapters/identity`): `password-auth-store.ts` (Prisma; deletes spent links and idle counters after a day), `pwned-passwords.ts` (HIBP range API), with tests.
+- **Database:**
+  - `identity.prisma` and `notifications.prisma`;
+  - migrations `20261007000000_add_password_sign_in` (three tables with RLS, two email types) and `20261007000100_add_privacy_policy_version_2026_10_07`.
+- **Web** (`apps/web`):
+  - `lib/password-auth.ts`, `lib/password-request.ts`, `lib/password-client.ts`;
+  - five routes under `app/api/auth/password/`, with `password-routes.test.ts`;
+  - pages `app/signup`, `app/password/{confirm,forgot,reset}`, and the updated `app/signin/page.tsx`;
+  - shared `app/AuthFrame.tsx` and `app/PasswordField.tsx`;
+  - `next.config.ts` (noindex on `/signup` and `/password/*`);
+  - `globals.css` (plain links in a page are underlined);
+  - the Privacy notice in `lib/legal/pages.ts`.
+- **Accessibility gate** (`packages/e2e`): the four new routes in `page-routes.ts`; 14 new states in `pages.ts`; `answerPasswordApi` in `auth-intercept.ts`.
+- **Docs:** `docs/15-deployment.md` section 2c, and `docs/plans/mvp-036-password-sign-in.md` (now with the as-built security review).
+
+**Caught and fixed during the story (before Done, so not bugs):**
+- **Two timing leaks that could reveal accounts:**
+  - sign-up hashed only for new emails;
+  - forgot-password was slower, and failed differently, for real accounts.
+  - Fixed: sign-up always hashes, both routes answer no sooner than 1.5 s, and a forgot email failure is logged without changing the answer.
+- **A 382 px-wide `/signin` at 320 px,** and a password input missing the site's field style (it had a class, so the classless base style skipped it). Fixed in `PasswordField`.
+- **Plain links inside pages weren't underlined** ("Forgot your password?" looked like text). Fixed with one base rule; it also improves `/signin/confirm`.
+- **A domain test that timed out** under the parallel workspace run (real scrypt). `domain-identity` now has a 60 s test timeout.
+- **14 new gate states failed in WebKit:** the test filled the email before React hydrated the form, and hydration then cleared it. The new states now wait for hydration (`whenHydrated` in `packages/e2e/src/pages.ts`). This is a test fix, not a product change.
+
+**Commands executed:**
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`: all green against a local embedded Postgres, with test schemas provisioned.
+- `pnpm build`.
+- **Accessibility gate,** in all three browsers:
+  - the full page matrix: 1277 passed, plus the 14 WebKit failures above;
+  - after the fix, every sign-in, sign-up and password state plus the distinct-titles test: 288 passed, Playwright exit 0.
+
+**Risks identified:**
+- **Deploy previews refuse the password forms,** because the origin differs. Documented.
+- **Anyone can pause password sign-in for an email** for 15 minutes; the email link and Google still work. Accepted, and recorded in the plan.
+- **The 12-character minimum is below NIST's 15** for password-only accounts, as the product owner chose knowingly.
+
+**Housekeeping:**
+- MVP-034 (PR #71) and MVP-035 (PR #72) were merged into `develop` but still showed In Progress and Backlog. Both are corrected to QA.
+
+**Remaining work:**
+- CI's full accessibility matrix on the PR.
+- The product owner reviews and merges.
+- After the next release, try sign-up on production with a real inbox.
+
+**CI follow-up (same day):**
+- **First run:**
+  - a JSON file failed the format check: my local check covered source files only;
+  - shard 4 passed all 477 tests, then hit the 20-minute job limit.
+- **Second run:**
+  - the identity adapter's password-flow integration test timed out at 5 s on the runner. Its package now allows 60 s, like `domain-identity`.
+  - An intermittent overflow on the admin product editor was found in already-delivered work: [BUG-024](bugs/BUG-024.md), fixed in this PR.
