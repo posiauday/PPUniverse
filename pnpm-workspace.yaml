@@ -18,3 +18,8 @@ overrides:
   # globSync and depends on picomatch, not braces. See
   # planning/tech-debt/TD-027.md; remove once the plugin drops fast-glob 3.
   "@next/eslint-plugin-next>fast-glob": "npm:tinyglobby@^0.2.17"
+  # GHSA-68fv-2mgg-jv7q (2026-10-06): source-map-js <1.2.2 can be made to loop
+  # on crafted index source maps. Reaches us only through build/test tooling
+  # (postcss, vite, css-tree); 1.2.2 is a patch release inside every
+  # dependent's ^1 range. Remove once the lockfile resolves >=1.2.2 alone.
+  source-map-js: ">=1.2.2"
