@@ -46,6 +46,21 @@ Why two strings: serverless functions open many short-lived connections, and Sup
 2. When Resend shows the domain as verified, create an **API key** that can only send.
 3. Choose a sender address on the domain, for example `no-reply@lowcodestacks.com`.
 
+## 2b. Google sign-in (optional, MVP-035)
+
+Without these two settings the site offers the email link only. To turn Google sign-in on:
+
+1. **Create the client:** in Google Cloud Console, create a project, then go to **APIs & Services → OAuth consent screen**:
+   - User type: **External**.
+   - App name: LowCodeStacks, with your support email.
+   - Scopes: only email, profile and openid.
+   - Publish the app.
+2. **Add credentials:** under **Credentials → Create credentials → OAuth client ID**, choose **Web application**, then add the **Authorized redirect URI** `https://lowcodestacks.com/api/auth/callback/google`.
+3. **Set it in Netlify:** set `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET` with **Contains secret values** ticked. Both go in the Production context, scoped to Functions and Runtime.
+4. **Redeploy.** The sign-in page then shows **Continue with Google**.
+
+The site stores only who the Google account is (its ID, email and name), never Google tokens or the profile photo (`apps/web/lib/google-auth.ts`).
+
 ## 3. Netlify: the site
 
 1. Create a free Netlify account and choose **Add new project → Import an existing project → GitHub**, then pick `posiauday/PPUniverse`.
