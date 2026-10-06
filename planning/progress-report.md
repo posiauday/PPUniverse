@@ -4602,3 +4602,29 @@ The technology tiles were removed from `/learn` because the board has none, so `
 **Commands:** web typecheck, lint and unit tests (`lib`, `app`).
 
 **Remaining:** visual check of the RSS link (the CI a11y gate covers `/updates`); the release steps listed in PR #63's notes.
+
+## 2026-10-06 — MVP-038 (partial): REFERENCE type and the first seven reference pages
+
+**Built:**
+- **`REFERENCE` article type:** an additive enum migration `20261006000200`, the content model, admin form and validation, and a "Look it up" section on `/learn`.
+- **Seven reference pages,** one per area, imported as drafts on release:
+  - Power Automate: cloud flow error codes;
+  - Power Apps: delegation cheat sheet;
+  - Power BI: refresh failures checklist;
+  - Dataverse: access cheat sheet;
+  - Copilot Studio: knowledge limits and fixes;
+  - Power Pages: data security checklist;
+  - Governance: data policy checklist.
+- **Research:** every page is original writing, checked against Microsoft Learn on 2026-10-06, with 6–9 sources each.
+- **Caught while fact-checking (before commit):**
+  - a SharePoint `UpdateIf`/`RemoveIf` claim, rewritten to match Microsoft's footnote;
+  - `App.Formulas` named-formula syntax;
+  - a Dataverse team-role rule where Microsoft's older developer page and newer admin page disagree (the newer, specific rule is used);
+  - an unverified "generative is the default" claim, removed;
+  - Microsoft's two pages disagree on Power Automate request limits; both figures are explained (per-flow during the transition, per-user after).
+
+**Checks:** content validation (31 files), and domain and web unit tests pass.
+
+**Remaining for MVP-038:**
+- the trust signals: source-checked date and badge, tested-by-us badge, last-reviewed date and "this changed" reports;
+- the hub Daily reference row (MVP-037).
