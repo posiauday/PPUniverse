@@ -32,3 +32,6 @@ MVP-030,Deploy to Netlify,In Progress,P1,6,5
 MVP-031,Daylight redesign,QA,P1,6,13
 MVP-032,"About, Privacy and Terms pages",QA,P1,6,5
 MVP-033,Navigation restructure,QA,P1,7,13
+MVP-034,Sign-in hardening,In Progress,P1,8,5
+MVP-035,Google sign-in,Backlog,P1,8,5
+MVP-036,Email and password sign-in,Backlog,P1,8,8
