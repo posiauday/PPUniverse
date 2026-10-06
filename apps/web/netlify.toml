@@ -38,7 +38,11 @@
   command = "node packages/db/scripts/deploy-migrations.mjs && pnpm turbo run build --filter=@ppu/web && node packages/adapters/content/scripts/import-drafts-on-deploy.mjs"
 
 [build.environment]
-  # Matches CI (.github/workflows).
+  # The BUILD image's Node version, matching CI (.github/workflows). It does
+  # not, on its own, pin the server functions: the first deploy ran them on
+  # nodejs24.x. Netlify reads the functions runtime only from the
+  # AWS_LAMBDA_JS_RUNTIME variable set in the Netlify UI, CLI or API (it is
+  # ignored here). It is set to nodejs22.x there; see docs/15-deployment.md.
   NODE_VERSION = "22"
   # Turborepo telemetry off in hosted builds.
   TURBO_TELEMETRY_DISABLED = "1"
