@@ -43,6 +43,9 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+/** The six technology palettes (MVP-031): a tint and an ink each. */
+const TECH = ["apps", "automate", "bi", "copilot", "dataverse", "pages", "gov"] as const;
+
 /** [text, background] pairs that carry body-size text: 4.5:1 (WCAG 1.4.3). */
 const TEXT_PAIRS: Array<[string, string]> = [
   ["foreground", "background"],
@@ -58,14 +61,37 @@ const TEXT_PAIRS: Array<[string, string]> = [
   ["highlight-foreground", "highlight"],
   ["code-foreground", "code"],
   ["code-muted", "code"],
+  // MVP-031 (Daylight): violet accent words and prose links, the hero stage,
+  // and each technology's ink and the page's ink on that technology's tint.
+  ["accent", "background"],
+  ["accent", "card"],
+  ["accent", "muted"],
+  ["coral", "background"],
+  ["coral", "card"],
+  // The hero's "New" pill: highlight text on the primary pill.
+  ["highlight", "primary"],
+  ["foreground", "stage"],
+  ["muted-foreground", "stage"],
+  ...TECH.flatMap((name): Array<[string, string]> => [
+    [`tech-${name}-ink`, `tech-${name}`],
+    ["foreground", `tech-${name}`],
+  ]),
 ];
 
 /** Control boundaries and the focus ring: 3:1 (WCAG 1.4.11, 2.4.13). The
- * search input's border is muted-foreground (BUG-004). */
+ * search input's border is muted-foreground (BUG-004). The ring is its own
+ * token (MVP-031) and must stand out on every surface it can sit on. */
 const NON_TEXT_PAIRS: Array<[string, string]> = [
   ["foreground", "background"],
   ["foreground", "card"],
   ["muted-foreground", "card"],
+  ["muted-foreground", "background"],
+  ["ring", "background"],
+  ["ring", "card"],
+  ["ring", "muted"],
+  ["ring", "stage"],
+  ["ring", "highlight"],
+  ...TECH.map((name): [string, string] => ["ring", `tech-${name}`]),
 ];
 
 describe.each([

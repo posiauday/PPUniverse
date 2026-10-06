@@ -4277,3 +4277,328 @@ Not a story. It's a defect in delivered work (MVP-026's share images), so it has
 - `pnpm test` against the local Postgres, migrated with the new migration and with test schemas reprovisioned: all pass, including `@ppu/db` 30, catalog 87, content 34, commerce 20 and web 465.
 
 **Remaining (slice 2):** the product owner completes sign-in (after Netlify login), grants ADMIN by SQL, runs the article import (Windows forms now in the runbook), and reviews and publishes. Then launch with "Make public".
+
+## MVP-031 — Daylight redesign: whole site rebuilt to the approved canvas, story moves to QA (2026-10-02)
+
+**Requirements:** NFR-005 (UX quality), NFR-001 (accessibility), NFR-004 (SEO, partial).
+**Decisions:**
+- `docs/final-decisions.md`, "Visual redesign: Daylight", including two new subsections:
+  - "Logo: X2 "Code stack"" (2026-10-01);
+  - "Board fidelity pass" (2026-10-01).
+- Open question 63 is closed (search covers guides); open question 64 is new (About, Privacy and Terms content).
+
+**Migration impact:** none. No schema change; guide search reads existing columns.
+
+**Security review (checked against what was built):**
+- **Guide search:**
+  - The SQL is parameterised through `Prisma.sql`.
+  - `websearch_to_tsquery` accepts any input without raising errors.
+  - Only `PUBLISHED` rows are returned.
+  - Match highlighting uses two control characters that are stripped from the source text first. They are turned into `<mark>` elements on the server; article text is never parsed as HTML (unit test: `<b>` in a title renders escaped).
+  - Results pages stay `noindex, follow`.
+- **Header search:** a plain GET form. The Ctrl K / ⌘K shortcut only focuses the box or navigates to `/search`.
+- **Copy link:** copies the canonical article URL built on the server, never the current address with its query or fragment.
+- **Secrets:** none added. No new external requests: fonts stay self-hosted.
+- **Microsoft claims:** the non-affiliation line and trademark sentence stay on every page.
+
+**Built, in order (branch `feature/mvp-031-daylight-redesign`):**
+1. **Foundations, home, technology hubs, guides library and article, search, sign-in, 404 and shared `@ppu/ui` components** (commits d5a0d8a to 98d3816). Daylight tokens in light and dark, the four fonts, the header, the footer and the animated home stage.
+2. **Technologies menu fix** (fc785b5): below `md` the open list pushes the page down instead of covering header links. This was found by the gate; target size, WCAG 2.5.8.
+3. **Logo X2 "Code stack"** (0b140ce):
+   - One shared geometry, `apps/web/lib/brand-mark.ts`, used by:
+     - the header and footer `BrandMark` (per-instance gradient ids);
+     - `app/icon.svg`, generated from it and guarded by a test;
+     - the share image.
+   - At 20 px and below, a simplified drawing is used.
+4. **Board fidelity pass, part 1** (056bd4f):
+   - **Heading font:** Bricolage Grotesque now loads its optical-size axis, as the canvas does. Without it, large headings rendered in the wider text cut, the biggest visible difference.
+   - **Hero:** the headline wraps as drawn.
+   - **Header:** a "KPI guides" link and a search box with a Ctrl K / ⌘K shortcut.
+   - **Guide search:**
+     - `ContentRepository.searchPublishedArticles`: weighted full-text over title, excerpt and body, with `ts_headline` snippets.
+     - The `/search` page lists guides first in the board's row layout, then components.
+   - **`/learn`:** cards as drawn, with stable section anchors.
+   - **Home:** section headings in the board's style.
+5. **Footer** (2a40bb3): link columns for the six technologies and the guide types, the brand line, and a slim notice bar.
+6. **Board fidelity pass, part 2** (5c68c9e):
+   - **Power Apps hero phone:** blinking cursor, scrolling list.
+   - **Learn tab:** two illustrated featured guides; guides with drawn covers come first.
+   - **"Also in" row** under the Learn tab.
+   - **Breadcrumbs as drawn.** The JSON-LD trails are unchanged.
+   - **Article:** a Copy link button with a live-region announcement.
+7. **Board fidelity pass, part 3: the mobile canvas** (2ec0755):
+   - **Below `lg`:** the logo, search and a Menu disclosure. Its panel holds the links, the six technologies, sign-in, the theme switch and the call to action, and opens in the page flow.
+   - **Below `sm`:** compact technology panels and tiles, compact "Start here" rows, and a trimmed "broken version first" panel.
+8. **Tests** (5f3f049, then the BUG-004 locator commit):
+   - **BUG-004 regression tests:** now target the renamed search box ("Search guides and components").
+   - **Header search box:** new border and placeholder contrast checks.
+
+**Caught and fixed during the story (not bugs, per CLAUDE.md):**
+- **Overlapping menu:** the floating Technologies panel part-covered other header links at 320 and 768 px (axe target-size).
+- **Outdated regression test:** the BUG-004 tests timed out after the search box was renamed. This was a test locator problem, not a contrast problem.
+- **Search snippets:** the first snippet regex left Markdown brackets in, because PostgreSQL treats backslashes inside a bracket expression literally. Fixed, and covered by the integration test.
+
+**Commands and results:**
+- `pnpm lint` and `pnpm typecheck`: clean.
+- **Unit tests:** `@ppu/web` 548, `@ppu/ui` 57, `@ppu/e2e` 83.
+- **Integration:** `@ppu/adapter-content` 10, against local Postgres, including the new search test (published-only, title outranks body, Markdown stripped, malformed queries accepted).
+- `pnpm build`: succeeds.
+- **`pnpm test:a11y`:** 474 checks per engine, all passing.
+  - WebKit: 474 in one run.
+  - Chromium and Firefox: 468 in the full run; the 4 failures were the outdated BUG-004 locator, and the 6 corrected and new BUG-004 checks then passed in both.
+
+**Risks:**
+- **Guide search** computes its vector per query and lists at most 20 guides. Recorded as TD-024 (Low), fine at launch size.
+- **Two theme toggles:** the header and the phone menu each have one. Their pressed state can disagree only if someone switches theme and then resizes across `lg` without reloading. The theme itself is always correct.
+- **Featured covers** exist only for the drawn launch guides. Other guides fall back to their type's initial.
+
+**Remaining:**
+- The product owner reviews and merges the MVP-031 PR into `develop`.
+- About, Privacy and Terms pages need product-owner content (open question 64).
+- Screen-reader testing has not been done (open question 38, unchanged).
+
+
+## MVP-032 — About, Privacy and Terms pages, story moves to QA (2026-10-02)
+
+**Requirements:** FR-004 (consent), NFR-005 (UX).
+**Decision:** `docs/final-decisions.md`, "About, Privacy and Terms pages" (2026-10-02). It records the product owner's direct instruction, operator Uday Posia, contact@lowcodestacks.com, Saskatchewan (Canada), and "code free, text reserved". It supersedes "no agent-authored legal copy" for these pages only. Open question 64 is closed and open question 47 partly answered.
+
+**Migration impact:** `20261002000000_add_policy_versions_2026_10_02`.
+- It is additive and reversible: the rollback SQL is in the file.
+- It adds real Terms and Privacy `PolicyVersion` rows with `effectiveAt = GREATEST(2026-10-02, now)`, so they're the latest even on a database first migrated after today.
+- Verified on a throwaway schema migrated from scratch; the schema was then dropped.
+
+**Security review:**
+- **Text rendering:** the page text is static Markdown rendered without raw HTML.
+- **No new routes** that accept input.
+- **The privacy statements were checked against the code:**
+  - cookies (next-auth's, and `lcs-theme` for one year);
+  - logs (no IP or email; search terms are recorded);
+  - providers (Netlify, Supabase, Resend);
+  - no analytics or ads.
+- **A test ties the named cookie to the code's constant.** A second test fails if any page says "comply", "compliant" or "GDPR".
+
+**Research:** Office of the Privacy Commissioner of Canada guidance, checked 2026-10-02:
+- PIPEDA applies to private-sector commercial activity in Saskatchewan, which has no substantially similar provincial law.
+- Access requests must be answered within 30 days.
+- People should be told when their information may be processed outside Canada.
+- A privacy policy should name a contact and explain how to request access, correction and deletion.
+
+**Built:**
+- **Pages:** `apps/web/lib/legal/pages.ts` holds the three pages' text and the operator/contact constants. `app/InfoPageView.tsx` renders a Daylight header with the article layout (contents list and body). The routes are `app/about`, `app/privacy` and `app/terms`.
+- **SEO:** `buildInfoPageMetadata` (indexable, absolute canonical) and `infoPageUrl`. The sitemap lists the three pages last, and the catalog/article budget is reduced by 3.
+- **Footer:** an "About and policies" nav in the notice bar, as the canvas draws it.
+- **Account privacy page:** links the Terms and Privacy notice, and says "Terms of use".
+- **a11y gate:** `about`, `privacy` and `terms` states, plus the route list.
+
+**Caught and fixed during the story:**
+- **Placeholder Terms could win.** The placeholder policy rows would have stayed the "latest" Terms on a database first migrated after 2026-10-02 (fixed with `GREATEST`).
+- **About heading overflow.** The heading overflowed at 320 px ("LowCodeStacks," is one long word). The phone size is now 2.25rem.
+- **Outdated test label.** `privacy-empty` looked for the old "Terms of Service" button label.
+
+**Commands and results:**
+- **Web:** typecheck and lint clean; 556 unit tests pass (8 new in `lib/legal/pages.test.ts`).
+- **e2e unit tests:** 83, including route coverage.
+- **Targeted a11y run (Chromium):** the new pages, the account privacy states and route coverage, 83 checks: 76 then 7 after the label fix, all passing.
+- **Not run:** the full three-browser gate. At the product owner's request the big runs were skipped this time, because the identical layout components passed the full gate in MVP-031.
+
+**Risks:**
+- **Pages not yet reviewed by a lawyer.** Recommended before launch.
+- **`contact@lowcodestacks.com` doesn't exist yet.** The product owner must create it before launch, or privacy requests will bounce.
+- **Pages can drift from the code.** When data handling changes (ads, analytics, checkout), the Privacy notice must change in the same PR. Only the cookie name and the no-claim rule are guarded by tests.
+
+**Remaining:** the product owner reviews and merges. Merge #53 first; this PR is stacked on it.
+
+## MVP-033 — Navigation restructure: slice C, technology hubs (2026-10-02)
+
+**Scope:** slice C of `docs/plans/mvp-033-navigation-restructure.md`, built to the approved structure boards (`docs/final-decisions.md`, 2026-10-02 navigation entries). The story stays In Progress; slices B (content model) and D (Updates) are next.
+
+**Built:**
+- **Technology hubs** (`app/[technology]/TechnologyHub.tsx`, `lib/technology-hubs.ts`):
+  - a hero with a scoped search and three problem chips;
+  - every approved section as a card, with planned guides marked "Coming";
+  - a "New here? Start with these 3" path at the end.
+- **Governance & admin** at `/governance`: the 7th area, noindex until it has guides.
+- **Old tab addresses** (`/power-apps/kpis` and so on) redirect (308) to the hub; the sitemap lists hubs only.
+- **Guides by goal:** the `/learn` sections and the footer's Guides column use the goal labels, in the approved order. Section anchors keep the type names, so older links still land.
+- **Technologies menu** (`app/TechnologiesMenu.tsx`, `lib/technology-menu.ts`), to the "Header and Technologies menu" board:
+  - all 7 areas, each with its guide count, the first guide of its hub's "New here?" path, and its first four sections linking to their cards;
+  - a footer link to every guide by goal;
+  - 7 columns from xl, 4 at lg;
+  - the phone menu shows the areas as tinted tiles.
+  - The menu is loaded once per request in the root layout. If the read fails, it is logged and the menu shows areas and sections without counts, so no page breaks.
+- **Tech debt:** TD-025 (each guide's section is mapped in code until slice B adds a topic field).
+
+**Caught and fixed during the story:**
+- **Server-only code in the menu.** The client menu imported a helper from the module that also loads the server logger, and the dev build failed. The count label is now worked out on the server, so the client imports only types.
+- **Crowded count labels.** At 1280 px the count crowded single-word area names; it now wraps under the name.
+
+**Commands and results:**
+- **Web:** typecheck and lint clean; 571 unit tests pass (7 new for the menu); Prettier clean.
+- **e2e:** typecheck clean; route coverage passes (11).
+- **Visual check** (Chromium, local database with the 24 launch guides published locally):
+  - pages: `/power-apps`, `/power-bi` and `/governance` at 375 and 1280 px, light and dark; the open menu at 1024 and 1280 px; the phone menu at 375 px;
+  - no console errors and no sideways scroll;
+  - Escape returns focus to the button.
+- **Not run:** the three-browser a11y gate. CI runs it on the PR; its `home-technologies-menu-open` state covers the new menu.
+
+**Open questions for the product owner:**
+- **Governance hero:** the hub has no hero picture (the other hubs have one).
+- **Tab redirects:** old tab addresses land on the top of the hub, not a section, because hubs are now split by topic rather than by guide type.
+- **Guide card labels:** cards still label each guide "Tutorial", "Pattern" and so on; should they use the goal labels too?
+
+**Remaining:** the product owner reviews and merges the slice C PR into `develop`.
+
+## MVP-033 — slice C follow-up: TD-026 resolved, the Guides page matches its board (2026-10-03)
+
+**What changed:** `apps/web/app/learn/page.tsx` now has:
+- the board's "What are you trying to do?" hero, with a problem-first search that posts to `/search`;
+- goal chips linking to each section;
+- a technology filter (`?technology=<slug>`, validated against the registry, with an unknown value ignored);
+- the board's line and coloured marker for each goal.
+
+The technology tiles were removed from `/learn` because the board has none, so `app/TechnologyTiles.tsx` (now unused) was deleted. Hubs stay linked from the header and the footer.
+
+**Caught and fixed during the work:**
+- The page must default its props: the existing tests call it without them.
+- The floating cube overlapped the last filter chip at 1280 px, so it was removed. The coral pill now shows only from `xl`.
+
+**Security:**
+- No new routes.
+- The filter value is only compared against the technology registry and is never echoed raw: the empty-state text uses the registry name.
+
+**Commands:**
+- Web typecheck, ESLint and Prettier are clean, and 574 unit tests pass (3 new).
+- axe (WCAG 2.2 AA) is clean on `/learn` and `/learn?technology=power-bi` at 375 and 1280 px, light and dark.
+
+**Tech debt:** TD-026 resolved.
+
+## MVP-033 — slice B: content model (topic field, Governance & admin area) (2026-10-03)
+
+**Requirements:** NFR-005 (UX), NFR-004 (SEO). **Decisions:** `docs/final-decisions.md`, "Structure boards approved" and "Governance & admin area and the Updates badge". **Plan:** `docs/plans/mvp-033-navigation-restructure.md`, slice B. Resolves TD-025.
+
+**Migration impact:** two additive migrations, each with its rollback in its header comment.
+- **`20261003000000_add_governance_admin_technology`:** adds the enum value `GOVERNANCE_ADMIN` (its own migration, because Postgres can't use a new enum value in the transaction that adds it).
+- **`20261003000100_add_article_topic`:** adds a nullable `articles.topic` column, then backfills the 24 launch guides. The backfill matches on slug and technology and never overwrites a topic that is already set.
+- **Verified locally:** both migrations applied, with no drift between the migrations and the schema. Against throwaway draft rows, the backfill set a matching guide, skipped one with a different technology, and left an existing topic unchanged.
+- **Production:** the product owner applies them with the direct 5432 connection, as for `20261002000000`.
+
+**Built:**
+- **Domain (`@ppu/domain-content`):**
+  - `Technology` gains `GOVERNANCE_ADMIN`.
+  - `TechnologyInfo` gains `kind` ("product" or "area").
+  - `TECHNOLOGIES` stays the six products, so the trademark notice, home panels and product hubs are unchanged.
+  - New: `AREAS` (all seven), `GOVERNANCE_ADMIN`, `areaBySlug`, `TECHNOLOGY_TOPICS` and `isValidTopic`.
+  - Article types carry `topic`. The article-source parser accepts a `topic:` key and checks it against the technology.
+- **Adapter:** `topic` round-trips through create, update, summaries and search.
+- **Content:** all 24 launch files carry `topic:`, and `content/articles/README.md` documents it.
+- **Web:**
+  - Hubs group by the stored topic, and `ARTICLE_TOPIC` is deleted.
+  - The palette gains Governance & admin, and `ALL_AREAS` comes from `AREAS`.
+  - The `/governance` page lists its published guides and becomes indexable once it has one.
+  - The sitemap lists any area's hub that has a guide.
+  - `/learn?technology=governance` filters to Governance guides.
+- **Admin:**
+  - Technology choices include Governance & admin.
+  - A new "Hub section (optional)" picker lists the chosen technology's sections. It is disabled with no technology, and changing the technology clears it.
+  - Both admin APIs validate the topic against the technology.
+- **Docs:** `docs/06-data-model.md`.
+
+**Bug found and fixed:** BUG-022. The form never sent the technology, so every save cleared it. The form now sends both technology and topic.
+
+**Security review:**
+- The topic is validated on the server against a fixed list, in the same place as the technology, by the admin-only routes (`requireAdmin`, which re-reads the role from the database).
+- The importer uses the same validator.
+- The value is used only to match a section id; it is never rendered raw or used in a query string.
+- The new column needs no row-level security change.
+
+**Commands and results:**
+- **Domain content:** 27 tests pass (2 new).
+- **Content adapter:** 35 tests pass, including the Prisma integration tests against a local Postgres with the per-package test schemas provisioned. They now include a topic round-trip.
+- **Web:** typecheck, ESLint and Prettier clean; 583 unit tests pass (new: `lib/technology-hubs.test.ts`, admin API topic tests, Governance page and sitemap tests).
+- **e2e:** typecheck clean, 83 unit tests pass.
+- **Workspace:** `pnpm -r run typecheck` clean.
+
+**Not run:**
+- the full three-browser a11y gate (CI runs it);
+- a browser check of the admin form, because admin sign-in needs the email flow. The form's markup follows the existing technology field: a labelled select, with a hint and error linked by `aria-describedby`.
+
+**Risks:**
+- **Production migrations:** they must be applied before this code is deployed, or reading `topic` fails.
+- **BUG-022 exposure:** in production, a guide re-saved through the editor before this fix has no technology.
+
+**Remaining in MVP-033:** slice D (Updates page and badge).
+
+## MVP-033 — slice D: Updates page, admin and the animated badge; story moves to QA (2026-10-03)
+
+**Requirements:** NFR-005 (UX), NFR-004 (SEO). **Decision:** `docs/final-decisions.md`, "Governance & admin area and the Updates badge" (badge behaviour, browser-only storage, Privacy notice in the same change) and "Structure boards approved" (the Updates board). **Plan:** `docs/plans/mvp-033-navigation-restructure.md`, slice D. The defaults applied are recorded as open questions 65 to 69.
+
+**Migration impact:** two additive migrations, each with its rollback in its header.
+- **`20261003000200_add_update_items`:** the `update_items` and `update_publish_events` tables, plus the `UpdateKind` enum. Both tables have RLS enabled, and the FKs are Restrict.
+- **`20261003000300_add_privacy_policy_version_2026_10_03`:** a new Privacy `PolicyVersion` row. The Terms are unchanged.
+- Applied locally with no schema drift.
+
+**Built:**
+- **Domain (`@ppu/domain-content`):** `updates.ts` (types, `UpdateRepository`, validators, `trackerLabel`) and `update-source.ts` (the drafts file parser). Update sources must be https links on microsoft.com or one of its subdomains, so look-alike hosts are refused.
+- **Adapter:** `PrismaUpdateRepository`. Publishing is one transaction that also writes the audit event; edits never touch status. Also `updates:import`, which imports drafts only, skips existing slugs, and imports nothing if any file is invalid.
+- **Drafts:** `content/updates/` holds four drafts, each checked against Microsoft Learn on 2026-10-03:
+  - the Power Automate mobile app retirement (August 31, 2026);
+  - the removal of the maker-portal help chatbot (September 9, 2026);
+  - the removal of the classic look for model-driven apps (April 2026);
+  - the deprecation of the Editable and Read-Only grid controls (March 2026).
+
+  The page's intro line, "release plans stop in September 2026; new capabilities move to the AI at Work roadmap", was checked on the same pages. A CI gate test validates every draft.
+- **Admin:** `/admin/updates` (list, with a link to each Microsoft source and a Publish button), plus `/new` and `/[id]/edit`. The API routes `/api/admin/updates`, `/[id]` and `/[id]/publish` are admin-only, give the identical 404 to everyone else, and share one validator (`lib/update-input.ts`).
+- **Public `/updates`:** matches the Updates board:
+  - the amber "What changed, and what it means." hero;
+  - the feed, with an area chip, kind, "New" chip, action pill, summary and Microsoft link;
+  - the "N new since your last visit" pill;
+  - the dark deprecation tracker, with a status label and "Switch to".
+
+  The page is noindex until the first update is published.
+- **Badge:** an "Updates" link in the top bar and the phone menu. Its lime count has a ping and a pop that stop under reduced motion; the ping ring is then hidden, leaving a still badge. Screen readers hear "Updates, N new". The count is worked out in the browser from published times and `localStorage["lcs-updates-last-visit"]`, which is never sent to the server and is safe when storage is blocked. Opening `/updates` records the visit and clears the badge at once.
+- **Privacy notice:** a new "Stored in your browser" section names the key, and the notice gets a new effective date (October 3, 2026). A test ties the named key to the code's constant.
+- **e2e:** routes and states for `/updates` and the three admin pages. The fixtures seed a published and a draft update.
+- **Docs:** `docs/06-data-model.md`, `CLAUDE.md` commands, and `content/updates/README.md`.
+
+**Security review:**
+- **Admin-only writes:** the role is re-read from the database, and non-admins get the identical 404 on every route.
+- **Server-side validation:** fixed enum kinds and length limits.
+- **Source links:** the allow-list refuses `http:`, credentials in the link and look-alike hosts, so no update can link a reader off Microsoft. Links render as plain `<a>` with `rel="noopener"`, and all text is escaped by React.
+- **Badge privacy:** the badge sends nothing about the visitor to the server.
+- **Audit trail:** a publish writes an `UpdatePublishEvent` row, plus a `content.update_published` log line.
+
+**Caught and fixed during the work:**
+- A second reduced-motion block broke the design-token test, which reads the first one. Merged into the existing block.
+- The tracker list showed bullets, and the dark card blended into the dark page. Fixed with `list-none` and an outline.
+
+**Commands and results:**
+- **Domain content:** 40 tests pass.
+- **Content adapter:** 42 tests pass, including the update repository against local Postgres and the drafts gate.
+- **Web:** typecheck, ESLint and Prettier clean; 602 tests pass (new: updates API, badge, visit storage, update times, `/updates` page, Privacy key).
+- **e2e:** typecheck clean, 83 unit tests pass.
+- **Browser check:** `/updates` and the badge at 375 and 1280 px in light and dark, in Chromium with reduced motion, on the harness's own fixtures (cleaned up afterwards).
+- **Not run locally:** the pinned Playwright browsers aren't installed in this container. CI runs the full three-browser gate.
+
+**Risks:**
+- **Production migrations:** apply them before deploying, as for slices B and C.
+- **Publishing:** the four drafts are only drafts. The product owner imports them (`updates:import`), checks each link, and publishes.
+
+**Remaining:** the product owner reviews PR #62, applies the migrations, imports and publishes the drafts, and answers open questions 65 to 69. MVP-033 is in **QA**.
+
+## 2026-10-05 — MVP-033 follow-up: Updates RSS feed and sitemap (open questions 65 to 69)
+
+**Decided:** the product owner answered open questions 65 to 69. For 66 the choice was delegated to research: RSS now, no email newsletter. See `docs/final-decisions.md`, "Updates page details: open questions 65 to 69".
+
+**Built:**
+- **Feed:** `lib/updates-feed.ts` (`buildUpdatesFeed`, RSS 2.0, XML-escaped) and the route `app/updates/feed.xml/route.ts`. It returns a 404 without a valid site origin, and a database error propagates rather than serving an empty feed.
+- **Updates page:** `/updates` gets a "Follow with RSS" link and the feed in its `<head>`.
+- **Sitemap:** `/updates` is listed once an update is published, and `MAX_SECTION_PATHS` reserves a slot for it.
+
+**Review of PR #62 (the cloud session):**
+- **Checked:** migrations, admin Updates authorization, source-link validation, the badge's storage and privacy text, the import script, TD-027, and the four update drafts against Microsoft's "important changes coming" page.
+- **Result:** nothing needed correcting.
+
+**Commands:** web typecheck, lint and unit tests (`lib`, `app`).
+
+**Remaining:** visual check of the RSS link (the CI a11y gate covers `/updates`); the release steps listed in PR #63's notes.

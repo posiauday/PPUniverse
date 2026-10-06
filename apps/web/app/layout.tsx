@@ -3,10 +3,15 @@ import { getServerSession } from "next-auth/next";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { authOptions } from "../lib/auth";
+import { contentRepository } from "../lib/content";
 import { NOINDEX_ROBOTS } from "../lib/seo/metadata";
 import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo/site";
+import { loadTechnologyMenu } from "../lib/technology-menu";
+import { loadUpdateTimes } from "../lib/update-times";
+import { updateRepository } from "../lib/updates";
 import { THEME_COOKIE, resolveTheme } from "../lib/theme";
 import { fontVariables } from "./fonts";
+import { ALL_AREAS } from "./[technology]/OtherAreas";
 import "./globals.css";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
@@ -30,7 +35,11 @@ export const metadata: Metadata = {
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
-  const session = await getServerSession(authOptions);
+  const [session, menu, updateTimes] = await Promise.all([
+    getServerSession(authOptions),
+    loadTechnologyMenu(ALL_AREAS, contentRepository),
+    loadUpdateTimes(updateRepository),
+  ]);
 
   return (
     <html lang="en" data-theme={theme} style={{ colorScheme: theme }} className={fontVariables}>
@@ -38,7 +47,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <SiteHeader theme={theme} signedIn={Boolean(session)} />
+        <SiteHeader
+          theme={theme}
+          signedIn={Boolean(session)}
+          menu={menu}
+          updateTimes={updateTimes}
+        />
         <div id="main-content" tabIndex={-1}>
           {children}
         </div>

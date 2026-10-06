@@ -42,7 +42,14 @@ SavedProduct, Review, ReviewVote, CreatorResponse, NotificationPreference, Notif
 **`Article`** — tutorials, patterns and comparison pages, discriminated by `type`:
 - `id`, `slug` (unique), `title`.
 - `type`: enum `TUTORIAL | PATTERN | COMPARISON | KPI_GUIDE` (`KPI_GUIDE` added by MVP-028; it feeds a technology section's KPIs tab).
-- `technology`: nullable enum `Technology` (`POWER_APPS | POWER_AUTOMATE | POWER_BI | COPILOT_STUDIO | DATAVERSE | POWER_PAGES`), added by MVP-028. It is the technology section the article appears in; null means cross-cutting. It is indexed together with `status`.
+- `technology`: nullable enum `Technology` (`POWER_APPS | POWER_AUTOMATE | POWER_BI | COPILOT_STUDIO | DATAVERSE | POWER_PAGES | GOVERNANCE_ADMIN`), added by MVP-028; `GOVERNANCE_ADMIN` (the cross-product Governance & admin area) added by MVP-033. It is the technology section the article appears in; null means cross-cutting. It is indexed together with `status`.
+- `topic`: nullable text, added by MVP-033. It is the section of the technology's hub the article appears in: one of that technology's ids in `TECHNOLOGY_TOPICS` (`@ppu/domain-content`), checked by the admin API and the content importer. Null means the hub's first section.
+
+### UpdateItem and UpdatePublishEvent (MVP-033 slice D)
+Platform updates for `/updates` and the header badge, mirroring Article and ArticlePublishEvent.
+- `UpdateItem` (`update_items`): `slug` (unique; the item's anchor and the importer's key), `title`, `summary` (plain text), `technology` (nullable `Technology`), `kind` (enum `UpdateKind`: `FEATURE | LICENSING | DEPRECATION | RETIREMENT`), `action` (nullable short text), `sourceUrl` (Microsoft's announcement; the API and importer accept only https on microsoft.com or a subdomain), `effectiveDate` (nullable `date`; a dated DEPRECATION or RETIREMENT appears in the tracker), `replacement` (nullable), `status` (`ArticleStatus`, default DRAFT), `publishedAt` (set once on publish), `authorUserId` (Restrict FK). Indexed on `(status, publishedAt)`.
+- `UpdatePublishEvent` (`update_publish_events`): append-only audit row per publish (`updateId`, `actorUserId`, `action`), Restrict FKs.
+- Both tables have row-level security enabled with no policies, like every table.
 - `body`: Markdown source (`TEXT`). Never rendered as raw HTML — the public `/learn/[slug]` page renders it as escaped, preformatted text (no Markdown-to-HTML conversion in this first pass); defense in depth against stored XSS even though only `ADMIN` may author content today.
 - `excerpt`: nullable, used for the page's meta description.
 - `status`: enum `DRAFT | PUBLISHED`, mirroring `packages/domain/catalog/src/visibility.ts`'s `ProductStatus` pattern — only `PUBLISHED` is ever publicly visible.

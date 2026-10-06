@@ -2,7 +2,37 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-01 — **MVP-030 (Deploy to Netlify) In Progress, slice 1 of 2 built:** the database client works through Supabase's transaction pooler, `apps/web/netlify.toml` exists, and `docs/15-deployment.md` is the step-by-step runbook. Slice 2 is the first real deploy, with the product owner creating the accounts and entering secrets.
+Last updated: 2026-10-03 — **MVP-033 (Navigation restructure) moves to QA:** all four slices are built in PR #62.
+- **Slice D:** the Updates page and deprecation tracker, the admin pages for updates, an animated "new" badge (browser-only storage, still under reduced motion), and the Privacy notice updated in the same change.
+- **Drafts:** four platform-update drafts are in `content/updates`, each checked against Microsoft Learn.
+- **Production:** apply migrations `20261003000000` to `20261003000300` with the 5432 connection before deploying. Then run `updates:import` and publish the drafts after checking them.
+- **Open questions:** 65 to 69 record the defaults applied.
+
+Last updated (previous): 2026-10-03 — **MVP-033 slices B and C built** (PR #62):
+- **Hubs and Guides page:** the Guides page matches its board (TD-026 resolved).
+- **Content model:** articles now have a hub `topic` and can belong to Governance & admin (TD-025 resolved).
+- **Bug fixed:** BUG-022, where saving in the admin editor cleared an article's technology.
+- **Production:** apply migrations `20261003000000` and `20261003000100` with the 5432 connection before deploying.
+- **Next:** slice D (Updates page and badge).
+
+Last updated (previous): 2026-10-02 — **MVP-033 (Navigation restructure) In Progress: slice C (technology hubs) is built and goes to review.**
+- **Hubs:** each technology page is a map of its own sections, with a "New here?" path at the end. Old tab addresses redirect to the hub. Governance & admin is the 7th area, at `/governance`.
+- **Guides by goal:** `/learn` and the footer use the goal labels: Fix a problem · Choose the right tool · Design it to last · Measure success.
+- **Technologies menu:** the large menu from the approved board. It shows all 7 areas, each with its guide count, a start-here guide and its first sections. On phones, the menu shows the areas as tinted tiles.
+- **Next:** the product owner reviews and merges the slice C PR into `develop`. Then slice B (topics in the content model) and slice D (Updates).
+
+Last updated (previous): 2026-10-02 — **MVP-032 (About, Privacy and Terms) moves to QA**, and two security fixes are up for review.
+- **Pages:** `/about`, `/privacy` and `/terms`, written by the agent at the product owner's instruction from an inventory of what the code does. They name the operator, Uday Posia (Saskatchewan, Canada), and `contact@lowcodestacks.com`, which the product owner must create before launch. Code samples are MIT; text is reserved; there is no compliance claim. A lawyer's review before launch is recommended.
+- **Security:** BUG-019 (sign-in links logged in production without an email key) and BUG-020 (uploads open to members) are fixed in PR #54.
+- **Next:** the product owner reviews and merges #53, #54 and the MVP-032 PR, retargeting MVP-032 to `develop` before #53's branch is deleted.
+
+Last updated (previous): 2026-10-02 — **MVP-031 (Daylight redesign) moves to QA: the whole public site is rebuilt to the approved canvas, and the accessibility gate passes in all three browsers.**
+- **Board fidelity pass:** the built pages were compared side by side with the canvas at desktop and phone widths, and the drift fixed (heading font optical size, header with KPI guides and a Ctrl K search box, the phone Menu, the technology hub's featured guides, the article's Copy link, a footer with link columns).
+- **Product decisions recorded** in `docs/final-decisions.md`: the X2 "Code stack" logo; the four board-fidelity choices (three delegated to the agent). Site search now covers guides (open question 63 closed). About, Privacy and Terms need product-owner content (open question 64).
+- **Accessibility gate:** 474 checks per browser, all passing. WebKit passed in one run. Chromium and Firefox passed 468 in the full run; their 4 failures were the outdated BUG-004 test locator, and the 6 corrected and new BUG-004 checks then passed in both.
+- **Next:** the product owner reviews and merges the MVP-031 PR into `develop`.
+
+Last updated (previous): 2026-10-01 — **MVP-030 (Deploy to Netlify) In Progress, slice 1 of 2 built:** the database client works through Supabase's transaction pooler, `apps/web/netlify.toml` exists, and `docs/15-deployment.md` is the step-by-step runbook. Slice 2 is the first real deploy, with the product owner creating the accounts and entering secrets.
 
 Last updated (previous): 2026-09-30 — **MVP-029 (Launch content) moves to QA: all 24 wave-1 articles are written, and the product owner now reviews and publishes them.** The launch is content-first: the site goes live once they're published (`docs/final-decisions.md`, "Launch is content-first").
 
@@ -124,11 +154,11 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 | Backlog | 6 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025 |
 | Ready | 0 | — |
 | In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 1 | MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing) |
+| QA | 4 | MVP-033 (Navigation restructure; PR #62), MVP-029 (24 of 24 articles written; awaiting product-owner review and publishing), MVP-031 (Daylight redesign; PR #53), MVP-032 (About, Privacy and Terms; PR stacked on #53) |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **30** | |
+| **Total** | **32** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -222,13 +252,13 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 19 / 30 (63%)
-- Stories in QA: 1 / 30 (MVP-029)
-- Points done: 139 / 214 (65%)
+- Stories done: 19 / 32 (59%)
+- Stories in QA: 3 / 32 (MVP-029, MVP-031, MVP-032)
+- Points done: 139 / 232 (60%)
 - P0 points done: 103 / 145 (71%)
-- P1 points done: 36 / 69 (52%)
+- P1 points done: 36 / 87 (41%)
 - Open bugs: 3 (BUG-010, BUG-011, BUG-014); 1 mitigated not root-fixed (BUG-013); 11 resolved (BUG-002 by MVP-026; BUG-009 and BUG-016 by MVP-027) (see `planning/bugs.csv` and `planning/bugs/`)
-- Open tech debt: 18 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-010 partially resolved
+- Open tech debt: 19 (see `planning/tech-debt.csv` and `planning/tech-debt/`) — TD-017 resolved and TD-023 added by MVP-026; TD-024 added by MVP-031; TD-010 partially resolved
 - Stories blocked: 0
 
 Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci scale), unchanged from initial planning except MVP-023 (8 → 13 on 2026-09-21: the WCAG A/AA corrective fixes are in scope, decision Q37).
@@ -255,6 +285,8 @@ Points in `planning/backlog.csv` are first-pass relative estimates (Fibonacci sc
 | 5 | MVP-028 (Technology sections) | **Done** | 8 (done) |
 | 6 | MVP-029 (Launch content) | QA (24 of 24 articles written; awaiting product-owner review) | 13 |
 | 6 | MVP-030 (Deploy to Netlify) | In Progress (slice 1 of 2) | 5 |
+| 6 | MVP-031 (Daylight redesign) | QA (built and gated; awaiting product-owner review and merge) | 13 |
+| 6 | MVP-032 (About, Privacy and Terms) | QA (built; awaiting product-owner review and merge after #53) | 5 |
 | 4 | MVP-012 | **Done** | 8 (done) |
 | 5 | MVP-013 | **Superseded** | 8 (not counted toward remaining) |
 | 5 | MVP-008 | Backlog | 8 |
@@ -279,6 +311,7 @@ Dependency-Ready but gated by unanswered product decisions, so not recommended u
 
 ## Open bugs
 
+- **[BUG-019](bugs/BUG-019.md) (P1, security)** and **[BUG-020](bugs/BUG-020.md) (P2, security)**, both **Resolved** 2026-10-02 on `fix/signin-link-logging-and-upload-auth`. Production without an email key used to log sign-in links, which are working credentials; it now fails closed and logs nothing. Upload URLs were open to any signed-in user; they are now admin-only. Nothing is deployed, so nothing was exposed.
 6 open, 1 mitigated (not root-fixed), 8 resolved, as last counted. This count predates BUG-016 to BUG-018. `planning/bugs.csv` disagrees with this list for several older bugs (BUG-003 to BUG-009 and BUG-015); reconciling them against git history is a separate cleanup.
 - **[BUG-018](bugs/BUG-018.md) (P0, security)** — **Resolved** 2026-09-30: a critical Next.js advisory (GHSA-vcvr-r3jv-pc5j, remote code execution in `next/og` `ImageResponse`) covered our 16.3.5. Upgraded to 16.3.7. Nothing is deployed, so nothing was exposed; `main` still needs the fix released.
 - [BUG-016](bugs/BUG-016.md) and [BUG-017](bugs/BUG-017.md) — **Resolved** 2026-09-30 (accessibility-suite fixture cleanup; a test that failed on Windows line endings).
@@ -296,7 +329,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 
 ## Open tech debt
 
-18 open items (4 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
+19 open items (4 resolved). See `planning/tech-debt.csv` (index) and `planning/tech-debt/`:
 - [TD-001](tech-debt/TD-001.md), [TD-002](tech-debt/TD-002.md), [TD-003](tech-debt/TD-003.md) — Resolved.
 - [TD-004](tech-debt/TD-004.md) — **Open**: MVP-006's file-scan pipeline runs synchronously rather than via a durable job queue.
 - [TD-005](tech-debt/TD-005.md) — **Open** (new, 2026-09-21): FR-002's license/compatibility/free-paid/accessibility-status/update-recency filters (and "AI") were deferred by MVP-004; FR-002 traceability corrected from "Implemented" to "Partially Implemented". Update: MVP-005 now supplies the license and compatibility fields, so those two filters are unblocked pending a backlog decision.
@@ -317,6 +350,7 @@ Earlier real issues (this story's `packages/db` eager-construction bug, and MVP-
 - [TD-016](tech-debt/TD-016.md) — **Open** (new, 2026-09-23, Low): `ArticlePublishEvent` (MVP-017) is a bare publish-action log, not full content-version snapshotting — nothing to snapshot yet, since no correction/republish path exists either.
 - [TD-017](tech-debt/TD-017.md) — **Resolved** (2026-09-28, MVP-026): article Markdown renders as structured HTML (react-markdown + remark-gfm, no raw HTML).
 - [TD-023](tech-debt/TD-023.md) — **Open** (new, 2026-09-28, Low): the `/learn` hub has no pagination — capped at the 500 newest articles.
+- [TD-024](tech-debt/TD-024.md) — **Open** (new, 2026-10-02, Low): guide search builds its full-text vector per query (no index) and lists at most 20 guides, with no paging.
 - [TD-021](tech-debt/TD-021.md) — **Open** (new, 2026-09-25, Medium): MVP-014 does not snapshot license/compatibility/support-policy evidence at each release's publish time — an explicit scope exclusion, not an oversight; the `Release`/`ReleaseFile` immutability guarantee itself is unaffected, only the surrounding evidence display is not point-in-time.
 
 ## Proposed stories (not approved — not on the board, not counted above)

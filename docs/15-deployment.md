@@ -28,7 +28,10 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
    Use a database password with **only letters and digits**. `@`, `#`, `/`, `:` and `?` break the connection string unless they're percent-encoded. Each string must contain exactly **one** `@`, before the host.
 
    **Don't use the "Direct connection"** (`db.<ref>.supabase.co`) for migrations. On the free plan it's reachable only over IPv6, and many home networks are IPv4-only, so it fails with "Can't reach database server".
-3. **Apply the migrations** from your own machine, with the **Session pooler (5432)** string. Run it from a checkout where `pnpm install` has been run.
+3. **Migrations run automatically on every production release** (`docs/final-decisions.md`, 2026-10-05, "Production migrations run automatically on release"). The Netlify production build runs `packages/db/scripts/deploy-migrations.mjs` before building the site.
+   - **No extra setup is needed.** The script uses `MIGRATE_DATABASE_URL` if it's set, otherwise the site's own `DATABASE_URL`. Migrations can't use Supabase's transaction pooler (port 6543), so a Supabase pooler address on 6543 is switched to port **5432** (session mode). Supabase uses the same host, user and password for both. `MIGRATE_DATABASE_URL` is optional: set it only to migrate through a different connection, scoped to **Builds** and **Production**, and marked secret.
+   - **What the build does:** it logs which variable it used and the host and port (never the password), applies pending migrations, then builds. If a migration fails, the build fails and Netlify keeps the previous deploy live. If no usable connection is set, or a 6543 address isn't Supabase's pooler, the production build fails with a message saying so. Deploy previews never run migrations.
+   - **To run migrations by hand** (first setup, or recovery): from your own machine, with the **Session pooler (5432)** string, in a checkout where `pnpm install` has been run.
 
    **Windows Command Prompt** (one line at a time):
 
@@ -57,7 +60,7 @@ How LowCodeStacks goes live. It implements `docs/adr/005-hosting-netlify.md` and
 
 > [!WARNING]
 > - **Never run migrations through the 6543 transaction pooler.** Prisma takes a session-level advisory lock while migrating, and the transaction pooler can't hold one, so `migrate deploy` **hangs** after printing the datasource line. If that happens, press Ctrl+C and use the 5432 string.
-> - **Never put the 5432 string in Netlify.**
+> - **The 5432 string goes in Netlify only as `MIGRATE_DATABASE_URL`** (optional; builds and Production only). Never set it as `DATABASE_URL`: the site must use the 6543 pooler.
 > - **Never run the test-schema provisioning script** (`packages/db/scripts/provision-test-schemas.mjs`) against the production project.
 
 Why two strings: serverless functions open many short-lived connections, and Supabase recommends its transaction pooler for them. Migrations need a session connection. The app never relies on session state such as `search_path`: every query is schema-qualified (`packages/db/src/database-schema.ts`), so it works through the transaction pooler.
@@ -75,7 +78,7 @@ Why two strings: serverless functions open many short-lived connections, and Sup
    - **Base directory:** leave empty (the repository root).
    - **Package directory:** `apps/web`.
    - **Branch to deploy:** `main`.
-   - The build command and publish directory come from `apps/web/netlify.toml`.
+   - The build command and publish directory come from `apps/web/netlify.toml`. Its `publish` path is relative to the repository root (`apps/web/.next`), as Netlify resolves every `netlify.toml` path from the base directory (BUG-021).
 3. **Deploy contexts** (Site configuration → Build & deploy → Branches and deploy contexts):
    - **Deploy previews:** on. Netlify serves them with `X-Robots-Tag: noindex`.
    - **Branch deploys:** **None.** They wouldn't get that header (TD-009).
@@ -88,7 +91,7 @@ Why two strings: serverless functions open many short-lived connections, and Sup
 | `NEXTAUTH_URL` | `https://lowcodestacks.com` | Sign-in links point here, so sign-in works on production, not on previews |
 | `NEXT_PUBLIC_SITE_URL` | `https://lowcodestacks.com` | The canonical origin, for production and previews alike, so previews point search engines at production |
 | `EMAIL_FROM` | `no-reply@lowcodestacks.com` (your Resend sender) | |
-| `RESEND_API_KEY` | The Resend key | Secret |
+| `RESEND_API_KEY` | The Resend key | Secret. **Required for sign-in.** Without it, production sends no email: sign-in shows "couldn't send", and nothing about the message is logged (BUG-019). Never set `EMAIL_TRANSPORT` in production; it exists only for test servers |
 | `EMAIL_UNSUBSCRIBE_SECRET` | A new random value | Secret. Never the same as `NEXTAUTH_SECRET` |
 | `SENTRY_DSN` | Leave unset for now | Optional |
 | `AWS_LAMBDA_JS_RUNTIME` | `nodejs22.x` | Not secret. Pins the **server functions** to Node 22, matching CI. `NODE_VERSION` in `netlify.toml` only sets the build image, and Netlify reads this variable only from the UI, CLI or API, never from `netlify.toml`. Without it, the first deploy ran on `nodejs24.x` |

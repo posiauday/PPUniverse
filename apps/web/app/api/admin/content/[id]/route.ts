@@ -6,6 +6,7 @@ import {
   isValidArticleTitle,
   isValidArticleType,
   isValidTechnology,
+  isValidTopic,
   type ArticleType,
   type Technology,
 } from "@ppu/domain-content";
@@ -41,6 +42,7 @@ interface ArticleInputBody {
   title?: unknown;
   type?: unknown;
   technology?: unknown;
+  topic?: unknown;
   excerpt?: unknown;
   body?: unknown;
 }
@@ -63,8 +65,11 @@ function validateArticleFields(body: ArticleInputBody): Record<string, string[]>
   const technology = technologyOf(body);
   if (technology === undefined) {
     fieldErrors["technology"] = [
-      "technology must be one of POWER_APPS, POWER_AUTOMATE, POWER_BI, COPILOT_STUDIO, DATAVERSE, POWER_PAGES, or empty.",
+      "technology must be one of POWER_APPS, POWER_AUTOMATE, POWER_BI, COPILOT_STUDIO, DATAVERSE, POWER_PAGES, GOVERNANCE_ADMIN, or empty.",
     ];
+  } else if (topicOf(body, technology) === undefined) {
+    // MVP-033: optional, and only one of the chosen technology's sections.
+    fieldErrors["topic"] = ["topic must be one of the chosen technology's sections, or empty."];
   }
   if (typeof body.body !== "string" || !isValidArticleBody(body.body)) {
     fieldErrors["body"] = ["body is required."];
@@ -163,6 +168,7 @@ export const PATCH = withObservability(
       title: body.title as string,
       type: body.type as ArticleType,
       technology: technologyOf(body) ?? null,
+      topic: topicOf(body, technologyOf(body) ?? null) ?? null,
       body: body.body as string,
       excerpt:
         body.excerpt === undefined || body.excerpt === null ? null : (body.excerpt as string),
@@ -181,4 +187,12 @@ function technologyOf(body: ArticleInputBody): Technology | null | undefined {
   return typeof body.technology === "string" && isValidTechnology(body.technology)
     ? body.technology
     : undefined;
+}
+
+/** The submitted topic (MVP-033): null for none, undefined when it is not one of
+ * the technology's sections (or is given without a technology). */
+function topicOf(body: ArticleInputBody, technology: Technology | null): string | null | undefined {
+  if (body.topic === undefined || body.topic === null || body.topic === "") return null;
+  if (typeof body.topic !== "string" || technology === null) return undefined;
+  return isValidTopic(technology, body.topic) ? body.topic : undefined;
 }

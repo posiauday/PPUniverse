@@ -21,12 +21,20 @@ export const GATED_ROUTES = [
   "/admin/content",
   "/admin/content/new",
   "/admin/content/[id]/edit",
+  "/admin/updates",
+  "/admin/updates/new",
+  "/admin/updates/[id]/edit",
   "/admin/products",
   "/admin/products/new",
   "/admin/products/[id]/edit",
   "/admin/audit",
   "/[technology]",
   "/[technology]/[tab]",
+  "/governance",
+  "/updates",
+  "/about",
+  "/privacy",
+  "/terms",
 ] as const;
 
 export type GatedRoute = (typeof GATED_ROUTES)[number];

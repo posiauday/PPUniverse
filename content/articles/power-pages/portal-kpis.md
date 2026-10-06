@@ -3,6 +3,7 @@ title: "Portal KPIs: sign-ups, self-service rate and form completion"
 slug: portal-kpis
 type: KPI_GUIDE
 technology: POWER_PAGES
+topic: go-live-and-monitor
 excerpt: "A portal is worth having if it takes work off the team behind it. Five KPIs that show whether a Power Pages site is doing that, where each number comes from, and why your analytics and your licence report will never quite agree."
 ---
 A Power Pages site usually exists to move work from a person to a page: customers check their own status instead of phoning, applicants submit complete forms instead of emailing attachments. Visitor counts don't tell you whether that's happening. These five KPIs do.

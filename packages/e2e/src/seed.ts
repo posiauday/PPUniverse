@@ -93,6 +93,9 @@ export interface FixtureSet {
   relatedArticle: ArticleRef;
   /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /learn/[slug] must 404 for it. */
   draftArticle: ArticleRef;
+  /** MVP-033 slice D: a PUBLISHED platform update (on /updates, in the tracker) and a DRAFT one (admin only). */
+  publishedUpdate: { id: string; slug: string; title: string };
+  draftUpdate: { id: string; slug: string; title: string };
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
    * support/compatibility/release) — visible in the admin products list,
    * and exercises the "still missing mandatory fields" publish-readiness
@@ -200,6 +203,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     adminUserId: null as string | null,
     productIds: [] as string[],
     articleIds: [] as string[],
+    updateIds: [] as string[],
     fileScanIds: [] as string[],
   };
 
@@ -260,6 +264,18 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     await attempt(() =>
       prisma.article.deleteMany({
         where: { id: { in: created.articleIds }, slug: { startsWith: RESERVED_PREFIX } },
+      }),
+    );
+    // MVP-033 slice D: UpdatePublishEvent/UpdateItem use Restrict FKs on the
+    // admin user too, so they go before the user rows, like articles above.
+    if (created.updateIds.length > 0) {
+      await attempt(() =>
+        prisma.updatePublishEvent.deleteMany({ where: { updateId: { in: created.updateIds } } }),
+      );
+    }
+    await attempt(() =>
+      prisma.updateItem.deleteMany({
+        where: { id: { in: created.updateIds }, slug: { startsWith: RESERVED_PREFIX } },
       }),
     );
     // MVP-012: must also run BEFORE user.deleteMany below, for a subtler
@@ -540,6 +556,44 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.articleIds.push(draftArticle.id);
 
+    // MVP-033 slice D: one published update (with a date, so it is in the
+    // deprecation tracker) and one draft.
+    const updateFields = {
+      summary: "Fixture update summary for the accessibility harness.",
+      technology: "POWER_APPS" as const,
+      kind: "DEPRECATION" as const,
+      action: "No action",
+      sourceUrl: "https://learn.microsoft.com/power-platform/important-changes-coming",
+      effectiveDate: new Date("2026-03-01T00:00:00Z"),
+      replacement: "Fixture replacement",
+      authorUserId: admin.id,
+    };
+    const publishedUpdateSlug = `${prefix}published-update`;
+    assertReserved("update", publishedUpdateSlug);
+    const publishedUpdate = await prisma.updateItem.create({
+      data: {
+        ...updateFields,
+        slug: publishedUpdateSlug,
+        title: `E2E fixture: published update ${prefix}(not real news)`,
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+      },
+    });
+    created.updateIds.push(publishedUpdate.id);
+    await prisma.updatePublishEvent.create({
+      data: { updateId: publishedUpdate.id, actorUserId: admin.id, action: "PUBLISHED" },
+    });
+    const draftUpdateSlug = `${prefix}draft-update`;
+    assertReserved("update", draftUpdateSlug);
+    const draftUpdate = await prisma.updateItem.create({
+      data: {
+        ...updateFields,
+        slug: draftUpdateSlug,
+        title: `E2E fixture: draft update ${prefix}(not real news)`,
+      },
+    });
+    created.updateIds.push(draftUpdate.id);
+
     // MVP-012 (FR-009): admin product/release editor fixtures. Deliberately
     // built with direct Prisma writes, not through the admin API routes --
     // this is fixture setup for the accessibility harness, not the
@@ -744,6 +798,12 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         title: relatedArticle.title,
       },
       draftArticle: { id: draftArticle.id, slug: draftArticle.slug, title: draftArticle.title },
+      publishedUpdate: {
+        id: publishedUpdate.id,
+        slug: publishedUpdate.slug,
+        title: publishedUpdate.title,
+      },
+      draftUpdate: { id: draftUpdate.id, slug: draftUpdate.slug, title: draftUpdate.title },
       draftAdminProduct: {
         id: draftAdminProduct.id,
         slug: draftAdminProduct.slug,

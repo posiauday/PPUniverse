@@ -186,3 +186,32 @@ these questions.
     and no longer reference `/api/admin/submissions`. This item stays **OPEN**
     for the same reason item 61 does — a documentation-correctness default, not
     a product-owner-confirmed decision needing closure.
+
+## Raised 2026-10-01 (MVP-031, Daylight redesign)
+
+63. **DECIDED 2026-10-01: guides and components.** The product owner delegated
+    the call to the agent; see `docs/final-decisions.md`, "Board fidelity pass".
+    Original question: should site search cover guides as well as products? The approved Daylight canvas draws
+    `/search?q=delegation` returning guides, but `/search` searches the product
+    catalog only (`catalogRepository.searchProducts`), and with the content-first
+    launch there are no published products, so every search returns nothing.
+    **Default applied:** the search page gets the Daylight look over its current
+    product-only behaviour; no guide search is built. Answer needed from the
+    product owner before guide search is designed and built.
+
+64. **DECIDED 2026-10-02 (MVP-032):** the product owner asked the agent to write the pages and supplied the operator, contact, location and content licence; see `docs/final-decisions.md`, "About, Privacy and Terms pages". Original question, raised 2026-10-01: About, Privacy and
+    Terms pages. Google's guidance on helpful content asks whether it is
+    "self-evident to your visitors who authored your content", so an About page
+    (who writes the guides and why) supports trust and search. A privacy notice
+    is expected wherever personal data is collected (sign-in, subscriptions).
+    These pages state facts and legal terms only the product owner can supply,
+    so none are invented. **Default applied:** the footer links only to pages
+    that exist; each link is added when its page is written and approved.
+
+## Raised 2026-10-03 (MVP-033 slice D, Updates page and badge) — all DECIDED 2026-10-05 (see `docs/final-decisions.md`, "Updates page details: open questions 65 to 69")
+
+65. **DECIDED 2026-10-05: 14 days kept.** **What counts as "new" before a visitor's first visit?** The decision ("Governance & admin area and the Updates badge") defines the badge as updates since the visitor's last visit, but a first-time visitor has none. **Default applied:** updates published in the last 14 days count as new (`FIRST_VISIT_WINDOW_MS` in `apps/web/lib/updates-visit.ts`), and the badge shows at most "9+". One constant to change.
+66. **DECIDED 2026-10-05: RSS feed built, no email for now.** **The board's "Get the weekly email" and "RSS" buttons.** The Updates board draws both, but no newsletter or feed is approved or built, and an email signup would add personal-data collection that the Privacy notice doesn't cover. **Default applied:** both are left out of `/updates`. They need a product-owner decision (and, for email, consent and Privacy notice changes) before they are built.
+67. **DECIDED 2026-10-05: month and year kept.** **Tracker dates.** Microsoft gives some dates to the day ("August 31, 2026") and others only to the month ("Effective March 2026"). **Default applied:** the tracker label shows month and year only ("Removed Aug 2026"), and the summary gives the exact day where Microsoft does. The board showed full dates for some rows.
+68. **DECIDED 2026-10-05: "Latest" kept.** **The feed's heading.** The board says "This week", which would be false once items are older than a week. **Default applied:** "Latest", with the "N new since your last visit" pill next to it, as drawn.
+69. **DECIDED 2026-10-05: /updates joins the sitemap.** **`/updates` in the sitemap.** It is linked from the header on every page and is indexable once it has a published update. **Default applied:** it is not added to `sitemap.xml` yet. A small follow-up if the product owner wants it.

@@ -26,6 +26,13 @@ export const IMAGE_ROUTE_FILES: readonly string[] = [
   "og/products/[slug]/route.tsx",
 ];
 
+/**
+ * Route handlers outside /api that return feeds, never HTML: the Updates RSS
+ * feed (MVP-033, open question 66). It lives at /updates/feed.xml so feed
+ * readers find it beside the page it mirrors.
+ */
+export const FEED_ROUTE_FILES: readonly string[] = ["updates/feed.xml/route.ts"];
+
 /** "categories/[slug]/page.tsx" -> "/categories/[slug]"; route groups "(x)" do not appear in URLs. */
 export function routeOf(file: string): string {
   const segments = file
@@ -62,12 +69,13 @@ export function unacknowledgedSpecialFiles(
 }
 
 /** Route handlers outside /api could render HTML pages, so they need a decision
- * (IMAGE_ROUTE_FILES is that decision for the share images). */
+ * (IMAGE_ROUTE_FILES and FEED_ROUTE_FILES are those decisions). */
 export function handlersOutsideApi(files: readonly string[]): string[] {
   return files.filter(
     (file) =>
       ROUTE_HANDLER_FILE.test(file) &&
       !file.startsWith("api/") &&
-      !IMAGE_ROUTE_FILES.includes(file),
+      !IMAGE_ROUTE_FILES.includes(file) &&
+      !FEED_ROUTE_FILES.includes(file),
   );
 }

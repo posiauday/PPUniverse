@@ -168,59 +168,79 @@ async function submitSignIn(
 export const GATED_PAGES: readonly GatedPage[] = [
   {
     // MVP-028: the header's Technologies menu, opened, so axe and the
-    // keyboard check see its links.
+    // keyboard check see its links. Below lg (MVP-031) the header shows a
+    // Menu button instead, whose panel lists the same technologies.
     id: "home-technologies-menu-open",
     route: "/",
-    description: "home page with the header's Technologies menu open",
+    description: "home page with the header's Technologies menu (or, below lg, its Menu) open",
     auth: "guest",
     status: 200,
     path: () => "/",
     prepare: async (page) => {
-      await page.getByRole("button", { name: "Technologies" }).click();
-      await expect(page.getByRole("link", { name: "Power Automate" }).first()).toBeVisible();
+      const menu = page.getByRole("button", { name: "Menu" });
+      if (await menu.isVisible()) await menu.click();
+      else await page.getByRole("button", { name: "Technologies" }).click();
+      await expect(
+        page.getByRole("link", { name: "Power Automate" }).filter({ visible: true }).first(),
+      ).toBeVisible();
     },
   },
   {
-    // MVP-028: a technology section's Learn tab with content (the fixture
-    // article is tagged Power Apps).
-    id: "technology-learn",
+    // MVP-033: a technology hub with content (the fixture article is tagged
+    // Power Apps): every section as a card, the guide in one of them.
+    id: "technology-hub",
     route: "/[technology]",
-    description: "Power Apps section, Learn tab, with a published tutorial",
+    description: "Power Apps hub, with a published guide",
     auth: "guest",
     status: 200,
     path: () => "/power-apps",
     prepare: async (page, seed) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Power Apps");
-      await expect(page.getByRole("link", { name: seed.publishedArticle.title })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Everything in Power Apps" })).toBeVisible();
       await expect(
-        page
-          .getByRole("navigation", { name: "Power Apps sections" })
-          .getByRole("link", { name: "Learn", exact: true }),
-      ).toHaveAttribute("aria-current", "page");
+        page.getByRole("link", { name: seed.publishedArticle.title }).first(),
+      ).toBeVisible();
     },
   },
   {
-    id: "technology-components",
+    // MVP-033: the old tabs redirect (308) to their hub. Nothing is ever
+    // published as a Dataverse guide by the harness, so this hub is empty.
+    id: "technology-tab-redirect",
     route: "/[technology]/[tab]",
-    description: "Power Apps section, Components tab, with a published component",
-    auth: "guest",
-    status: 200,
-    path: () => "/power-apps/components",
-    prepare: async (page, seed) => {
-      await expect(page.getByRole("link", { name: seed.technologyProduct.name })).toBeVisible();
-    },
-  },
-  {
-    // Nothing is ever published as a Dataverse KPI guide by the harness, so
-    // this tab is reliably empty under every worker.
-    id: "technology-tab-empty",
-    route: "/[technology]/[tab]",
-    description: "Dataverse section, KPIs tab, empty ('coming soon')",
+    description: "an old tab address (Dataverse KPIs) lands on the empty Dataverse hub",
     auth: "guest",
     status: 200,
     path: () => "/dataverse/kpis",
     prepare: async (page) => {
-      await expect(page.getByText("Coming soon.")).toBeVisible();
+      await expect(page).toHaveURL(/\/dataverse$/);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dataverse");
+    },
+  },
+  {
+    id: "governance",
+    route: "/governance",
+    description: "Governance & admin hub",
+    auth: "guest",
+    status: 200,
+    path: () => "/governance",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Governance & admin");
+    },
+  },
+  {
+    // MVP-033 slice D: the Updates page, with the seeded published update in
+    // the feed and in the deprecation tracker.
+    id: "updates",
+    route: "/updates",
+    description: "Updates page with a published update and the deprecation tracker",
+    auth: "guest",
+    status: 200,
+    path: () => "/updates",
+    prepare: async (page, seed) => {
+      await expect(
+        page.getByRole("heading", { level: 3, name: seed.publishedUpdate.title }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Deprecation tracker" })).toBeVisible();
     },
   },
   {
@@ -238,17 +258,37 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 200,
     path: () => "/",
-    // MVP-027 slice 2: the Premium 3 layout -- the hero and, since every
-    // worker seeds published products, the newest-components section.
+    // MVP-031 (was MVP-027 slice 2): the Daylight layout -- the hero and,
+    // since every worker seeds published products, the newest-components
+    // section.
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-        "Learn it properly. Ship components that last.",
+        "Build Power Platform apps that actually hold up.",
       );
       await expect(
         page.getByRole("heading", { name: "New components and templates" }),
       ).toBeVisible();
     },
   },
+  // MVP-032: About, Privacy and Terms -- long text in the article layout.
+  ...(
+    [
+      ["about", "/about", "About LowCodeStacks"],
+      ["privacy", "/privacy", "Privacy notice"],
+      ["terms", "/terms", "Terms of use"],
+    ] as const
+  ).map(([id, route, title]): GatedPage => ({
+    id,
+    route,
+    description: `${title} page`,
+    auth: "guest",
+    status: 200,
+    path: () => route,
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toContainText(title);
+      await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
+    },
+  })),
   {
     id: "category-populated",
     route: "/categories/[slug]",
@@ -452,9 +492,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // already proved for this same class of problem).
       await seed.resetPrivacyState();
       await page.reload();
-      await expect(
-        page.getByRole("button", { name: /accept: the terms of service/i }),
-      ).toBeVisible();
+      await expect(page.getByRole("button", { name: /accept: the terms of use/i })).toBeVisible();
       await expect(page.getByRole("button", { name: /request account deletion/i })).toBeVisible();
     },
   },
@@ -779,8 +817,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/admin/content",
     prepare: async (page, seed) => {
-      await expect(page.getByText(seed.draftArticle.title)).toBeVisible();
-      await expect(page.getByText(seed.publishedArticle.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.draftArticle.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.publishedArticle.title)).toBeVisible();
     },
   },
   {
@@ -819,6 +857,43 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "admin",
     status: 200,
     path: (seed) => `/admin/content/${seed.draftArticle.id}/edit`,
+  },
+  {
+    // MVP-033 slice D: the admin updates list, with a draft and a published update.
+    id: "admin-updates-populated",
+    route: "/admin/updates",
+    description: "admin updates list, signed in as ADMIN, with a draft and a published update",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/updates",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("main").getByText(seed.draftUpdate.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.publishedUpdate.title)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-updates-denied",
+    route: null,
+    description: "admin updates list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/updates",
+  },
+  {
+    id: "admin-updates-new",
+    route: "/admin/updates/new",
+    description: "admin new-update form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/updates/new",
+  },
+  {
+    id: "admin-updates-edit",
+    route: "/admin/updates/[id]/edit",
+    description: "admin edit-update form, signed in as ADMIN, pre-filled with a draft",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
   },
   {
     // The positive admin state: proves the surface actually lists real

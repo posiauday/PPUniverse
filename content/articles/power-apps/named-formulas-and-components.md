@@ -3,6 +3,7 @@ title: "Named formulas and components: a structure that scales"
 slug: named-formulas-and-components
 type: PATTERN
 technology: POWER_APPS
+topic: formulas-and-components
 excerpt: "Most slow, fragile canvas apps share one cause: everything lives in App.OnStart and copied controls. Here is a structure built on named formulas, user-defined functions and a component library."
 ---
 Canvas apps usually start small and grow by copying. A variable gets set in `App.OnStart`, a header gets copied onto every screen, a formula gets pasted into ten galleries. Two years later the app takes ages to open, nobody dares change the header, and fixing one bug means fixing it ten times.
