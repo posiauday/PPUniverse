@@ -1859,3 +1859,10 @@ The product owner reviewed the sign-in research (email-link sign-in, and Microso
 - **Not chosen:** Apple (it needs the paid Apple Developer Program) and Microsoft (recommended for this audience, not selected).
 
 This replaces "Auth.js, **Magic Link only** for MVP". Delivery is three stories: MVP-034 (sign-in hardening, plus the security headers and `/admin` home page from the configuration review), MVP-035 (Google) and MVP-036 (email and password). Each one updates the Privacy notice where it changes what is collected.
+
+### Drafts import automatically on release (2026-10-06)
+After the first MVP-033 release, production still had no guides: the 24 launch guides and 4 updates had never been imported. The product owner asked not to run the import by hand (*"I have already set database url why i would need to do this"*). Agents can't run it from the product owner's machine, because that would mean handling the connection string. So the Netlify production build now imports drafts after building the site (`packages/adapters/content/scripts/import-drafts-on-deploy.mjs`):
+- **Drafts only:** it runs the existing `content:import` and `updates:import`. Both create DRAFTs, skip any slug that already exists, and never publish. This keeps the rule that the agent never publishes: the product owner publishes in `/admin/content` and `/admin/updates`.
+- **Settings:** it uses the build's `DATABASE_URL`, and `ARTICLE_AUTHOR_EMAIL` (an existing admin's email, set in Netlify by the product owner). Without the email, the step is skipped with a message.
+- **Never blocks a release:** a failed import is a warning in the build log, and the deploy goes ahead.
+- **Scope:** production only. Deploy previews never import.
