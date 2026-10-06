@@ -1,6 +1,6 @@
 # Content brief: Power BI, Power Pages, Copilot Studio, Power Apps (2026-10-06)
 
-**Status:** proposed titles awaiting product-owner approval (method per `docs/final-decisions.md`, "Content plan targets and order (2026-10-06)"). Nothing here is approved.
+**Status:** all 12 proposed titles **approved** by the product owner on 2026-10-06 (multiple choice: every option selected in each group). The approval is recorded in `docs/final-decisions.md`, "Content plan targets and order (2026-10-06)". Method as set out in that entry.
 
 ## Method
 - **Demand:** threads with a **verified or accepted answer**, read on 2026-10-06 from:

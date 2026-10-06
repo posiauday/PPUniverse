@@ -1873,6 +1873,11 @@ The product owner approved the proposal ("Continue", in reply to it) and with it
 - **Method:** a short research brief per section (`docs/research/content-briefs/<technology>/<section>.md`: real problems, search phrases, gaps, sources, proposed titles), the product owner's yes or no on the titles, then drafts. Drafts are checked against Microsoft Learn and imported; the product owner publishes.
 - **Order:** the highest daily demand first, starting with Power Automate, then Power BI *Refresh & gateways*. The hubs' top-fix chips get their own guides early.
 - Still open from that plan: analytics (Search Console only, or privacy-friendly analytics).
+- **Approved titles, second round (2026-10-06):** the product owner selected every proposed title in `docs/research/content-briefs/cross-technology-2026-10-06.md`:
+  - **Power BI:** gateway moves and sharing; permissions cheat sheet; refresh on your terms; dynamic RLS; incremental refresh;
+  - **Power Pages:** licensing explained; invitations; Web API cheat sheet;
+  - **Copilot Studio:** licensing and Copilot Credits; Dataverse tables as knowledge;
+  - **Power Apps:** attachments and photos to SharePoint; the Dataverse capacity email.
 
 ## 2026-10-06 — Article visuals: our own diagrams, our own screenshots, in the Daylight style
 
