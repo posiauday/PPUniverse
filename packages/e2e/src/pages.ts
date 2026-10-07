@@ -200,14 +200,14 @@ export const GATED_PAGES: readonly GatedPage[] = [
     // Menu button instead, whose panel lists the same technologies.
     id: "home-technologies-menu-open",
     route: "/",
-    description: "home page with the header's Technologies menu (or, below lg, its Menu) open",
+    description: "home page with the header's Power Platform menu (or, below lg, its Menu) open",
     auth: "guest",
     status: 200,
     path: () => "/",
     prepare: async (page) => {
       const menu = page.getByRole("button", { name: "Menu" });
       if (await menu.isVisible()) await menu.click();
-      else await page.getByRole("button", { name: "Technologies" }).click();
+      else await page.getByRole("button", { name: "Power Platform" }).click();
       await expect(
         page.getByRole("link", { name: "Power Automate" }).filter({ visible: true }).first(),
       ).toBeVisible();
@@ -1080,11 +1080,48 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // tip callout, all from the fixture's Markdown.
       await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
-      await expect(page.getByRole("note")).toContainText("A fixture tip callout.");
+      await expect(
+        page.getByRole("note").filter({ hasText: "A fixture tip callout." }),
+      ).toBeVisible();
+      // MVP-041 (redesign slice 2): symptom cards, tick-off steps with their
+      // count, the diagram's pause box and a Do / Don't pair.
+      await expect(page.getByRole("region", { name: "What are you seeing?" })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: "Done: A fixture step" })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: "Pause animation" })).toBeVisible();
+      await expect(page.getByRole("note").filter({ hasText: "A fixture do." })).toBeVisible();
     },
   },
   // MVP-039 / MVP-038: the end of a guide. The API answers are faked in the
   // test, so no vote or report is ever recorded.
+  // MVP-041: the checked look of a ticked step and the paused diagram. Both
+  // are plain checkboxes counted by CSS, so no script is needed.
+  {
+    id: "learn-step-ticked",
+    route: "/learn/[slug]",
+    description: "guide page with one step ticked and the diagram paused",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      // Ticked from the keyboard, as a keyboard user would.
+      for (const name of ["Done: A fixture step", "Pause animation"]) {
+        const box = page.getByRole("checkbox", { name });
+        await box.focus();
+        await page.keyboard.press("Space");
+        await expect(box).toBeChecked();
+      }
+      // The motion has stopped (WCAG 2.2.2): paused by the box, or no
+      // animation at all under reduced motion (the gate's default).
+      const stopped = await page
+        .locator(".guide-stop")
+        .first()
+        .evaluate((stop) => {
+          const style = getComputedStyle(stop);
+          return style.animationName === "none" || style.animationPlayState === "paused";
+        });
+      expect(stopped).toBe(true);
+    },
+  },
   {
     id: "learn-voted",
     route: "/learn/[slug]",

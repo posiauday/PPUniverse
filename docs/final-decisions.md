@@ -2095,3 +2095,29 @@ When slice 4 ships and the first-wave guides are re-checked, the approved senten
 - **Privacy notice:** new version 2026-10-08, with a "Feedback on guides" section and the retention lines.
 - **How we write:** the two report sentences return to the approved wording. The checked-date sentences stay interim (see "How we write: interim wording").
 
+
+## 2026-10-07 — Top bar names, AI search readiness, and comments
+
+**Source:** direct product-owner instruction in this session. The product owner asked for the top bar to be reviewed ("Technologies, Guides look weird"), and for an audit of how the site appears in AI tools. The agent's research and three drawn concepts were shown; the product owner chose by multiple choice and added notes.
+
+**Top bar (MVP-045): concept A, with two changes from the product owner.**
+- **Power Platform ▾** replaces "Technologies" (the same menu). On phones the menu's group label reads "Power Platform" too.
+- **Fixes** (the fix guides on `/learn`) and **Patterns** (the pattern guides on `/learn`) replace "Guides".
+- **Updates** stays. The product owner offered "MS updates" or "Updates", the agent's choice; "Updates" was chosen because "MS updates" could read as official Microsoft content, which the site must not imply.
+- The button reads **Learn** and opens `/learn` (the product owner's change from "Find a fix").
+- The search box reads **"Search an error or topic"**.
+- Choose, Measure and Look it up guides stay one click away: each technology page, and the menu's "every guide by goal" link.
+- Supersedes the top-bar part of "Navigation restructure: by technology and by goal" (2026-10-02, decision 1).
+
+**AI search readiness.** The product owner approved all four proposals:
+1. **Code gaps:** guides are marked as articles for sharing (`og:type` article with their dates); the site describes itself as an organisation (name, logo and web address) in its structured data; an RSS feed of guides.
+2. **Quick answers on every guide,** written from each guide's own text, never adding claims the guide doesn't make.
+3. **IndexNow** (already part of MVP-042): the product owner creates the key and adds it in Netlify.
+4. **A named author** on every guide, with a profile page. **Open:** whose name, and the profile text, still to be confirmed by the product owner before anything is published.
+
+Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use it; no evidence any AI search tool does), and blocking AI crawlers (the guides are free; training and search crawlers are separate, so this would not be needed for search either way).
+
+**Comments (MVP-040).** Asked by multiple choice earlier on 2026-10-07, the product owner chose:
+- **When:** after redesign slice 2 (MVP-041).
+- **Moderation:** comments show at once and are removed if reported (not a queue before publishing).
+- **Name:** a display name the reader chooses. Then, in this round, the product owner added: **every signed-in reader is given a random, Power Platform-flavoured display name and an avatar,** which they can change, and those show on their comments.

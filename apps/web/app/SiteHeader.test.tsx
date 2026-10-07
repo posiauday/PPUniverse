@@ -22,6 +22,19 @@ describe("SiteHeader", () => {
     expect(html).not.toMatch(/<h[1-6]/);
   });
 
+  it("names the top bar for what's behind it (MVP-045)", () => {
+    const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
+    const text = html.replace(/<[^>]+>/g, " ");
+    expect(html).toContain('href="/learn#tutorials"');
+    expect(html).toContain('href="/learn#patterns"');
+    expect(text).toContain("Power Platform");
+    expect(text).toContain("Fixes");
+    expect(text).toContain("Patterns");
+    expect(text).toContain(" Learn ");
+    expect(html).toContain('placeholder="Search an error or topic"');
+    expect(text).not.toMatch(/Technologies|Start learning/);
+  });
+
   it("offers Sign in to a guest and Account to a signed-in visitor", () => {
     expect(renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />)).toContain(
       'href="/signin"',

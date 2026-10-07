@@ -895,6 +895,229 @@ samp {
   border-top: 1px solid var(--color-border);
 }
 
+/* Guide building blocks (slice 2, MVP-041; the G2 and G3 boards). Rendered
+   from Markdown by ArticleBody / GuideBlocks.tsx. Unlayered, so they win over
+   the article's own list and paragraph utilities inside these blocks. */
+.guide-symptoms ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.875rem;
+  margin-top: 0.875rem;
+  padding: 0;
+  list-style: none;
+}
+.guide-symptoms li {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 1.375rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-card);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.guide-symptoms li code {
+  align-self: flex-start;
+}
+.guide-symptoms li a {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+.guide-do {
+  background: #d9f7e3;
+  color: #14141a;
+}
+.guide-dont {
+  background: #ffe4e6;
+  color: #14141a;
+}
+.guide-do a,
+.guide-dont a,
+.guide-do code,
+.guide-dont code {
+  color: inherit;
+}
+/* Dark theme: the same green and red, deepened, with light text. */
+[data-theme="dark"] .guide-do {
+  background: #12301d;
+  color: #e3f6e8;
+}
+[data-theme="dark"] .guide-dont {
+  background: #3a1519;
+  color: #fde7ea;
+}
+.guide-steps {
+  counter-reset: lcs-done;
+}
+.guide-steps input[type="checkbox"]:checked {
+  counter-increment: lcs-done;
+}
+.guide-step-number {
+  background: var(--color-highlight);
+  color: var(--color-highlight-foreground);
+}
+.guide-progress {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  background: var(--color-highlight);
+  color: var(--color-highlight-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+.guide-progress::after {
+  content: counter(lcs-done) " of " attr(data-total) " ticked";
+}
+.guide-stop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1.125rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-card);
+  min-width: 0;
+  overflow-wrap: break-word;
+  font-weight: 600;
+  line-height: 1.35;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.guide-stop-number {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--color-muted);
+  color: var(--color-foreground);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+}
+/* In a row (lg and up), each stop is narrow: its number goes above its text. */
+@media (min-width: 64rem) {
+  .guide-stop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+/* The Pause box (a real checkbox) stops every stop where it is. */
+.guide-diagram:has(input[type="checkbox"]:checked) .guide-stop {
+  animation-play-state: paused;
+}
+@keyframes lcs-stop-2 {
+  0%,
+  45.00% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  50.00%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-2 .guide-stop {
+  animation-name: lcs-stop-2;
+}
+@keyframes lcs-stop-3 {
+  0%,
+  30.00% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  33.33%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-3 .guide-stop {
+  animation-name: lcs-stop-3;
+}
+@keyframes lcs-stop-4 {
+  0%,
+  22.50% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  25.00%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-4 .guide-stop {
+  animation-name: lcs-stop-4;
+}
+@keyframes lcs-stop-5 {
+  0%,
+  18.00% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  20.00%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-5 .guide-stop {
+  animation-name: lcs-stop-5;
+}
+@keyframes lcs-stop-6 {
+  0%,
+  15.00% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  16.67%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-6 .guide-stop {
+  animation-name: lcs-stop-6;
+}
+@keyframes lcs-stop-7 {
+  0%,
+  12.86% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  14.29%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-7 .guide-stop {
+  animation-name: lcs-stop-7;
+}
+@keyframes lcs-stop-8 {
+  0%,
+  11.25% {
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  12.50%,
+  100% {
+    background: var(--color-card);
+    color: var(--color-foreground);
+  }
+}
+.guide-stops-8 .guide-stop {
+  animation-name: lcs-stop-8;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

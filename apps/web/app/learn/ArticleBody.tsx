@@ -3,6 +3,15 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { remarkArticleStructure } from "../../lib/article-outline";
 import { CopyCodeButton } from "./CopyCodeButton";
+import {
+  DoDontCard,
+  DoDontPair,
+  GuideDiagram,
+  GuideProgress,
+  GuideStep,
+  GuideSteps,
+  SymptomCards,
+} from "./GuideBlocks";
 
 /**
  * Renders an article's Markdown source as real HTML structure -- headings,
@@ -50,7 +59,11 @@ const components: Components = {
   h4: (props) => <h4 className="mt-6 font-semibold" {...stripNode(props)} />,
   h5: (props) => <h5 className="mt-4 font-semibold" {...stripNode(props)} />,
   h6: (props) => <h6 className="mt-4 font-semibold" {...stripNode(props)} />,
-  p: (props) => <p className="mt-5 leading-[1.75]" {...stripNode(props)} />,
+  p: (props) => {
+    const total = (props as Record<string, unknown>)["data-progress"];
+    if (typeof total === "string") return <GuideProgress total={total} />;
+    return <p className="mt-5 leading-[1.75]" {...stripNode(props)} />;
+  },
   ul: (props) => (
     <ul className="mt-5 list-disc space-y-2 pl-6 marker:text-accent" {...stripNode(props)} />
   ),
@@ -98,7 +111,31 @@ const components: Components = {
         </div>
       );
     }
+    const props = rest as Record<string, unknown>;
+    const title = typeof props["data-title"] === "string" ? props["data-title"] : "";
+    if (kind === "symptoms") return <SymptomCards title={title}>{children}</SymptomCards>;
+    if (kind === "do" || kind === "dont") return <DoDontCard kind={kind}>{children}</DoDontCard>;
+    if (kind === "pair") return <DoDontPair>{children}</DoDontPair>;
+    if (kind === "diagram" && typeof props["data-stops"] === "string") {
+      return <GuideDiagram title={title} stops={props["data-stops"]} />;
+    }
+    if (typeof props["data-steps"] === "string") return <GuideSteps>{children}</GuideSteps>;
     return <div {...rest}>{children}</div>;
+  },
+  // Slice 2 (MVP-041): the "Work through it" steps and their ticked count.
+  section: ({ node: _node, children, ...rest }) => {
+    const props = rest as Record<string, unknown>;
+    if (typeof props["data-step"] === "string") {
+      return (
+        <GuideStep
+          number={props["data-step"]}
+          title={typeof props["data-step-title"] === "string" ? props["data-step-title"] : ""}
+        >
+          {children}
+        </GuideStep>
+      );
+    }
+    return <section {...rest}>{children}</section>;
   },
   pre: ({ node, ...props }) => {
     const code = node ? textOf(node) : "";

@@ -2,7 +2,20 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-06 (latest) — **MVP-044 (branded emails) moves to QA, and the home page gets a fixes band and "What changed" (#83).**
+Last updated: 2026-10-07 (latest) — **MVP-041 In Progress: redesign slice 2 (fix and pattern blocks) is built and in review.**
+- **Blocks:** symptom cards, tick-off steps with a count, an animated diagram with a pause box, and Do / Don't cards, from Markdown conventions. Plain Markdown still reads correctly.
+- **In the guides:** the 502 guide has symptom cards and four tick-off steps; the child flows guide has a diagram and two Do / Don't pairs. Live guides only change when their text is updated in production (the importer never overwrites a guide): see the open question below.
+- **Still to build in MVP-041:** our own dated screenshots and safe image support.
+- **Open question for the product owner:** how improved guide text (these blocks, and MVP-046's quick answers) reaches guides already published.
+
+Last updated (previous): 2026-10-07 — **MVP-045 (top bar names) is built and in review; two new stories.**
+- **Top bar:** Power Platform ▾ · Fixes · Patterns · Updates, a Learn button, and "Search an error or topic". The product owner chose concept A with two changes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments").
+- **New in the backlog:** MVP-045 (top bar names) and MVP-046 (AI search readiness: articles marked as such, organisation data, RSS, quick answers on every guide, a named author once the name is confirmed).
+- **Comments (MVP-040):** the product owner's choices are recorded: show at once and remove if reported; a random Power Platform-flavoured display name and avatar for every signed-in reader, which they can change.
+- **Production:** BUG-027 (a traffic burst filled the database pooler, about 11 minutes of 500s on 2026-10-07) is fixed in PR #91.
+- **Remaining, in the product owner's order ("finish all pending items first"):** MVP-041 (guide blocks, slice 2), MVP-046, IndexNow and the speed budget (MVP-042), MVP-040 (comments), a release to `main`; then planning the Learn module.
+
+Last updated (previous): 2026-10-06 (latest) — **MVP-044 (branded emails) moves to QA, and the home page gets a fixes band and "What changed" (#83).**
 - **Emails:** the product owner chose concept E1 and delegated the wording. All four emails now share one layout.
 - **New in the backlog:** MVP-043, the animated logo, kept for later at the product owner's request.
 - **Merge order:** #82 (hubs), then #83 (home), then the emails PR. Each builds on the one before.
@@ -169,14 +182,14 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 12 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-038, MVP-039, MVP-040, MVP-041, MVP-042, MVP-043 |
+| Backlog | 10 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-042, MVP-043, MVP-046 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 9 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-037, MVP-034, MVP-035, MVP-036, MVP-044 |
+| In Progress | 5 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-041 (redesign slice 2 built), MVP-045 |
+| QA | 10 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **44** | |
+| **Total** | **46** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 

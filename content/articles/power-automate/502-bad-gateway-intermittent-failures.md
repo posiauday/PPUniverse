@@ -12,6 +12,12 @@ Intermittent failures are the most frustrating kind: the same flow, the same dat
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 
+> [!SYMPTOMS] What are you seeing?
+> - `500 · 502 · 503 · 504` [Fails at random, works on a re-run](#is-it-you-or-them): Usually a temporary problem on the service's side.
+> - `502` [Keeps failing on on-premises data](#is-it-you-or-them): Often the on-premises data gateway is offline, overloaded or out of date.
+> - `5xx` [Still failing after the retries](#survive-the-outage-instead-of-just-failing): Catch the failure and re-process the work later.
+> - `5xx` [Failing for more than a day, no incident posted](#when-to-report-it): Report it, with the evidence support needs.
+
 ## What the codes mean
 
 | Code | Plain meaning | Usually |
@@ -24,7 +30,9 @@ Intermittent failures are the most frustrating kind: the same flow, the same dat
 
 The first rule: **retrying only helps 5xx errors and 429.** A 4xx error fails the same way every time until you change something.
 
-## Step 1: Is it you or them?
+## Work through it
+
+### Is it you or them?
 
 1. **Look at the pattern in run history.** Do failures cluster in a time window and then stop? That points to the service. Does the same item fail every time? That points to that item's data, so look at its inputs.
 2. **Check service health.** For Microsoft services such as SharePoint, Outlook, Dataverse and Power Automate itself, look at **Service health** in the Microsoft 365 admin center (your admin can) for known incidents. For other services, check their status page.
@@ -34,7 +42,7 @@ The first rule: **retrying only helps 5xx errors and 429.** A 4xx error fails th
 > [!TIP]
 > When several flows fail at the same moment with 5xx errors, it's almost always an incident. When only one flow fails, look at what *that* flow sends.
 
-## Step 2: Make sure retries are working for you
+### Make sure retries are working for you
 
 Every action already has a **retry policy**. By default, on the Medium and High performance profiles, an action retries up to **12 times** at growing intervals, the last about an hour after the first. On the Low profile it retries up to **2 times**. Most brief outages pass inside that window without you noticing.
 
@@ -46,7 +54,7 @@ Check an important action's **Settings → Retry policy**:
 > [!WARNING]
 > Retries count toward your daily request limits, and a retried action that **creates** something, such as an item or an email, can create it twice if the first attempt actually succeeded before the error came back. For "create" actions, check whether the item exists before creating it.
 
-## Step 3: Survive the outage instead of just failing
+### Survive the outage instead of just failing
 
 If a failure that outlasts the retries shouldn't lose work:
 
@@ -57,7 +65,7 @@ If a failure that outlasts the retries shouldn't lose work:
 
 This turns a one-hour outage from "lost orders" into "orders a little late".
 
-## Step 4: When to report it
+### When to report it
 
 Report the problem, to Microsoft support through your admin or to the service's own vendor, when:
 - failures continue for more than a day with no incident posted;
