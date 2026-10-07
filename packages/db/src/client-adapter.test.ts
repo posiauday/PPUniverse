@@ -27,6 +27,10 @@ async function buildClientFor(databaseUrl: string): Promise<void> {
   await prisma.category.count();
 }
 
+// BUG-027: a small pool per server instance, so a traffic burst that starts
+// many Netlify function instances can't fill the Supabase pooler's 200 clients.
+const SMALL_POOL = { max: 3, idleTimeoutMillis: 5_000 };
+
 describe("createPrismaClient passes the schema to PrismaPg and no startup option", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -37,12 +41,18 @@ describe("createPrismaClient passes the schema to PrismaPg and no startup option
   it("production: the public schema through the transaction pooler", async () => {
     const url = "postgresql://u:p@aws-0-region.pooler.supabase.com:6543/postgres?schema=public";
     await buildClientFor(url);
-    expect(adapterArgs).toHaveBeenCalledWith({ connectionString: url }, { schema: "public" });
+    expect(adapterArgs).toHaveBeenCalledWith(
+      { connectionString: url, ...SMALL_POOL },
+      { schema: "public" },
+    );
   });
 
   it("tests: an isolated pkg_* schema, still with no startup option", async () => {
     const url = "postgresql://u:p@localhost:5432/db?schema=pkg_catalog";
     await buildClientFor(url);
-    expect(adapterArgs).toHaveBeenCalledWith({ connectionString: url }, { schema: "pkg_catalog" });
+    expect(adapterArgs).toHaveBeenCalledWith(
+      { connectionString: url, ...SMALL_POOL },
+      { schema: "pkg_catalog" },
+    );
   });
 });
