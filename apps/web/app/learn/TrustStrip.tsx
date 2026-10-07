@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { GuideTrust } from "../../lib/article-trust";
+import { BYLINE_NAME } from "../../lib/legal/pages";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -12,7 +13,9 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en-GB", {
  * The trust strip under a guide's title (G1 board, MVP-038 part). It claims
  * only what the guide itself states: "Checked against Microsoft Learn" and
  * the date appear only when the guide carries its dated note; otherwise the
- * strip shows how many sources it lists and when it was last updated.
+ * strip shows how many sources it lists and when it was last updated. Every
+ * guide is posted under the site's byline, never a person's name
+ * (docs/final-decisions.md, 2026-10-07, "No personal details on the site").
  */
 export function TrustStrip({ trust, updatedAt }: { trust: GuideTrust; updatedAt: Date }) {
   const sources =
@@ -52,6 +55,9 @@ export function TrustStrip({ trust, updatedAt }: { trust: GuideTrust; updatedAt:
           </time>
         </span>
       )}
+      <span>
+        Posted by <span className="font-semibold">{BYLINE_NAME}</span>
+      </span>
       <Link
         href="/how-we-write"
         className="inline-flex min-h-11 items-center underline underline-offset-[3px] sm:ml-auto md:min-h-0"

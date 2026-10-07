@@ -5011,3 +5011,22 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Housekeeping:** deleted a stale gitignored `apps/web/.env.local` from an earlier local preview. Its `NEXT_PUBLIC_SITE_URL` was baked into a local build. Production sets the variable in Netlify at build time, so it is unaffected.
 
 **Remaining in MVP-046:** quick answers on the other 54 guides and the named author, both waiting on the product owner. **Remaining in MVP-042:** the Lighthouse speed budget.
+
+## 2026-10-07 — No personal details on the site (MVP-046 part; MVP-047 added)
+
+**Story:** the product owner chose brand-only credit with a niche byline, and asked for their name, location and any personal details to come off the site (`docs/final-decisions.md`, "No personal details on the site; guide text and the admin panel").
+
+**Built:**
+- `apps/web/lib/legal/pages.ts`:
+  - About: no name or place; "Guides are posted by the Maker Desk, the name LowCodeStacks publishes under".
+  - Privacy: "run independently by its owner, who is responsible ...", with the contact email.
+  - Terms: "an independent site run by its owner"; copyright and the MIT notice say LowCodeStacks; governing law "the laws of Canada that apply", with no province; the sign-in sentence now covers the email link, Google and passwords (it predated both).
+  - New effective dates 2026-10-09 for both; migration `20261009000000_add_policy_versions_2026_10_09` adds the two `policy_versions` rows (additive; rollback in the file).
+- `apps/web/app/learn/TrustStrip.tsx`: "Posted by the Maker Desk" on every guide (`BYLINE_NAME`).
+- Tests: no info page (or its description) says "run by" a name or names a province or city; Privacy still states responsibility by role; the trust strip shows the byline.
+
+**Found:** the repository is public. Its history carries the owner's two Gmail addresses (364 commits), and planning files mention the name and province. Rewriting history would be destructive, so it's reported to the product owner instead: making the repository private is their call.
+
+**Checks:** web tests 693, lint, typecheck and format pass; the new migration applies to the local database. Accessibility gate, local, About, Privacy, Terms, How we write and the guide pages in three engines: 293 of 294 passed; the one Firefox keyboard timeout (Privacy at 1280 px) passed on re-run.
+
+**Remaining:** the mailing-address question in the decision (not legal advice).

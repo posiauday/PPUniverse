@@ -8,7 +8,7 @@ import {
   CONTACT_EMAIL,
   HOW_WE_WRITE_PAGE,
   INFO_PAGES,
-  OPERATOR_NAME,
+  BYLINE_NAME,
   PRIVACY_PAGE,
   TERMS_PAGE,
 } from "./pages";
@@ -19,13 +19,19 @@ import {
  * compliance with anything.
  */
 describe("About, Privacy and Terms", () => {
-  it("name the operator on About, Privacy and Terms, and the contact address on every page", () => {
-    for (const page of [ABOUT_PAGE, PRIVACY_PAGE, TERMS_PAGE]) {
-      expect(page.markdown).toContain(OPERATOR_NAME);
-    }
+  it("give the contact address on every page, and name no person and no home province", () => {
     for (const page of INFO_PAGES) {
       expect(page.markdown).toContain(`mailto:${CONTACT_EMAIL}`);
+      // docs/final-decisions.md, 2026-10-07, "No personal details on the site":
+      // no "run by <a name>", and no province or city.
+      for (const text of [page.markdown, page.description]) {
+        expect(text).not.toMatch(/\brun by [A-Z]/);
+        expect(text).not.toMatch(/\bProvince of\b|, in [A-Z][a-z]+, Canada/);
+      }
     }
+    // Privacy still says who is responsible, by role, and how to reach them.
+    expect(PRIVACY_PAGE.markdown).toContain("run independently by its owner, who is responsible");
+    expect(ABOUT_PAGE.markdown).toContain(`posted by ${BYLINE_NAME}`);
   });
 
   it("How we write (MVP-042) keeps the approved AI sentence and the report sentence", () => {
@@ -74,7 +80,7 @@ describe("About, Privacy and Terms", () => {
     expect(outlineOf(TERMS_PAGE.markdown).map((item) => item.id)).toContain("mit-license");
     expect(TERMS_PAGE.markdown).toMatch(/Permission is hereby granted, free of charge/);
     expect(TERMS_PAGE.markdown).toMatch(/Please don't republish whole guides/);
-    expect(TERMS_PAGE.markdown).toMatch(/laws of the Province of Saskatchewan/);
+    expect(TERMS_PAGE.markdown).toMatch(/governed by the laws of Canada/);
   });
 
   it("keeps the non-affiliation statement on About and Terms", () => {

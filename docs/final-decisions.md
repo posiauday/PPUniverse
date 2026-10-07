@@ -2121,3 +2121,19 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 - **When:** after redesign slice 2 (MVP-041).
 - **Moderation:** comments show at once and are removed if reported (not a queue before publishing).
 - **Name:** a display name the reader chooses. Then, in this round, the product owner added: **every signed-in reader is given a random, Power Platform-flavoured display name and an avatar,** which they can change, and those show on their comments.
+
+## 2026-10-07 — No personal details on the site; guide text and the admin panel
+
+**Source:** direct product-owner instruction in this session, by multiple choice with notes, and two follow-up messages.
+
+**No personal details on the site.**
+- **Brand only.** Guides stay credited to LowCodeStacks in structured data. The "named author" in "AI search readiness" (decision 4 of that entry) is withdrawn; "Business model ..., decision 4" (no person named in public data) stands.
+- **A byline.** Guides show "Posted by **the Maker Desk**", the name LowCodeStacks publishes under. The product owner asked for "a nice name related to the niche" and delegated it; "maker" is what Power Platform calls the people who build apps and flows. It can be changed in one place (`BYLINE_NAME`, `apps/web/lib/legal/pages.ts`).
+- **No name, no place.** The owner's name, province and city come off the site: About, Privacy and Terms, the copyright lines and the MIT notice ("LowCodeStacks"). The product owner: *"remove city name too if not required"* and *"I have never seen any site put it"*. The Terms' governing-law clause now says "the laws of Canada that apply", with no province; a governing-law clause isn't required.
+- **Privacy still says who is responsible:** "run independently by its owner", with the contact email. Canada's privacy law (PIPEDA, Schedule 1, 4.8.2) asks for the *name or title* and the address of the person accountable, so a title meets the first part. **Open:** whether an email address is enough "address" or a mailing address is needed: not legal advice; worth checking with a lawyer before payments launch.
+- **Unchanged:** the Privacy notice still says data may be stored outside Canada and names Canada's Privacy Commissioner. Both are needed for the disclosures to be accurate.
+- New Privacy and Terms versions, 2026-10-09 (migration `20261009000000_add_policy_versions_2026_10_09`). The Terms' sign-in sentence is brought up to date at the same time: email link, Google or password.
+
+**Guide text.** For now the agent researches and drafts improved guide text as files only (drafts). Published guides are changed in the admin. In future, guide text is **editable by an admin only**.
+
+**Admin panel and a Contributor role (MVP-047).** The product owner asked for *"a more powerful, full of features, more admin-friendly admin panel ... with all required things there to manage the whole site"*, and to **create a Contributor role**, whose abilities are **to be decided**. Until then a Contributor can do nothing an ordinary signed-in reader can't. Designed on the canvas first, for approval.
