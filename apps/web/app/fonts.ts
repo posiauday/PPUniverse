@@ -1,4 +1,10 @@
-import { Bricolage_Grotesque, Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  Geist,
+  Geist_Mono,
+  Google_Sans,
+  Instrument_Serif,
+} from "next/font/google";
 
 /**
  * The Daylight typefaces (MVP-031; docs/final-decisions.md, "Visual
@@ -44,3 +50,19 @@ export const monoFont = Geist_Mono({
 });
 
 export const fontVariables = `${displayFont.variable} ${serifFont.variable} ${bodyFont.variable} ${monoFont.variable}`;
+
+/**
+ * Google Sans Medium, only for the "Continue with Google" button: Google's
+ * branding guidelines require it (14/20). SIL Open Font License, served from
+ * this site like the others. Not in fontVariables: only the sign-in page's
+ * GoogleButton uses it, so other pages don't load it.
+ */
+export const googleButtonFont = Google_Sans({
+  subsets: ["latin"],
+  weight: "500",
+  display: "swap",
+  preload: false,
+  // next/font has no size-matched fallback for Google Sans; these are close.
+  adjustFontFallback: false,
+  fallback: ["Roboto", "Arial", "sans-serif"],
+});
