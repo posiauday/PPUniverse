@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { contentRepository } from "../../../lib/content";
+import { loadGuideComments } from "../../../lib/comments";
 import { feedbackRepository } from "../../../lib/feedback";
 import { outlineOf, readingMinutes } from "../../../lib/article-outline";
 import { ARTICLE_KIND, ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
@@ -25,6 +26,7 @@ import { getSiteUrl } from "../../../lib/site-url";
 import { paletteFor } from "../../../lib/technology-palette";
 import { ARTICLE_COVERS } from "../../home/HomeSections";
 import { ArticleBody } from "../ArticleBody";
+import { GuideComments } from "../GuideComments";
 import { GuideFeedback } from "../GuideFeedback";
 import { ArticleToc, StickyColumn } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
@@ -84,11 +86,13 @@ export default async function LearnPage({ params }: LearnPageProps) {
     notFound();
   }
 
-  const [related, votes] = await Promise.all([
+  const [related, votes, comments] = await Promise.all([
     findRelatedArticles(contentRepository, article),
     // MVP-039: the counts behind the "Accepted fix" chip. If they can't be
     // read, the page simply shows no chip.
     feedbackRepository.voteSummary(article.id).catch(() => ({ yes: 0, no: 0 })),
+    // MVP-040: null while comments are switched off (FEATURE_COMMENTS).
+    loadGuideComments(article.id),
   ]);
   const acceptedFix = article.type === "TUTORIAL" && isAcceptedFix(votes);
   const site = getSiteUrl();
@@ -215,6 +219,13 @@ export default async function LearnPage({ params }: LearnPageProps) {
         <div className="min-w-0">
           <ArticleBody markdown={trust.body} />
           <GuideFeedback slug={article.slug} isFix={article.type === "TUTORIAL"} />
+          {comments ? (
+            <GuideComments
+              slug={article.slug}
+              comments={comments.comments}
+              viewer={comments.viewer}
+            />
+          ) : null}
         </div>
         {related.length > 0 ? (
           <aside

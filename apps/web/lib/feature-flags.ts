@@ -10,3 +10,13 @@
 export function componentsEnabled(): boolean {
   return process.env["FEATURE_COMPONENTS"] === "on";
 }
+
+/**
+ * FEATURE_COMMENTS: comments on guides and readers' profiles (MVP-040). Off
+ * until the product owner approves the Terms and Privacy wording for them
+ * (docs/final-decisions.md, "Hub framing ... community solutions": "Before it
+ * ships"). Off, the section isn't shown and its routes answer 404.
+ */
+export function commentsEnabled(): boolean {
+  return process.env["FEATURE_COMMENTS"] === "on";
+}

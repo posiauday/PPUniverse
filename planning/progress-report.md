@@ -5044,3 +5044,20 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Checks:** quick-answer tests 58, content-file tests 116, web tests 751, lint and format clean.
 
 **For the product owner:** published guides don't change from their files. To publish a quick answer, open the guide in `/admin/content` and paste the block from its file (right after the introduction).
+
+## 2026-10-07 — Comments on guides (MVP-040 In Progress: built behind a flag)
+
+**Story:** MVP-040 with the product owner's choices (`docs/final-decisions.md`, 2026-10-07): comments show at once and are removed after reports; every signed-in reader gets a random, Power Platform-flavoured display name and avatar they can change. Plan, defaults and proposed legal wording: `docs/plans/mvp-040-comments.md`; open questions 70 to 75.
+
+**Built:**
+- **Data:** migration `20261010000000_add_comments_and_profiles` (additive; rollback in the file): `users.displayName`, `displayNameKey` (unique, lowercased), `avatarSeed`; `article_comments` (cascade with the guide, restrict on the user) and `comment_reports` (nothing about the reporter); RLS on both. Checked: `prisma migrate diff` against the migrated local database shows no drift.
+- **Rules** (`packages/domain/content/src/comments.ts`): 10 to 2,000 characters, at most 2 links, paragraphs and ``` code; generated names ("Tidy Trigger 418") and typed names (3 to 30 characters, letters in any language, no official-looking names); a deterministic avatar from a seed.
+- **Storage** (`PrismaCommentRepository`): profiles created once with a unique name (retries on a clash); visible comments with the accepted one first, selecting only display name and avatar; one accepted comment per guide; removing un-accepts and hides; authors delete their own (reports go with it).
+- **Routes:** post (signed in; 5 an hour, 20 a day), report (anyone; 10 an hour per address), delete own, profile (name or new avatar; 10 changes a day), admin moderation (remove, restore, accept, unaccept). All answer 404 while `FEATURE_COMMENTS` is off. Comment text and names are never logged.
+- **Pages:** the guide's Comments section (guests get "Sign in to comment"), `/account/profile`, `/admin/comments` (linked from the admin home when on).
+- **Shared helpers:** `readJson` in `lib/request-guards.ts` (`readFields` now uses it and counts bytes, not characters); `lib/post-json.ts`, now also used by the guide feedback.
+- **Gate:** comments switched on for the gate's server; seed adds an accepted and a reported comment; states for the guest and member views, a too-short comment, the profile and its error, the admin page and its 404; `/account/profile` and `/admin/comments` added to the gated routes.
+
+**Checks:** domain 9, repository integration on Postgres 5, routes 18, component 5; web tests 766; typecheck and lint clean. Accessibility gate, local, every guide, profile and admin state in three engines (comments on): 269 of 315 passed first time. 42 failures were the two new error states: the gate's server refuses posts from `localhost` because its site address differs, so they now fake the route's answer like the feedback states. The other 4 were Firefox and WebKit timeouts. All 66 then passed.
+
+**Remaining:** the product owner approves the Terms and Privacy wording; then the legal pages get new versions and `FEATURE_COMMENTS` is switched on in Netlify.

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { commentsEnabled } from "../../lib/feature-flags";
 import { requireAdmin } from "../../lib/require-admin";
 import { SITE_NAME } from "../../lib/seo/site";
 
@@ -32,6 +33,11 @@ const AREAS = [
     name: "Feedback",
     description: "Reports from readers, and how they answered Did this fix it?",
   },
+  {
+    href: "/admin/comments",
+    name: "Comments",
+    description: "Readers' comments on guides: reported ones first. Remove, restore or accept.",
+  },
   { href: "/admin/audit", name: "Audit log", description: "Who did what in the admin, and when." },
 ];
 
@@ -46,14 +52,16 @@ export default async function AdminHomePage() {
     <main className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="text-2xl font-semibold">Admin</h1>
       <ul className="mt-6 flex flex-col gap-4">
-        {AREAS.map((area) => (
-          <li key={area.href}>
-            <Link href={area.href} className="text-lg font-semibold">
-              {area.name}
-            </Link>
-            <p className="text-muted-foreground">{area.description}</p>
-          </li>
-        ))}
+        {AREAS.filter((area) => area.href !== "/admin/comments" || commentsEnabled()).map(
+          (area) => (
+            <li key={area.href}>
+              <Link href={area.href} className="text-lg font-semibold">
+                {area.name}
+              </Link>
+              <p className="text-muted-foreground">{area.description}</p>
+            </li>
+          ),
+        )}
       </ul>
     </main>
   );

@@ -574,6 +574,34 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         message: `E2E fixture report ${prefix}(not real feedback): a setting moved.`,
       },
     });
+    // MVP-040: two comments on the published guide, under display names (the
+    // prefix keeps names unique across workers): the admin's, accepted, and
+    // the member's, reported once. Removed with the article (cascade).
+    for (const [who, name, seedValue] of [
+      [admin.id, `Fixture Reader A ${prefix}`, `${prefix}avatar-a`],
+      [user.id, `Fixture Reader B ${prefix}`, `${prefix}avatar-b`],
+    ] as const) {
+      await prisma.user.update({
+        where: { id: who },
+        data: { displayName: name, displayNameKey: name.toLowerCase(), avatarSeed: seedValue },
+      });
+    }
+    await prisma.articleComment.create({
+      data: {
+        articleId: publishedArticle.id,
+        userId: admin.id,
+        body: "Fixture comment: the accepted fix, with a link https://learn.microsoft.com/power-apps/ and code:\n\n```\nSet(varFixture, true)\n```",
+        acceptedAt: now,
+      },
+    });
+    const reportedComment = await prisma.articleComment.create({
+      data: {
+        articleId: publishedArticle.id,
+        userId: user.id,
+        body: "Fixture comment from the member, reported once.",
+      },
+    });
+    await prisma.commentReport.create({ data: { commentId: reportedComment.id } });
 
     // SEO story: a second PUBLISHED article of the same type, so the first
     // one's "Keep learning" section always has something to list.
