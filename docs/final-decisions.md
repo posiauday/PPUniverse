@@ -2161,3 +2161,9 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 1. **The Learn module uses direction 1, "Workspace".** This supersedes concept L3 "Story scroll" (entry above). A lesson page has three columns: on the left, the topic's lessons, each with a ring that fills as it is read; in the middle, the lesson; on the right, an "On this page" tracker and a reading-progress bar. A knowledge check closes each lesson, with an explanation for every answer and no penalty, and the next lesson slides in. On a phone the side columns collapse.
 2. **The fixed lesson shape stays** (`docs/plans/learn-module.md`): what you'll understand, the idea, how it works, the important things, try it, check yourself (the knowledge check), and sources. Progress for signed-in readers and the addresses at `/topics` stay as approved on 2026-10-07.
 3. **Not chosen:** Explorable, Cards, Map and Simulator. The agent's recommendation (Map as the Learn home, plus a formula playground in key lessons) was not taken; the `/topics` home and topic pages follow the Workspace style.
+
+## 2026-10-07 — Accessibility shards: 6
+
+**Source:** direct product-owner answer in this session, by multiple choice (TD-030's options).
+
+The accessibility gate runs in **6 shards instead of 4**. The time limit stays at 20 minutes per job. Every engine, width, page state and rule stays, and the self-check still runs in every shard. Only the split of the same test list changes. This resolves TD-030: shards took 8 to 17 minutes and were cancelled at the limit on slower runners with no failing test. The reporting standard of "Accessibility suite mitigation" (2026-09-23) still applies: per-shard times and the total check count are reported on the first run.
