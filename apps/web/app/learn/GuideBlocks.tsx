@@ -57,7 +57,10 @@ export function GuideDiagram({ title, stops }: { title: string; stops: string })
         </label>
       </div>
       <ol
-        className={`guide-stops guide-stops-${list.length} mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(var(--stops),minmax(0,1fr))]`}
+        className={`guide-stops guide-stops-${list.length} mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 ${
+          // One row up to five stops; more would be too narrow, so rows of four.
+          list.length <= 5 ? "lg:grid-cols-[repeat(var(--stops),minmax(0,1fr))]" : "lg:grid-cols-4"
+        }`}
         style={{ ["--stops" as string]: list.length }}
       >
         {list.map((stop, index) => (
@@ -106,8 +109,9 @@ export function GuideStep({
       <div className="min-w-0 [&>h3:first-child]:mt-2">
         {children}
         <label className="mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2.5 font-semibold">
-          <input type="checkbox" className="h-6 w-6 accent-primary" />
-          Done<span className="sr-only">: {title}</span>
+          {/* Named in full, so every box says which step it ticks. */}
+          <input type="checkbox" aria-label={`Done: ${title}`} className="h-6 w-6 accent-primary" />
+          Done
         </label>
       </div>
     </section>

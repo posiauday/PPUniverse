@@ -139,9 +139,27 @@ function markCallout(quote: Blockquote): void {
       quote.children = [];
     } else {
       quote.children = quote.children.slice(1);
+      dropLeadingColons(quote);
     }
   }
   quote.data = { ...quote.data, hName: "div", hProperties: properties };
+}
+
+/**
+ * A symptom reads "[Title](#step): note" in Markdown. The card puts the title
+ * on its own line, so the ": " that joined them would start the note.
+ */
+function dropLeadingColons(quote: Blockquote): void {
+  walk(quote as Nodes, (node) => {
+    if (!("children" in node)) return;
+    const children = node.children as Nodes[];
+    for (let i = 1; i < children.length; i += 1) {
+      const child = children[i]!;
+      if (children[i - 1]!.type === "link" && child.type === "text") {
+        (child as Text).value = (child as Text).value.replace(/^\s*:\s*/, "");
+      }
+    }
+  });
 }
 
 type Parent = { children: Nodes[] };

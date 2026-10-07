@@ -1080,11 +1080,38 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // tip callout, all from the fixture's Markdown.
       await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
-      await expect(page.getByRole("note")).toContainText("A fixture tip callout.");
+      await expect(
+        page.getByRole("note").filter({ hasText: "A fixture tip callout." }),
+      ).toBeVisible();
+      // MVP-041 (redesign slice 2): symptom cards, tick-off steps with their
+      // count, the diagram's pause box and a Do / Don't pair.
+      await expect(page.getByRole("region", { name: "What are you seeing?" })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: "Done: A fixture step" })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: "Pause animation" })).toBeVisible();
+      await expect(page.getByRole("note").filter({ hasText: "A fixture do." })).toBeVisible();
     },
   },
   // MVP-039 / MVP-038: the end of a guide. The API answers are faked in the
   // test, so no vote or report is ever recorded.
+  // MVP-041: the checked look of a ticked step and the paused diagram. Both
+  // are plain checkboxes counted by CSS, so no script is needed.
+  {
+    id: "learn-step-ticked",
+    route: "/learn/[slug]",
+    description: "guide page with one step ticked and the diagram paused",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      // Ticked from the keyboard, as a keyboard user would.
+      for (const name of ["Done: A fixture step", "Pause animation"]) {
+        const box = page.getByRole("checkbox", { name });
+        await box.focus();
+        await page.keyboard.press("Space");
+        await expect(box).toBeChecked();
+      }
+    },
+  },
   {
     id: "learn-voted",
     route: "/learn/[slug]",
@@ -1097,7 +1124,10 @@ export const GATED_PAGES: readonly GatedPage[] = [
         route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
       );
       await (await whenHydrated(page.getByRole("button", { name: "Yes, fixed" }))).click();
-      await expect(page.getByRole("status").filter({ hasText: "Glad it helped" })).toBeVisible();
+      // Focus moves to the thanks one animation frame after it appears. Wait
+      // for it, or the keyboard walk can start first and have focus jump
+      // mid-walk (BUG-028).
+      await expect(page.getByRole("status").filter({ hasText: "Glad it helped" })).toBeFocused();
     },
   },
   {

@@ -21,6 +21,9 @@ describe("guide blocks", () => {
     expect(html).toContain('href="#step-1"');
     expect(text(html)).not.toContain("[!SYMPTOMS]");
     expect(html.match(/<li>/g)).toHaveLength(2);
+    // The ": " joining title and note doesn't start the note.
+    expect(html).not.toContain("</a>:");
+    expect(html).toContain("</a>Usually temporary.");
   });
 
   it("draws [!DIAGRAM] as ordered stops with a Pause box, and stays a quote without two stops", () => {
@@ -73,7 +76,7 @@ describe("guide blocks", () => {
     expect(html).toContain('data-total="2"');
     expect(html).toContain(">Is it you or them?</h3>");
     // Each tick box is named for its step, for screen readers.
-    expect(text(html)).toContain("Done: Let retries do their job");
+    expect(html).toContain(`aria-label="Done: Let retries do their job"`);
     // Sources stays outside the steps.
     expect(html.indexOf(">Sources</h2>")).toBeGreaterThan(html.indexOf('data-total="2"'));
     // The contents list still lists every heading, ids unchanged.
