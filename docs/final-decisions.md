@@ -2146,3 +2146,10 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 2. **Admin panel (MVP-047): concept A, "Command centre".** A sidebar with every area, grouped (Content, Community, People, Site), with live counts. The home shows what needs the admin now, then the site's health. The Contributor role's abilities are still to be decided (2026-10-07 entry above).
 3. **Page-speed check (MVP-042): measured with Playwright, not Lighthouse CI.** Lighthouse CI's dependencies carry 4 high-severity advisories (tmp, extract-zip, basic-ftp), which would fail the security audit. The check measures LCP and CLS, and long tasks as the lab stand-in for INP, in Chromium with the tools already in the repo. The budget is the one approved on 2026-10-06 (LCP ≤ 2.5 s, CLS < 0.1). This supersedes "a Lighthouse budget" in "SEO additions alongside the guide-page redesign", decision 4.
 4. **The Learn module: go ahead as planned** in `docs/plans/learn-module.md`. Topics made of short lessons at `/topics`, with the fixed lesson shape, optional progress for signed-in readers, and "check yourself" questions. First topics: one per technology. Next step: 3 design concepts for the topic and lesson pages, for sign-off before building.
+
+## 2026-10-07 — Display font and the Learn module design direction
+
+**Source:** direct product-owner answers in this session, by multiple choice with a note.
+
+1. **The display font (Bricolage Grotesque) uses `font-display: optional`** to remove the home page's layout shift (CLS 0.13; TD-032). On a slow first visit the headline keeps the fallback font for that page; the font is cached and used from the next page on.
+2. **The Learn module follows concept L3, "Story scroll"**: lessons drawn as a path, and each lesson a guided scroll through the fixed shape with a stepper. The product owner asked the agent to *"research more to take [the] L3 approach to peak and top class, add animation or what not; research what top learn modules use"*, and to show **variations of L3** for a final choice before building.
