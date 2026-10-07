@@ -27,13 +27,28 @@ declare global {
 // parameters through, so the connection can't depend on one.
 // Every DATABASE_URL in this repo carries `?schema=`, so it stays the single
 // source of truth for the schema.
+/**
+ * Connections each server instance may hold (BUG-027). pg's default is 10.
+ * In production every Netlify function instance has its own pool, and a
+ * frozen instance keeps its idle connections open, so a burst of traffic
+ * that starts many instances can fill the Supabase pooler's client limit
+ * (200 on our plan) and fail every database page until they are reaped.
+ * 3 keeps a page's parallel queries parallel while allowing ~65 instances.
+ */
+export const POOL_MAX = 3;
+/** Close an idle connection after 5 s (pg's default is 10 s). */
+export const POOL_IDLE_MS = 5_000;
+
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env["DATABASE_URL"];
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set. See packages/db/.env.example.");
   }
   const schema = schemaFromConnectionString(connectionString);
-  const adapter = new PrismaPg({ connectionString }, { schema });
+  const adapter = new PrismaPg(
+    { connectionString, max: POOL_MAX, idleTimeoutMillis: POOL_IDLE_MS },
+    { schema },
+  );
   return new PrismaClient({ adapter });
 }
 
