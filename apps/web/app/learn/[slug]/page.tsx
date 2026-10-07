@@ -24,7 +24,7 @@ import { getSiteUrl } from "../../../lib/site-url";
 import { paletteFor } from "../../../lib/technology-palette";
 import { ARTICLE_COVERS } from "../../home/HomeSections";
 import { ArticleBody } from "../ArticleBody";
-import { ArticleToc } from "../ArticleToc";
+import { ArticleToc, StickyColumn } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { CopyLink } from "../CopyLink";
 import { QuickAnswer } from "../QuickAnswer";
@@ -195,17 +195,17 @@ export default async function LearnPage({ params }: LearnPageProps) {
       {/* Contents | the guide | the side column (G1). Below xl the side
           column follows the guide; it is in the page once either way. */}
       <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[13.75rem_minmax(0,46rem)] lg:gap-14 xl:grid-cols-[13.75rem_minmax(0,45rem)_minmax(0,1fr)]">
-        <div>
+        <StickyColumn>
           <ArticleToc items={outline} />
           {site.ok ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
-        </div>
+        </StickyColumn>
         <div className="min-w-0">
           <ArticleBody markdown={trust.body} />
         </div>
         {related.length > 0 ? (
           <aside
             aria-labelledby="related_heading"
-            className="flex flex-col gap-3.5 lg:col-span-2 xl:sticky xl:top-28 xl:col-span-1 xl:self-start"
+            className="flex flex-col gap-3.5 [overflow-wrap:anywhere] lg:col-span-2 xl:sticky xl:top-28 xl:col-span-1 xl:max-h-[calc(100vh-8rem)] xl:self-start xl:overflow-y-auto xl:pr-1"
           >
             <h2
               id="related_heading"

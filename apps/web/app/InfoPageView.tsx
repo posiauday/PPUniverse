@@ -6,7 +6,7 @@ import { buildBreadcrumbJsonLd } from "../lib/seo/json-ld";
 import { SITE_NAME } from "../lib/seo/site";
 import { getSiteUrl } from "../lib/site-url";
 import { ArticleBody } from "./learn/ArticleBody";
-import { ArticleToc } from "./learn/ArticleToc";
+import { ArticleToc, StickyColumn } from "./learn/ArticleToc";
 
 /**
  * About, Privacy and Terms (MVP-032): a Daylight header like the guides
@@ -45,9 +45,9 @@ export function InfoPageView({ page }: { page: InfoPage }) {
       </header>
 
       <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[15rem_minmax(0,46rem)] lg:gap-16">
-        <div>
+        <StickyColumn>
           <ArticleToc items={outlineOf(page.markdown)} />
-        </div>
+        </StickyColumn>
         <div className="min-w-0">
           <ArticleBody markdown={page.markdown} />
         </div>

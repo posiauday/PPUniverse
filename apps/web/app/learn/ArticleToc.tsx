@@ -1,19 +1,22 @@
+import type { ReactNode } from "react";
 import type { OutlineItem } from "../../lib/article-outline";
 
 /**
  * "On this page" (MVP-027 slice 3; Daylight look, MVP-031): links to the
  * article's h2 and h3 headings, built by lib/article-outline.ts from the same
  * parse that renders them. A plain navigation list: above the article on small
- * screens, a sticky left column on wide ones -- one copy in the page either
- * way. Left out when there are fewer than two headings, where it would add
- * nothing.
+ * screens, in the left column on wide ones -- one copy in the page either
+ * way. The column (StickyColumn) is what sticks, so anything placed under the
+ * list, such as Copy link, moves with it instead of sliding under it
+ * (BUG-026). Left out when there are fewer than two headings, where it would
+ * add nothing.
  */
 export function ArticleToc({ items }: { items: readonly OutlineItem[] }) {
   if (items.length < 2) return null;
   return (
     <nav
       aria-labelledby="toc_label"
-      className="rounded-[1.25rem] border border-border bg-card p-5 lg:sticky lg:top-28 lg:border-0 lg:bg-transparent lg:p-0"
+      className="rounded-[1.25rem] border border-border bg-card p-5 lg:border-0 lg:bg-transparent lg:p-0"
     >
       <p
         id="toc_label"
@@ -34,5 +37,18 @@ export function ArticleToc({ items }: { items: readonly OutlineItem[] }) {
         ))}
       </ol>
     </nav>
+  );
+}
+
+/**
+ * The left column on wide screens: the contents list and anything under it
+ * stick together below the header, scrolling on their own when they are
+ * taller than the window (BUG-026: Copy link slid under the sticky list).
+ */
+export function StickyColumn({ children }: { children: ReactNode }) {
+  return (
+    <div className="lg:sticky lg:top-28 lg:max-h-[calc(100vh-8rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
+      {children}
+    </div>
   );
 }
