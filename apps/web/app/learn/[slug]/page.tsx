@@ -4,12 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { contentRepository } from "../../../lib/content";
+import { feedbackRepository } from "../../../lib/feedback";
 import { outlineOf, readingMinutes } from "../../../lib/article-outline";
 import { ARTICLE_KIND, ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
 import { readGuideTrust } from "../../../lib/article-trust";
 import { HUB_TOPICS } from "../../../lib/technology-hubs";
 import { findRelatedArticles } from "../../../lib/related-articles";
-import { technologyInfo } from "@ppu/domain-content";
+import { isAcceptedFix, technologyInfo } from "@ppu/domain-content";
 import {
   homeUrl,
   learnIndexUrl,
@@ -24,7 +25,8 @@ import { getSiteUrl } from "../../../lib/site-url";
 import { paletteFor } from "../../../lib/technology-palette";
 import { ARTICLE_COVERS } from "../../home/HomeSections";
 import { ArticleBody } from "../ArticleBody";
-import { ArticleToc } from "../ArticleToc";
+import { GuideFeedback } from "../GuideFeedback";
+import { ArticleToc, StickyColumn } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { CopyLink } from "../CopyLink";
 import { QuickAnswer } from "../QuickAnswer";
@@ -82,7 +84,13 @@ export default async function LearnPage({ params }: LearnPageProps) {
     notFound();
   }
 
-  const related = await findRelatedArticles(contentRepository, article);
+  const [related, votes] = await Promise.all([
+    findRelatedArticles(contentRepository, article),
+    // MVP-039: the counts behind the "Accepted fix" chip. If they can't be
+    // read, the page simply shows no chip.
+    feedbackRepository.voteSummary(article.id).catch(() => ({ yes: 0, no: 0 })),
+  ]);
+  const acceptedFix = article.type === "TUTORIAL" && isAcceptedFix(votes);
   const site = getSiteUrl();
   const jsonLd = site.ok
     ? buildArticleJsonLd({
@@ -178,6 +186,11 @@ export default async function LearnPage({ params }: LearnPageProps) {
               {kind.label} · {ARTICLE_TYPE_LABEL[article.type]}
             </span>
             <span className="rounded-full bg-card/80 px-3.5 py-1.5">{minutes} min read</span>
+            {acceptedFix ? (
+              <span className="rounded-full bg-highlight px-3.5 py-1.5 text-highlight-foreground">
+                <span aria-hidden="true">✓ </span>Accepted fix
+              </span>
+            ) : null}
           </p>
           <TrustStrip trust={trust} updatedAt={article.updatedAt} />
         </div>
@@ -195,17 +208,18 @@ export default async function LearnPage({ params }: LearnPageProps) {
       {/* Contents | the guide | the side column (G1). Below xl the side
           column follows the guide; it is in the page once either way. */}
       <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[13.75rem_minmax(0,46rem)] lg:gap-14 xl:grid-cols-[13.75rem_minmax(0,45rem)_minmax(0,1fr)]">
-        <div>
+        <StickyColumn>
           <ArticleToc items={outline} />
           {site.ok ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
-        </div>
+        </StickyColumn>
         <div className="min-w-0">
           <ArticleBody markdown={trust.body} />
+          <GuideFeedback slug={article.slug} isFix={article.type === "TUTORIAL"} />
         </div>
         {related.length > 0 ? (
           <aside
             aria-labelledby="related_heading"
-            className="flex flex-col gap-3.5 lg:col-span-2 xl:sticky xl:top-28 xl:col-span-1 xl:self-start"
+            className="flex flex-col gap-3.5 [overflow-wrap:anywhere] lg:col-span-2 xl:sticky xl:top-28 xl:col-span-1 xl:max-h-[calc(100vh-8rem)] xl:self-start xl:overflow-y-auto xl:pr-1"
           >
             <h2
               id="related_heading"

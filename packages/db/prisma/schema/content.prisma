@@ -88,8 +88,10 @@ model Article {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  author User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
-  events ArticlePublishEvent[]
+  author  User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events  ArticlePublishEvent[]
+  votes   ArticleVote[]
+  reports ArticleReport[]
 
   @@index([status])
   @@index([type])
@@ -168,4 +170,35 @@ model UpdatePublishEvent {
 
   @@index([updateId, createdAt])
   @@map("update_publish_events")
+}
+
+/// "Did this fix it?" (MVP-039; docs/final-decisions.md, 2026-10-07, "Votes
+/// and reports"). One row per vote, holding nothing about the voter: no user,
+/// no IP address, no cookie. Repeat votes are limited by a hashed counter in
+/// auth_throttle, deleted after a day.
+model ArticleVote {
+  id        String   @id @default(cuid())
+  articleId String
+  helpful   Boolean
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, helpful])
+  @@map("article_votes")
+}
+
+/// "Something here changed?" (MVP-038): an anonymous note of at most 500
+/// characters, with no contact details. It waits in /admin/feedback and is
+/// deleted when the admin closes it (the Privacy notice says so).
+model ArticleReport {
+  id        String   @id @default(cuid())
+  articleId String
+  message   String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("article_reports")
 }
