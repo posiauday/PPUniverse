@@ -4990,3 +4990,24 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Open:** guides already published don't change when their files change (the importer never overwrites). Asked of the product owner.
 
 **Remaining in MVP-041:** our own dated screenshots and safe image support.
+
+## 2026-10-07 — AI search readiness, part 1 (MVP-046 In Progress; MVP-042's IndexNow)
+
+**Story:** the product owner asked for an audit of how the site appears in AI tools (Claude, Gemini, ChatGPT and others) and approved the fixes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments"). Research: Google's "AI features and your website" (no special files or markup; a page must be indexed with a snippet), Anthropic's and OpenAI's crawler pages, reports that Claude's web search uses Brave's index, and indexnow.org's protocol.
+
+**Audit findings (live site, 2026-10-07):** every AI and search crawler receives the full server-rendered page; `robots.txt` allows them; canonical URLs, descriptions, `TechArticle` and breadcrumbs are in place. Gaps: not yet in any search index; the Safe Browsing flag; guides shared as "website"; no organisation data; no guides feed (correction: the audit said "no RSS feed", but `/updates/feed.xml` already existed); no IndexNow.
+
+**Built:**
+- `apps/web/lib/seo/metadata.ts`: a published guide's Open Graph type is `article`, with `article:published_time` and `article:modified_time`.
+- `apps/web/lib/seo/json-ld.ts`: `buildOrganizationJsonLd`, on the home page: name, URL, description and `apps/web/public/brand/logo-512.png` (the header's mark at 512 px; Google asks for at least 112 px). No `sameAs` until official profiles exist.
+- `apps/web/lib/guides-feed.ts` and `app/learn/feed.xml/route.ts`: RSS 2.0 of the 50 newest guides, linked from the home page and `/learn`. The XML escaping is shared with the updates feed (`lib/xml.ts`).
+- `apps/web/lib/indexnow.ts`, `app/indexnow-key.txt/route.ts`: with `INDEXNOW_KEY` set, publishing a guide (its URL and `/learn`) or an update (`/updates`) notifies `api.indexnow.org`. It never fails or delays a publish by more than 3 seconds, sends only URLs on our host, and does nothing for localhost, http or without a key.
+- `docs/15-deployment.md`: Bing Webmaster Tools, Brave's submit page, `INDEXNOW_KEY`, the feeds. `apps/web/.env.example`: `INDEXNOW_KEY`.
+
+**Checks:**
+- Web tests: 692 passed (new: metadata, Organization, feed, feed links, IndexNow). Typecheck, lint and format clean.
+- A local production build against the local guide database: `/indexnow-key.txt` returns the key as text; `/learn/feed.xml` has 50 items and is well-formed XML; the home page and `/learn` link the feed; the home page carries the Organization data; a guide's `og:type` is `article`.
+
+**Housekeeping:** deleted a stale gitignored `apps/web/.env.local` from an earlier local preview. Its `NEXT_PUBLIC_SITE_URL` was baked into a local build. Production sets the variable in Netlify at build time, so it is unaffected.
+
+**Remaining in MVP-046:** quick answers on the other 54 guides and the named author, both waiting on the product owner. **Remaining in MVP-042:** the Lighthouse speed budget.

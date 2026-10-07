@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SITE_NAME } from "./site.js";
+import { SITE_DESCRIPTION, SITE_NAME } from "./site.js";
 
 /**
  * Wiring tests (MVP-021): call the REAL page, layout, robots, sitemap and
@@ -201,7 +201,7 @@ describe("home page", () => {
     expect(canonicalOf(metadata)).toBe("https://example.com/");
   });
 
-  it("emits WebSite JSON-LD with only the site name and URL", async () => {
+  it("emits WebSite JSON-LD with only the site name and URL, then the Organization (MVP-046)", async () => {
     const markup = renderToStaticMarkup(await HomePage());
     expect(jsonLdBlocks(markup)).toEqual([
       {
@@ -209,6 +209,14 @@ describe("home page", () => {
         "@type": "WebSite",
         name: SITE_NAME,
         url: "https://example.com/",
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: SITE_NAME,
+        url: "https://example.com/",
+        logo: "https://example.com/brand/logo-512.png",
+        description: SITE_DESCRIPTION,
       },
     ]);
   });
