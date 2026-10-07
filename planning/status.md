@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **MVP-046 and MVP-042 In Progress: AI search code gaps and IndexNow are built and in review.**
+Last updated: 2026-10-07 (latest) — **No personal details on the site; MVP-047 added.**
+- **Removed:** the owner's name, province and city from About, Privacy and Terms; copyright and the MIT notice now say LowCodeStacks. The Terms' governing law names no province. New Privacy and Terms versions, 2026-10-09.
+- **Byline:** guides show "Posted by the Maker Desk". Structured data stays brand only; the named author is withdrawn.
+- **New story:** MVP-047, a redesigned admin panel and a Contributor role (abilities to be decided), designed on the canvas first.
+- **For the product owner:** the GitHub repository is public. Its history carries the owner's Gmail addresses on 364 commits, and planning files mention the name and province. Making it private keeps them out of view.
+
+Last updated (previous): 2026-10-07 — **MVP-046 and MVP-042 In Progress: AI search code gaps and IndexNow are built and in review.**
 - **Built:** guides shared as articles with their dates; LowCodeStacks described as an organisation with a 512 px logo; an RSS feed of guides at `/learn/feed.xml`; IndexNow: the key at `/indexnow-key.txt` and a notice to search engines on every publish.
 - **Product owner, Netlify:** add `INDEXNOW_KEY` for Production (`docs/15-deployment.md`, "After launch", which now also lists Bing Webmaster Tools and Brave's submit page).
 - **Waiting on the product owner:** how improved guide text reaches published guides (blocks MVP-046's quick answers going live), and the named author (conflicts with an earlier decision that no person is named in structured data).
@@ -188,14 +194,14 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 8 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-043 |
+| Backlog | 9 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-043, MVP-047 |
 | Ready | 0 | — |
 | In Progress | 7 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps built) |
 | QA | 10 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **46** | |
+| **Total** | **47** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 

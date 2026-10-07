@@ -11,21 +11,26 @@
  * the same type, headings and contents list as a guide.
  */
 
-export const OPERATOR_NAME = "Uday Posia";
 export const CONTACT_EMAIL = "contact@lowcodestacks.com";
 
-/** The date the Terms took effect. Also the PolicyVersion `version` recorded
- * when someone accepts the Terms (migration
- * 20261002000000_add_policy_versions_2026_10_02). */
-export const POLICY_EFFECTIVE_DATE = "2026-10-02";
-export const POLICY_EFFECTIVE_LABEL = "October 2, 2026";
+/** The name guides are posted under (docs/final-decisions.md, 2026-10-07,
+ * "No personal details on the site"): the site names no person and no place
+ * where its owner lives. */
+export const BYLINE_NAME = "the Maker Desk";
 
-/** The date the current Privacy notice took effect: it last changed when
- * feedback on guides was added (MVP-039 votes, MVP-038 reports), after
- * email and password sign-in (MVP-036). Its PolicyVersion row is migration
- * 20261007000300_add_privacy_policy_version_2026_10_08. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-08";
-export const PRIVACY_EFFECTIVE_LABEL = "October 8, 2026";
+/** The date the current Terms took effect. Also the PolicyVersion `version`
+ * recorded when someone accepts the Terms: they last changed when the owner's
+ * name and location came off the site, and the sign-in sentence was brought
+ * up to date (migration 20261009000000_add_policy_versions_2026_10_09). */
+export const POLICY_EFFECTIVE_DATE = "2026-10-09";
+export const POLICY_EFFECTIVE_LABEL = "October 9, 2026";
+
+/** The date the current Privacy notice took effect: it last changed when the
+ * owner's name and location came off the site (before that: feedback on
+ * guides, MVP-039 and MVP-038). Its PolicyVersion row is migration
+ * 20261009000000_add_policy_versions_2026_10_09. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-09";
+export const PRIVACY_EFFECTIVE_LABEL = "October 9, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms" | "/how-we-write";
@@ -45,8 +50,8 @@ export const ABOUT_PAGE: InfoPage = {
   accent: "who's behind it",
   eyebrow: "About",
   description:
-    "LowCodeStacks is an independent site of free Power Platform guides, run by Uday Posia in Saskatchewan, Canada. Here's what it covers and how guides are written.",
-  markdown: `LowCodeStacks is an independent site of free, practical guides for Microsoft Power Platform: Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages. It is run by ${OPERATOR_NAME}, in Saskatchewan, Canada.
+    "LowCodeStacks is an independent site of free Power Platform guides. Here's what it covers and how guides are written.",
+  markdown: `LowCodeStacks is an independent site of free, practical guides for Microsoft Power Platform: Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages. Guides are posted by ${BYLINE_NAME}, the name LowCodeStacks publishes under.
 
 ## Why it exists
 
@@ -92,7 +97,7 @@ export const PRIVACY_PAGE: InfoPage = {
     "What LowCodeStacks collects, why, who processes it, and how to see, correct or delete your information. No ads, no analytics, no tracking cookies.",
   markdown: `This notice explains what personal information LowCodeStacks collects, why, and what you can do about it. It applies to lowcodestacks.com.
 
-LowCodeStacks is run by ${OPERATOR_NAME}, in Saskatchewan, Canada, who is responsible for the personal information described here. For anything about your privacy, email ${contact}.
+LowCodeStacks is run independently by its owner, who is responsible for the personal information described here. For anything about your privacy, email ${contact}.
 
 ## The short version
 
@@ -211,7 +216,7 @@ export const TERMS_PAGE: InfoPage = {
   eyebrow: `Terms · Effective ${POLICY_EFFECTIVE_LABEL}`,
   description:
     "The terms for using LowCodeStacks: how you may use the guides and code samples (code is MIT-licensed), accounts, disclaimers and governing law.",
-  markdown: `These terms apply when you use lowcodestacks.com. By using the site you agree to them. LowCodeStacks is run by ${OPERATOR_NAME} ("we", "us"), in Saskatchewan, Canada. Questions: ${contact}.
+  markdown: `These terms apply when you use lowcodestacks.com. By using the site you agree to them. LowCodeStacks ("we", "us") is an independent site run by its owner. Questions: ${contact}.
 
 ## Using the site
 
@@ -223,7 +228,7 @@ You're welcome to read, bookmark and share everything here. Please don't:
 
 ## Your account
 
-You don't need an account to read the guides. If you create one, it's tied to your email address, and you sign in with links sent there. Keep access to that email secure, because anyone who can read it can sign in as you. You can end your sessions or ask for your account to be deleted at any time.
+You don't need an account to read the guides. If you create one, it's tied to your email address. You sign in with a link sent there, with Google, or with a password if you set one. Keep your password and access to that email secure, because anyone who has them can sign in as you. You can end your sessions or ask for your account to be deleted at any time.
 
 We may suspend an account that's being used to harm the site or other people.
 
@@ -231,7 +236,7 @@ We may suspend an account that's being used to harm the site or other people.
 
 **Code samples are free to use.** You may copy, change and use the code in our guides in your own projects, including commercial ones, under the [MIT License](#mit-license) below. You don't need to ask.
 
-**Text and images are ours.** The writing, diagrams and images on LowCodeStacks are © ${OPERATOR_NAME} (LowCodeStacks). You may quote short excerpts with a link back to the page. Please don't republish whole guides or large parts of them.
+**Text and images are ours.** The writing, diagrams and images on LowCodeStacks are © LowCodeStacks. You may quote short excerpts with a link back to the page. Please don't republish whole guides or large parts of them.
 
 **Components and templates**, when available, each come with their own licence, shown on their page. That licence is what applies to them.
 
@@ -239,7 +244,7 @@ We may suspend an account that's being used to harm the site or other people.
 
 The code samples published on lowcodestacks.com are made available under the MIT License:
 
-> Copyright (c) ${POLICY_EFFECTIVE_DATE.slice(0, 4)} ${OPERATOR_NAME} (LowCodeStacks)
+> Copyright (c) ${POLICY_EFFECTIVE_DATE.slice(0, 4)} LowCodeStacks
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 >
@@ -279,7 +284,7 @@ We may update these terms. When we do, we'll change the effective date below. Co
 
 ## Governing law
 
-These terms are governed by the laws of the Province of Saskatchewan and the federal laws of Canada that apply there. Any dispute will be handled by the courts of Saskatchewan, unless the law where you live gives you the right to bring it elsewhere.
+These terms are governed by the laws of Canada that apply to them. Nothing here takes away a right the law where you live gives you, including to bring a dispute there.
 
 These terms took effect on ${POLICY_EFFECTIVE_LABEL}.
 `,
