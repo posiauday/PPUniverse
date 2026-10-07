@@ -187,7 +187,21 @@ jobs:
 
       - name: Read the pinned Playwright version
         id: playwright
-        run: echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+          echo "image=${ImageOS}-${ImageVersion}" >> "$GITHUB_OUTPUT"
+
+      # The browsers' Linux libraries (about 126 MB of .deb packages for Firefox and
+      # WebKit) are cached too (TD-030 follow-up, 2026-10-07): Ubuntu's mirror sometimes
+      # serves them at ~166 kB/s, which took 8 to 13 minutes and pushed shards past the
+      # 20-minute limit with no failing test. Keyed on the runner image and the Playwright
+      # version, so a new image or Playwright release downloads fresh packages; apt still
+      # installs them normally and fetches anything the cache doesn't hold.
+      - name: Cache the browsers' system packages
+        uses: actions/cache@v4
+        with:
+          path: ~/apt-archives
+          key: playwright-apt-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
 
       # The browsers are Playwright's bundled builds, fixed by the exact pinned version, so
       # keying the cache on that version cannot let a browser drift. Shared cache key across
@@ -202,7 +216,11 @@ jobs:
       - name: Install browsers and system dependencies
         run: |
           start=$(date +%s)
+          echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-keep-downloads > /dev/null
+          if compgen -G "$HOME/apt-archives/*.deb" > /dev/null; then sudo cp "$HOME"/apt-archives/*.deb /var/cache/apt/archives/; fi
           pnpm --filter @ppu/e2e exec playwright install --with-deps chromium firefox webkit
+          mkdir -p "$HOME/apt-archives"
+          if compgen -G "/var/cache/apt/archives/*.deb" > /dev/null; then cp /var/cache/apt/archives/*.deb "$HOME/apt-archives/"; fi
           echo "PPU_SECONDS_BROWSERS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
           echo "PPU_BROWSER_CACHE=${{ steps.browser-cache.outputs.cache-hit == 'true' && 'hit' || 'miss' }}" >> "$GITHUB_ENV"
 
