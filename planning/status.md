@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **MVP-042: the page-speed check is built (report only) and found real problems.**
+Last updated: 2026-10-07 (latest) — **MVP-047 (admin panel, concept A) is built and in review.**
+- **Slice 1:** a grouped sidebar with live counts on every admin page, and a new overview: what needs you (reported comments, guide reports, drafts), site health over 7 days, recent activity. Comments also get a "Keep it" action that clears reports.
+- **Slice 2:** `/admin/users`: everyone with an account, searchable, with their role. A new CONTRIBUTOR role (abilities still to be decided; for now a member's). Role changes are admin only, never your own or the last admin's, and go into the audit log.
+- **Slice 3:** `/admin/settings`: which switches are on, and the search and indexing links. Read only; no secret values shown.
+
+Last updated (previous): 2026-10-07 — **MVP-042: the page-speed check is built (report only) and found real problems.**
 - **Built:** a Playwright speed check on a throttled phone profile, as a report-only CI job "Page speed".
 - **Fixed on the way:** largest paint improved by up to 1.2 s (guide 3.8 s → 2.6 s) by not preloading the accent and code fonts, and by starting the rise animations at 25% opacity instead of invisible.
 - **Still over budget (TD-032):** blocking time 380 to 490 ms on every page (framework hydration); the home page shifts (CLS 0.13) when its display font loads, which needs a product-owner choice (`font-display: optional`).
@@ -213,10 +218,10 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 8 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-043, MVP-047 |
+| Backlog | 7 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-043 |
 | Ready | 0 | — |
 | In Progress | 8 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built) |
-| QA | 10 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044 |
+| QA | 11 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044, MVP-047 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |

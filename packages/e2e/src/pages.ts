@@ -669,6 +669,51 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByRole("button", { name: "Remove" }).first()).toBeVisible();
     },
   },
+  // MVP-047 slice 2: users and roles. Nothing is changed in the gate.
+  {
+    id: "admin-users",
+    route: "/admin/users",
+    description: "users and roles, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/users",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Users and roles");
+      await expect(page.getByRole("searchbox", { name: /Find someone/ })).toBeVisible();
+      await expect(page.getByText(seed.user.email)).toBeVisible();
+      await expect(page.getByRole("combobox", { name: /^Role for / }).first()).toBeVisible();
+    },
+  },
+  // MVP-047 slice 3: settings and indexing, read only.
+  {
+    id: "admin-settings",
+    route: "/admin/settings",
+    description: "settings and indexing, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/settings",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Settings");
+      await expect(page.getByRole("heading", { name: "Switches" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Bing Webmaster Tools" })).toBeVisible();
+    },
+  },
+  {
+    id: "admin-settings-denied",
+    route: null,
+    description: "settings, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/settings",
+  },
+  {
+    id: "admin-users-denied",
+    route: null,
+    description: "users and roles, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/users",
+  },
   {
     id: "admin-comments-denied",
     route: null,
@@ -770,10 +815,15 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/admin",
     prepare: async (page) => {
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin");
+      // MVP-047, concept A: the overview, beside the admin sidebar.
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin overview");
+      await expect(page.getByRole("link", { name: "Read reports" })).toBeVisible();
       await expect(
-        page.getByRole("main").getByRole("link", { name: "Guides", exact: true }),
+        page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: /^Guides/ }),
       ).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: "Overview" }),
+      ).toHaveAttribute("aria-current", "page");
     },
   },
   {

@@ -100,6 +100,14 @@ describe.skipIf(!hasDatabase)("PrismaCommentRepository (integration, MVP-040)", 
     const reported = await repo.listForAdmin("reported", 50);
     expect(reported.find((c) => c.id === mine.id)).toMatchObject({ reportCount: 2, removed: false });
 
+    // Keeping it clears the reports, so it leaves the reported list.
+    const kept = await repo.create(articleId, b, "Reported, then kept, from B.");
+    await repo.report(kept.id);
+    expect(await repo.clearReports(kept.id)).toBe(true);
+    const stillReported = await repo.listForAdmin("reported", 50);
+    expect(stillReported.map((c) => c.id)).not.toContain(kept.id);
+    expect(stillReported.map((c) => c.id)).toContain(mine.id);
+
     expect(await repo.deleteOwn(mine.id, b)).toBe(false);
     expect(await repo.deleteOwn(mine.id, a)).toBe(true);
     expect(await db.commentReport.count({ where: { commentId: mine.id } })).toBe(0);

@@ -5091,3 +5091,20 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Checks:** web tests 767; e2e typecheck clean; the speed spec runs locally and reports the numbers above.
 
 **Needs the product owner:** whether the display font may use `font-display: optional` (removes the home shift; first-time visitors on slow connections see the fallback font on their first page).
+
+## 2026-10-07 — Admin panel, concept A (MVP-047 to QA)
+
+**Story:** the product owner asked for a more powerful, admin-friendly panel and a Contributor role, and chose concept A, "Command centre" (`docs/final-decisions.md`, 2026-10-07).
+
+**Built:**
+- **Shell** (`app/admin/layout.tsx`, `AdminNav.tsx`): every admin page sits beside a grouped sidebar (Content, Community, People, Site) with live counts (`lib/admin-overview.ts`). The current page is marked with `aria-current`, and counts carry screen-reader labels. Only an admin sees it; anyone else still gets the plain 404.
+- **Overview** (`app/admin/page.tsx`): how many things need you; cards for reported comments, guide reports and drafts; site health over the last 7 days (guides, "Did this fix it?" yes share, comments, updates); recent activity from the audit log; New guide and New update.
+- **Comments:** a "Keep it" action clears a reported comment's reports. The reported list now shows only comments still up with reports waiting.
+- **Users and roles** (`/admin/users`, `POST /api/admin/users/{id}/role`, `lib/roles.ts`): search by email or display name; change roles. A CONTRIBUTOR role with no extra rights yet. Rules: not your own role, never the last admin, no no-ops. The change and its record run in one serializable transaction. Migration `20261012000000_add_contributor_role` (enum value and `role_change_events`; rollback in the file). Role changes appear in the audit log by display name, never email.
+- **Settings and indexing** (`/admin/settings`, `lib/site-status.ts`): switches on or off with the setting that controls each, and the sitemap, feeds, IndexNow key file and the three search consoles. Read only; secret values are never shown.
+- **Docs:** `docs/07-api-contracts.md` (the new routes), `docs/15-deployment.md` (the comments switch, the settings page).
+- **Gate:** the admin-home state checks the overview and the sidebar; new states for `/admin/users`, `/admin/settings` and their 404s.
+
+**Checks:** web tests 778 (new: overview counts, the sidebar, role rules, the role route in a faked transaction, the switches never showing secrets); lint, typecheck and format clean; no schema drift. Accessibility gate: see the PR.
+
+**Open:** what a Contributor may do (product owner).

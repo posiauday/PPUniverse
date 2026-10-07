@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type Action = "remove" | "restore" | "accept" | "unaccept";
+type Action = "remove" | "restore" | "keep" | "accept" | "unaccept";
 
 const LABEL: Record<Action, string> = {
   remove: "Remove",
   restore: "Restore",
+  keep: "Keep it (clear reports)",
   accept: "Mark as accepted fix",
   unaccept: "Unmark accepted fix",
 };
@@ -17,14 +18,22 @@ export function ModerateButtons({
   commentId,
   removed,
   accepted,
+  reported,
 }: {
   commentId: string;
   removed: boolean;
   accepted: boolean;
+  /** Has reports waiting: offers "Keep it" to clear them. */
+  reported: boolean;
 }) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
-  const actions: Action[] = removed ? ["restore"] : ["remove", accepted ? "unaccept" : "accept"];
+  const actions: Action[] = removed
+    ? ["restore"]
+    : [
+        ...(reported ? (["remove", "keep"] as const) : (["remove"] as const)),
+        accepted ? "unaccept" : "accept",
+      ];
 
   async function run(action: Action) {
     if (state === "busy") return;

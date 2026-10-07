@@ -8,13 +8,15 @@ import { notFoundForNonAdmin, requireAdmin } from "../../../../../../lib/require
 const ACTIONS = {
   remove: (id: string) => commentRepository.setRemoved(id, true),
   restore: (id: string) => commentRepository.setRemoved(id, false),
+  keep: (id: string) => commentRepository.clearReports(id),
   accept: (id: string) => commentRepository.setAccepted(id, true),
   unaccept: (id: string) => commentRepository.setAccepted(id, false),
 } as const;
 
 /**
  * Moderates a comment (MVP-040): remove (hidden from the guide, kept for the
- * record), restore, or mark as the guide's accepted fix. Admin only; anyone
+ * record), restore, keep (a reported comment stays up and its reports are
+ * cleared), or mark as the guide's accepted fix. Admin only; anyone
  * else gets the same 404 an unknown route gives.
  */
 export const POST = withObservability(

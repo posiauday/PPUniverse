@@ -224,8 +224,11 @@ export interface CommentRepository {
   deleteOwn(commentId: string, userId: string): Promise<boolean>;
   /** Records a report; false when the comment doesn't exist or is removed. */
   report(commentId: string): Promise<boolean>;
+  /** "reported": shown comments with reports waiting; "latest": every comment, newest first. */
   listForAdmin(filter: "reported" | "latest", limit: number): Promise<AdminComment[]>;
   setRemoved(commentId: string, removed: boolean): Promise<boolean>;
+  /** An admin kept a reported comment: its reports are cleared. */
+  clearReports(commentId: string): Promise<boolean>;
   /** Marks a comment as its guide's accepted fix (clearing any other), or unmarks it. */
   setAccepted(commentId: string, accepted: boolean): Promise<boolean>;
 }
