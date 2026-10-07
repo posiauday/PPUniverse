@@ -69,7 +69,14 @@ export default async function AdminUsersPage({
       {users.length === 0 ? (
         <p>{query ? `No one matches "${query}".` : "No one has an account yet."}</p>
       ) : (
-        <div role="region" aria-label="People, scrollable" tabIndex={0} className="overflow-x-auto">
+        // relative: the screen-reader-only labels in the table are absolutely
+        // positioned, and must be clipped by this region, not stretch the page.
+        <div
+          role="region"
+          aria-label="People, scrollable"
+          tabIndex={0}
+          className="relative overflow-x-auto"
+        >
           <table className="w-full min-w-[40rem] text-left">
             <caption className="sr-only">
               {users.length === LIMIT ? `The newest ${LIMIT} people` : "Everyone"}, newest first
