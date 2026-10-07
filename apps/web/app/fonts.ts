@@ -31,6 +31,9 @@ export const serifFont = localFont({
   weight: "400",
   style: "italic",
   display: "swap",
+  // MVP-042 speed budget: one accent word per heading, so not preloaded; it
+  // swaps in without shifting the layout (size-adjusted fallback).
+  preload: false,
   variable: "--font-instrument-serif",
 });
 
@@ -45,6 +48,8 @@ export const monoFont = localFont({
   src: "../assets/fonts/geist-mono-latin.woff2",
   weight: "400 500",
   display: "swap",
+  // MVP-042 speed budget: code and labels only, so not preloaded.
+  preload: false,
   variable: "--font-geist-mono",
 });
 

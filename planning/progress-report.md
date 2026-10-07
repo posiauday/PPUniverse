@@ -5071,3 +5071,23 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 - Open question 75 decided.
 
 **For the product owner:** after the release deploys, set `FEATURE_COMMENTS=on` in Netlify (Production).
+
+## 2026-10-07 — Page-speed check (MVP-042; report only, TD-032)
+
+**Story:** MVP-042's speed budget, measured with Playwright instead of Lighthouse CI (product owner, 2026-10-07: Lighthouse CI's dependencies carry 4 high-severity advisories).
+
+**Built:**
+- `packages/e2e/src/web-vitals.ts`: records FCP, LCP, layout shifts and long tasks in the page; Total Blocking Time; median of runs; the budget check. A phone profile (412 px, 4x CPU slowdown, 1.6 Mbps, 150 ms latency).
+- `packages/e2e/tests/perf/web-vitals.spec.ts`: the home page, the guides index, a guide and a hub, 3 cold loads each, Chromium only. Script `pnpm --filter @ppu/e2e test:speed`.
+- CI job "Page speed (report only)": builds, measures, and writes the numbers to the job summary. It can't fail the job yet (TD-032).
+- Unit tests for the maths (3).
+
+**Found and fixed:**
+- The four site fonts were all preloaded, competing with the first paint on a slow connection. The accent serif and the code font are no longer preloaded (they swap in with size-adjusted fallbacks).
+- The rise and word entrance animations started at opacity 0, which doesn't count as painted, delaying LCP. They now start at 25% opacity: guide LCP 3.8 s → 2.6 s, hub 3.0 s → 2.1 s.
+
+**Still over budget (TD-032):** TBT 377 to 492 ms on every page, from one hydration long task; home CLS 0.13, the headline re-wrapping when the display font arrives; guide LCP 2.6 s. Investigated, not guessed: the long task, the scripts loaded, and the shifting elements were each measured.
+
+**Checks:** web tests 767; e2e typecheck clean; the speed spec runs locally and reports the numbers above.
+
+**Needs the product owner:** whether the display font may use `font-display: optional` (removes the home shift; first-time visitors on slow connections see the fallback font on their first page).

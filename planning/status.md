@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **Comments wording approved and on the legal pages; four product-owner decisions recorded.**
+Last updated: 2026-10-07 (latest) — **MVP-042: the page-speed check is built (report only) and found real problems.**
+- **Built:** a Playwright speed check on a throttled phone profile, as a report-only CI job "Page speed".
+- **Fixed on the way:** largest paint improved by up to 1.2 s (guide 3.8 s → 2.6 s) by not preloading the accent and code fonts, and by starting the rise animations at 25% opacity instead of invisible.
+- **Still over budget (TD-032):** blocking time 380 to 490 ms on every page (framework hydration); the home page shifts (CLS 0.13) when its display font loads, which needs a product-owner choice (`font-display: optional`).
+
+Last updated (previous): 2026-10-07 — **Comments wording approved and on the legal pages; four product-owner decisions recorded.**
 - **Decisions** (`docs/final-decisions.md`, "Comments wording, admin panel, speed check and the Learn module"): the comments wording as written; admin panel concept A; the speed check with Playwright instead of Lighthouse CI; the Learn module as planned.
 - **Legal pages:** Terms "Comments" and Privacy "Comments and your profile", versions 2026-10-10 (migration `20261011000000`). After the release, the product owner sets `FEATURE_COMMENTS=on`.
 - **Next:** the Playwright speed check (MVP-042), then admin panel A (MVP-047), then 3 Learn module concepts.

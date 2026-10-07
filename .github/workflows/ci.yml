@@ -328,6 +328,86 @@ jobs:
           fi
           echo "All accessibility shards passed."
 
+  page-speed:
+    name: Page speed (report only)
+    # MVP-042 (docs/final-decisions.md, 2026-10-07, "Comments wording, admin panel,
+    # speed check and the Learn module", decision 3): Core Web Vitals on a throttled
+    # phone profile, measured with Playwright in Chromium (packages/e2e/tests/perf).
+    # Report only for now: today's pages are over the blocking-time budget, so the
+    # step can't fail the job until they're fixed (planning/tech-debt/TD-032.md).
+    # The numbers go into the job summary.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ppuniverse
+          POSTGRES_PASSWORD: ppuniverse
+          POSTGRES_DB: ppuniverse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ppuniverse"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schema=public
+      E2E_ALLOW_DATABASE_WRITES: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Read the pinned Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: pnpm --filter @ppu/e2e exec playwright install --with-deps chromium
+
+      - name: Apply migrations
+        run: pnpm --filter @ppu/db exec prisma migrate deploy
+
+      - name: Build the application
+        run: pnpm build
+
+      - name: Measure page speed
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm --filter @ppu/e2e test:speed 2>&1 | tee speed.log
+
+      - name: Report the numbers
+        if: always()
+        run: |
+          {
+            echo "## Page speed (phone profile, median of 3)"
+            echo
+            echo "Budget: LCP 2500 ms, CLS 0.1, TBT 200 ms. Report only (TD-032)."
+            echo
+            grep -a "\[speed\]" speed.log | sed 's/^/- /' || echo "- No measurements were recorded."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
