@@ -4959,3 +4959,34 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Not changed:** the footer's group labels and the hub breadcrumb still say "Technologies"; the decision covers the top bar only.
 
 **Remaining:** product owner review and merge.
+
+## 2026-10-07 — Fix and pattern blocks (MVP-041 In Progress; redesign slice 2)
+
+**Story:** slice 2 of `docs/plans/guide-and-hub-redesign.md`: Markdown conventions that the guide renderer turns into blocks.
+
+**Built:**
+- `apps/web/lib/article-outline.ts` (the remark plugin):
+  - `> [!SYMPTOMS] Question` then a list: symptom cards, each "`code` [title](#step): note". The ": " joining title and note is dropped, because the card puts the title on its own line.
+  - `> [!DIAGRAM] Caption` then `A -> B -> C`: 2 to 8 stops. With fewer than 2 it stays a quote.
+  - `> [!DO]` next to `> [!DONT]`: a pair, side by side from the `sm` width.
+  - `### ` steps under a "Work through it" heading: tick-off steps (2 or more), with a count after them.
+- `apps/web/app/learn/GuideBlocks.tsx`: the components. Each step's box is named "Done: step title". The count ("1 of 4 ticked") is a CSS counter: no script, nothing stored. The diagram's stops light up in turn; a real "Pause animation" checkbox stops them (WCAG 2.2.2), and they don't move under reduced motion.
+- `apps/web/app/globals.css`: the block styles, with dark-theme colours for the Do / Don't cards (contrast 12.7:1 and 13.7:1). From the `lg` width, a diagram's stops put the number above the text; more than 5 stops go in rows of 4.
+- Content: the 502 guide gets symptom cards and its steps under "Work through it"; the child flows guide gets a diagram and two Do / Don't pairs. Every block repeats only what the guide already says.
+- Gate: the fixture guide has one of each block; a new state `learn-step-ticked` ticks a step and pauses the diagram from the keyboard, and checks the motion is paused.
+
+**Found and fixed during the slice** (not bugs: not yet delivered):
+- Pairing a Do with a Don't recursed into its own pair forever.
+- A step box's name read "Done : title", with a stray space, from the hidden text; it is now an `aria-label`.
+- The diagram's stops were too narrow at 1280 px with 5 stops.
+
+**Found in delivered work:** BUG-028 (focus after a vote), fixed in PR #91; the same change is in this branch.
+
+**Checks:**
+- Web tests: 448 in the guide and outline suites, all passing; typecheck, lint and format clean.
+- Local render (1280 px light, 375 px dark) of both guides: no sideways scroll. Ticking two of the 502 guide's four steps shows "2 of 4 ticked".
+- Accessibility gate, local, every guide state in Chromium, Firefox and WebKit: 146 of 147 passed. The one failure was the new pause check under reduced motion (the gate's default), which removes the animation instead of pausing it; the check now accepts either. `learn-step-ticked` then passed 42 of 42 over two runs.
+
+**Open:** guides already published don't change when their files change (the importer never overwrites). Asked of the product owner.
+
+**Remaining in MVP-041:** our own dated screenshots and safe image support.

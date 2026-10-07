@@ -1110,6 +1110,16 @@ export const GATED_PAGES: readonly GatedPage[] = [
         await page.keyboard.press("Space");
         await expect(box).toBeChecked();
       }
+      // The motion has stopped (WCAG 2.2.2): paused by the box, or no
+      // animation at all under reduced motion (the gate's default).
+      const stopped = await page
+        .locator(".guide-stop")
+        .first()
+        .evaluate((stop) => {
+          const style = getComputedStyle(stop);
+          return style.animationName === "none" || style.animationPlayState === "paused";
+        });
+      expect(stopped).toBe(true);
     },
   },
   {

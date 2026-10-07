@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **MVP-045 (top bar names) is built and in review; two new stories.**
+Last updated: 2026-10-07 (latest) — **MVP-041 In Progress: redesign slice 2 (fix and pattern blocks) is built and in review.**
+- **Blocks:** symptom cards, tick-off steps with a count, an animated diagram with a pause box, and Do / Don't cards, from Markdown conventions. Plain Markdown still reads correctly.
+- **In the guides:** the 502 guide has symptom cards and four tick-off steps; the child flows guide has a diagram and two Do / Don't pairs. Live guides only change when their text is updated in production (the importer never overwrites a guide): see the open question below.
+- **Still to build in MVP-041:** our own dated screenshots and safe image support.
+- **Open question for the product owner:** how improved guide text (these blocks, and MVP-046's quick answers) reaches guides already published.
+
+Last updated (previous): 2026-10-07 — **MVP-045 (top bar names) is built and in review; two new stories.**
 - **Top bar:** Power Platform ▾ · Fixes · Patterns · Updates, a Learn button, and "Search an error or topic". The product owner chose concept A with two changes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments").
 - **New in the backlog:** MVP-045 (top bar names) and MVP-046 (AI search readiness: articles marked as such, organisation data, RSS, quick answers on every guide, a named author once the name is confirmed).
 - **Comments (MVP-040):** the product owner's choices are recorded: show at once and remove if reported; a random Power Platform-flavoured display name and avatar for every signed-in reader, which they can change.
@@ -176,9 +182,9 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 11 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-041, MVP-042, MVP-043, MVP-046 |
+| Backlog | 10 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-042, MVP-043, MVP-046 |
 | Ready | 0 | — |
-| In Progress | 4 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-045 |
+| In Progress | 5 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-041 (redesign slice 2 built), MVP-045 |
 | QA | 10 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
