@@ -2153,3 +2153,11 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 
 1. **The display font (Bricolage Grotesque) uses `font-display: optional`** to remove the home page's layout shift (CLS 0.13; TD-032). On a slow first visit the headline keeps the fallback font for that page; the font is cached and used from the next page on.
 2. **The Learn module follows concept L3, "Story scroll"**: lessons drawn as a path, and each lesson a guided scroll through the fixed shape with a stepper. The product owner asked the agent to *"research more to take [the] L3 approach to peak and top class, add animation or what not; research what top learn modules use"*, and to show **variations of L3** for a final choice before building.
+
+## 2026-10-07 — Learn module design: "Workspace"
+
+**Source:** direct product-owner instruction in this session (*"I will go with workspace"*), after five redesign directions were shown live and as recorded demos (`.nav-mock/learn-redesign.html`, not committed).
+
+1. **The Learn module uses direction 1, "Workspace".** This supersedes concept L3 "Story scroll" (entry above). A lesson page has three columns: on the left, the topic's lessons, each with a ring that fills as it is read; in the middle, the lesson; on the right, an "On this page" tracker and a reading-progress bar. A knowledge check closes each lesson, with an explanation for every answer and no penalty, and the next lesson slides in. On a phone the side columns collapse.
+2. **The fixed lesson shape stays** (`docs/plans/learn-module.md`): what you'll understand, the idea, how it works, the important things, try it, check yourself (the knowledge check), and sources. Progress for signed-in readers and the addresses at `/topics` stay as approved on 2026-10-07.
+3. **Not chosen:** Explorable, Cards, Map and Simulator. The agent's recommendation (Map as the Learn home, plus a formula playground in key lessons) was not taken; the `/topics` home and topic pages follow the Workspace style.

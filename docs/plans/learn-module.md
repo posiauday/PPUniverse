@@ -1,6 +1,6 @@
 # Plan: the Learn module (in-depth topics)
 
-**Status:** proposal, for the product owner's decisions (below). Nothing here is approved yet.
+**Status:** approved (`docs/final-decisions.md`, 2026-10-07: "the Learn module: go ahead as planned", and "Learn module design: Workspace"). Story: MVP-048.
 
 **Asked for (product owner, 2026-10-07):** *"plan learn module where I want to explain topics in a detailed manner and important things"*, after the pending work is finished.
 
@@ -72,3 +72,12 @@ Each slice has tests, the accessibility gate and docs, and is designed on the ca
 3. **Progress tracking for signed-in readers:** yes or not for now?
 4. **"Check yourself" questions:** yes or no?
 5. **First topics:** the six above, or a different list?
+
+## Design: Workspace (chosen 2026-10-07)
+
+- **Lesson page:** three columns. Left: the topic's lessons, each with a ring that fills as it's read, the current one highlighted. Middle: the lesson in the fixed shape. Right: "On this page", with a marker that follows the reader, and a reading-progress bar. On a phone the side columns collapse into a lesson menu at the top.
+- **Knowledge check:** 2 or 3 multiple-choice questions at the end, with an explanation for every answer and no penalty. Nothing is stored for guests. Multiple choice only, never "all of the above".
+- **Moving on:** a "Next lesson" card; the next lesson slides in (View Transitions where supported, otherwise a plain page load).
+- **`/topics` and topic pages:** same style: a calm list of topics per technology, and a topic page with its lessons, rings and a "Start" or "Continue" button.
+- **Motion:** rings filling, the page marker sliding, the lesson slide; all of it off with reduced motion.
+- Reference mock (not committed): `.nav-mock/learn-redesign.html`, direction 1.
