@@ -65,3 +65,16 @@ export {
   type UpdateStatus,
 } from "./updates.js";
 export { parseIsoDate, parseUpdateSource, type UpdateSourceResult } from "./update-source.js";
+export {
+  ACCEPTED_MIN_VOTES,
+  ACCEPTED_SHARE,
+  REPORT_MAX_LENGTH,
+  REPORT_MIN_LENGTH,
+  cleanReportMessage,
+  isAcceptedFix,
+  type FeedbackRepository,
+  type GuideFeedbackRow,
+  type OpenReport,
+  type ReportProblem,
+  type VoteSummary,
+} from "./feedback.js";

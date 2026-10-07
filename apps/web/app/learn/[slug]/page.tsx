@@ -4,12 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { contentRepository } from "../../../lib/content";
+import { feedbackRepository } from "../../../lib/feedback";
 import { outlineOf, readingMinutes } from "../../../lib/article-outline";
 import { ARTICLE_KIND, ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
 import { readGuideTrust } from "../../../lib/article-trust";
 import { HUB_TOPICS } from "../../../lib/technology-hubs";
 import { findRelatedArticles } from "../../../lib/related-articles";
-import { technologyInfo } from "@ppu/domain-content";
+import { isAcceptedFix, technologyInfo } from "@ppu/domain-content";
 import {
   homeUrl,
   learnIndexUrl,
@@ -24,6 +25,7 @@ import { getSiteUrl } from "../../../lib/site-url";
 import { paletteFor } from "../../../lib/technology-palette";
 import { ARTICLE_COVERS } from "../../home/HomeSections";
 import { ArticleBody } from "../ArticleBody";
+import { GuideFeedback } from "../GuideFeedback";
 import { ArticleToc, StickyColumn } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { CopyLink } from "../CopyLink";
@@ -82,7 +84,13 @@ export default async function LearnPage({ params }: LearnPageProps) {
     notFound();
   }
 
-  const related = await findRelatedArticles(contentRepository, article);
+  const [related, votes] = await Promise.all([
+    findRelatedArticles(contentRepository, article),
+    // MVP-039: the counts behind the "Accepted fix" chip. If they can't be
+    // read, the page simply shows no chip.
+    feedbackRepository.voteSummary(article.id).catch(() => ({ yes: 0, no: 0 })),
+  ]);
+  const acceptedFix = article.type === "TUTORIAL" && isAcceptedFix(votes);
   const site = getSiteUrl();
   const jsonLd = site.ok
     ? buildArticleJsonLd({
@@ -178,6 +186,11 @@ export default async function LearnPage({ params }: LearnPageProps) {
               {kind.label} · {ARTICLE_TYPE_LABEL[article.type]}
             </span>
             <span className="rounded-full bg-card/80 px-3.5 py-1.5">{minutes} min read</span>
+            {acceptedFix ? (
+              <span className="rounded-full bg-highlight px-3.5 py-1.5 text-highlight-foreground">
+                <span aria-hidden="true">✓ </span>Accepted fix
+              </span>
+            ) : null}
           </p>
           <TrustStrip trust={trust} updatedAt={article.updatedAt} />
         </div>
@@ -201,6 +214,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
         </StickyColumn>
         <div className="min-w-0">
           <ArticleBody markdown={trust.body} />
+          <GuideFeedback slug={article.slug} isFix={article.type === "TUTORIAL"} />
         </div>
         {related.length > 0 ? (
           <aside

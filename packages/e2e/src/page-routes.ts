@@ -33,6 +33,7 @@ export const GATED_ROUTES = [
   "/admin/products/new",
   "/admin/products/[id]/edit",
   "/admin/audit",
+  "/admin/feedback",
   "/admin",
   "/[technology]",
   "/[technology]/[tab]",
