@@ -22,7 +22,11 @@ import localFont from "next/font/local";
 export const displayFont = localFont({
   src: "../assets/fonts/bricolage-grotesque-latin.woff2",
   weight: "200 800",
-  display: "swap",
+  // MVP-042, TD-032 (product owner, 2026-10-07): "optional", not "swap". On a
+  // slow first visit the headline keeps the fallback font for that page
+  // instead of re-wrapping when Bricolage arrives (CLS 0.13 on the home
+  // page); the font is cached and used from the next page on.
+  display: "optional",
   variable: "--font-bricolage",
 });
 
@@ -31,6 +35,9 @@ export const serifFont = localFont({
   weight: "400",
   style: "italic",
   display: "swap",
+  // MVP-042 speed budget: one accent word per heading, so not preloaded; it
+  // swaps in without shifting the layout (size-adjusted fallback).
+  preload: false,
   variable: "--font-instrument-serif",
 });
 
@@ -45,6 +52,8 @@ export const monoFont = localFont({
   src: "../assets/fonts/geist-mono-latin.woff2",
   weight: "400 500",
   display: "swap",
+  // MVP-042 speed budget: code and labels only, so not preloaded.
+  preload: false,
   variable: "--font-geist-mono",
 });
 

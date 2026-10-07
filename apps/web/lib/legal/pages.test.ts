@@ -43,6 +43,13 @@ describe("About, Privacy and Terms", () => {
     expect(HOW_WE_WRITE_PAGE.markdown).toMatch(/never copy anyone's text/);
   });
 
+  it("carry the comments wording the product owner approved (MVP-040)", () => {
+    expect(TERMS_PAGE.markdown).toContain("## Comments");
+    expect(TERMS_PAGE.markdown).toContain("**What you post stays yours.**");
+    expect(PRIVACY_PAGE.markdown).toContain("## Comments and your profile");
+    expect(PRIVACY_PAGE.markdown).toContain("**never your email address**");
+  });
+
   it("make no compliance claim", () => {
     for (const page of INFO_PAGES) {
       expect(page.markdown).not.toMatch(

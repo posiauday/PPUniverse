@@ -1,6 +1,6 @@
 # MVP-040: comments on guides
 
-**Status:** built behind `FEATURE_COMMENTS` (off). **Waiting on the product owner:** approval of the Terms and Privacy wording below, then switch the flag on in Netlify.
+**Status:** built behind `FEATURE_COMMENTS` (off). The Terms and Privacy wording below was **approved as written** on 2026-10-07 and is on the legal pages (versions 2026-10-10). **Product owner:** after the release deploys, set `FEATURE_COMMENTS=on` in Netlify.
 
 **Decisions it implements** (`docs/final-decisions.md`): "Hub framing, reference pages, trust signals and community solutions" (2026-10-06) and "Top bar names, AI search readiness, and comments" (2026-10-07):
 - signed-in readers only;
@@ -24,7 +24,7 @@ Defaults applied where nothing was decided: open questions 70 to 75.
 
 **Privacy by design:** a comment is shown only with the display name and avatar. The email address and the name a sign-in provider (Google) gives are never selected for it. Reports keep nothing about the reporter; limits use the existing hashed counters, deleted after a day. The comment text is never logged.
 
-## Proposed Terms wording (for approval)
+## Terms wording (approved 2026-10-07)
 
 A new section, "Comments", after "Your account":
 
@@ -34,7 +34,7 @@ A new section, "Comments", after "Your account":
 > - **What you post stays yours.** You give us a non-exclusive, worldwide, royalty-free licence to show, store and format it on lowcodestacks.com, for as long as it's there. Code you share in a comment may be reused by others under the [MIT License](#mit-license), like ours.
 > - **We may remove comments** that break these rules, or that readers report and we agree with, and suspend accounts used to break them. You can delete your own comments at any time.
 
-## Proposed Privacy wording (for approval)
+## Privacy wording (approved 2026-10-07)
 
 A new section, "Comments and your profile", after "Feedback on guides":
 

@@ -371,9 +371,12 @@ samp {
    animation's resting state is the finished, fully visible element, so with
    animation switched off nothing is missing. Anyone whose system asks for
    reduced motion gets none of it (the block at the end of this file). */
+/* Rises from 25% opacity, not 0: an element at opacity 0 isn't counted as
+   painted, so a fully hidden start would delay the page's Largest Contentful
+   Paint (MVP-042 speed budget). */
 @keyframes lcs-rise {
   from {
-    opacity: 0;
+    opacity: 0.25;
     transform: translateY(16px);
   }
   to {
@@ -384,7 +387,7 @@ samp {
 
 @keyframes lcs-word {
   from {
-    opacity: 0;
+    opacity: 0.25;
     transform: translateY(0.45em) rotate(3deg);
   }
   to {
