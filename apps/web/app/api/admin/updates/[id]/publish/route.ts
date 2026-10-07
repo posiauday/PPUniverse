@@ -2,7 +2,9 @@ import { isValidArticleStatusTransition } from "@ppu/domain-content";
 import { createErrorEnvelope } from "@ppu/shared";
 import { getCorrelationId, logger } from "@ppu/telemetry";
 import { NextResponse } from "next/server";
+import { notifyIndexNow } from "../../../../../../lib/indexnow";
 import { withObservability } from "../../../../../../lib/observability";
+import { getSiteUrl } from "../../../../../../lib/site-url";
 import { notFoundForNonAdmin, requireAdmin } from "../../../../../../lib/require-admin";
 import { updateRepository } from "../../../../../../lib/updates";
 
@@ -40,6 +42,9 @@ export const POST = withObservability(
 
     const published = await updateRepository.publishUpdate(id, admin.userId);
     logger.info("content.update_published", { updateId: id, actorUserId: admin.userId });
+    // MVP-046: tell IndexNow search engines /updates changed (never fails the publish).
+    const site = getSiteUrl();
+    if (site.ok) await notifyIndexNow([`${site.origin}/updates`], { site });
     return NextResponse.json({ update: published }, { status: 200 });
   },
 );

@@ -1,7 +1,7 @@
 import { normalizeDisplayText } from "@ppu/domain-catalog";
 import type { JsonLdObject, JsonLdValue } from "@ppu/ui";
 import { homeUrl } from "./canonical";
-import { SITE_NAME } from "./site";
+import { SITE_DESCRIPTION, SITE_NAME } from "./site";
 
 /**
  * schema.org structured-data builders (MVP-021, FR-017). Each returns a typed
@@ -32,6 +32,24 @@ export function buildWebSiteJsonLd(origin: string): JsonLdObject {
     "@type": "WebSite",
     name: SITE_NAME,
     url: homeUrl(origin),
+  };
+}
+
+/**
+ * Home page (MVP-046): LowCodeStacks as an organisation, so search engines and
+ * AI tools can tell the brand from the generic phrase "low code stack". Google
+ * reads Organization markup on the home page; its logo must be at least
+ * 112 x 112 px (public/brand/logo-512.png, the header's mark). No `sameAs`
+ * until the product owner names official profiles.
+ */
+export function buildOrganizationJsonLd(origin: string): JsonLdObject {
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: homeUrl(origin),
+    logo: `${origin}/brand/logo-512.png`,
+    description: SITE_DESCRIPTION,
   };
 }
 

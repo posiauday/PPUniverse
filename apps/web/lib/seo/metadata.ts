@@ -79,6 +79,8 @@ interface PageSeo {
   robots: RobotsDirective;
   /** Absolute share-image URL; only ever set when the origin is valid. */
   image: string | undefined;
+  /** A published guide (MVP-046): shared as an article, with its dates. */
+  article?: { publishedTime: string; modifiedTime: string };
 }
 
 function composeMetadata(seo: PageSeo): Metadata {
@@ -88,7 +90,13 @@ function composeMetadata(seo: PageSeo): Metadata {
     robots: seo.robots,
     ...(seo.url ? { alternates: { canonical: seo.url } } : {}),
     openGraph: {
-      type: "website",
+      ...(seo.article
+        ? {
+            type: "article",
+            publishedTime: seo.article.publishedTime,
+            modifiedTime: seo.article.modifiedTime,
+          }
+        : { type: "website" }),
       siteName: SITE_NAME,
       locale: OPEN_GRAPH_LOCALE,
       title: seo.socialTitle,
@@ -158,7 +166,14 @@ export function buildProductMetadata(input: {
  * description source; falls back the same way buildProductMetadata does. */
 export function buildLearnMetadata(input: {
   site: SiteUrlResult;
-  article: { slug: string; title: string; excerpt: string | null };
+  article: {
+    slug: string;
+    title: string;
+    excerpt: string | null;
+    /** With both dates, the guide is shared as an article (MVP-046). */
+    publishedAt?: Date | null;
+    updatedAt?: Date;
+  };
 }): Metadata {
   const { site, article } = input;
   const title = normalizeDisplayText(article.title) ?? SITE_NAME;
@@ -169,6 +184,14 @@ export function buildLearnMetadata(input: {
     url: site.ok ? learnUrl(site.origin, article.slug) : undefined,
     robots: INDEXABLE_ROBOTS,
     image: site.ok ? learnShareImageUrl(site.origin, article.slug) : undefined,
+    ...(article.publishedAt && article.updatedAt
+      ? {
+          article: {
+            publishedTime: article.publishedAt.toISOString(),
+            modifiedTime: article.updatedAt.toISOString(),
+          },
+        }
+      : {}),
   });
 }
 

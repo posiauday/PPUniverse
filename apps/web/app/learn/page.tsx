@@ -5,6 +5,7 @@ import Link from "next/link";
 import { cache } from "react";
 import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../../lib/article-types";
 import { contentRepository } from "../../lib/content";
+import { withGuidesFeed } from "../../lib/guides-feed";
 import { homeUrl, learnIndexUrl } from "../../lib/seo/canonical";
 import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../lib/seo/json-ld";
 import { buildLearnIndexMetadata } from "../../lib/seo/metadata";
@@ -57,7 +58,8 @@ const getArticles = cache(() =>
 
 export async function generateMetadata(): Promise<Metadata> {
   const articles = await getArticles();
-  return buildLearnIndexMetadata({ site: getSiteUrl(), hasArticles: articles.length > 0 });
+  const site = getSiteUrl();
+  return withGuidesFeed(buildLearnIndexMetadata({ site, hasArticles: articles.length > 0 }), site);
 }
 
 /**

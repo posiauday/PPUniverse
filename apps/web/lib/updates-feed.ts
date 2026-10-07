@@ -1,5 +1,6 @@
 import { technologyInfo, type PublishedUpdate } from "@ppu/domain-content";
 import { SITE_NAME } from "./seo/site";
+import { escapeXml } from "./xml";
 
 /** The feed's path, linked from /updates and its <head>. */
 export const UPDATES_FEED_PATH = "/updates/feed.xml";
@@ -8,15 +9,6 @@ export const UPDATES_FEED_PATH = "/updates/feed.xml";
 export const FEED_ITEM_LIMIT = 30;
 
 export const UPDATES_FEED_TITLE = `${SITE_NAME}: Power Platform updates`;
-
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 /**
  * The RSS 2.0 feed of published platform updates (MVP-033; open question 66:

@@ -195,6 +195,25 @@ describe("social preview (SEO story: generated share images)", () => {
 });
 
 describe("buildLearnMetadata", () => {
+  it("shares a published guide as an article, with its dates (MVP-046)", () => {
+    const metadata = buildLearnMetadata({
+      site: SITE,
+      article: {
+        slug: "intro",
+        title: "Intro",
+        excerpt: null,
+        publishedAt: new Date("2026-10-06T10:00:00Z"),
+        updatedAt: new Date("2026-10-07T09:30:00Z"),
+      },
+    });
+    expect(metadata.openGraph).toMatchObject({
+      type: "article",
+      publishedTime: "2026-10-06T10:00:00.000Z",
+      modifiedTime: "2026-10-07T09:30:00.000Z",
+    });
+    expect(buildHomeMetadata(SITE).openGraph).toMatchObject({ type: "website" });
+  });
+
   it("is indexable with a self-canonical and the excerpt as description", () => {
     const metadata = buildLearnMetadata({
       site: SITE,

@@ -6,6 +6,9 @@ import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../../../../lib/auth";
 import { contentRepository } from "../../../../../../lib/content";
+import { notifyIndexNow } from "../../../../../../lib/indexnow";
+import { learnIndexUrl, learnUrl } from "../../../../../../lib/seo/canonical";
+import { getSiteUrl } from "../../../../../../lib/site-url";
 import { withObservability } from "../../../../../../lib/observability";
 
 /** Same deny-by-default pattern as api/admin/content/route.ts — see that
@@ -68,6 +71,15 @@ export const POST = withObservability(
       articleId: published.id,
       actorUserId: admin.userId,
     });
+
+    // MVP-046: tell IndexNow search engines about the new guide and the hub
+    // listing it. Never fails the publish, and waits at most 3 seconds.
+    const site = getSiteUrl();
+    if (site.ok) {
+      await notifyIndexNow([learnUrl(site.origin, published.slug), learnIndexUrl(site.origin)], {
+        site,
+      });
+    }
 
     return NextResponse.json({ article: published }, { status: 200 });
   },

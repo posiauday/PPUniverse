@@ -188,6 +188,10 @@ The import creates **drafts only**. It skips any slug that already exists and im
 
 ## 8. After launch
 
-- **Google Search Console:** verify `lowcodestacks.com` with a DNS TXT record, then submit `https://lowcodestacks.com/sitemap.xml`.
+- **Google Search Console:** verify `lowcodestacks.com` with a DNS TXT record, then submit `https://lowcodestacks.com/sitemap.xml`. Use "Request indexing" on the home page and the most important guides.
+- **Bing Webmaster Tools** (Microsoft Copilot answers from Bing's index): add the site by importing it from Search Console, and submit the same sitemap. Its "AI Performance" report shows when Copilot cites a page.
+- **Brave Search** (reported to power Claude's web search) has no webmaster console: submit the home page at `https://search.brave.com/submit-url`.
+- **IndexNow (MVP-046):** in Netlify, add `INDEXNOW_KEY` for **Production** only: 8 to 128 letters, digits or dashes, for example a random UUID. It is public by design (served at `/indexnow-key.txt`), so it doesn't need to be marked secret. After the next deploy, `https://lowcodestacks.com/indexnow-key.txt` shows the key, and publishing a guide or an update tells Bing and the other IndexNow search engines at once (logged as `seo.indexnow`).
+- **Feeds:** `/learn/feed.xml` (guides) and `/updates/feed.xml` (updates) are RSS feeds; feed readers find them from the home page, `/learn` and `/updates`.
 - **Watch Netlify usage.** The free plan pauses all sites at 300 credits a month (ADR-005). Recalculate the page-view estimate from real usage after the first month.
 - **Releases:** production deploys only when `main` changes (on a release), because each production deploy uses 15 credits.

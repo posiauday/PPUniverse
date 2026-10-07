@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **MVP-041 In Progress: redesign slice 2 (fix and pattern blocks) is built and in review.**
+Last updated: 2026-10-07 (latest) — **MVP-046 and MVP-042 In Progress: AI search code gaps and IndexNow are built and in review.**
+- **Built:** guides shared as articles with their dates; LowCodeStacks described as an organisation with a 512 px logo; an RSS feed of guides at `/learn/feed.xml`; IndexNow: the key at `/indexnow-key.txt` and a notice to search engines on every publish.
+- **Product owner, Netlify:** add `INDEXNOW_KEY` for Production (`docs/15-deployment.md`, "After launch", which now also lists Bing Webmaster Tools and Brave's submit page).
+- **Waiting on the product owner:** how improved guide text reaches published guides (blocks MVP-046's quick answers going live), and the named author (conflicts with an earlier decision that no person is named in structured data).
+- **Still in MVP-042:** the Lighthouse speed budget.
+
+Last updated (previous): 2026-10-07 — **MVP-041 In Progress: redesign slice 2 (fix and pattern blocks) is built and in review.**
 - **Blocks:** symptom cards, tick-off steps with a count, an animated diagram with a pause box, and Do / Don't cards, from Markdown conventions. Plain Markdown still reads correctly.
 - **In the guides:** the 502 guide has symptom cards and four tick-off steps; the child flows guide has a diagram and two Do / Don't pairs. Live guides only change when their text is updated in production (the importer never overwrites a guide): see the open question below.
 - **Still to build in MVP-041:** our own dated screenshots and safe image support.
@@ -182,9 +188,9 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 10 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-042, MVP-043, MVP-046 |
+| Backlog | 8 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-043 |
 | Ready | 0 | — |
-| In Progress | 5 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-041 (redesign slice 2 built), MVP-045 |
+| In Progress | 7 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps built) |
 | QA | 10 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |

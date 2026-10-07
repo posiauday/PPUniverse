@@ -27,11 +27,16 @@ export const IMAGE_ROUTE_FILES: readonly string[] = [
 ];
 
 /**
- * Route handlers outside /api that return feeds, never HTML: the Updates RSS
- * feed (MVP-033, open question 66). It lives at /updates/feed.xml so feed
- * readers find it beside the page it mirrors.
+ * Route handlers outside /api that return feeds or plain text, never HTML: the
+ * Updates and guides RSS feeds (MVP-033, open question 66; MVP-046), each
+ * beside the page it mirrors so feed readers find it, and the IndexNow key
+ * file (MVP-046), which must sit at the site root to cover every URL.
  */
-export const FEED_ROUTE_FILES: readonly string[] = ["updates/feed.xml/route.ts"];
+export const FEED_ROUTE_FILES: readonly string[] = [
+  "updates/feed.xml/route.ts",
+  "learn/feed.xml/route.ts",
+  "indexnow-key.txt/route.ts",
+];
 
 /** "categories/[slug]/page.tsx" -> "/categories/[slug]"; route groups "(x)" do not appear in URLs. */
 export function routeOf(file: string): string {
