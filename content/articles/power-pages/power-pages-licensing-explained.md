@@ -9,6 +9,11 @@ searchPhrase: "power pages licensing authenticated users"
 ---
 Power Pages isn't licensed per page view or per login any more. It's licensed per **unique user, per website, per calendar month**, in two kinds: **authenticated** (signed in) and **anonymous** (just browsing). Knowing exactly who counts saves real money, and avoids surprises at go-live.
 
+> [!ANSWER] Quick answer
+> 1. [Signed-in users count once per website per calendar month](#authenticated-users), by their Dataverse contact.
+> 2. [Anonymous visitors are counted by a browser cookie](#anonymous-users); one who signs in the same day (UTC) counts only as signed in.
+> 3. [Sites in trial or private mode aren't counted](#never-counted), and [staff may be covered by licences they already have](#internal-staff).
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Prices change; see Microsoft's licensing FAQ for current figures.
 

@@ -11,6 +11,11 @@ Most Power BI reports start the same way: someone exports a spreadsheet from a s
 
 The fix is a **star schema**: a model with one table of events (the **fact** table) and separate tables that describe them (the **dimension** tables). Microsoft's modelling guidance recommends it for Power BI, and this tutorial shows how to build one from a flat export using only Power Query.
 
+> [!ANSWER] Quick answer
+> 1. [Clean everything once, in a staging query](#step-1-clean-once-in-a-staging-query) that isn't loaded.
+> 2. [Build each dimension unique on its key](#step-2-build-each-dimension), and [a fact table of keys and numbers](#step-3-build-the-fact-table).
+> 3. [Add a date table](#step-4-add-a-date-table), and [relate the tables one-to-many, single direction](#step-5-relate-the-tables), from dimension to fact.
+
 ## What you're building
 
 The example is a sales export with one row per order line:

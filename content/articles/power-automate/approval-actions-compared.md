@@ -9,6 +9,11 @@ searchPhrase: "start and wait for an approval"
 ---
 Power Automate gives you three approval actions, including the familiar **Start and wait for an approval**, and five approval types. Picking the right pair decides when your flow continues, what data you get back, and whether you can add reminders or Teams cards. Use this page to look it up; for deadlines and escalation, see [Approvals that don't stall](/learn/approvals-that-dont-stall).
 
+> [!ANSWER] Quick answer
+> 1. [A simple, single-step approval](#the-three-actions): use **Start and wait for an approval**.
+> 2. [Reminders, Teams cards or logging in between](#the-three-actions): use **Create an approval**, then **Wait for an approval**, close together.
+> 3. [Approvers one after another](#sequential-or-parallel): use the **Sequential Approval** type; for independent decisions, parallel branches.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

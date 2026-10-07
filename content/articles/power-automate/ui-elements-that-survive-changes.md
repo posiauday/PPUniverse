@@ -9,6 +9,11 @@ searchPhrase: "power automate desktop ui element not found"
 ---
 A desktop flow finds buttons, fields and windows through **selectors**: a path of attributes such as name, class and automation ID, from the window down to the element. When any part of that path changes, the action fails with **"Failed to get UI element"** or **"Failed to get window"**. Usually the cause is a window title with a number in it, an app update, or a different screen size. This pattern makes selectors that bend instead of break.
 
+> [!ANSWER] Quick answer
+> 1. [Keep only the stable parts of the selector](#step-2-keep-only-the-stable-parts): **Ends with** instead of an exact title, and changing attributes turned off.
+> 2. [Add fallback selectors](#step-3-add-fallback-selectors), which are tried in order when the first fails.
+> 3. [Wait for the element before using it](#step-4-wait-for-the-screen-dont-race-it), and [run attended and unattended the same way](#step-5-make-attended-and-unattended-alike).
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

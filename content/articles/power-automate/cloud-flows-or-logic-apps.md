@@ -11,6 +11,11 @@ Power Automate cloud flows and Azure Logic Apps look almost the same. Both have 
 
 This guide compares them and gives you a quick way to decide.
 
+> [!ANSWER] Quick answer
+> 1. [Approvals, notifications and team processes, or a maker must change it](#quick-decision-rules): **Power Automate**.
+> 2. [System-to-system integration owned by IT, B2B messaging or custom code](#quick-decision-rules): **Logic Apps**.
+> 3. [High volume, strict uptime, managed identity or private networking](#3-how-much-volume-and-how-critical): **Logic Apps Standard**.
+
 ## The short version
 
 - **Power Automate** is for business users and makers automating their own and their team's work, inside Microsoft 365 and Power Platform.

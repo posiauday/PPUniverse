@@ -11,6 +11,10 @@ Almost every Power Platform project starts with the same question: do we keep th
 
 Neither is better in general. Lists are the right choice more often than Dataverse advocates admit, and Dataverse is necessary more often than budget holders hope. Here's how to tell which situation you're in.
 
+> [!ANSWER] Quick answer
+> 1. [Two or more "yes" answers to five questions](#a-quick-way-to-decide) usually point to **Dataverse**: thousands of rows, different records for different users, three or more related tables, rules that must always hold, or several apps.
+> 2. [Every answer "no"?](#a-quick-way-to-decide) Start with SharePoint lists, with indexed columns and delegable formulas from day one.
+
 ## Side by side
 
 | | Microsoft Lists (SharePoint) | Dataverse |

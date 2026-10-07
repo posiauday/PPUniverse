@@ -9,6 +9,11 @@ searchPhrase: "power bi incremental refresh"
 ---
 A 50-million-row fact table doesn't need to reload ten years of history every night. **Incremental refresh** splits the table into date partitions, refreshes only the recent ones, and leaves history alone. It works on **Pro** as well as Premium and PPU. The hard part isn't turning it on; it's being sure it's actually incremental.
 
+> [!ANSWER] Quick answer
+> 1. [Create `RangeStart` and `RangeEnd`](#step-1-parameters-and-filter) (Date/Time; the names are case-sensitive) and filter the date column with them.
+> 2. [Put that filter right after the source step](#step-3-watch-out-for-query-folding) so it folds to the source; otherwise every row is still downloaded.
+> 3. [Run the first refresh by hand](#step-4-publish-once-then-refresh), then [check later refreshes take a fraction of the time](#step-5-prove-each-refresh-is-incremental).
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -9,6 +9,11 @@ searchPhrase: "power bi dynamic row level security"
 ---
 Static RLS in Power BI needs a role per region. **Dynamic** row-level security uses one role whose rule asks "who's signed in?" and looks that person up in a mapping table. When it works, it's elegant. When it doesn't, users see **everything** or **nothing**. This pattern avoids both.
 
+> [!ANSWER] Quick answer
+> 1. [Map each person's UPN to what they may see](#the-model) in a **UserAccess** table.
+> 2. [Filter the dimension, not the fact](#the-rule-filter-the-dimension-not-the-fact), with `USERPRINCIPALNAME()` in the role's rule.
+> 3. [Give restricted people the **Viewer** role or an app](#assign-people-in-the-service): RLS doesn't apply to Admins, Members or Contributors. [Test with **View as**](#test-it-properly) and a real UPN.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

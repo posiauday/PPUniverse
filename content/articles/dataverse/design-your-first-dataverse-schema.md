@@ -11,6 +11,11 @@ Dataverse makes creating a table look easy, and it is. What it doesn't make obvi
 
 The example is an equipment loan service: staff borrow laptops, cameras and projectors, and the team tracks who has what.
 
+> [!ANSWER] Quick answer
+> 1. [Start in a solution with your own publisher](#step-1-start-in-a-solution-with-your-own-publisher), before the first table.
+> 2. [Choose each table's ownership once](#step-3-choose-ownership-once): user or team owned for anything that belongs to someone.
+> 3. [Give business identifiers a required column and an alternate key](#step-7-protect-uniqueness-with-an-alternate-key), and [put rules in the data layer](#step-8-put-rules-in-the-data-layer).
+
 ## Step 1: start in a solution, with your own publisher
 
 Before creating any table, create a **solution** with your own **publisher**. The publisher's customization prefix becomes part of the internal name of every table, column and relationship you create. For example, a prefix of `eql` makes a table called **Loan** into `eql_loan`.

@@ -11,6 +11,11 @@ In most organisations, Power BI grows one report at a time. Each report author i
 
 The pattern that fixes this is simple to describe: **build the data model once, publish it as a shared semantic model, and have every report connect to it.** This article explains how to set it up in Power BI and how to keep it trusted.
 
+> [!ANSWER] Quick answer
+> 1. [Publish the model on its own](#step-1-publish-the-model-on-its-own), to a workspace for shared models, and connect reports to it live.
+> 2. [Give report authors **Build** permission](#step-2-let-people-build-on-it), not workspace membership.
+> 3. [Endorse the official models](#step-3-mark-it-as-official), and [extend them with DirectQuery](#step-4-allow-extensions-without-forks) instead of copying.
+
 ## The pattern
 
 1. **A semantic model** (formerly called a dataset) holds the tables, relationships and measures. It's owned by people who know the data.

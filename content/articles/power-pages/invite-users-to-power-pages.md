@@ -9,6 +9,11 @@ searchPhrase: "power pages invitation"
 ---
 Invitations are how you let **specific** people onto a Power Pages site: partners, members, a pilot group. Each invitation carries a code. When someone redeems it while signing up, their account links to a **contact you prepared**, and they can automatically get **web roles**, an **account**, or a workflow. Here's the full setup and the fixes for when it misbehaves.
 
+> [!ANSWER] Quick answer
+> 1. [Create a contact with their primary email, then an invitation](#step-1-create-the-invitation) in **Portal Management**.
+> 2. [Send it with **Flow → Send Invitation**](#step-2-send-it): they get a link and a code.
+> 3. [Make the site invitation-only](#step-3-make-the-site-invitation-only) if open registration is on, so nobody signs up without a code.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -12,6 +12,11 @@ searchPhrase: "copilot studio agent kpis"
 
 "How many conversations did it have?" is the first thing anyone asks about an agent, and the least useful answer. An agent can have thousands of sessions and resolve almost none of them. This guide covers the KPIs Copilot Studio gives you, what each one really measures, and how to add the two things the dashboard can't tell you on its own: answer quality and value.
 
+> [!ANSWER] Quick answer
+> 1. [Read resolution and escalation rates as shares of engaged sessions](#the-built-in-kpis), not of all conversations.
+> 2. [Treat the resolution rate as an upper bound](#resolved-includes-implied) until conversations end with the **End of Conversation** topic.
+> 3. [Track answer quality](#measuring-answer-quality) with reactions and a test set, and [measure value](#measuring-value) against a baseline from before launch.
+
 ## The built-in KPIs
 
 Copilot Studio records analytics from an agent's first conversation. For conversational agents, the core KPIs are:

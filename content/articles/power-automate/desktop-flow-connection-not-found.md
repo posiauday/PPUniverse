@@ -9,6 +9,11 @@ searchPhrase: "desktop flow connection not found"
 ---
 A cloud flow that runs a desktop flow depends on four things lining up: the **machine** is registered and online, the **desktop flow connection** works, the right **Windows session** exists (or doesn't), and the **credentials** can sign in. "Connected" in the machine runtime only proves the first. Here's how to check the rest.
 
+> [!ANSWER] Quick answer
+> 1. [Match the Windows session to the run mode](#3-is-the-windows-session-in-the-state-the-run-mode-needs): attended needs the user signed in and unlocked; unattended needs **nobody** signed in as that user.
+> 2. [Re-enter the connection's credentials](#2-does-the-connection-still-work) if **Connections** shows an error.
+> 3. [Test the credentials with Remote Desktop](#4-can-the-credentials-sign-in), using exactly the connection's username and password.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -18,6 +18,11 @@ It takes minutes to create an agent in Copilot Studio and much longer to make on
 
 This tutorial builds a simple internal agent, an IT help agent that answers questions from an IT support SharePoint site, and covers each of the three properly.
 
+> [!ANSWER] Quick answer
+> 1. [Write instructions](#step-2-write-instructions-that-work) that set the agent's role, its tone and what to do when it doesn't know.
+> 2. [Keep knowledge narrow](#step-3-add-knowledge-and-keep-it-narrow), then [turn your test questions into an evaluation set](#step-5-turn-your-questions-into-a-test-set).
+> 3. [Publish to a small group first](#step-6-publish-to-a-small-group-first): later changes stay in draft until you publish again.
+
 ## Step 1: create the agent
 
 Sign in to Copilot Studio and choose the environment your organisation uses for agents. Then either:

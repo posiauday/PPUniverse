@@ -11,6 +11,11 @@ Most organisations find out a flow is broken when someone complains. By then it 
 
 This guide sets out five KPIs that show whether your automations are healthy and worth running, where each number comes from, and what the built-in reports don't tell you.
 
+> [!ANSWER] Quick answer
+> 1. [Track success rate per flow](#the-five-kpis), not across all flows, with failure causes, time to detect, run duration and hours saved.
+> 2. [Don't rely on failure emails](#dont-rely-on-failure-emails): they cover only some failures, at most one per flow every 28 days.
+> 3. [Keep run history longer](#longer-history-run-history-in-dataverse): solution-aware flows write every run to the **FlowRun** table, whose 28-day retention an admin can extend.
+
 ## The five KPIs
 
 | KPI | Question it answers | Formula |

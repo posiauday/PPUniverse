@@ -9,6 +9,11 @@ searchPhrase: "power pages web api"
 ---
 The Power Pages Web API lets your page scripts create, read, update and delete Dataverse rows through `/_api/…`, without a form. It's a **subset** of the Dataverse Web API, so the setup and limits differ. Here's all of it on one page.
 
+> [!ANSWER] Quick answer
+> 1. [Turn it on per table](#turn-it-on-for-a-table) with site settings such as `Webapi/contact/enabled` and `Webapi/contact/fields`.
+> 2. [List every column your code touches, and only those](#columns-replacing-the-wildcard), instead of a wildcard.
+> 3. [Send the CSRF token](#call-it-the-csrf-token) in the `__RequestVerificationToken` header on every request. [Table permissions still apply](#security).
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -9,6 +9,11 @@ searchPhrase: "save email attachments to sharepoint"
 ---
 Most file flows, such as saving email attachments to SharePoint, come down to the same move: **get a file's name and content from one place, and create a file with them somewhere else.** The tricky part is getting the content, which differs by source. Here are the three sources people ask about most.
 
+> [!ANSWER] Quick answer
+> 1. [Every save needs a folder, a file name with its extension, and the content itself](#the-pattern): empty content fails with **400 Bad Request**.
+> 2. [For email attachments, set **Include Attachments** to **Yes**](#1-email-attachments-to-a-sharepoint-folder) in the trigger, or their content is empty.
+> 3. [Loop over the attachments](#1-email-attachments-to-a-sharepoint-folder) with **Apply to each**, and **Create file** for each one.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

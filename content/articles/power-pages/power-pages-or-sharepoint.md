@@ -9,6 +9,11 @@ searchPhrase: "power pages vs sharepoint"
 ---
 "We need a site" can mean two very different things: a place for **your own people** to find information and work together, or a place for **people outside** your organisation to sign up, submit and track things. SharePoint is built for the first, Power Pages for the second. Choosing the wrong one costs either money or months.
 
+> [!ANSWER] Quick answer
+> 1. [Only your staff, or staff plus a few named guests](#when-sharepoint-is-the-answer): **SharePoint**.
+> 2. [The public, or outside people signing themselves up](#when-power-pages-is-the-answer): **Power Pages**.
+> 3. [Visitors must submit or manage structured records](#quick-decision-rules): **Power Pages**.
+
 ## The short version
 
 | | SharePoint site | Power Pages site |

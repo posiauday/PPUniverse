@@ -11,6 +11,11 @@ The most common visual on any dashboard is a large number in a box. It's also th
 
 A KPI card has to answer those questions at a glance. This guide covers what a card needs, how to build it in Power BI, and how to make sure everyone can read it, including people who can't tell red from green.
 
+> [!ANSWER] Quick answer
+> 1. [Show value, target, trend and period](#the-five-things-a-card-needs), not just a number, with the definition one hover away.
+> 2. [Return a blank, not zero](#the-measures-behind-the-card), when there's no target or prior period to compare with.
+> 3. [State the status in words](#make-it-readable-for-everyone), not colour alone, with text contrast of at least 4.5:1.
+
 ## The five things a card needs
 
 | Element | Question it answers | Example |

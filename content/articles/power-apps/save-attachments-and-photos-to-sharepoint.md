@@ -9,6 +9,11 @@ searchPhrase: "save power apps attachments to sharepoint"
 ---
 A canvas app can **attach** files to a SharePoint **list item**, but it can't put a file into a **document library** by itself. The reliable way is to hand the file to a small **Power Automate flow** that runs **Create file**. Here's how, for the three things people usually want to save: an attachment, a photo and a PDF.
 
+> [!ANSWER] Quick answer
+> 1. [Build a flow](#1-build-the-flow) with the **PowerApps (V2)** trigger, a **File** input and SharePoint **Create file**.
+> 2. [Call it from the app](#2-call-it-from-the-app), passing an object with `name` and `contentBytes`.
+> 3. [Only attaching files to a list item?](#4-list-attachments-without-a-flow) The Attachments control does that without a flow.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

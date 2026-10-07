@@ -11,6 +11,11 @@ Power Apps has two ways to build an app, and choosing the wrong one costs you we
 
 Neither is better in general. This guide explains how they differ and gives you five questions that settle the choice for most projects.
 
+> [!ANSWER] Quick answer
+> 1. [The data must stay outside Dataverse](#1-where-does-the-data-live): build a **canvas** app.
+> 2. [People work through related Dataverse records all day](#2-is-the-job-work-through-records-or-do-one-task-well): build a **model-driven** app.
+> 3. [One focused task, a custom layout or phone-first use](#3-how-much-does-the-exact-layout-matter): build a **canvas** app.
+
 ## The short version
 
 | | Canvas app | Model-driven app |
