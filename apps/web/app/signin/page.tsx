@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { SIGNED_IN_PATH, postPasswordApi } from "../../lib/password-client";
 import { PasswordField } from "../PasswordField";
+import { GoogleButton } from "./GoogleButton";
 
 type Field = "email" | "password";
 
@@ -107,19 +108,12 @@ export default function SignInPage() {
       <h1>Sign in</h1>
       {googleOn ? (
         <>
-          <button
-            type="button"
-            onClick={() => void signIn("google", { callbackUrl: SIGNED_IN_PATH })}
-          >
-            Continue with Google
-          </button>
-          <p>Or use your email:</p>
+          <div className="mt-6">
+            <GoogleButton callbackUrl={SIGNED_IN_PATH} />
+          </div>
+          <p className="auth-divider">or sign in with email</p>
         </>
       ) : null}
-      <p>
-        Sign in with your email and password. No password? Leave it empty and we&rsquo;ll email you
-        a sign-in link instead.
-      </p>
       <form onSubmit={handleSubmit} noValidate>
         <div>
           <label htmlFor={emailId}>Email address</label>
