@@ -305,6 +305,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
       ["about", "/about", "About LowCodeStacks"],
       ["privacy", "/privacy", "Privacy notice"],
       ["terms", "/terms", "Terms of use"],
+      // MVP-042: how guides are written and checked; the trust strip links here.
+      ["how-we-write", "/how-we-write", "How we write and check guides"],
     ] as const
   ).map(([id, route, title]): GatedPage => ({
     id,
@@ -1044,8 +1046,12 @@ export const GATED_PAGES: readonly GatedPage[] = [
       // the same type, which under parallel workers may be another worker's
       // fixtures. The seed guarantees at least one exists.
       await expect(
-        page.getByRole("complementary", { name: "Keep learning" }).getByRole("link").first(),
+        page.getByRole("complementary", { name: "If that wasn't it" }).getByRole("link").first(),
       ).toBeVisible();
+      // The G1 frame (MVP-038 part): the trust strip and the quick-answer card.
+      await expect(page.getByText("Checked against Microsoft Learn")).toBeVisible();
+      await expect(page.getByRole("complementary", { name: "Quick answer" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "How we write guides" })).toBeVisible();
       // MVP-027 slice 3: the contents list, a code panel's Copy button and a
       // tip callout, all from the fixture's Markdown.
       await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();

@@ -103,6 +103,7 @@ export function SiteFooter() {
           <ul className="flex gap-x-5">
             {[
               { name: "About", href: "/about" },
+              { name: "How we write", href: "/how-we-write" },
               { name: "Privacy", href: "/privacy" },
               { name: "Terms", href: "/terms" },
             ].map((link) => (

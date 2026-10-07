@@ -2,10 +2,10 @@ import {
   UPDATE_KIND_LABEL,
   trackerLabel,
   type ArticleSummary,
-  type ArticleType,
   type PublishedUpdate,
 } from "@ppu/domain-content";
 import Link from "next/link";
+import { ARTICLE_KIND } from "../../lib/article-types";
 import type { ReactNode } from "react";
 import {
   HUB_HEADLINES,
@@ -29,14 +29,8 @@ export interface HubArea {
   ink: string;
 }
 
-/** The kind badge on each guide link: the goal labels, short (Daylight board H1). */
-const KIND: Record<ArticleType, { label: string; className: string }> = {
-  TUTORIAL: { label: "Fix", className: "bg-[#ffe4d6] text-[#9a3412]" },
-  COMPARISON: { label: "Choose", className: "bg-[#dcebff] text-[#1e40af]" },
-  PATTERN: { label: "Design", className: "bg-[#ede4ff] text-[#5b21b6]" },
-  KPI_GUIDE: { label: "Measure", className: "bg-[#fff0c2] text-[#92400e]" },
-  REFERENCE: { label: "Look it up", className: "bg-[#d9f7e3] text-[#166534]" },
-};
+// The kind badges are shared with the guide page (lib/article-types.ts).
+const KIND = ARTICLE_KIND;
 
 const guideHref = (slug: string) => `/learn/${encodeURIComponent(slug)}`;
 

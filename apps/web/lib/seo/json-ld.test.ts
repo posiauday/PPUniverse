@@ -231,6 +231,12 @@ describe("buildArticleJsonLd (SEO story)", () => {
   };
   const brand = { "@type": "Organization", name: SITE_NAME, url: "https://example.com/" };
 
+  it("carries the share image when one is given (MVP-042)", () => {
+    const image = "https://example.com/og/learn/intro";
+    expect(buildArticleJsonLd({ ...input, image })).toMatchObject({ image });
+    expect(buildArticleJsonLd(input)).not.toHaveProperty("image");
+  });
+
   it("emits TechArticle with dates and the brand as author and publisher", () => {
     expect(buildArticleJsonLd(input)).toEqual({
       "@context": "https://schema.org",

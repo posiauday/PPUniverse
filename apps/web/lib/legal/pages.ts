@@ -28,7 +28,7 @@ export const PRIVACY_EFFECTIVE_DATE = "2026-10-07";
 export const PRIVACY_EFFECTIVE_LABEL = "October 7, 2026";
 
 export interface InfoPage {
-  path: "/about" | "/privacy" | "/terms";
+  path: "/about" | "/privacy" | "/terms" | "/how-we-write";
   title: string;
   /** The serif accent part of the heading. */
   accent: string;
@@ -276,4 +276,52 @@ These terms took effect on ${POLICY_EFFECTIVE_LABEL}.
 `,
 };
 
-export const INFO_PAGES = [ABOUT_PAGE, PRIVACY_PAGE, TERMS_PAGE] as const;
+/**
+ * How we write and check guides (MVP-042; wording approved on the design
+ * board, docs/final-decisions.md, "Approvals for the redesign"). Interim
+ * wording until two features exist, recorded in final-decisions ("How we
+ * write: interim wording"): readers report changes by email until the
+ * "Something here changed?" button ships (slice 4), and only guides
+ * checked since launch show a checked-on date.
+ */
+export const HOW_WE_WRITE_PAGE: InfoPage = {
+  path: "/how-we-write",
+  title: "How we write and check guides",
+  accent: "step by step",
+  eyebrow: "Trust",
+  description:
+    "How LowCodeStacks writes and checks every Power Platform guide: real problems, facts checked against Microsoft Learn, our own words, a human review, and updates when things change.",
+  markdown: `Every guide on LowCodeStacks goes through the same five steps before you see it, and lists the sources it was checked against.
+
+## 1. Start from real problems
+
+We read public community questions that have an accepted answer, and Microsoft's own troubleshooting pages, to learn what people struggle with right now. We only read them: we never copy anyone's text or name the people who posted.
+
+## 2. Check every fact against Microsoft Learn
+
+Limits, settings, error codes and dates are checked against Microsoft's official documentation. Each guide lists its sources, and guides checked since launch show the date they were checked. When Microsoft's own pages disagree, the guide says so.
+
+## 3. Write it in our own words
+
+Guides are original and in plain English. Drafts are written with the help of AI, then fact-checked line by line. When we've tried something ourselves, the guide says "Tested by us".
+
+## 4. A person reviews it before it's published
+
+Nothing is published automatically. Every guide is reviewed and published by the LowCodeStacks team.
+
+## 5. Keep it current
+
+When Microsoft changes something, we re-check the guides it affects and update the date. If you spot something that changed, email ${contact} and we'll check it.
+
+## What we never do
+
+- Claim Microsoft endorses, certifies or approves anything. We're independent.
+- Copy text from Microsoft, forums or other sites.
+- Use Microsoft's product logos.
+- Publish a guide without its sources.
+
+Found a mistake? Email ${contact} and we'll re-check it.
+`,
+};
+
+export const INFO_PAGES = [ABOUT_PAGE, PRIVACY_PAGE, TERMS_PAGE, HOW_WE_WRITE_PAGE] as const;

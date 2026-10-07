@@ -5,10 +5,18 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { contentRepository } from "../../../lib/content";
 import { outlineOf, readingMinutes } from "../../../lib/article-outline";
-import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
+import { ARTICLE_KIND, ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
+import { readGuideTrust } from "../../../lib/article-trust";
+import { HUB_TOPICS } from "../../../lib/technology-hubs";
 import { findRelatedArticles } from "../../../lib/related-articles";
 import { technologyInfo } from "@ppu/domain-content";
-import { homeUrl, learnIndexUrl, learnUrl, technologySectionUrl } from "../../../lib/seo/canonical";
+import {
+  homeUrl,
+  learnIndexUrl,
+  learnShareImageUrl,
+  learnUrl,
+  technologySectionUrl,
+} from "../../../lib/seo/canonical";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/seo/json-ld";
 import { buildLearnMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
 import { SITE_NAME } from "../../../lib/seo/site";
@@ -16,11 +24,12 @@ import { getSiteUrl } from "../../../lib/site-url";
 import { paletteFor } from "../../../lib/technology-palette";
 import { ARTICLE_COVERS } from "../../home/HomeSections";
 import { ArticleBody } from "../ArticleBody";
-import { ArticleList } from "../ArticleList";
 import { ArticleToc } from "../ArticleToc";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { CopyLink } from "../CopyLink";
+import { QuickAnswer } from "../QuickAnswer";
 import { ReadingProgress } from "../ReadingProgress";
+import { TrustStrip } from "../TrustStrip";
 
 interface LearnPageProps {
   params: Promise<{ slug: string }>;
@@ -29,13 +38,6 @@ interface LearnPageProps {
 // See apps/web/app/page.tsx for why these content pages render per-request
 // rather than being statically generated at build time.
 export const dynamic = "force-dynamic";
-
-const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  timeZone: "UTC",
-});
 
 // generateMetadata and the page both need the article; cache() shares one
 // query between them for the duration of a request.
@@ -90,6 +92,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
         excerpt: article.excerpt,
         publishedAt: article.publishedAt,
         updatedAt: article.updatedAt,
+        image: learnShareImageUrl(site.origin, article.slug),
       })
     : null;
   // MVP-029: an article in a technology section sits under that section in
@@ -111,39 +114,47 @@ export default async function LearnPage({ params }: LearnPageProps) {
       ])
     : null;
 
-  const outline = outlineOf(article.body);
+  const trust = readGuideTrust(article.body);
+  const outline = outlineOf(trust.body);
   const minutes = readingMinutes(article.body);
   const palette = paletteFor(article.technology);
-  // "Delegation in Power Apps: why your gallery stops at 500 rows" -- the part
-  // after the first colon is set in the serif accent (Daylight type rule).
-  const colon = article.title.indexOf(": ");
+  // The serif accent is the part after the first ": " or "? " (G1 draws
+  // "Why didn't my flow trigger? A checklist that finds the cause" that way).
+  const split = /[:?] /.exec(article.title);
   const [lead, accent] =
-    colon > 0
-      ? [article.title.slice(0, colon + 1), article.title.slice(colon + 2)]
+    split && split.index > 0
+      ? [article.title.slice(0, split.index + 1), article.title.slice(split.index + 2)]
       : [article.title, ""];
-  // The badge is shown only when the article really links to Microsoft
-  // Learn, so it can never claim a check that is not in the text.
-  const citesLearn = /https:\/\/learn\.microsoft\.com\//.test(article.body);
   const cover = ARTICLE_COVERS[article.slug];
+  const kind = ARTICLE_KIND[article.type];
+  const topic =
+    article.technology && article.topic
+      ? (HUB_TOPICS[article.technology].find((t) => t.id === article.topic) ?? null)
+      : null;
+  const sideHeading = article.type === "TUTORIAL" ? "If that wasn't it" : "Keep learning";
 
   return (
     <main className="px-4 pb-6 md:px-6">
       <ReadingProgress />
       <header
-        className={`motion-rise relative mx-auto mt-4 grid max-w-[77.5rem] items-center gap-8 overflow-hidden rounded-[2.5rem] px-6 py-10 md:px-[72px] md:py-16 ${palette.tint} ${cover ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""}`}
+        className={`motion-rise relative mx-auto mt-4 grid max-w-[77.5rem] items-start gap-8 overflow-hidden rounded-[2.5rem] px-6 py-10 md:px-16 md:py-14 ${palette.tint} ${trust.quickAnswer || cover ? "lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-12" : ""}`}
       >
         <div className="relative flex flex-col gap-5">
-          {/* Learn / Power Apps / Tutorial, as the canvas draws it; the
-              BreadcrumbList JSON-LD below still ends at the article. */}
+          {/* The G1 trail: area, its section, then the guide's kind. The
+              BreadcrumbList JSON-LD below names the area and the guide. */}
           <Breadcrumbs
             items={[
-              { name: "Learn", href: "/learn" },
-              ...(section ? [{ name: section.name, href: parent.path }] : []),
-              { name: ARTICLE_TYPE_LABEL[article.type] },
+              ...(section
+                ? [{ name: section.name, href: parent.path }]
+                : [{ name: "Learn", href: "/learn" }]),
+              ...(section && topic
+                ? [{ name: topic.name, href: `${parent.path}#${topic.id}` }]
+                : []),
+              { name: kind.label },
             ]}
             endsAtCurrentPage={false}
           />
-          <h1 className="text-4xl leading-[1.04] font-bold md:text-[3.75rem]">
+          <h1 className="text-4xl leading-[1.04] font-bold md:text-[3.5rem]">
             {lead}
             {accent ? (
               <>
@@ -153,7 +164,9 @@ export default async function LearnPage({ params }: LearnPageProps) {
             ) : null}
           </h1>
           {article.excerpt ? (
-            <p className="max-w-3xl text-lg leading-relaxed md:text-xl">{article.excerpt}</p>
+            <p className="max-w-3xl text-lg leading-relaxed md:text-[1.1875rem]">
+              {article.excerpt}
+            </p>
           ) : null}
           <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
             {section ? (
@@ -161,23 +174,16 @@ export default async function LearnPage({ params }: LearnPageProps) {
                 {section.name}
               </span>
             ) : null}
-            <span className="rounded-full bg-card/75 px-3.5 py-1.5">
-              {ARTICLE_TYPE_LABEL[article.type]}
+            <span className="rounded-full bg-card/80 px-3.5 py-1.5">
+              {kind.label} · {ARTICLE_TYPE_LABEL[article.type]}
             </span>
-            {citesLearn ? (
-              <span className="rounded-full bg-highlight px-3.5 py-1.5 text-highlight-foreground">
-                <span aria-hidden="true">✓ </span>Cites Microsoft Learn
-              </span>
-            ) : null}
-            <span className="font-normal">
-              {minutes} min read · Updated{" "}
-              <time dateTime={article.updatedAt.toISOString()}>
-                {DATE_FORMAT.format(article.updatedAt)}
-              </time>
-            </span>
+            <span className="rounded-full bg-card/80 px-3.5 py-1.5">{minutes} min read</span>
           </p>
+          <TrustStrip trust={trust} updatedAt={article.updatedAt} />
         </div>
-        {cover ? (
+        {trust.quickAnswer ? (
+          <QuickAnswer title={trust.quickAnswer.title} markdown={trust.quickAnswer.markdown} />
+        ) : cover ? (
           <div aria-hidden="true" className="relative hidden h-[240px] place-items-center lg:grid">
             {cover}
             <span className="shape-sphere motion-bob absolute top-0 right-0 h-[70px] w-[70px]" />
@@ -186,35 +192,55 @@ export default async function LearnPage({ params }: LearnPageProps) {
         ) : null}
       </header>
 
-      {/* Daylight (MVP-031): contents | article, then "Keep learning" below
-          as a row of cards -- the approved article design has no third
-          column, and a narrow one squeezed the titles. */}
-      <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[15rem_minmax(0,46rem)] lg:gap-16">
+      {/* Contents | the guide | the side column (G1). Below xl the side
+          column follows the guide; it is in the page once either way. */}
+      <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[13.75rem_minmax(0,46rem)] lg:gap-14 xl:grid-cols-[13.75rem_minmax(0,45rem)_minmax(0,1fr)]">
         <div>
           <ArticleToc items={outline} />
           {site.ok ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
         </div>
         <div className="min-w-0">
-          <ArticleBody markdown={article.body} />
+          <ArticleBody markdown={trust.body} />
         </div>
-      </div>
-
-      {related.length > 0 ? (
-        <aside aria-labelledby="related_heading" className="mx-auto mt-20 max-w-[77.5rem]">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 id="related_heading" className="text-3xl font-bold md:text-[2.5rem]">
-              Keep <span className="accent-word text-accent">learning</span>
+        {related.length > 0 ? (
+          <aside
+            aria-labelledby="related_heading"
+            className="flex flex-col gap-3.5 lg:col-span-2 xl:sticky xl:top-28 xl:col-span-1 xl:self-start"
+          >
+            <h2
+              id="related_heading"
+              className="font-mono text-[0.6875rem] font-medium tracking-[0.12em] text-muted-foreground uppercase"
+            >
+              {sideHeading}
             </h2>
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              {related.slice(0, 4).map((guide) => (
+                <li key={guide.slug}>
+                  <Link
+                    href={`/learn/${encodeURIComponent(guide.slug)}`}
+                    className={`motion-lift flex h-full flex-col gap-1.5 rounded-[1.375rem] p-4.5 text-foreground no-underline ${paletteFor(guide.technology).tint}`}
+                  >
+                    <span
+                      className={`self-start rounded-full px-2 py-0.5 font-mono text-[0.6875rem] uppercase ${ARTICLE_KIND[guide.type].className}`}
+                    >
+                      {ARTICLE_KIND[guide.type].label}
+                    </span>
+                    <span className="font-display text-[1.0625rem] leading-snug font-bold">
+                      {guide.title}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
             <Link
               href="/learn"
-              className="inline-flex min-h-11 items-center border-b-2 border-foreground font-semibold text-foreground no-underline"
+              className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
             >
-              All learning content →
+              All guides →
             </Link>
-          </div>
-          <ArticleList articles={related} headingLevel={3} columns={4} />
-        </aside>
-      ) : null}
+          </aside>
+        ) : null}
+      </div>
 
       {jsonLd ? <JsonLd data={jsonLd} /> : null}
       {breadcrumbJsonLd ? <JsonLd data={breadcrumbJsonLd} /> : null}
