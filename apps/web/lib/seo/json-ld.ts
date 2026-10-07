@@ -104,6 +104,8 @@ export interface ArticleJsonLdInput {
    * this way so a caller cannot pass a draft's data by mistake. */
   publishedAt: Date | null;
   updatedAt: Date;
+  /** The article's share image, absolute (MVP-042: rich results show an image). */
+  image?: string;
 }
 
 /**
@@ -127,6 +129,7 @@ export function buildArticleJsonLd(input: ArticleJsonLdInput): JsonLdObject | nu
   const description = normalizeDisplayText(input.excerpt);
   if (description) document["description"] = description;
   document["url"] = input.url;
+  if (input.image) document["image"] = input.image;
   document["datePublished"] = input.publishedAt.toISOString();
   document["dateModified"] = input.updatedAt.toISOString();
   document["author"] = buildBrandOrganization(input.origin);

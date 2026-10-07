@@ -34,6 +34,15 @@ export interface ProductRef {
 const FIXTURE_ARTICLE_MARKDOWN = [
   "Fixture body content for the accessibility harness.",
   "",
+  // Guide frame (MVP-038 part): the header's quick-answer card and the trust
+  // strip's checked-on date both come from the body.
+  "> [!ANSWER] Quick answer",
+  "> 1. [Set it up](#setting-up) first.",
+  "> 2. Then compare the options.",
+  "",
+  "> [!NOTE]",
+  "> Checked against Microsoft Learn on 6 October 2026.",
+  "",
   "## Setting up",
   "",
   "- First step",
@@ -54,6 +63,10 @@ const FIXTURE_ARTICLE_MARKDOWN = [
   "| --- | --- |",
   "| Fixture A | A fixture row |",
   "| Fixture B | Another fixture row |",
+  "",
+  "## Sources",
+  "",
+  "- [Microsoft Learn](https://learn.microsoft.com/power-apps/)",
 ].join("\n");
 
 export interface ArticleRef {

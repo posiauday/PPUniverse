@@ -11,6 +11,11 @@ If a gallery shows only some of your records, or a search can't find an item you
 
 This tutorial explains what is happening, how to find the formulas that cause it, and how to rewrite them so they work on every row.
 
+> [!ANSWER] Quick answer: three steps
+> 1. [Find the formula](#find-the-formulas-that-dont-delegate): look for the **yellow warning triangle** and the **blue wavy underline**.
+> 2. [Rewrite it](#four-rewrites-that-fix-most-apps): for example, search with `StartsWith`, not `Search` or `in`, on SharePoint.
+> 3. [Test with a row limit of 1](#find-the-formulas-that-dont-delegate): anything not delegated shows up at once. Set it back before you publish.
+
 ## What delegation means
 
 When you write `Filter(Tasks, Status = "Open")` against a SharePoint list, Power Apps doesn't download the whole list. It sends the condition to SharePoint, SharePoint finds the matching items, and only those come back. That hand-off is called **delegation**, and it is what lets an app work with lists of any size.

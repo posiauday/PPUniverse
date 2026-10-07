@@ -9,6 +9,12 @@ searchPhrase: "get items more than 5000 power automate"
 ---
 Your SharePoint list has 12,000 items and the Power Automate flow processes 100. Or it processes exactly 5,000, or fails with *"The attempted operation is prohibited because it exceeds the list view threshold."* Three different limits cause these, and each has its own fix.
 
+> [!ANSWER] Quick answer: match your symptom
+> 1. [Exactly 100 items](#fix-1-more-than-100-but-under-5000): set **Top Count** to `5000` in Get items.
+> 2. [Stops at 5,000, or could grow past it](#fix-2-up-to-100000-items-with-pagination): turn on **Pagination** with a threshold above the list's size.
+> 3. ["Exceeds the list view threshold"](#fix-3-exceeds-the-list-view-threshold-index-the-columns-you-filter-on): index the columns you filter or sort on.
+> 4. [Over 100,000 items](#fix-4-more-than-100000-items-loop-in-batches): loop through the list in batches by ID.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -4864,3 +4864,34 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 
 **Remaining:** CI, then the product owner's review and merge. After release, send yourself a sign-in link to see it in a real inbox (Gmail and Outlook).
 
+## 2026-10-06 — Guide page redesign, slice 1: the shared guide frame (MVP-038 and MVP-042, parts)
+
+**Story:** slice 1 of `docs/plans/guide-and-hub-redesign.md`, the product owner's choice for what's next. MVP-038 moves to In Progress; this is part of it, and part of MVP-042.
+
+**Built:**
+- **Header (G1):**
+  - the trail technology › section › kind;
+  - the title's serif accent, after a colon or a question mark;
+  - chips for the technology, the kind and the reading time;
+  - the trust strip;
+  - the quick-answer card. The hero art shows when a guide has no quick answer.
+- **Trust strip** (`apps/web/app/learn/TrustStrip.tsx`): "Checked against Microsoft Learn" and the date only from the guide's own dated note, plus the source count and a link to "How we write guides".
+- **Quick answers** (`> [!ANSWER]`): added to three guides, drawn from their own text, with a test that every link resolves.
+- **Side column** on wide screens, with related guides as compact cards ("If that wasn't it" on fix guides). It follows the guide below 1280 px, once in the page.
+- **Search data:** the share image in `TechArticle`.
+- **`/how-we-write`:** the approved wording with three interim sentences, recorded in final-decisions. It's linked from the footer and the trust strip, and listed in the sitemap.
+- **Badges:** the kind badges moved to `lib/article-types.ts` (`ARTICLE_KIND`), shared by the hubs and guides.
+
+**Files:**
+- **New:** `apps/web/lib/article-trust.ts` and its test, `app/learn/QuickAnswer.tsx`, `app/learn/TrustStrip.tsx`, `app/how-we-write/page.tsx`.
+- **Changed:** `app/learn/[slug]/page.tsx`, `lib/legal/pages.ts` (and its test), `lib/seo/{json-ld,canonical}.ts` and their tests, `app/SiteFooter.tsx`, `packages/e2e` (the new route and state, plus the fixture guide's quick answer, note and sources).
+- **Content:** three guides in `content/articles/`.
+
+**Checks:**
+- Rendered at 1440 / 1280 / 375 px, light and dark, plus a guide with no dated note and the new page. No sideways scrolling.
+- Web lint, typecheck and tests pass; the content checks pass (116).
+
+**Timing:** the live site hasn't imported any guide yet, so these content changes will go in with the first import.
+
+**Remaining in the redesign:** slice 2 (fix and pattern blocks), slice 4 (votes and "Something here changed?"), slice 5 (IndexNow and the speed budget).
+

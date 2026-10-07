@@ -461,12 +461,12 @@ describe("article page (SEO story)", () => {
     });
   });
 
-  it("renders the Markdown body and a 'Keep learning' list of related articles", async () => {
+  it("renders the Markdown body and the side column of related articles (G1 frame)", async () => {
     content.listPublishedArticleSummaries.mockResolvedValue([summary("other")]);
     const markup = renderToStaticMarkup(await LearnArticlePage(articleProps()));
     expect(markup).toContain(">Step one</h2>");
-    // MVP-031: "learning" is the heading's serif accent word, so compare text.
-    expect(markup.replace(/<[^>]+>/g, "")).toContain("Keep learning");
+    // A fix guide's side column is "If that wasn't it" (the G1 board).
+    expect(markup).toMatch(/If that wasn(&#x27;|')t it/);
     expect(markup).toContain('href="/learn/other"');
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({
       limit: 4,
@@ -880,6 +880,7 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/about" },
       { url: "https://example.com/privacy" },
       { url: "https://example.com/terms" },
+      { url: "https://example.com/how-we-write" },
     ]);
     // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
     // one each of MAX_SITEMAP_URLS (50,000), and the 7 hubs (six products and
@@ -888,7 +889,7 @@ describe("robots.txt and sitemap.xml routes", () => {
     // between the catalog and content repositories
     // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
     // so none is listed.
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_994);
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_993);
     expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_993);
   });
 
