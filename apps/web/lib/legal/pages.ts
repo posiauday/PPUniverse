@@ -21,11 +21,11 @@ export const POLICY_EFFECTIVE_DATE = "2026-10-02";
 export const POLICY_EFFECTIVE_LABEL = "October 2, 2026";
 
 /** The date the current Privacy notice took effect: it last changed when
- * email and password sign-in was added (MVP-036), after Google sign-in
- * (MVP-035). Its PolicyVersion row is migration
- * 20261007000100_add_privacy_policy_version_2026_10_07. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-07";
-export const PRIVACY_EFFECTIVE_LABEL = "October 7, 2026";
+ * feedback on guides was added (MVP-039 votes, MVP-038 reports), after
+ * email and password sign-in (MVP-036). Its PolicyVersion row is migration
+ * 20261007000300_add_privacy_policy_version_2026_10_08. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-08";
+export const PRIVACY_EFFECTIVE_LABEL = "October 8, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms" | "/how-we-write";
@@ -127,6 +127,14 @@ You can sign in with a password, with a link sent to your email, or with your Go
 
 We send email only when you ask for it: a sign-in link, a link to confirm your email or set a password, or confirmation of a request you made. We don't currently send newsletters or marketing email. If we ever do, it will be only to people who opt in, every message will have an unsubscribe link, and you can switch it off on your account page at any time.
 
+## Feedback on guides
+
+You don't need an account to tell us whether a guide helped.
+
+- **"Did this fix it?"** We store only your answer, which guide it was about, and when. Nothing about you.
+- **"Something here changed?"** We store your note, which guide it was about, and when. Please don't put personal details in a note: we can't reply to it, and we delete each note once we've checked it.
+- **Limits:** to stop votes and notes being sent in bulk, we count recent ones for each network (IP) address. Addresses are stored only as hashes, and each count is deleted a day after it was last used.
+
 ## Cookies
 
 We use only the cookies the site needs:
@@ -167,7 +175,8 @@ We don't sell, rent or trade personal information. We would disclose it only if 
 
 - Account information is kept while your account exists.
 - Sign-in sessions expire after 30 days, sign-in links after 24 hours, and password links after 1 hour.
-- Counts of failed sign-in attempts are deleted a day after they were last used.
+- Counts of failed sign-in attempts, votes and notes are deleted a day after they were last used.
+- Notes sent with "Something here changed?" are deleted once we've checked them. Vote answers are kept with the guide; they say nothing about who voted.
 - Records of your choices and of deletion requests are kept as proof of what you asked for, even after the rest of your account information is removed.
 - Logs are kept only as long as needed to run and protect the site.
 
@@ -278,11 +287,11 @@ These terms took effect on ${POLICY_EFFECTIVE_LABEL}.
 
 /**
  * How we write and check guides (MVP-042; wording approved on the design
- * board, docs/final-decisions.md, "Approvals for the redesign"). Interim
- * wording until two features exist, recorded in final-decisions ("How we
- * write: interim wording"): readers report changes by email until the
- * "Something here changed?" button ships (slice 4), and only guides
- * checked since launch show a checked-on date.
+ * board, docs/final-decisions.md, "Approvals for the redesign"). The report
+ * sentences are back to the approved wording now "Something here changed?"
+ * exists (slice 4). Still interim, recorded in final-decisions ("How we
+ * write: interim wording"): only guides checked since launch show a
+ * checked-on date.
  */
 export const HOW_WE_WRITE_PAGE: InfoPage = {
   path: "/how-we-write",
@@ -311,7 +320,7 @@ Nothing is published automatically. Every guide is reviewed and published by the
 
 ## 5. Keep it current
 
-When Microsoft changes something, we re-check the guides it affects and update the date. If you spot something that changed, email ${contact} and we'll check it.
+When Microsoft changes something, we re-check the guides it affects and update the date. If you spot something that changed, tell us from the guide and we'll check it.
 
 ## What we never do
 
@@ -320,7 +329,7 @@ When Microsoft changes something, we re-check the guides it affects and update t
 - Use Microsoft's product logos.
 - Publish a guide without its sources.
 
-Found a mistake? Email ${contact} and we'll re-check it.
+Found a mistake? Use "Something here changed?" on any guide, and we'll re-check it. You can also email ${contact}.
 `,
 };
 

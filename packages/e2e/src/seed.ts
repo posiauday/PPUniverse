@@ -533,6 +533,20 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     await prisma.articlePublishEvent.create({
       data: { articleId: publishedArticle.id, actorUserId: admin.id, action: "PUBLISHED" },
     });
+    // MVP-039 / MVP-038: feedback for /admin/feedback to list. Removed with
+    // the article (the foreign keys cascade).
+    await prisma.articleVote.createMany({
+      data: [
+        { articleId: publishedArticle.id, helpful: true },
+        { articleId: publishedArticle.id, helpful: false },
+      ],
+    });
+    await prisma.articleReport.create({
+      data: {
+        articleId: publishedArticle.id,
+        message: `E2E fixture report ${prefix}(not real feedback): a setting moved.`,
+      },
+    });
 
     // SEO story: a second PUBLISHED article of the same type, so the first
     // one's "Keep learning" section always has something to list.

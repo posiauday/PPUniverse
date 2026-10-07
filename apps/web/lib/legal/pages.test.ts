@@ -28,12 +28,12 @@ describe("About, Privacy and Terms", () => {
     }
   });
 
-  it("How we write (MVP-042) keeps the approved AI sentence and promises nothing unbuilt", () => {
+  it("How we write (MVP-042) keeps the approved AI sentence and the report sentence", () => {
     expect(HOW_WE_WRITE_PAGE.markdown).toContain(
       "Drafts are written with the help of AI, then fact-checked line by line.",
     );
-    // Interim until the report button ships (guide redesign slice 4).
-    expect(HOW_WE_WRITE_PAGE.markdown).not.toContain("Something here changed?");
+    // Slice 4 shipped the report button, so the approved sentence is back.
+    expect(HOW_WE_WRITE_PAGE.markdown).toContain('Use "Something here changed?" on any guide');
     expect(HOW_WE_WRITE_PAGE.markdown).toMatch(/never copy anyone's text/);
   });
 

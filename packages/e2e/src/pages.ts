@@ -637,6 +637,30 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // MVP-039 / MVP-038: open reports and vote counts, admin only.
+    id: "admin-feedback-populated",
+    route: "/admin/feedback",
+    description: "admin feedback page, signed in as ADMIN, with a report and votes",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/feedback",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Feedback");
+      await expect(
+        page.getByRole("link", { name: seed.publishedArticle.title }).first(),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Close and delete" }).first()).toBeVisible();
+    },
+  },
+  {
+    id: "admin-feedback-denied",
+    route: null,
+    description: "admin feedback page, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/feedback",
+  },
+  {
     // MVP-034: the admin home lists every admin area.
     id: "admin-home",
     route: "/admin",
@@ -1057,6 +1081,65 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
       await expect(page.getByRole("note")).toContainText("A fixture tip callout.");
+    },
+  },
+  // MVP-039 / MVP-038: the end of a guide. The API answers are faked in the
+  // test, so no vote or report is ever recorded.
+  {
+    id: "learn-voted",
+    route: "/learn/[slug]",
+    description: "guide page after answering Did this fix it? with Yes",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await page.route("**/api/guides/*/vote", (route) =>
+        route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
+      );
+      await (await whenHydrated(page.getByRole("button", { name: "Yes, fixed" }))).click();
+      await expect(page.getByRole("status").filter({ hasText: "Glad it helped" })).toBeVisible();
+    },
+  },
+  {
+    id: "learn-report-sent",
+    route: "/learn/[slug]",
+    description: "guide page after sending Something here changed?",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await page.route("**/api/guides/*/report", (route) =>
+        route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
+      );
+      await (
+        await whenHydrated(page.getByRole("button", { name: /Something here changed\?/ }))
+      ).click();
+      await page
+        .getByLabel(/What changed, or what.s wrong\?/)
+        .fill("A setting moved in the new designer.");
+      await page.getByRole("button", { name: "Send" }).click();
+      await expect(
+        page.getByRole("status").filter({ hasText: "re-check this guide" }),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "learn-report-too-short",
+    route: "/learn/[slug]",
+    description: "guide page with a report that is too short",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await (
+        await whenHydrated(page.getByRole("button", { name: /Something here changed\?/ }))
+      ).click();
+      await page.getByLabel(/What changed, or what.s wrong\?/).fill("bad");
+      await page.getByRole("button", { name: "Send" }).click();
+      await expect(page.getByLabel(/What changed, or what.s wrong\?/)).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
     },
   },
   {

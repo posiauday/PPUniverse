@@ -4909,3 +4909,33 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 - A production build ran with no font download.
 - Served with `next start`, the home page loads Bricolage, Instrument Serif, Geist and Geist Mono, and the sign-in page loads Google Sans, from local files. Screenshots match.
 
+## 2026-10-07 — Votes and reports (MVP-039 to QA; MVP-038 part)
+
+**Story:** redesign slice 4, with the product owner's choices recorded in `docs/final-decisions.md`, "Votes and reports".
+
+**Built:**
+- **Data:** migration `20261007000200_add_article_votes_and_reports`: `article_votes` and `article_reports`, with RLS, cascading with the guide. Neither stores anything about the visitor.
+- **Rules:** `packages/domain/content/src/feedback.ts`: `isAcceptedFix` (at least 10 votes, at least 80% Yes) and `cleanReportMessage` (10–500 characters).
+- **Storage:** `packages/adapters/content/src/feedback-repository.ts`:
+  - votes, reports and counts;
+  - closing a report deletes it;
+  - hashed allowances in `auth_throttle`, pruned after a day.
+- **Routes:** `POST /api/guides/[slug]/vote` and `/report` check the origin and the published guide, apply the limits, return `no-store`, and never log the note. `POST /api/admin/reports/[id]/close` is admin only.
+- **The guide page:** `GuideFeedback` asks "Did this fix it?" (fix guides) or "Was this helpful?". "Not yet" opens the note, and focus moves sensibly after each step. The header shows the "Accepted fix" chip.
+- **Admin:** `/admin/feedback` shows open reports (as plain text) and the vote counts per guide, and is linked from the admin home.
+- **Privacy notice:** version 2026-10-08 (migration `20261007000300`).
+- **How we write:** the approved report sentences are back.
+- **Refactor:** `apps/web/lib/request-guards.ts` holds the shared origin, address, body-reading and no-store helpers, still re-exported from the password modules.
+
+**Checks:**
+- The tests pass:
+  - domain: 3;
+  - adapter integration on Postgres: 4;
+  - routes: 10;
+  - web: 673 in total.
+- **Real run against a local database:**
+  - "Not yet" moves focus to the note box;
+  - the note was stored exactly as typed;
+  - a second vote on the same guide was answered 200 and not counted.
+- **Accessibility gate:** see the PR.
+

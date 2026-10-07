@@ -11,8 +11,9 @@ import { EMAILS, renderEmail } from "./email-templates";
 import { SITE_NAME } from "./seo/site";
 import { siteOrigin } from "./site-url";
 
-// Re-exported: callers built before MVP-044 import it from here.
+// Re-exported: callers built before MVP-044 and the feedback routes import them from here.
 export { siteOrigin };
+export { clientIp, isSameOrigin } from "./request-guards";
 
 /**
  * Email and password sign-in, wired to the real database, Have I Been Pwned
@@ -59,20 +60,4 @@ export function sessionCookie(sessionToken: string, expires: Date) {
     value: sessionToken,
     options: { httpOnly: true, sameSite: "lax" as const, path: "/", secure, expires },
   };
-}
-
-/** Rejects requests from other sites: the browser's Origin header must be this site's. */
-export function isSameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  const expected = siteOrigin();
-  return !!origin && !!expected && origin === expected;
-}
-
-/** The caller's address, as Netlify reports it (falls back to the first forwarded hop). */
-export function clientIp(request: Request): string {
-  return (
-    request.headers.get("x-nf-client-connection-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown"
-  );
 }

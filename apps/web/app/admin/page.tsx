@@ -27,6 +27,11 @@ const AREAS = [
     name: "Deletion requests",
     description: "Privacy requests to delete an account.",
   },
+  {
+    href: "/admin/feedback",
+    name: "Feedback",
+    description: "Reports from readers, and how they answered Did this fix it?",
+  },
   { href: "/admin/audit", name: "Audit log", description: "Who did what in the admin, and when." },
 ];
 

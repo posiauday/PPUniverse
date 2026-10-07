@@ -2072,3 +2072,26 @@ The guide's image is now in its `TechArticle` data, and the new page is `/how-we
 
 When slice 4 ships and the first-wave guides are re-checked, the approved sentences return.
 
+## 2026-10-07 — Votes and reports (MVP-039, MVP-038 part; redesign slice 4)
+
+**Source:** direct product-owner instruction in this session. Asked by multiple choice, the product owner chose:
+- **Votes ("Did this fix it?"):** the badge rule "at 10 votes, 80% Yes". Visitors see only a thank-you. A guide shows **Accepted fix** once at least 10 people voted and at least 80% said Yes. All counts are shown only in the admin.
+- **Reports ("Something here changed?"):** a short note with no contact details. It's anonymous, at most 500 characters, and waits in the admin until closed. We ask people not to include personal details, and the Privacy notice says how long notes are kept.
+
+**As built:**
+- **What's stored:**
+  - a vote: only yes or no, the guide and the time;
+  - a report: only the note, the guide and the time.
+
+  Nothing about the visitor, no account needed. Closing a report in `/admin/feedback` deletes it.
+- **Abuse limits,** as hashed per-address counters in the existing `auth_throttle` table, deleted a day after last use:
+  - one vote per guide per address per day (a repeat is thanked but not counted);
+  - 60 votes an hour per address;
+  - 5 reports an hour per address.
+- **Wording:**
+  - fix guides ask "Did this fix it?" (Yes, fixed / Not yet); other guides ask "Was this helpful?" (Yes / Not really);
+  - "Not yet" opens the report note;
+  - the Accepted fix badge shows only on fix guides.
+- **Privacy notice:** new version 2026-10-08, with a "Feedback on guides" section and the retention lines.
+- **How we write:** the two report sentences return to the approved wording. The checked-date sentences stay interim (see "How we write: interim wording").
+
