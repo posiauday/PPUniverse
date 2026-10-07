@@ -4821,3 +4821,23 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Tech debt:** [TD-030](tech-debt/TD-030.md). Accessibility shards were cancelled at the 20-minute limit on four PRs today, with no failed test. Recommended fix: a fifth shard. A budget change needs the product owner.
 
 **Remaining:** CI on the PR; the product owner reviews and merges. Next: slice 1, the shared guide frame (MVP-038 part, MVP-042 part).
+
+## 2026-10-06 — Home page: fixes band, What changed, store categories only when stocked
+
+**Requested by:** the product owner ("use what you can add to our home page" from the board). The home page already had every board section, but several stay hidden until guides are published, which is why the live home page looked thin.
+
+**Added, using real content:**
+- **"Stuck right now?":** each product's most-needed fixes (the hubs' list, up to three each), linking straight to the guides, plus "Everything in …" to each hub. White cards with the area's colour on the dot and chips, so they don't repeat the tinted technology panels just above. Only published fixes show, and the band hides until there is one.
+- **"What changed":** the three newest platform updates, linking to `/updates#slug`.
+- **"Browse by category"** now shows only once the store has a published product. Until then every category page is empty, a dead end from the home page.
+
+**Files:** `apps/web/app/home/HomeFixesAndUpdates.tsx` (new), `apps/web/app/page.tsx`, `apps/web/lib/seo/pages.test.tsx` (two new tests).
+
+**Checks:**
+- Rendered with all 57 guides and 8 updates, at 1440 and 375 px, light and dark.
+- Web lint, typecheck and tests pass.
+- Accessibility gate for the home states: see the PR.
+
+**Also recorded:**
+- **MVP-043 (animated logo):** the product owner asked to keep it for later.
+- **MVP-044 (branded emails):** in progress. Three concepts and all four emails, with their wording, are on the design board for the product owner to choose and approve.

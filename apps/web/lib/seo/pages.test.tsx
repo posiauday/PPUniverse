@@ -232,6 +232,45 @@ describe("home page — learning content (SEO story)", () => {
     expect(markup).toContain('href="/learn"');
   });
 
+  it("links each product's most-needed fixes and the newest updates once published", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("why-didnt-my-trigger-fire"),
+      summary("why-are-my-totals-wrong"),
+    ]);
+    updates.listPublishedUpdates.mockResolvedValueOnce([
+      {
+        id: "u1",
+        slug: "gateway-sign-in",
+        title: "Older gateways need an update",
+        summary: "Update the gateway.",
+        technology: "POWER_BI",
+        kind: "FEATURE",
+        action: null,
+        sourceUrl: "https://learn.microsoft.com/",
+        effectiveDate: null,
+        replacement: null,
+        publishedAt: new Date("2026-10-01T00:00:00Z"),
+      },
+    ]);
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup).toContain('id="home-fixes"');
+    expect(markup).toContain("My trigger didn&#x27;t fire");
+    expect(markup).toContain('href="/learn/why-are-my-totals-wrong"');
+    // Areas with no published fix are left out of the band.
+    expect(markup).not.toContain("Everything in Power Pages");
+    expect(markup).toContain('id="home-updates"');
+    expect(markup).toContain('href="/updates#gateway-sign-in"');
+    expect(updates.listPublishedUpdates).toHaveBeenCalledWith({ limit: 3 });
+  });
+
+  it("leaves out the fixes band, the updates and store categories while there is nothing to show", async () => {
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup).not.toContain('id="home-fixes"');
+    expect(markup).not.toContain('id="home-updates"');
+    // No published component yet, so every category page would be empty.
+    expect(markup).not.toContain('id="home-categories"');
+  });
+
   it("omits the section, but keeps the /learn link, when nothing is published", async () => {
     const markup = renderToStaticMarkup(await HomePage());
     expect(markup).not.toContain(`id="home-learn"`);
