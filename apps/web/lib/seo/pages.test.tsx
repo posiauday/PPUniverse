@@ -50,16 +50,10 @@ vi.mock("@ppu/telemetry", () => ({
 vi.mock("next-auth/next", () => ({ getServerSession: vi.fn().mockResolvedValue(null) }));
 // MVP-027: the root layout loads next/font, which only works inside a
 // Next.js build; these tests read the layout's metadata, not its fonts.
-vi.mock("next/font/google", () => {
-  const font = () => ({ className: "font", variable: "--font", style: {} });
-  return {
-    Bricolage_Grotesque: font,
-    Instrument_Serif: font,
-    Geist: font,
-    Geist_Mono: font,
-    Google_Sans: font,
-  };
-});
+// TD-031: the fonts are local files; next/font/local only works inside Next's compiler.
+vi.mock("next/font/local", () => ({
+  default: () => ({ className: "font", variable: "--font", style: {} }),
+}));
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
   return {

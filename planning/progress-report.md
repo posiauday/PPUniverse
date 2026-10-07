@@ -4895,3 +4895,17 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 
 **Remaining in the redesign:** slice 2 (fix and pattern blocks), slice 4 (votes and "Something here changed?"), slice 5 (IndexNow and the speed budget).
 
+## 2026-10-07 — TD-031: fonts served from our own files, no download at build time
+
+**Why:** a CI build on the release PR #87 failed when Google Fonts didn't return one font file during the build. Netlify deploys download the same files, so the same thing could fail a deploy.
+
+**Fix:**
+- With the product owner's approval, the five Latin WOFF2 fonts (about 170 KB) and their OFL licences were downloaded from Google Fonts and `google/fonts`, into `apps/web/assets/fonts/`.
+- `apps/web/app/fonts.ts` now uses `next/font/local`, with the same variables, weights, swap and fallbacks.
+- The test font mock in `pages.test.tsx` now mocks `next/font/local`.
+
+**Checks:**
+- Web lint, typecheck and 665 tests pass.
+- A production build ran with no font download.
+- Served with `next start`, the home page loads Bricolage, Instrument Serif, Geist and Geist Mono, and the sign-in page loads Google Sans, from local files. Screenshots match.
+
