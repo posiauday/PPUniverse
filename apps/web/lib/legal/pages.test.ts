@@ -6,6 +6,7 @@ import { LAST_VISIT_KEY } from "../updates-visit";
 import {
   ABOUT_PAGE,
   CONTACT_EMAIL,
+  HOW_WE_WRITE_PAGE,
   INFO_PAGES,
   OPERATOR_NAME,
   PRIVACY_PAGE,
@@ -18,11 +19,22 @@ import {
  * compliance with anything.
  */
 describe("About, Privacy and Terms", () => {
-  it("name the operator and the contact address on every page", () => {
-    for (const page of INFO_PAGES) {
+  it("name the operator on About, Privacy and Terms, and the contact address on every page", () => {
+    for (const page of [ABOUT_PAGE, PRIVACY_PAGE, TERMS_PAGE]) {
       expect(page.markdown).toContain(OPERATOR_NAME);
+    }
+    for (const page of INFO_PAGES) {
       expect(page.markdown).toContain(`mailto:${CONTACT_EMAIL}`);
     }
+  });
+
+  it("How we write (MVP-042) keeps the approved AI sentence and promises nothing unbuilt", () => {
+    expect(HOW_WE_WRITE_PAGE.markdown).toContain(
+      "Drafts are written with the help of AI, then fact-checked line by line.",
+    );
+    // Interim until the report button ships (guide redesign slice 4).
+    expect(HOW_WE_WRITE_PAGE.markdown).not.toContain("Something here changed?");
+    expect(HOW_WE_WRITE_PAGE.markdown).toMatch(/never copy anyone's text/);
   });
 
   it("make no compliance claim", () => {

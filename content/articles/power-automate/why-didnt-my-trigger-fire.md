@@ -9,6 +9,11 @@ searchPhrase: "power automate flow not triggering"
 ---
 A Power Automate flow that isn't triggering gives you nothing to debug: no red action, no error, just an empty run history. Work through these checks in order; the first few catch most cases.
 
+> [!ANSWER] Quick answer: check these first
+> 1. [The flow is off or suspended](#1-is-the-flow-on): look at **Status** on its details page.
+> 2. [A trigger condition filtered it out](#3-is-a-trigger-condition-filtering-it-out): run history shows **Trigger check skipped**.
+> 3. [The connection needs signing in again](#5-is-the-connection-healthy): look for a warning under **Connections**.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

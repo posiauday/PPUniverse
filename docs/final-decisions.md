@@ -2047,3 +2047,28 @@ None of the headlines claims Microsoft endorsement or a product capability. They
 - Dark-mode colours where the mail app supports them.
 - The independent notice in every footer.
 
+## 2026-10-06 — Guide frame built; How we write: interim wording
+
+**Built (slice 1 of `docs/plans/guide-and-hub-redesign.md`).** The product owner chose the guide page redesign next. Every guide now has the G1 frame:
+- the trail: technology, its section, the kind of guide;
+- the title with its serif accent;
+- chips for the technology, the kind and the reading time;
+- the **trust strip**;
+- an optional **quick-answer card**;
+- contents, the guide and a side column of related guides ("If that wasn't it" on fix guides).
+
+The guide's image is now in its `TechArticle` data, and the new page is `/how-we-write`.
+
+**The trust strip claims only what the guide states** (the 2026-10-01 rule: no check the site can't point to):
+- "Checked against Microsoft Learn" and a date appear only when the guide carries a dated note. 33 guides do; the 24 first-wave guides don't, because the records don't confirm a dated check for each.
+- Otherwise the strip shows the number of sources and the last-updated date.
+
+**Quick answers:** a guide can add a `> [!ANSWER] Title` block, a short numbered list that links to its own sections. A test fails if a link points at a heading that doesn't exist. Three guides have one so far: the trigger checklist, more than 5,000 SharePoint items, and delegation. Each answer is drawn only from its guide's own text.
+
+**How we write: interim wording.** The page uses the wording approved on the board, with three sentences changed until the features they describe exist:
+- the intro says every guide "lists the sources it was checked against", not that it "shows the date it was last checked";
+- step 2 says "guides checked since launch show the date they were checked";
+- steps 5 and the closing line say to **email the contact address**, not "use Something here changed? on any guide". That button arrives with slice 4.
+
+When slice 4 ships and the first-wave guides are re-checked, the approved sentences return.
+
