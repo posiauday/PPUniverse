@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 const REPORT_MAX = 500;
 
@@ -52,6 +52,15 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // The vote buttons go away once used, so focus moves to the thanks.
   const thanksRef = useRef<HTMLParagraphElement>(null);
+  // Where focus goes next. Moved in an effect, after React has rendered: the
+  // thanks is hidden while empty, and a hidden element can't take focus
+  // (BUG-028: an animation-frame focus sometimes ran before the render).
+  const [focusNext, setFocusNext] = useState<"thanks" | "note" | null>(null);
+  useEffect(() => {
+    if (focusNext === "thanks") thanksRef.current?.focus();
+    if (focusNext === "note") textareaRef.current?.focus();
+    if (focusNext) setFocusNext(null);
+  }, [focusNext]);
   const headingId = useId();
   const fieldId = useId();
   const hintId = useId();
@@ -67,9 +76,9 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
     setVoting(false);
     if (choice === "no") {
       setReportOpen(true);
-      requestAnimationFrame(() => textareaRef.current?.focus());
+      setFocusNext("note");
     } else {
-      requestAnimationFrame(() => thanksRef.current?.focus());
+      setFocusNext("thanks");
     }
   }
 
@@ -184,7 +193,7 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
           type="button"
           onClick={() => {
             setReportOpen(true);
-            requestAnimationFrame(() => textareaRef.current?.focus());
+            setFocusNext("note");
           }}
           className="inline-flex min-h-11 items-center self-start text-left font-medium underline underline-offset-4"
         >

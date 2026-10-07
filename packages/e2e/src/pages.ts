@@ -1097,7 +1097,10 @@ export const GATED_PAGES: readonly GatedPage[] = [
         route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
       );
       await (await whenHydrated(page.getByRole("button", { name: "Yes, fixed" }))).click();
-      await expect(page.getByRole("status").filter({ hasText: "Glad it helped" })).toBeVisible();
+      // Focus moves to the thanks one animation frame after it appears. Wait
+      // for it, or the keyboard walk can start first and have focus jump
+      // mid-walk (BUG-028).
+      await expect(page.getByRole("status").filter({ hasText: "Glad it helped" })).toBeFocused();
     },
   },
   {
