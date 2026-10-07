@@ -5108,3 +5108,23 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Checks:** web tests 778 (new: overview counts, the sidebar, role rules, the role route in a faked transaction, the switches never showing secrets); lint, typecheck and format clean; no schema drift. Accessibility gate: see the PR.
 
 **Open:** what a Contributor may do (product owner).
+
+## 2026-10-07 — Learn module, slice 1a: the data (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014). Decision: `docs/final-decisions.md`, "Learn module design: Workspace" (direction 1 of five shown live; the earlier L3 choice is superseded). The admin (1b) and the public pages (slice 2) come next.
+
+**Built:**
+- **Rules** (`packages/domain/content/src/learn.ts`): topic and lesson validators; the fixed lesson shape (six `## ` sections in order, code blocks ignored); knowledge checks written as `> [!CHECK]` blocks, 2 or 3 per lesson, 2 to 4 answers, exactly one right, an explanation under every answer, never "all/none of the above" (Microsoft Learn's authoring rules); at least one learn.microsoft.com source.
+- **Files** (`learn-source.ts`, `content/topics/README.md`): `content/topics/<area>/<topic>/topic.md` plus `<position>-<slug>.md` lessons; `outcome` is the only repeatable key.
+- **Database** (migration `20261013000000_add_learn_topics_and_lessons`, additive; rollback in the file): `learn_topics`, `learn_lessons` (unique slug and position per topic), `learn_publish_events` (append-only; lesson null for a topic publish). Restrict FKs and row-level security, like every table. Generated with `prisma migrate diff` from the previous schema, so there is no drift.
+- **Repository** (`PrismaLearnRepository`): create, edit content only, publish once in a transaction with its audit event; public reads return a lesson only when it and its topic are both published.
+- **Importer** (`topics:import`): validates everything first and imports nothing if any file is invalid; skips existing slugs; adds new lessons to existing topics. Added to the release import (`import-drafts-on-deploy.mjs`), applying the 2026-10-06 rule "Drafts import automatically on release" to the new content type.
+- **Content gate** (`learn-files.test.ts`): every topic and lesson valid, in its area's folder, named after its slug, numbered 1, 2, 3 with no gaps, 3 to 6 lessons, unique slugs. Checked by hand with a throwaway topic: it passed, then caught a misnamed lesson and a question without a right answer.
+
+**Commands:** `vitest run` (domain-content: 20 new tests; adapter-content: 130 passed, 24 skipped without a database), `tsc --noEmit`, `eslint`, `prettier`, `prisma validate`, `prisma migrate diff`.
+
+**Security:** bodies stay Markdown and will be rendered without raw HTML (slice 2); only admins will write (slice 1b, enforced on the server); authors and publishers are kept on user deletion (Restrict).
+
+**Risks:** the repository's database tests ran only in CI (the local embedded Postgres wasn't available).
+
+**Remaining:** 1b admin (topic and lesson editors, publish controls, API with ADMIN checks, audit log entries); 2 public pages (`/topics`, topic, and lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS); 3 progress for signed-in readers; 4 the first six topics as drafts.

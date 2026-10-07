@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "content:import": "node scripts/import-articles.mjs",
-    "updates:import": "node scripts/import-updates.mjs"
+    "updates:import": "node scripts/import-updates.mjs",
+    "topics:import": "node scripts/import-topics.mjs"
   },
   "dependencies": {
     "@ppu/db": "workspace:*",
