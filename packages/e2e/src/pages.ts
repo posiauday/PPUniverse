@@ -698,6 +698,15 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/account/profile",
     prepare: async (page) => {
+      // The route's answer is faked, as for the guide feedback states: the
+      // gate's server checks requests against its public site address.
+      await page.route("**/api/account/profile", (route) =>
+        route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: '{"error":"too-short"}',
+        }),
+      );
       const field = await whenHydrated(page.getByRole("textbox", { name: "Display name" }));
       await field.fill("Al");
       await page.getByRole("button", { name: "Save name" }).click();
@@ -730,6 +739,14 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: (seed) => `/learn/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
+      // Faked, like the feedback states: nothing is ever posted.
+      await page.route("**/api/guides/*/comments", (route) =>
+        route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: '{"error":"too-short"}',
+        }),
+      );
       const field = await whenHydrated(page.getByRole("textbox", { name: "Add a comment" }));
       await field.fill("Too short");
       await page.getByRole("button", { name: "Post comment" }).click();

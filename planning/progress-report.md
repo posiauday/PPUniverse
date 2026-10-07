@@ -5058,6 +5058,6 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 - **Shared helpers:** `readJson` in `lib/request-guards.ts` (`readFields` now uses it and counts bytes, not characters); `lib/post-json.ts`, now also used by the guide feedback.
 - **Gate:** comments switched on for the gate's server; seed adds an accepted and a reported comment; states for the guest and member views, a too-short comment, the profile and its error, the admin page and its 404; `/account/profile` and `/admin/comments` added to the gated routes.
 
-**Checks:** domain 9, repository integration on Postgres 5, routes 18, component 5; web tests 766; typecheck and lint clean. Accessibility gate: see the PR.
+**Checks:** domain 9, repository integration on Postgres 5, routes 18, component 5; web tests 766; typecheck and lint clean. Accessibility gate, local, every guide, profile and admin state in three engines (comments on): 269 of 315 passed first time. 42 failures were the two new error states: the gate's server refuses posts from `localhost` because its site address differs, so they now fake the route's answer like the feedback states. The other 4 were Firefox and WebKit timeouts. All 66 then passed.
 
 **Remaining:** the product owner approves the Terms and Privacy wording; then the legal pages get new versions and `FEATURE_COMMENTS` is switched on in Netlify.
