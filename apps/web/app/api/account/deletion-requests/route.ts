@@ -8,6 +8,9 @@ import { NextResponse } from "next/server";
 import { authOptions } from "../../../../lib/auth";
 import { notificationService } from "../../../../lib/email";
 import { withObservability } from "../../../../lib/observability";
+import { EMAILS, renderEmail } from "../../../../lib/email-templates";
+import { CONTACT_EMAIL } from "../../../../lib/legal/pages";
+import { siteOrigin } from "../../../../lib/site-url";
 
 /**
  * Submits a deletion request for the signed-in user (MVP-020, FR-004).
@@ -72,9 +75,11 @@ export const POST = withObservability(
       if (recipient) {
         await notificationService.sendTransactional("DELETION_REQUEST_SUBMITTED", session.user.id, {
           to: recipient.email,
-          subject: "We received your account deletion request",
-          text: "We received your request to delete your account. It will be reviewed. [Placeholder copy — pending product-owner review.]",
-          html: "<p>We received your request to delete your account. It will be reviewed.</p><p><em>[Placeholder copy — pending product-owner review.]</em></p>",
+          // MVP-044: the branded receipt; this wording replaces the old placeholder.
+          ...renderEmail(
+            EMAILS.deletionRequestReceived(`${siteOrigin() ?? ""}/account/privacy`, CONTACT_EMAIL),
+            siteOrigin(),
+          ),
         });
       }
     } catch {

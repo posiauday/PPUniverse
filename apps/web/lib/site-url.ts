@@ -130,3 +130,19 @@ export const getSiteUrl = createSiteUrlProvider({
   }),
   logError: (event, fields) => logger.error(event, fields),
 });
+
+/**
+ * The origin that links in emails are built from (MVP-036, MVP-044): the
+ * canonical public origin, then NEXTAUTH_URL's. Null when neither is usable,
+ * so callers leave links and images out rather than point somewhere wrong.
+ */
+export function siteOrigin(): string | null {
+  const site = getSiteUrl();
+  if (site.ok) return site.origin;
+  const auth = process.env["NEXTAUTH_URL"];
+  try {
+    return auth ? new URL(auth).origin : null;
+  } catch {
+    return null;
+  }
+}

@@ -2026,3 +2026,24 @@ None of the headlines claims Microsoft endorsement or a product capability. They
 **Also delegated and built with the hubs:**
 - **Most-needed fixes:** each hub's two to five problems, chosen from the research in `docs/research/content-briefs/`. Each one links straight to the guide that fixes it.
 - **Search titles and descriptions:** each hub names the product and what it helps with (`HUB_SEO`, `apps/web/lib/technology-hubs.ts`).
+
+## 2026-10-06 — Branded emails: concept E1 and the wording (MVP-044)
+
+**Source:** direct product-owner instruction in this session.
+- **Request:** "start designing the email that we send out to have our design system and nice UI, all emails that go from the site".
+- **Design:** the design board's "Emails" row offered three concepts. Asked which one, the product owner chose **E1, "Card on cream"**: the site's cream page, a white card, the X2 logo, a lime marker under the heading's last words and a black pill button.
+- **Wording:** asked whether the wording on the "All four emails" board was OK, they answered: "You decide what to put in wording". The wording is the agent's, recorded here, and replaces the deletion receipt's old placeholder text.
+
+**The four emails, as built** (`apps/web/lib/email-templates.ts`, `EMAILS`):
+- **Sign-in link:** "Your sign-in *link*". It says the link works once and expires in 24 hours (Auth.js's default), and explains the second button on the site (scanner protection, MVP-034).
+- **Confirm your email** (password sign-up): one step left; the link expires in 1 hour.
+- **Choose a new password:** set or reset; saving signs you out on every other device; the link expires in 1 hour.
+- **Deletion request received:** "We'll review the request and reply within 30 days, as our Privacy notice promises", with a button to the account page and the contact address.
+
+**Rules for every email:**
+- Tables and inline styles, and system fonts.
+- The logo as a PNG from the site (`/email/logo.png`), because Gmail shows no SVG. It is the only image: no tracking pixel, no tracked links.
+- A plain link under every button, and a plain-text version of each email.
+- Dark-mode colours where the mail app supports them.
+- The independent notice in every footer.
+
