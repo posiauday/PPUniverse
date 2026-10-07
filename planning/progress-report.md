@@ -4939,3 +4939,23 @@ The guidelines say the G must "appear on a white background" and don't say wheth
   - a second vote on the same guide was answered 200 and not counted.
 - **Accessibility gate:** see the PR.
 
+
+## 2026-10-07 — Top bar names (MVP-045, built; in review)
+
+**Story:** the product owner said "Technologies" and "Guides" looked weird and asked for research and a recommendation. Research: Nielsen Norman Group's guidance against format-based navigation labels and generic category names, and how Microsoft Learn and two community sites name their sections. Three concepts were drawn with the site's own styles; the product owner chose A with two changes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments").
+
+**Built:**
+- `apps/web/app/SiteHeader.tsx`: the main links are Fixes (`/learn#tutorials`) and Patterns (`/learn#patterns`); the button reads Learn.
+- `apps/web/app/TechnologiesMenu.tsx`: the menu button reads Power Platform.
+- `apps/web/app/MobileMenu.tsx`: the phone menu's group label reads Power Platform; the button reads Learn.
+- `apps/web/app/HeaderSearch.tsx`: the placeholder reads "Search an error or topic", and the box is 17rem wide so it isn't cut off.
+- Tests: `SiteHeader.test.tsx` checks the new names and targets; `TechnologiesMenu.test.tsx` and the gate's `pages.ts` find the menu by its new name.
+
+**Checks:**
+- Web tests: 676 passed. Typecheck, lint and format clean.
+- Local render at 1280 and 1440 px (desktop, menu open) and 375 px (phone menu): nothing cut off, no sideways scroll; Fixes opens `/learn` at the fix guides.
+- Accessibility gate: see the PR.
+
+**Not changed:** the footer's group labels and the hub breadcrumb still say "Technologies"; the decision covers the top bar only.
+
+**Remaining:** product owner review and merge.

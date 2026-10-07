@@ -5,8 +5,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { TechnologyMenuArea } from "../lib/technology-menu";
 
 /**
- * The header's "Technologies" menu (MVP-028; the large menu since MVP-033,
- * matching the approved "Header and Technologies menu" board): every area at
+ * The header's "Power Platform" menu (MVP-028; the large menu since MVP-033,
+ * matching the approved "Header and Technologies menu" board; named
+ * "Technologies" until MVP-045): every area at
  * once, each with its guide count, a start-here guide and its first sections,
  * and a way into every guide by goal.
  *
@@ -61,7 +62,7 @@ export function TechnologiesMenu({ areas }: { areas: readonly TechnologyMenuArea
           open ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
         }`}
       >
-        Technologies
+        Power Platform
         <svg
           width="16"
           height="16"

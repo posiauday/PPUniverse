@@ -200,14 +200,14 @@ export const GATED_PAGES: readonly GatedPage[] = [
     // Menu button instead, whose panel lists the same technologies.
     id: "home-technologies-menu-open",
     route: "/",
-    description: "home page with the header's Technologies menu (or, below lg, its Menu) open",
+    description: "home page with the header's Power Platform menu (or, below lg, its Menu) open",
     auth: "guest",
     status: 200,
     path: () => "/",
     prepare: async (page) => {
       const menu = page.getByRole("button", { name: "Menu" });
       if (await menu.isVisible()) await menu.click();
-      else await page.getByRole("button", { name: "Technologies" }).click();
+      else await page.getByRole("button", { name: "Power Platform" }).click();
       await expect(
         page.getByRole("link", { name: "Power Automate" }).filter({ visible: true }).first(),
       ).toBeVisible();

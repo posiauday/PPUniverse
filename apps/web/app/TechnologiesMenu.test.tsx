@@ -45,14 +45,14 @@ afterEach(cleanup);
 describe("TechnologiesMenu", () => {
   it("starts closed, with its links hidden", () => {
     render(<TechnologiesMenu areas={AREAS} />);
-    const button = screen.getByRole("button", { name: "Technologies" });
+    const button = screen.getByRole("button", { name: "Power Platform" });
     expect(button.getAttribute("aria-expanded")).toBe("false");
     expect(screen.queryByRole("link", { name: "Power Apps" })).toBeNull();
   });
 
   it("opens to show every area link, and the button controls the panel", () => {
     render(<TechnologiesMenu areas={AREAS} />);
-    const button = screen.getByRole("button", { name: "Technologies" });
+    const button = screen.getByRole("button", { name: "Power Platform" });
     fireEvent.click(button);
     expect(button.getAttribute("aria-expanded")).toBe("true");
     const panel = document.getElementById(button.getAttribute("aria-controls") as string);
@@ -62,7 +62,7 @@ describe("TechnologiesMenu", () => {
 
   it("shows each area's count, start-here guide and sections, and a way into Guides by goal", () => {
     render(<TechnologiesMenu areas={AREAS} />);
-    fireEvent.click(screen.getByRole("button", { name: "Technologies" }));
+    fireEvent.click(screen.getByRole("button", { name: "Power Platform" }));
     expect(screen.getByText("4 guides")).toBeTruthy();
     expect(screen.getByText("1 guide")).toBeTruthy();
     expect(
@@ -80,14 +80,14 @@ describe("TechnologiesMenu", () => {
 
   it("marks Governance & admin as new until its first guides exist", () => {
     render(<TechnologiesMenu areas={AREAS} />);
-    fireEvent.click(screen.getByRole("button", { name: "Technologies" }));
+    fireEvent.click(screen.getByRole("button", { name: "Power Platform" }));
     expect(screen.getByText("New")).toBeTruthy();
     expect(screen.getByText("First guides coming soon")).toBeTruthy();
   });
 
   it("closes on Escape and returns focus to the button", () => {
     render(<TechnologiesMenu areas={AREAS} />);
-    const button = screen.getByRole("button", { name: "Technologies" });
+    const button = screen.getByRole("button", { name: "Power Platform" });
     fireEvent.click(button);
     screen.getByRole("link", { name: "Power Apps" }).focus();
     fireEvent.keyDown(document, { key: "Escape" });
@@ -102,7 +102,7 @@ describe("TechnologiesMenu", () => {
         <p>outside</p>
       </div>,
     );
-    const button = screen.getByRole("button", { name: "Technologies" });
+    const button = screen.getByRole("button", { name: "Power Platform" });
     fireEvent.click(button);
     fireEvent.pointerDown(screen.getByText("outside"));
     expect(button.getAttribute("aria-expanded")).toBe("false");
