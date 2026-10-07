@@ -32,7 +32,7 @@ MVP-030,Deploy to Netlify,In Progress,P1,6,5
 MVP-031,Daylight redesign,QA,P1,6,13
 MVP-032,"About, Privacy and Terms pages",QA,P1,6,5
 MVP-033,Navigation restructure,QA,P1,7,13
-MVP-037,Hub framing,In Progress,P1,8,5
+MVP-037,Hub framing,QA,P1,8,5
 MVP-038,Reference pages and trust signals,Backlog,P1,8,5
 MVP-039,Did this fix it? votes and Accepted fixes,Backlog,P2,8,5
 MVP-040,Community solutions,Backlog,P2,8,5
@@ -41,3 +41,5 @@ MVP-035,Google sign-in,QA,P1,8,5
 MVP-036,Email and password sign-in,QA,P1,8,8
 MVP-041,Article visuals: own diagrams and screenshots,Backlog,P1,8,8
 MVP-042,SEO additions with the guide-page redesign,Backlog,P1,8,5
+MVP-043,Animated logo,Backlog,P2,8,3
+MVP-044,Branded emails,QA,P1,8,5

@@ -3,8 +3,8 @@ import { prisma } from "@ppu/db";
 import type { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { EMAIL_FROM, notificationService } from "./email";
+import { EMAILS, renderEmail } from "./email-templates";
 import { googleCredentials, googleProvider, withoutStoredTokens } from "./google-auth";
-import { SITE_NAME } from "./seo/site";
 import { confirmLinkFrom } from "./signin-confirm";
 
 // Migrated onto the real vendor abstraction (MVP-018, FR-013;
@@ -49,9 +49,8 @@ export const authOptions: NextAuthOptions = {
         // accessibility gate's signin-send-failed state) are unchanged.
         await notificationService.sendTransactional("SIGNIN_LINK", existingUser?.id ?? null, {
           to: identifier,
-          subject: `Sign in to ${SITE_NAME}`,
-          text: `Open this link, then press "Sign me in" (the link expires in 24 hours and works once): ${url}`,
-          html: `<p>Open this link, then press <strong>Sign me in</strong> (the link expires in 24 hours and works once): <a href="${url.replace(/&/g, "&amp;")}">${url.replace(/&/g, "&amp;")}</a></p>`,
+          // MVP-044: the branded layout; the logo comes from the link's own origin.
+          ...renderEmail(EMAILS.signInLink(url), new URL(url).origin),
         });
       },
     }),

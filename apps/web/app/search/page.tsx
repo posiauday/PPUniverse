@@ -1,4 +1,4 @@
-import { technologyInfo, type ArticleSearchHit } from "@ppu/domain-content";
+import { areaBySlug, technologyInfo, type ArticleSearchHit } from "@ppu/domain-content";
 import {
   firstParam,
   normalizeQuery,
@@ -53,11 +53,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const sort = resolveSortOption(firstParam(params["sort"]), Boolean(query));
   const page = parsePage(firstParam(params["page"]));
   const pageSize = parsePageSize(firstParam(params["pageSize"]));
+  // A hub's search box sends its area (MVP-037): ?tech=power-automate. An
+  // unknown value is ignored, so a bad link still searches everything.
+  const area = areaBySlug(firstParam(params["tech"]) ?? "");
 
   // Guides only on the first page: later pages page through components.
   const [guides, result] = await Promise.all([
     query && page === 1
-      ? contentRepository.searchPublishedArticles({ query, limit: GUIDE_RESULT_LIMIT })
+      ? contentRepository.searchPublishedArticles({
+          query,
+          limit: GUIDE_RESULT_LIMIT,
+          ...(area ? { technology: area.technology } : {}),
+        })
       : Promise.resolve([] as ArticleSearchHit[]),
     catalogRepository.searchProducts({ query, sort, page, pageSize }),
   ]);
@@ -66,6 +73,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     query,
     sort,
     page,
+    area: area?.slug ?? null,
     guideCount: guides.length,
     resultCount: result.items.length,
     total: result.total,
@@ -85,9 +93,23 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           action="/search"
           defaultValue={query}
           label="Search guides and components"
-          preserveParams={{ sort }}
+          preserveParams={{ sort, tech: area?.slug }}
         />
       </div>
+
+      {area ? (
+        <p className="mt-4 flex flex-wrap items-center gap-x-3 text-sm">
+          <span className="rounded-full bg-muted px-3 py-1.5 font-semibold">
+            {area.name} guides only
+          </span>
+          <Link
+            href={query ? `/search?q=${encodeURIComponent(query)}` : "/search"}
+            className="inline-flex min-h-11 items-center underline underline-offset-4"
+          >
+            Search all guides
+          </Link>
+        </p>
+      ) : null}
 
       {query ? (
         <p

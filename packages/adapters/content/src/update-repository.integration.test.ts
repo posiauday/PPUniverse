@@ -73,6 +73,12 @@ describe.skipIf(!hasDatabase)("PrismaUpdateRepository (integration, MVP-033)", (
       .map((u) => u.slug)
       .filter((slug) => slug.startsWith("update-repo-"));
     expect(list).toEqual(["update-repo-second", "update-repo-first"]);
+    // A hub's "What changed" (MVP-037) asks for one area's updates only.
+    const ours = (u: { slug: string }) => u.slug.startsWith("update-repo-");
+    const automate = await repo.listPublishedUpdates({ limit: 50, technology: "POWER_AUTOMATE" });
+    expect(automate.filter(ours).map((u) => u.slug)).toEqual(["update-repo-second", "update-repo-first"]);
+    const bi = await repo.listPublishedUpdates({ limit: 50, technology: "POWER_BI" });
+    expect(bi.filter(ours)).toEqual([]);
     const times = await repo.listPublishedUpdateTimes(50);
     expect(times.length).toBeGreaterThanOrEqual(2);
     expect(times[0]?.getTime()).toBeGreaterThanOrEqual(times[1]?.getTime() ?? 0);

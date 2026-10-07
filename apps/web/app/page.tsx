@@ -8,7 +8,9 @@ import { contentRepository } from "../lib/content";
 import { buildWebSiteJsonLd } from "../lib/seo/json-ld";
 import { buildHomeMetadata } from "../lib/seo/metadata";
 import { getSiteUrl } from "../lib/site-url";
+import { updateRepository } from "../lib/updates";
 import { HomeHero } from "./HomeHero";
+import { FixFirstBand, LatestUpdates } from "./home/HomeFixesAndUpdates";
 import { BrokenFirst, ClosingBand, StartHereCards, TopicRibbon } from "./home/HomeSections";
 import { TechnologyPanels } from "./home/TechnologyPanels";
 import { ArticleList } from "./learn/ArticleList";
@@ -21,6 +23,8 @@ const HOME_PRODUCT_LIMIT = 4;
 const HOME_SUMMARY_LIMIT = 500;
 /** Titles in the decorative topic ribbon. */
 const RIBBON_LIMIT = 8;
+/** The newest platform updates on the home page (the full list is /updates). */
+const HOME_UPDATE_LIMIT = 3;
 /**
  * The three launch guides "Start with the big three" names (docs/final-
  * decisions.md, "Visual redesign: Daylight", implementation decision 3).
@@ -53,10 +57,11 @@ export function generateMetadata(): Metadata {
  * is left out when it has nothing to show.
  */
 export default async function HomePage() {
-  const [categories, summaries, products] = await Promise.all([
+  const [categories, summaries, products, updates] = await Promise.all([
     catalogRepository.listCategories(),
     contentRepository.listPublishedArticleSummaries({ limit: HOME_SUMMARY_LIMIT }),
     catalogRepository.searchProducts({ sort: "recent", page: 1, pageSize: HOME_PRODUCT_LIMIT }),
+    updateRepository.listPublishedUpdates({ limit: HOME_UPDATE_LIMIT }),
   ]);
   const site = getSiteUrl();
 
@@ -99,6 +104,9 @@ export default async function HomePage() {
         </div>
         <TechnologyPanels counts={counts} />
       </section>
+
+      {/* Each product's most-needed fixes, linking straight to their guides (MVP-037). */}
+      <FixFirstBand articles={summaries} />
 
       <BrokenFirst />
 
@@ -146,6 +154,8 @@ export default async function HomePage() {
         </section>
       ) : null}
 
+      <LatestUpdates updates={updates} />
+
       {products.items.length > 0 ? (
         <section aria-labelledby="home-components" className="mx-auto mt-20 max-w-[77.5rem]">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -174,7 +184,9 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {categories.length > 0 ? (
+      {/* Store categories only once the store has a published product: until then
+          every category page is empty, a dead end from the home page. */}
+      {categories.length > 0 && products.items.length > 0 ? (
         <section aria-labelledby="home-categories" className="mx-auto mt-20 max-w-[77.5rem]">
           <h2 id="home-categories" className="text-4xl font-bold md:text-[3.5rem]">
             Browse by <span className="accent-word text-coral">category</span>.

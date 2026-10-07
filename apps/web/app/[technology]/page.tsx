@@ -9,12 +9,10 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../lib/seo/
 import { buildNotFoundMetadata, buildTechnologySectionMetadata } from "../../lib/seo/metadata";
 import { SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
+import { HUB_SEO } from "../../lib/technology-hubs";
 import { TECHNOLOGY_PALETTE } from "../../lib/technology-palette";
-import {
-  SECTION_ARTICLE_LIMIT,
-  TECHNOLOGY_BLURB,
-  sectionPath,
-} from "../../lib/technology-sections";
+import { SECTION_ARTICLE_LIMIT, sectionPath } from "../../lib/technology-sections";
+import { updateRepository } from "../../lib/updates";
 import { OtherAreas } from "./OtherAreas";
 import { TechnologyHeroVisual } from "./TechnologyHeroVisual";
 import { TechnologyHub } from "./TechnologyHub";
@@ -30,19 +28,28 @@ export const dynamic = "force-dynamic";
 // exactly the title app/not-found.tsx gives every other 404 (BUG-008).
 const NOT_FOUND_TITLE = `Page not found | ${SITE_NAME}`;
 
-const hubTitle = (technology: TechnologyInfo) => `${technology.name} guides`;
-const hubDescription = (technology: TechnologyInfo) =>
-  `Free ${technology.name} guides: fixes, comparisons, patterns and how to measure success, organised by area.`;
+// MVP-037: each hub's title and description name the product and what it helps with.
+const hubTitle = (technology: TechnologyInfo) => HUB_SEO[technology.technology].title;
+const hubDescription = (technology: TechnologyInfo) => HUB_SEO[technology.technology].description;
+
+/** How many of the area's updates the hub's "What changed" row shows. */
+const HUB_UPDATES = 2;
 
 // generateMetadata and the page share one load per request.
 const getHub = cache(async (slug: string) => {
   const technology = technologyBySlug(slug);
   if (!technology) return null;
-  const articles = await contentRepository.listPublishedArticleSummaries({
-    limit: SECTION_ARTICLE_LIMIT,
-    technology: technology.technology,
-  });
-  return { technology, articles };
+  const [articles, updates] = await Promise.all([
+    contentRepository.listPublishedArticleSummaries({
+      limit: SECTION_ARTICLE_LIMIT,
+      technology: technology.technology,
+    }),
+    updateRepository.listPublishedUpdates({
+      limit: HUB_UPDATES,
+      technology: technology.technology,
+    }),
+  ]);
+  return { technology, articles, updates };
 });
 
 export async function generateMetadata({ params }: TechnologyPageProps): Promise<Metadata> {
@@ -67,7 +74,7 @@ export async function generateMetadata({ params }: TechnologyPageProps): Promise
 export default async function TechnologyPage({ params }: TechnologyPageProps) {
   const hub = await getHub((await params).technology);
   if (!hub) notFound();
-  const { technology, articles } = hub;
+  const { technology, articles, updates } = hub;
   const palette = TECHNOLOGY_PALETTE[technology.technology];
   const site = getSiteUrl();
   const url = site.ok ? technologySectionUrl(site.origin, sectionPath(technology, "learn")) : null;
@@ -92,12 +99,12 @@ export default async function TechnologyPage({ params }: TechnologyPageProps) {
       area={{
         key: technology.technology,
         name: technology.name,
-        tagline: palette.tagline,
-        blurb: TECHNOLOGY_BLURB[technology.technology],
+        slug: technology.slug,
         tint: palette.tint,
         ink: palette.ink,
       }}
       articles={articles}
+      updates={updates}
       heroVisual={<TechnologyHeroVisual technology={technology.technology} />}
       footer={
         <>

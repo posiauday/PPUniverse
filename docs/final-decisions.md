@@ -2007,3 +2007,43 @@ The product owner restated that **only signed-in readers may comment or post**, 
 - Sign-in creates the same **database session** the other methods create, so the Account sessions page keeps working.
 - Failed attempts are limited per account and per IP address, through a database table. Serverless memory can't be trusted.
 - Reset and confirmation links are single-use, expire after 1 hour, and are stored only as SHA-256 hashes.
+
+## 2026-10-06 — Hub headlines (all seven) and hub build order (MVP-037)
+
+**Source:** direct product-owner instruction in this session. Asked to approve the five drafted hub headlines, the product owner answered: "review all and update what would be the best for it and then design it and implement". The wording is delegated to the agent, as recorded here. Asked about order, they chose **hubs first**, before the guide-page frame. This changes `docs/plans/guide-and-hub-redesign.md`'s slice order from 1 → 3 → 2 → 4 → 5 to 3 → 1 → 2 → 4 → 5.
+
+**Headlines, as built** (lead, then the serif accent):
+- **Power Automate:** "Flows that run, *and tell you when they don't*". Kept: approved 2026-10-06.
+- **Power BI:** "From messy exports *to numbers people trust*". Kept: approved 2026-10-06.
+- **Power Apps:** "Apps that open fast, *and see every row*". This replaces the draft "Apps people open every day, built to last". The new one names the two problems people bring most often, slow apps and the 500-row delegation limit, in the same "does X, and Y" rhythm as Power Automate.
+- **Copilot Studio:** "Agents that answer right, *and know when not to*". This replaces "Agents that answer from your data, and only what they should". It's shorter, and covers the same two themes: grounding, and keeping answers inside what the agent should say.
+- **Dataverse:** "Tables that stay fast, *and open only to the right people*". This replaces "Tables that stay tidy, secure and fast". It leads with the security model, the area's most-asked problem (security roles and "missing privilege" errors).
+- **Power Pages:** "Sites for your customers, *secured table by table*". This replaces "Websites for your customers, secured by design". It names how Power Pages actually secures data, table permissions, and avoids the vaguer "by design".
+- **Governance & admin:** "Room to build, *with guardrails that hold*". Kept as drafted.
+
+None of the headlines claims Microsoft endorsement or a product capability. They describe what the guides help a reader achieve.
+
+**Also delegated and built with the hubs:**
+- **Most-needed fixes:** each hub's two to five problems, chosen from the research in `docs/research/content-briefs/`. Each one links straight to the guide that fixes it.
+- **Search titles and descriptions:** each hub names the product and what it helps with (`HUB_SEO`, `apps/web/lib/technology-hubs.ts`).
+
+## 2026-10-06 — Branded emails: concept E1 and the wording (MVP-044)
+
+**Source:** direct product-owner instruction in this session.
+- **Request:** "start designing the email that we send out to have our design system and nice UI, all emails that go from the site".
+- **Design:** the design board's "Emails" row offered three concepts. Asked which one, the product owner chose **E1, "Card on cream"**: the site's cream page, a white card, the X2 logo, a lime marker under the heading's last words and a black pill button.
+- **Wording:** asked whether the wording on the "All four emails" board was OK, they answered: "You decide what to put in wording". The wording is the agent's, recorded here, and replaces the deletion receipt's old placeholder text.
+
+**The four emails, as built** (`apps/web/lib/email-templates.ts`, `EMAILS`):
+- **Sign-in link:** "Your sign-in *link*". It says the link works once and expires in 24 hours (Auth.js's default), and explains the second button on the site (scanner protection, MVP-034).
+- **Confirm your email** (password sign-up): one step left; the link expires in 1 hour.
+- **Choose a new password:** set or reset; saving signs you out on every other device; the link expires in 1 hour.
+- **Deletion request received:** "We'll review the request and reply within 30 days, as our Privacy notice promises", with a button to the account page and the contact address.
+
+**Rules for every email:**
+- Tables and inline styles, and system fonts.
+- The logo as a PNG from the site (`/email/logo.png`), because Gmail shows no SVG. It is the only image: no tracking pixel, no tracked links.
+- A plain link under every button, and a plain-text version of each email.
+- Dark-mode colours where the mail app supports them.
+- The independent notice in every footer.
+

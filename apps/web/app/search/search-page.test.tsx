@@ -74,6 +74,25 @@ describe("search page", () => {
     expect(html).not.toContain(E);
   });
 
+  it("searches one area's guides when a hub sends its area, and says so (MVP-037)", async () => {
+    const html = await render({ q: "trigger", tech: "power-automate" });
+    expect(content.searchPublishedArticles).toHaveBeenCalledWith({
+      query: "trigger",
+      limit: 20,
+      technology: "POWER_AUTOMATE",
+    });
+    expect(html).toContain("Power Automate guides only");
+    expect(html).toContain('href="/search?q=trigger"');
+    // The search box keeps the area, so searching again stays in it.
+    expect(html).toContain('name="tech" value="power-automate"');
+  });
+
+  it("ignores an unknown area and searches everything", async () => {
+    const html = await render({ q: "trigger", tech: "not-an-area" });
+    expect(content.searchPublishedArticles).toHaveBeenCalledWith({ query: "trigger", limit: 20 });
+    expect(html).not.toContain("guides only");
+  });
+
   it("does not search guides without a query, or on a later page of components", async () => {
     await render({});
     await render({ q: "delegation", page: "2" });

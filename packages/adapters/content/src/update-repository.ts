@@ -78,9 +78,16 @@ export class PrismaUpdateRepository implements UpdateRepository {
     return rows.map(toUpdateRecord);
   }
 
-  async listPublishedUpdates(options: { limit: number }): Promise<PublishedUpdate[]> {
+  /** Newest first. With `technology`, only that area's updates (a hub's "What changed"). */
+  async listPublishedUpdates(options: {
+    limit: number;
+    technology?: Technology;
+  }): Promise<PublishedUpdate[]> {
     const rows = await this.db.updateItem.findMany({
-      where: { status: "PUBLISHED" },
+      where: {
+        status: "PUBLISHED",
+        ...(options.technology ? { technology: options.technology } : {}),
+      },
       orderBy: [{ publishedAt: "desc" }, { slug: "asc" }],
       take: options.limit,
     });

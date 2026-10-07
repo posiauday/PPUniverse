@@ -27,11 +27,6 @@ export interface HubTopic {
   planned: readonly string[];
 }
 
-export interface HubProblem {
-  label: string;
-  query: string;
-}
-
 export const HUB_TOPICS: Readonly<Record<HubKey, readonly HubTopic[]>> = {
   POWER_APPS: [
     {
@@ -76,7 +71,7 @@ export const HUB_TOPICS: Readonly<Record<HubKey, readonly HubTopic[]>> = {
       id: "triggers-and-design",
       name: "Triggers & flow design",
       description: "Automated, scheduled and instant flows.",
-      planned: ["Why didn't my trigger fire?"],
+      planned: [],
     },
     { id: "approvals", name: "Approvals", description: "Approvals that don't stall.", planned: [] },
     {
@@ -127,13 +122,13 @@ export const HUB_TOPICS: Readonly<Record<HubKey, readonly HubTopic[]>> = {
       id: "refresh-and-gateways",
       name: "Refresh & gateways",
       description: "Scheduled refresh and the on-premises gateway.",
-      planned: ["Fixing refresh failures and the gateway"],
+      planned: [],
     },
     {
       id: "security-and-sharing",
       name: "Security & sharing",
       description: "Row-level security, workspaces and apps.",
-      planned: ["Row-level security that holds up"],
+      planned: [],
     },
   ],
   COPILOT_STUDIO: [
@@ -250,7 +245,7 @@ export const HUB_TOPICS: Readonly<Record<HubKey, readonly HubTopic[]>> = {
       id: "data-policies",
       name: "Data policies (DLP) & connectors",
       description: "Data policies, advanced connector policies, custom and MCP connectors.",
-      planned: ["Data policies that don't break makers' flows"],
+      planned: [],
     },
     {
       id: "security-and-access",
@@ -286,43 +281,160 @@ export const HUB_TOPICS: Readonly<Record<HubKey, readonly HubTopic[]>> = {
 };
 
 /** Quick problem chips under each hub's search box (searches the site). */
-export const HUB_PROBLEMS: Readonly<Record<HubKey, readonly HubProblem[]>> = {
+/**
+ * The H1 "Fix first" hub (MVP-037; docs/final-decisions.md, 2026-10-06,
+ * "Guide page and hub designs chosen" and "Hub headlines"). Each area's
+ * headline, in two parts: the plain lead, then the accent drawn in the serif.
+ */
+export interface HubHeadline {
+  lead: string;
+  accent: string;
+}
+
+export const HUB_HEADLINES: Readonly<Record<HubKey, HubHeadline>> = {
+  POWER_APPS: { lead: "Apps that open fast,", accent: "and see every row" },
+  POWER_AUTOMATE: { lead: "Flows that run,", accent: "and tell you when they don't" },
+  POWER_BI: { lead: "From messy exports", accent: "to numbers people trust" },
+  COPILOT_STUDIO: { lead: "Agents that answer right,", accent: "and know when not to" },
+  DATAVERSE: { lead: "Tables that stay fast,", accent: "and open only to the right people" },
+  POWER_PAGES: { lead: "Sites for your customers,", accent: "secured table by table" },
+  GOVERNANCE_ADMIN: { lead: "Room to build,", accent: "with guardrails that hold" },
+};
+
+/** A "Most-needed fixes" chip: a short label that links straight to one guide. */
+export interface HubFix {
+  slug: string;
+  label: string;
+}
+
+/**
+ * The problems people bring to each area most often (the research in
+ * docs/research/content-briefs/), each linked to the guide that fixes it.
+ * The hub shows a chip only while its guide is published, so a draft or a
+ * removed guide never leaves a dead link; a test checks every slug exists.
+ */
+export const HUB_TOP_FIXES: Readonly<Record<HubKey, readonly HubFix[]>> = {
   POWER_APPS: [
-    { label: "Delegation warning", query: "delegation" },
-    { label: "App is slow", query: "performance" },
-    { label: "Formula errors", query: "formula" },
+    { slug: "power-apps-delegation-500-rows", label: "Gallery stops at 500 rows" },
+    { slug: "delegation-cheat-sheet", label: "Delegation warning" },
+    { slug: "save-attachments-and-photos-to-sharepoint", label: "Save photos to SharePoint" },
+    { slug: "canvas-vs-model-driven-apps", label: "Canvas or model-driven?" },
   ],
   POWER_AUTOMATE: [
-    { label: "Approval stuck", query: "approval" },
-    { label: "Flow failed", query: "error handling" },
-    { label: "Flows or Logic Apps?", query: "logic apps" },
+    { slug: "why-didnt-my-trigger-fire", label: "My trigger didn't fire" },
+    { slug: "502-bad-gateway-intermittent-failures", label: "502 and random failures" },
+    { slug: "dynamic-content-missing-parse-json", label: "Dynamic content missing" },
+    { slug: "get-more-than-5000-sharepoint-items", label: "More than 5,000 items" },
+    { slug: "desktop-flow-connection-not-found", label: "Desktop flow won't run" },
   ],
   POWER_BI: [
-    { label: "Totals are wrong", query: "totals" },
-    { label: "Star schema", query: "star schema" },
-    { label: "KPI card", query: "kpi" },
+    { slug: "refresh-failures-checklist", label: "Refresh failed" },
+    { slug: "move-upgrade-share-a-gateway", label: "Gateway problems" },
+    { slug: "power-bi-permissions-cheat-sheet", label: "Who can see what" },
+    { slug: "why-are-my-totals-wrong", label: "Totals are wrong" },
   ],
   COPILOT_STUDIO: [
-    { label: "Knowledge sources", query: "knowledge" },
-    { label: "Grounding safely", query: "grounding" },
-    { label: "First agent", query: "agent" },
+    { slug: "knowledge-limits-and-fixes", label: "Agent finds nothing" },
+    { slug: "agent-on-dataverse-tables", label: "Generic answers from Dataverse" },
+    { slug: "copilot-studio-licensing-and-credits", label: "Which licence do I need?" },
+    { slug: "your-first-agent", label: "Build your first agent" },
   ],
   DATAVERSE: [
-    { label: "Security roles", query: "security roles" },
-    { label: "Schema design", query: "schema" },
-    { label: "Dataverse or SharePoint?", query: "sharepoint lists" },
+    { slug: "security-access-cheat-sheet", label: "‘Missing privilege’ error" },
+    { slug: "dataverse-or-sharepoint-lists", label: "Dataverse or SharePoint?" },
+    { slug: "security-roles-business-units-teams", label: "Roles and teams in a tangle" },
+    { slug: "design-your-first-dataverse-schema", label: "Design a schema" },
   ],
   POWER_PAGES: [
-    { label: "Table permissions", query: "table permissions" },
-    { label: "First site", query: "power pages site" },
-    { label: "Pages or SharePoint?", query: "sharepoint site" },
+    { slug: "table-permissions-checklist", label: "Users see no data" },
+    { slug: "invite-users-to-power-pages", label: "Invitations not working" },
+    { slug: "power-pages-web-api-cheat-sheet", label: "Web API errors" },
+    { slug: "power-pages-licensing-explained", label: "Who counts as a user?" },
   ],
   GOVERNANCE_ADMIN: [
-    { label: "Data policies", query: "data policies" },
-    { label: "Environments", query: "environments" },
-    { label: "Security roles", query: "security roles" },
+    { slug: "dataverse-capacity-email", label: "Got a capacity email?" },
+    { slug: "data-policy-checklist", label: "Set up data policies" },
   ],
 };
+
+/**
+ * Power BI's hub draws its sections as a journey (the H2 concept, chosen for
+ * Power BI only): the order a report gets built, each stop one section.
+ */
+export const HUB_JOURNEYS: Readonly<Partial<Record<HubKey, Readonly<Record<string, string>>>>> = {
+  POWER_BI: {
+    "data-modelling": "Model the data",
+    dax: "Get the maths right",
+    "reports-and-kpis": "Show it well",
+    "refresh-and-gateways": "Keep it fresh",
+    "security-and-sharing": "Share it safely",
+  },
+};
+
+/**
+ * Each hub's page title and description for search results (MVP-042): the
+ * product, then what the hub helps with, in the words people search.
+ */
+export const HUB_SEO: Readonly<Record<HubKey, { title: string; description: string }>> = {
+  POWER_APPS: {
+    title: "Power Apps guides: delegation, speed and app design",
+    description:
+      "Free Power Apps guides: fix delegation warnings and the 500-row limit, save photos to SharePoint, and choose canvas or model-driven.",
+  },
+  POWER_AUTOMATE: {
+    title: "Power Automate guides: fix flows, triggers and errors",
+    description:
+      "Free Power Automate guides: triggers that don't fire, 502 errors, more than 5,000 items, approvals, desktop flows and error codes.",
+  },
+  POWER_BI: {
+    title: "Power BI guides: refresh, gateways, DAX and sharing",
+    description:
+      "Free Power BI guides: fix failed refreshes and gateways, totals that don't add up, row-level security and who can see what.",
+  },
+  COPILOT_STUDIO: {
+    title: "Copilot Studio guides: knowledge, licensing and agents",
+    description:
+      "Free Copilot Studio guides: knowledge sources that find nothing, grounding on Dataverse, licences and credits, and agent KPIs.",
+  },
+  DATAVERSE: {
+    title: "Dataverse guides: schema, security roles and data",
+    description:
+      "Free Dataverse guides: design a schema, untangle security roles and teams, fix missing-privilege errors, and choose Dataverse or SharePoint.",
+  },
+  POWER_PAGES: {
+    title: "Power Pages guides: permissions, Web API and sign-in",
+    description:
+      "Free Power Pages guides: table permissions and web roles, the Web API, inviting users, licensing and your first site.",
+  },
+  GOVERNANCE_ADMIN: {
+    title: "Power Platform governance & admin",
+    description:
+      "Environments, data policies (DLP), security, the CoE, ALM, licensing and AI governance for Power Platform admins.",
+  },
+};
+
+/** The "Most-needed fixes" whose guides are published, in the configured order. */
+export function publishedFixes(key: HubKey, articles: readonly ArticleSummary[]): HubFix[] {
+  const published = new Set(articles.map((article) => article.slug));
+  return HUB_TOP_FIXES[key].filter((fix) => published.has(fix.slug));
+}
+
+/** The area's quick-reference guides (up to three), for the "Look it up" row. */
+export function lookItUp(articles: readonly ArticleSummary[]): ArticleSummary[] {
+  return articles.filter((article) => article.type === "REFERENCE").slice(0, 3);
+}
+
+/**
+ * A guide title split for a card: "Cloud flow error codes: what each one
+ * means" becomes the heading "Cloud flow error codes" and the line "What each
+ * one means". A title without ": " stays whole.
+ */
+export function splitTitle(title: string): { heading: string; detail: string | null } {
+  const at = title.indexOf(": ");
+  if (at < 0) return { heading: title, detail: null };
+  const detail = title.slice(at + 2);
+  return { heading: title.slice(0, at), detail: detail.charAt(0).toUpperCase() + detail.slice(1) };
+}
 
 export interface HubSection extends HubTopic {
   guides: ArticleSummary[];

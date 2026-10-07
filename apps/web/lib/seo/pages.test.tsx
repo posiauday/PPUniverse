@@ -52,7 +52,13 @@ vi.mock("next-auth/next", () => ({ getServerSession: vi.fn().mockResolvedValue(n
 // Next.js build; these tests read the layout's metadata, not its fonts.
 vi.mock("next/font/google", () => {
   const font = () => ({ className: "font", variable: "--font", style: {} });
-  return { Bricolage_Grotesque: font, Instrument_Serif: font, Geist: font, Geist_Mono: font };
+  return {
+    Bricolage_Grotesque: font,
+    Instrument_Serif: font,
+    Geist: font,
+    Geist_Mono: font,
+    Google_Sans: font,
+  };
 });
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
@@ -224,6 +230,45 @@ describe("home page — learning content (SEO story)", () => {
     expect(markup).toContain(`id="home-learn"`);
     expect(markup).toContain('href="/learn/a"');
     expect(markup).toContain('href="/learn"');
+  });
+
+  it("links each product's most-needed fixes and the newest updates once published", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      summary("why-didnt-my-trigger-fire"),
+      summary("why-are-my-totals-wrong"),
+    ]);
+    updates.listPublishedUpdates.mockResolvedValueOnce([
+      {
+        id: "u1",
+        slug: "gateway-sign-in",
+        title: "Older gateways need an update",
+        summary: "Update the gateway.",
+        technology: "POWER_BI",
+        kind: "FEATURE",
+        action: null,
+        sourceUrl: "https://learn.microsoft.com/",
+        effectiveDate: null,
+        replacement: null,
+        publishedAt: new Date("2026-10-01T00:00:00Z"),
+      },
+    ]);
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup).toContain('id="home-fixes"');
+    expect(markup).toContain("My trigger didn&#x27;t fire");
+    expect(markup).toContain('href="/learn/why-are-my-totals-wrong"');
+    // Areas with no published fix are left out of the band.
+    expect(markup).not.toContain("Everything in Power Pages");
+    expect(markup).toContain('id="home-updates"');
+    expect(markup).toContain('href="/updates#gateway-sign-in"');
+    expect(updates.listPublishedUpdates).toHaveBeenCalledWith({ limit: 3 });
+  });
+
+  it("leaves out the fixes band, the updates and store categories while there is nothing to show", async () => {
+    const markup = renderToStaticMarkup(await HomePage());
+    expect(markup).not.toContain('id="home-fixes"');
+    expect(markup).not.toContain('id="home-updates"');
+    // No published component yet, so every category page would be empty.
+    expect(markup).not.toContain('id="home-categories"');
   });
 
   it("omits the section, but keeps the /learn link, when nothing is published", async () => {
@@ -447,9 +492,53 @@ describe("technology sections (MVP-028)", () => {
     expect(metadata.robots).toEqual({ index: false, follow: true });
     expect(canonicalOf(metadata)).toBe("https://example.com/power-apps");
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
-    expect(markup).toContain("Everything in Power Apps");
-    expect(markup).toContain("Coming soon");
+    expect(markup).toContain("Every area of Power Apps");
+    expect(markup).toContain("First guides coming soon");
+    // MVP-037: nothing published, so no fix chips, no Look it up row, no What changed.
+    expect(markup).not.toContain("Most-needed fixes");
+    expect(markup).not.toContain("Look it up");
+    expect(markup).not.toContain("What changed");
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual(["BreadcrumbList"]);
+  });
+
+  it("a hub links its most-needed fixes, quick references and latest updates (MVP-037)", async () => {
+    content.listPublishedArticleSummaries.mockResolvedValue([
+      { ...summary("power-apps-delegation-500-rows"), topic: "data-and-delegation" },
+      {
+        ...summary("delegation-cheat-sheet"),
+        type: "REFERENCE",
+        title: "Delegation cheat sheet: what works on SharePoint",
+      },
+    ]);
+    updates.listPublishedUpdates.mockResolvedValueOnce([
+      {
+        id: "u1",
+        slug: "canvas-change",
+        title: "A canvas change",
+        summary: "What changed, in plain words.",
+        technology: "POWER_APPS",
+        kind: "FEATURE",
+        action: null,
+        sourceUrl: "https://learn.microsoft.com/",
+        effectiveDate: null,
+        replacement: null,
+        publishedAt: new Date("2026-10-01T00:00:00Z"),
+      },
+    ]);
+    const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
+    expect(markup).toContain("Apps that open fast,");
+    expect(markup).toContain("Most-needed fixes");
+    expect(markup).toContain("Gallery stops at 500 rows");
+    // Only published fixes get a chip: the other Power Apps fixes are drafts here.
+    expect(markup).not.toContain("Save photos to SharePoint");
+    expect(markup).toContain("Look it up");
+    expect(markup).toContain("What works on SharePoint");
+    expect(markup).toContain("What changed");
+    expect(markup).toContain('href="/updates#canvas-change"');
+    expect(updates.listPublishedUpdates).toHaveBeenCalledWith({
+      limit: 2,
+      technology: "POWER_APPS",
+    });
   });
 
   it("a hub with guides is indexable and lists each guide in its own section", async () => {
@@ -459,7 +548,9 @@ describe("technology sections (MVP-028)", () => {
     ]);
     const metadata = await technologyMetadata(tech("power-apps"));
     expect(metadata.robots).toEqual({ index: true, follow: true });
-    expect(metadata.title).toBe(`Power Apps guides | ${SITE_NAME}`);
+    expect(metadata.title).toBe(
+      `Power Apps guides: delegation, speed and app design | ${SITE_NAME}`,
+    );
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
     // A guide with no topic falls into the first section; one with a topic into its own (MVP-033).
     const choose = markup.indexOf('id="choose-and-plan"');
@@ -467,7 +558,6 @@ describe("technology sections (MVP-028)", () => {
     expect(markup.indexOf('href="/learn/pa-guide"')).toBeGreaterThan(choose);
     expect(markup.indexOf('href="/learn/pa-guide"')).toBeLessThan(data);
     expect(markup.indexOf('href="/learn/pa-delegation"')).toBeGreaterThan(data);
-    expect(markup).toContain('href="#start-here"');
     expect(markup).toContain('href="/governance"');
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",

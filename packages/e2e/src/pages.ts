@@ -223,8 +223,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/power-apps",
     prepare: async (page, seed) => {
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Power Apps");
-      await expect(page.getByRole("heading", { name: "Everything in Power Apps" })).toBeVisible();
+      // MVP-037: the H1 hub. The heading names the area, then its headline.
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Power Apps");
+      await expect(page.getByRole("heading", { name: "Every area of Power Apps" })).toBeVisible();
       await expect(
         page.getByRole("link", { name: seed.publishedArticle.title }).first(),
       ).toBeVisible();
@@ -241,7 +242,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/dataverse/kpis",
     prepare: async (page) => {
       await expect(page).toHaveURL(/\/dataverse$/);
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dataverse");
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Dataverse");
     },
   },
   {
@@ -252,7 +253,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/governance",
     prepare: async (page) => {
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Governance & admin");
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Governance & admin");
     },
   },
   {

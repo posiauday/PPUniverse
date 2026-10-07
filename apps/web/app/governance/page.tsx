@@ -3,12 +3,12 @@ import { cache } from "react";
 import { contentRepository } from "../../lib/content";
 import { buildTechnologySectionMetadata } from "../../lib/seo/metadata";
 import { getSiteUrl } from "../../lib/site-url";
+import { HUB_SEO } from "../../lib/technology-hubs";
+import { updateRepository } from "../../lib/updates";
 import { OtherAreas, GOVERNANCE_AREA } from "../[technology]/OtherAreas";
 import { TechnologyHub } from "../[technology]/TechnologyHub";
 
-const TITLE = "Power Platform governance & admin";
-const DESCRIPTION =
-  "Environments, data policies (DLP), security, the CoE, ALM, licensing and AI governance for Power Platform admins.";
+const { title: TITLE, description: DESCRIPTION } = HUB_SEO.GOVERNANCE_ADMIN;
 
 // See apps/web/app/page.tsx for why content pages render per-request.
 export const dynamic = "force-dynamic";
@@ -42,19 +42,21 @@ export async function generateMetadata(): Promise<Metadata> {
  * (technology GOVERNANCE_ADMIN, slice B) and its planned ones.
  */
 export default async function GovernancePage() {
-  const guides = await getGuides();
+  const [guides, updates] = await Promise.all([
+    getGuides(),
+    updateRepository.listPublishedUpdates({ limit: 2, technology: "GOVERNANCE_ADMIN" }),
+  ]);
   return (
     <TechnologyHub
       area={{
         key: "GOVERNANCE_ADMIN",
         name: GOVERNANCE_AREA.name,
-        tagline: GOVERNANCE_AREA.tagline,
-        blurb:
-          "Environments, data policies, security, the CoE, ALM, licensing and AI governance: how admins keep Power Platform safe while makers keep building.",
+        slug: GOVERNANCE_AREA.slug,
         tint: GOVERNANCE_AREA.tint,
         ink: GOVERNANCE_AREA.ink,
       }}
       articles={guides}
+      updates={updates}
       footer={<OtherAreas currentSlug={GOVERNANCE_AREA.slug} />}
     />
   );
