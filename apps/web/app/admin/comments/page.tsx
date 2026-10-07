@@ -85,6 +85,7 @@ export default async function AdminCommentsPage() {
                     commentId={comment.id}
                     removed={comment.removed}
                     accepted={comment.accepted}
+                    reported={comment.reportCount > 0}
                   />
                 </li>
               ))}

@@ -1,5 +1,6 @@
 import { prisma } from "@ppu/db";
 import { catalogRepository } from "./catalog";
+import { ROLE_LABEL } from "./role-labels";
 
 /**
  * A unified, read-only admin audit log (MVP-019, FR-015/NFR-009; direct
@@ -17,7 +18,7 @@ import { catalogRepository } from "./catalog";
  */
 
 export type AuditLogDomain =
-  "product_status" | "release_publish" | "deletion_request" | "article_publish";
+  "product_status" | "release_publish" | "deletion_request" | "article_publish" | "role_change";
 
 export interface AuditLogEntry {
   id: string;
@@ -91,12 +92,31 @@ async function listArticlePublishEntries(limit: number): Promise<AuditLogEntry[]
   }));
 }
 
+/** MVP-047: role changes. Names people by display name, falling back to "someone": no emails in the log's summaries. */
+async function listRoleChangeEntries(limit: number): Promise<AuditLogEntry[]> {
+  const rows = await prisma.roleChangeEvent.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: { target: { select: { displayName: true } } },
+  });
+  const label = (role: string) => ROLE_LABEL[role as keyof typeof ROLE_LABEL] ?? role;
+  return rows.map((row) => ({
+    id: row.id,
+    domain: "role_change",
+    actorUserId: row.actorUserId,
+    summary: `Changed ${row.target.displayName ?? "someone"}'s role from ${label(row.fromRole)} to ${label(row.toRole)}`,
+    reason: null,
+    occurredAt: row.createdAt,
+  }));
+}
+
 export async function listRecentAuditLogEntries(limit: number): Promise<AuditLogEntry[]> {
   const sources = await Promise.all([
     listProductStatusEntries(limit),
     listReleasePublishEntries(limit),
     listDeletionRequestEntries(limit),
     listArticlePublishEntries(limit),
+    listRoleChangeEntries(limit),
   ]);
   return sources
     .flat()

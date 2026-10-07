@@ -123,7 +123,7 @@ export class PrismaCommentRepository implements CommentRepository {
 
   async listForAdmin(filter: "reported" | "latest", limit: number): Promise<AdminComment[]> {
     const rows = await this.db.articleComment.findMany({
-      where: filter === "reported" ? { reports: { some: {} } } : {},
+      where: filter === "reported" ? { removedAt: null, reports: { some: {} } } : {},
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit,
       select: {
@@ -158,6 +158,11 @@ export class PrismaCommentRepository implements CommentRepository {
       data: removed ? { removedAt: new Date(), acceptedAt: null } : { removedAt: null },
     });
     return count === 1;
+  }
+
+  async clearReports(commentId: string): Promise<boolean> {
+    const { count } = await this.db.commentReport.deleteMany({ where: { commentId } });
+    return count > 0;
   }
 
   async setAccepted(commentId: string, accepted: boolean): Promise<boolean> {

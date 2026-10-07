@@ -16,6 +16,7 @@ const comments = vi.hoisted(() => ({
   setAvatarSeed: vi.fn(),
   setRemoved: vi.fn(),
   setAccepted: vi.fn(),
+  clearReports: vi.fn(),
 }));
 const session = vi.hoisted(() => ({ userId: null as string | null, admin: false }));
 const logs = vi.hoisted(() => ({ info: vi.fn() }));
@@ -82,6 +83,7 @@ beforeEach(() => {
   comments.setDisplayName.mockResolvedValue(true);
   comments.setRemoved.mockResolvedValue(true);
   comments.setAccepted.mockResolvedValue(true);
+  comments.clearReports.mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -194,7 +196,7 @@ describe("POST /api/admin/comments/[id]/[action]", () => {
 
   it("removes, restores, accepts and unaccepts for an admin", async () => {
     session.admin = true;
-    for (const action of ["remove", "restore", "accept", "unaccept"]) {
+    for (const action of ["remove", "restore", "keep", "accept", "unaccept"]) {
       expect(
         (await moderate.POST(post(`/api/admin/comments/c-1/${action}`, {}), as(action))).status,
       ).toBe(200);
@@ -207,6 +209,7 @@ describe("POST /api/admin/comments/[id]/[action]", () => {
       ["c-1", true],
       ["c-1", false],
     ]);
+    expect(comments.clearReports).toHaveBeenCalledWith("c-1");
   });
 
   it("is a 404 for anyone else, and for an unknown action", async () => {

@@ -46,3 +46,14 @@ JSON, UTC timestamps, opaque IDs, cursor pagination for activity streams, bounde
 - the new `type` value `KPI_GUIDE`.
 
 Authorization is unchanged: deny-by-default ADMIN.
+
+## Comments, profiles and roles (MVP-040, MVP-047; 2026-10-07)
+
+All return `Cache-Control: no-store` where they change data. Public routes check the request comes from this site (`Origin`), and the comments routes answer `404` while `FEATURE_COMMENTS` is off.
+
+- `POST /api/guides/{slug}/comments` `{ body }`: signed in. 10 to 2,000 characters, at most 2 links. `401` signed out; `400 too-short | too-long | too-many-links`; `404` unknown or unpublished guide; `429` over 5 an hour or 20 a day. Creates the reader's profile on first use.
+- `POST /api/comments/{id}/report` `{}`: anyone; `429` over 10 an hour per address; `404` unknown or removed comment.
+- `POST /api/comments/{id}/delete` `{}`: the author only (`404` otherwise, `401` signed out). Deletes the comment and its reports.
+- `POST /api/account/profile` `{ displayName }` or `{ avatar: "new" }`: signed in. `400 too-short | too-long | characters | reserved`; `409 taken`; `429` over 10 changes a day.
+- `POST /api/admin/comments/{id}/{remove | restore | keep | accept | unaccept}`: admin only; anyone else `404`. `keep` clears the comment's reports; `accept` marks it the guide's accepted fix (clearing any other).
+- `POST /api/admin/users/{id}/role` `{ role: "MEMBER" | "CONTRIBUTOR" | "ADMIN" }`: admin only; anyone else `404`. `409 self` (your own role), `409 last-admin`, `409 same`; `400 unknown-role`; `404` unknown user. Recorded in `role_change_events` and the audit log.
