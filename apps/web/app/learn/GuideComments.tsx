@@ -30,7 +30,12 @@ function TextWithLinks({ text }: { text: string }) {
     const at = rest.indexOf(url);
     nodes.push(rest.slice(0, at));
     nodes.push(
-      <a key={index} href={url} rel="ugc nofollow noopener" className="break-all">
+      <a
+        key={index}
+        href={url}
+        rel="ugc nofollow noopener"
+        className="break-all underline underline-offset-4"
+      >
         {url}
       </a>,
     );
