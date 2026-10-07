@@ -9,6 +9,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: every job only reads the repository (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: Format, lint, typecheck, test, build
@@ -410,6 +414,10 @@ jobs:
 
   secret-scan:
     name: Secret scan
+    # gitleaks-action lists a pull request's commits with the token.
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

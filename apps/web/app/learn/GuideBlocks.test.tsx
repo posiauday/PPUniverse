@@ -4,7 +4,12 @@ import { outlineOf } from "../../lib/article-outline";
 import { ArticleBody } from "./ArticleBody";
 
 const render = (markdown: string) => renderToStaticMarkup(<ArticleBody markdown={markdown} />);
-const text = (html: string) => html.replace(/<[^>]+>/g, "").replace(/&#x27;/g, "'");
+// Strips the tags, then any stray "<", so no tag can survive (CodeQL: incomplete sanitization).
+const text = (html: string) =>
+  html
+    .replace(/<[^>]+>/g, "")
+    .replace(/</g, "")
+    .replace(/&#x27;/g, "'");
 
 /** Slice 2 (MVP-041): the Markdown conventions behind the G2 and G3 blocks. */
 describe("guide blocks", () => {

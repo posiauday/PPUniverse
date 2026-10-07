@@ -22,7 +22,9 @@ describe("TrustStrip", () => {
   it("credits the site's byline, never a person (No personal details on the site)", () => {
     const text = renderToStaticMarkup(
       <TrustStrip trust={trust} updatedAt={new Date("2026-10-07T00:00:00Z")} />,
-    ).replace(/<[^>]+>/g, "");
+    )
+      .replace(/<[^>]+>/g, "")
+      .replace(/</g, "");
     expect(text).toContain("Posted by the Maker Desk");
     expect(text).toContain("Checked against Microsoft Learn");
     expect(text).toContain("6 Oct 2026 · 5 sources");
