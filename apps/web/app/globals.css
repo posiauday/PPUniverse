@@ -705,6 +705,39 @@ samp {
 .motion-caret {
   animation: lcs-caret 1s steps(1) infinite;
 }
+/* Hub visuals (MVP-037, board H1/H2): a dot travelling between two flow
+   steps, a "waiting" label that breathes, and a progress track drawn once. */
+@keyframes lcs-travel {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - 14px);
+  }
+}
+@keyframes lcs-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes lcs-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.motion-travel {
+  animation: lcs-travel 4s linear infinite;
+}
+.motion-blink {
+  animation: lcs-blink 2s ease-in-out infinite;
+}
+.motion-draw {
+  transform-origin: left;
+  animation: lcs-draw 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+}
 .motion-grow {
   transform-origin: bottom;
   animation: lcs-grow 6s ease-in-out infinite;

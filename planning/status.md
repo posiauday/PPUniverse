@@ -2,7 +2,14 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-06 — **MVP-036 (Email and password sign-in) moves to QA:** sign-up with a confirmed email, sign-in, forgot and reset password, in its own PR.
+Last updated: 2026-10-06 (later) — **MVP-037 (Fix first hubs) moves to QA:** every area's hub is rebuilt to the chosen H1 board, and Power BI to the H2 journey.
+- **Each hub:** its headline, a search for that area only, most-needed fixes, a "Look it up" row, every section with guide badges, and "What changed".
+- **Headlines:** the product owner delegated the five unapproved ones; recorded in `docs/final-decisions.md`.
+- **Release:** password sign-in (MVP-036) went to `main` in #80. The Google button redesign is #81.
+- **New tech debt:** TD-030, accessibility shards timing out in CI.
+- **Next:** slice 1 of the redesign, the shared guide frame.
+
+Last updated (previous): 2026-10-06 — **MVP-036 (Email and password sign-in) moves to QA:** sign-up with a confirmed email, sign-in, forgot and reset password, in its own PR.
 - **Security:** scrypt hashing, the Have I Been Pwned check, attempt limits per account and per IP address, and single-use 1-hour links. The as-built review found and fixed two timing leaks: `docs/plans/mvp-036-password-sign-in.md`.
 - **Privacy notice:** new version 2026-10-07 (migration `20261007000100`).
 - **Board correction:** MVP-034 (PR #71) and MVP-035 (PR #72) were already merged into `develop`, but the backlog still showed In Progress and Backlog. Both are now QA.
@@ -159,8 +166,8 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 11 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-038, MVP-039, MVP-040, MVP-041, MVP-042 |
 | Ready | 0 | — |
-| In Progress | 3 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-037 |
-| QA | 7 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036 |
+| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
+| QA | 8 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
@@ -259,7 +266,7 @@ Full detail on every story is in `planning/progress-report.md`.
 ## Progress metrics
 
 - Stories done: 19 / 40 active (48%); 2 more are Superseded (42 on the board)
-- Stories in QA: 7 / 40 (MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036)
+- Stories in QA: 8 / 40 (MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037)
 - Points done: 139 / 283 (49%), not counting the 13 Superseded points
 - P0 points done: 103 / 132 (78%)
 - P1 points done: 36 / 141 (26%)
