@@ -4761,6 +4761,35 @@ The technology tiles were removed from `/learn` because the board has none, so `
   - the identity adapter's password-flow integration test timed out at 5 s on the runner. Its package now allows 60 s, like `domain-identity`.
   - An intermittent overflow on the admin product editor was found in already-delivered work: [BUG-024](bugs/BUG-024.md), fixed in this PR.
 
+## 2026-10-06 — Sign-in page: "Continue with Google" to Google's branding guidelines
+
+**Requested by:** the product owner ("google look so ugly").
+
+**Built:** the button now follows developers.google.com/identity/branding-guidelines, checked 2026-10-06:
+- the standard four-colour "G";
+- the light theme (#FFFFFF fill, #747775 stroke, #1F1F1F text) in both site themes;
+- Google Sans Medium 14/20, self-hosted (OFL, as in `google/fonts`) and loaded only by this button;
+- 12 / 10 / 12 px padding, in a full-width pill.
+
+The guidelines say the G must "appear on a white background" and don't say whether the dark theme's fill counts, so the plainly allowed light theme is used in dark mode too.
+
+**Other changes:**
+- An "or sign in with email" divider replaces "Or use your email:".
+- The duplicate "No password?" paragraph is removed; "Send sign-in link" below still offers the link.
+
+**Files:**
+- `apps/web/app/signin/GoogleButton.tsx` (new);
+- `apps/web/app/signin/page.tsx`;
+- `apps/web/app/fonts.ts`;
+- `apps/web/app/globals.css` (`.google-button`, `.auth-divider`);
+- `apps/web/lib/seo/pages.test.tsx` (font mock).
+
+**Also:** the BUG-025 record (sharp advisory), which closed PR #79 was carrying.
+
+**Checks:**
+- Rendered locally at 1280 px and 320 px, in light and dark: no sideways scrolling, a 44 px button, and computed colours and font as specified.
+- Web lint, typecheck, tests (639) and build pass.
+- The accessibility gate doesn't show the Google button: it has no Google settings. The page states it does show are unchanged except for the removed paragraph.
 ## 2026-10-06 — MVP-037: Fix first hubs on every area (status QA)
 
 **Story:** MVP-037 (Hub framing), built to the chosen H1 "Fix first" board on all seven areas, with Power BI drawn as the H2 journey (`docs/final-decisions.md`, "Guide page and hub designs chosen"). The product owner chose hubs first and delegated the five unapproved headlines; both are recorded in `docs/final-decisions.md`, "Hub headlines (all seven) and hub build order".
