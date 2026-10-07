@@ -7,8 +7,12 @@ import {
 } from "@ppu/domain-identity";
 import { logger } from "@ppu/telemetry";
 import { notificationService } from "./email";
+import { EMAILS, renderEmail } from "./email-templates";
 import { SITE_NAME } from "./seo/site";
-import { getSiteUrl } from "./site-url";
+import { siteOrigin } from "./site-url";
+
+// Re-exported: callers built before MVP-044 import it from here.
+export { siteOrigin };
 
 /**
  * Email and password sign-in, wired to the real database, Have I Been Pwned
@@ -16,28 +20,8 @@ import { getSiteUrl } from "./site-url";
  * The flows themselves live in @ppu/domain-identity.
  */
 
-/** The site origin links are built from: the canonical public origin, then NEXTAUTH_URL. */
-export function siteOrigin(): string | null {
-  const site = getSiteUrl();
-  if (site.ok) return site.origin;
-  const auth = process.env["NEXTAUTH_URL"];
-  try {
-    return auth ? new URL(auth).origin : null;
-  } catch {
-    return null;
-  }
-}
-
 function link(path: string, token: string): string {
   return `${siteOrigin() ?? ""}${path}?token=${encodeURIComponent(token)}`;
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 export const passwordAuth = new PasswordAuth({
@@ -50,18 +34,14 @@ export const passwordAuth = new PasswordAuth({
       const url = link("/password/confirm", token);
       await notificationService.sendTransactional("PASSWORD_CONFIRM", null, {
         to: email,
-        subject: `Confirm your email for ${SITE_NAME}`,
-        text: `Open this link, then press "Confirm" to finish creating your account. It works once and expires in 1 hour: ${url}\n\nIf you didn't sign up, ignore this email.`,
-        html: `<p>Open this link, then press <strong>Confirm</strong> to finish creating your account. It works once and expires in 1 hour: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p><p>If you didn't sign up, ignore this email.</p>`,
+        ...renderEmail(EMAILS.confirmSignUp(url), siteOrigin()),
       });
     },
     async sendSetPassword(email, token, userId) {
       const url = link("/password/reset", token);
       await notificationService.sendTransactional("PASSWORD_SET_LINK", userId, {
         to: email,
-        subject: `Set your ${SITE_NAME} password`,
-        text: `Someone asked to set a password for your account. Open this link to choose one. It works once and expires in 1 hour: ${url}\n\nIf it wasn't you, ignore this email: your account hasn't changed.`,
-        html: `<p>Someone asked to set a password for your account. Open this link to choose one. It works once and expires in 1 hour: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p><p>If it wasn't you, ignore this email: your account hasn't changed.</p>`,
+        ...renderEmail(EMAILS.setPassword(url), siteOrigin()),
       });
     },
   },

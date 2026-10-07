@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-06 (later) — **MVP-037 (Fix first hubs) moves to QA:** every area's hub is rebuilt to the chosen H1 board, and Power BI to the H2 journey.
+Last updated: 2026-10-06 (latest) — **MVP-044 (branded emails) moves to QA, and the home page gets a fixes band and "What changed" (#83).**
+- **Emails:** the product owner chose concept E1 and delegated the wording. All four emails now share one layout.
+- **New in the backlog:** MVP-043, the animated logo, kept for later at the product owner's request.
+- **Merge order:** #82 (hubs), then #83 (home), then the emails PR. Each builds on the one before.
+
+Last updated (previous): 2026-10-06 (later) — **MVP-037 (Fix first hubs) moves to QA:** every area's hub is rebuilt to the chosen H1 board, and Power BI to the H2 journey.
 - **Each hub:** its headline, a search for that area only, most-needed fixes, a "Look it up" row, every section with guide badges, and "What changed".
 - **Headlines:** the product owner delegated the five unapproved ones; recorded in `docs/final-decisions.md`.
 - **Release:** password sign-in (MVP-036) went to `main` in #80. The Google button redesign is #81.
@@ -164,14 +169,14 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 11 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-038, MVP-039, MVP-040, MVP-041, MVP-042 |
+| Backlog | 12 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-038, MVP-039, MVP-040, MVP-041, MVP-042, MVP-043 |
 | Ready | 0 | — |
 | In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 8 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037 |
+| QA | 9 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-037, MVP-034, MVP-035, MVP-036, MVP-044 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **42** | |
+| **Total** | **44** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 
@@ -265,8 +270,8 @@ Full detail on every story is in `planning/progress-report.md`.
 
 ## Progress metrics
 
-- Stories done: 19 / 40 active (48%); 2 more are Superseded (42 on the board)
-- Stories in QA: 8 / 40 (MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037)
+- Stories done: 19 / 42 active (45%); 2 more are Superseded (44 on the board)
+- Stories in QA: 9 / 42 (MVP-029, MVP-031, MVP-032, MVP-033, MVP-037, MVP-034, MVP-035, MVP-036, MVP-044)
 - Points done: 139 / 283 (49%), not counting the 13 Superseded points
 - P0 points done: 103 / 132 (78%)
 - P1 points done: 36 / 141 (26%)

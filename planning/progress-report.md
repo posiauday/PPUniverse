@@ -4841,3 +4841,26 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Also recorded:**
 - **MVP-043 (animated logo):** the product owner asked to keep it for later.
 - **MVP-044 (branded emails):** in progress. Three concepts and all four emails, with their wording, are on the design board for the product owner to choose and approve.
+
+## 2026-10-06 — MVP-044: branded emails (status QA)
+
+**Story:** MVP-044. The product owner chose concept E1 ("Card on cream") from the design board's Emails row and delegated the wording. Both are recorded in `docs/final-decisions.md`, "Branded emails".
+
+**Built:**
+- **One layout,** `renderEmail()` in `apps/web/lib/email-templates.ts`:
+  - email-safe (tables, inline styles, system fonts), 600 px wide;
+  - the X2 logo as `apps/web/public/email/logo.png` (96 px, shown at 32);
+  - a lime marker on the heading's last words and a black pill button;
+  - a plain link under the button and a plain-text version;
+  - dark-mode colours where the mail app supports them, tighter padding on phones;
+  - the independent notice in the footer.
+- **The four emails** use it: the sign-in link (`lib/auth.ts`), confirm email and set password (`lib/password-auth.ts`), and the deletion receipt (`app/api/account/deletion-requests/route.ts`). The receipt's placeholder text is gone.
+- **`siteOrigin()`** moved to `lib/site-url.ts` (re-exported from `password-auth.ts`), so the deletion route doesn't load the password module.
+
+**Checks:**
+- Six template tests: every email renders; text is escaped; the only image is the logo; no logo or Privacy link without a site origin; the independent notice; dark mode; the link lifetimes.
+- Web lint, typecheck and 657 tests pass.
+- The real output was rendered and checked at 700 px light and 390 px dark.
+
+**Remaining:** CI, then the product owner's review and merge. After release, send yourself a sign-in link to see it in a real inbox (Gmail and Outlook).
+
