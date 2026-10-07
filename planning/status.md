@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **Quick answers drafted for all 54 remaining guides (MVP-046).**
+Last updated: 2026-10-07 (latest) — **MVP-040 (comments) is built behind a flag, off until the product owner approves the Terms and Privacy wording.**
+- **Built:** comments on guides (shown at once, plain text and code, at most 2 links with `rel="ugc nofollow"`), report and delete, a random display name and avatar for every signed-in reader with `/account/profile` to change them, and `/admin/comments` to remove, restore or accept.
+- **Waiting on the product owner:** the proposed Terms and Privacy wording in `docs/plans/mvp-040-comments.md`; then set `FEATURE_COMMENTS=on` in Netlify. Defaults applied: open questions 70 to 75.
+- **Not built:** a page-speed budget (MVP-042). Lighthouse CI brings 4 high-severity advisories through its dependencies, so the approach is a question for the product owner.
+
+Last updated (previous): 2026-10-07 — **Quick answers drafted for all 54 remaining guides (MVP-046).**
 - **Every launch guide** now has a quick answer in its file: 2 to 4 points, each linking to a heading in the same guide. A new test checks the links for every guide.
 - **Drafts only:** published guides don't change from files (product owner, 2026-10-07: drafts for now; admins edit guide text). To publish one, paste its quick answer into the guide in `/admin/content`.
 
@@ -198,9 +203,9 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 9 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-040, MVP-043, MVP-047 |
+| Backlog | 8 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-043, MVP-047 |
 | Ready | 0 | — |
-| In Progress | 7 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps built) |
+| In Progress | 8 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built) |
 | QA | 10 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |

@@ -88,10 +88,11 @@ model Article {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  author  User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
-  events  ArticlePublishEvent[]
-  votes   ArticleVote[]
-  reports ArticleReport[]
+  author   User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events   ArticlePublishEvent[]
+  votes    ArticleVote[]
+  reports  ArticleReport[]
+  comments ArticleComment[]
 
   @@index([status])
   @@index([type])
@@ -201,4 +202,39 @@ model ArticleReport {
 
   @@index([createdAt])
   @@map("article_reports")
+}
+
+/// A signed-in reader's comment on a guide (MVP-040; docs/final-decisions.md,
+/// 2026-10-07, "Top bar names, AI search readiness, and comments"). It shows
+/// at once; an admin removes it after reports (removedAt), or marks one as
+/// the accepted fix (acceptedAt). Shown under the author's display name only.
+model ArticleComment {
+  id         String    @id @default(cuid())
+  articleId  String
+  userId     String
+  body       String    @db.VarChar(2000)
+  createdAt  DateTime  @default(now())
+  removedAt  DateTime?
+  acceptedAt DateTime?
+
+  article Article         @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  reports CommentReport[]
+
+  @@index([articleId, createdAt])
+  @@index([userId, createdAt])
+  @@map("article_comments")
+}
+
+/// Someone reported a comment (MVP-040). Nothing about the reporter is kept;
+/// a hashed per-address counter limits reports. Deleted with the comment.
+model CommentReport {
+  id        String   @id @default(cuid())
+  commentId String
+  createdAt DateTime @default(now())
+
+  comment ArticleComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@map("comment_reports")
 }

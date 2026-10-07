@@ -25,13 +25,20 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String?
-  role          UserRole  @default(MEMBER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  emailVerified  DateTime?
+  name           String?
+  role           UserRole  @default(MEMBER)
+  /// MVP-040: the public name shown on comments, never the email or `name`
+  /// (which can come from Google). Random until the reader changes it.
+  displayName    String?
+  /// Lowercased displayName, so two readers can't share a name in any case.
+  displayNameKey String?   @unique
+  /// Picks the reader's generated avatar (our own shapes and colours).
+  avatarSeed     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   accounts               Account[]
   sessions               Session[]
@@ -49,6 +56,7 @@ model User {
   productStatusActions   ProductStatusEvent[]
   orders                 Order[]
   passwordCredential     PasswordCredential?
+  comments               ArticleComment[]
 
   @@map("users")
 }

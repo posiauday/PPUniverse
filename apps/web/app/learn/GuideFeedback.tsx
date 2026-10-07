@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { postJson as post } from "../../lib/post-json";
 
 const REPORT_MAX = 500;
 
@@ -14,27 +15,6 @@ const REPORT_MESSAGE: Partial<Record<ReportState, string>> = {
   "too-many": "You've sent a few reports already. Please try again in an hour.",
   error: "Something went wrong sending that. Please try again.",
 };
-
-async function post(
-  url: string,
-  body: Record<string, string>,
-): Promise<{ status: number; error?: string }> {
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      credentials: "same-origin",
-    });
-    const data = (await response.json().catch(() => ({}))) as { error?: unknown };
-    return {
-      status: response.status,
-      ...(typeof data.error === "string" ? { error: data.error } : {}),
-    };
-  } catch {
-    return { status: 0 };
-  }
-}
 
 /**
  * The end of every guide (the G1 board; MVP-039 votes, MVP-038 reports):

@@ -215,3 +215,12 @@ these questions.
 67. **DECIDED 2026-10-05: month and year kept.** **Tracker dates.** Microsoft gives some dates to the day ("August 31, 2026") and others only to the month ("Effective March 2026"). **Default applied:** the tracker label shows month and year only ("Removed Aug 2026"), and the summary gives the exact day where Microsoft does. The board showed full dates for some rows.
 68. **DECIDED 2026-10-05: "Latest" kept.** **The feed's heading.** The board says "This week", which would be false once items are older than a week. **Default applied:** "Latest", with the "N new since your last visit" pill next to it, as drawn.
 69. **DECIDED 2026-10-05: /updates joins the sitemap.** **`/updates` in the sitemap.** It is linked from the header on every page and is indexable once it has a published update. **Default applied:** it is not added to `sitemap.xml` yet. A small follow-up if the product owner wants it.
+
+## Raised 2026-10-07 (MVP-040, comments): defaults applied, awaiting the product owner
+
+70. **Limits.** **Default applied:** at most 5 comments an hour and 20 a day per reader; 10 reports an hour per address; 10 profile changes a day; comments 10 to 2,000 characters with at most 2 links. One constant each (`COMMENT_LIMITS`, `apps/web/lib/comments.ts`; `packages/domain/content/src/comments.ts`).
+71. **Who marks the accepted fix.** The 2026-10-06 decision says "an admin can mark one community solution as the accepted fix". **Default applied:** admin only, one per guide, shown first with an "Accepted fix" badge. Not the guide's author or the commenter.
+72. **Reports.** **Default applied:** anyone can report (no sign-in), nothing about the reporter is kept, and a reported comment stays up until an admin acts in `/admin/comments` (the product owner chose "show at once, remove if reported").
+73. **Removed comments.** **Default applied:** hidden from the guide but kept, so an admin can restore one removed by mistake; authors can delete their own for good.
+74. **Generated names.** **Default applied:** "Adjective Noun 123" from everyday Power Platform words (for example "Tidy Trigger 418"), no product names; names that look official ("admin", "moderator", "LowCodeStacks", "Maker Desk", "Microsoft" and the like) are refused when a reader types one.
+75. **Launch.** Comments stay off (`FEATURE_COMMENTS`) until the product owner approves the Terms and Privacy wording proposed in `docs/plans/mvp-040-comments.md`.

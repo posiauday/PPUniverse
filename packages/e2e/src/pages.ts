@@ -652,6 +652,90 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByRole("button", { name: "Close and delete" }).first()).toBeVisible();
     },
   },
+  // MVP-040: comments (on in the gate; off in production until approved).
+  {
+    id: "admin-comments",
+    route: "/admin/comments",
+    description: "admin comments page, signed in as ADMIN, with a reported and an accepted comment",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/comments",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Comments");
+      await expect(page.getByRole("heading", { name: /^Reported \(\d+\)$/ })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: seed.publishedArticle.title }).first(),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Remove" }).first()).toBeVisible();
+    },
+  },
+  {
+    id: "admin-comments-denied",
+    route: null,
+    description: "admin comments page, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/comments",
+  },
+  {
+    id: "account-profile",
+    route: "/account/profile",
+    description: "the reader's profile: display name and avatar",
+    auth: "member",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile");
+      await expect(page.getByRole("textbox", { name: "Display name" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Draw a new avatar" })).toBeVisible();
+    },
+  },
+  {
+    id: "account-profile-invalid",
+    route: "/account/profile",
+    description: "the reader's profile after trying a name that is too short",
+    auth: "member",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      const field = await whenHydrated(page.getByRole("textbox", { name: "Display name" }));
+      await field.fill("Al");
+      await page.getByRole("button", { name: "Save name" }).click();
+      await expect(page.getByRole("status").filter({ hasText: "at least 3" })).toBeVisible();
+    },
+  },
+  {
+    id: "learn-comments-member",
+    route: "/learn/[slug]",
+    description:
+      "guide page signed in as a member: the comment form, their own comment, others' to report",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { name: /^Comments \(\d+\)$/ })).toBeVisible();
+      await expect(page.getByRole("textbox", { name: "Add a comment" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Delete my comment" }).first()).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: /^Report the comment by Fixture Reader A/ }).first(),
+      ).toBeVisible();
+      await expect(page.getByText("Accepted fix", { exact: true }).first()).toBeVisible();
+    },
+  },
+  {
+    id: "learn-comment-too-short",
+    route: "/learn/[slug]",
+    description: "guide page after trying to post a comment that is too short",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      const field = await whenHydrated(page.getByRole("textbox", { name: "Add a comment" }));
+      await field.fill("Too short");
+      await page.getByRole("button", { name: "Post comment" }).click();
+      await expect(page.getByRole("status").filter({ hasText: "at least 10" })).toBeVisible();
+    },
+  },
   {
     id: "admin-feedback-denied",
     route: null,
@@ -1076,6 +1160,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByText("Checked against Microsoft Learn")).toBeVisible();
       await expect(page.getByRole("complementary", { name: "Quick answer" })).toBeVisible();
       await expect(page.getByRole("link", { name: "How we write guides" })).toBeVisible();
+      // MVP-040: a guest sees the comments and a way to sign in to add one.
+      await expect(page.getByRole("link", { name: "Sign in to comment" })).toBeVisible();
       // MVP-027 slice 3: the contents list, a code panel's Copy button and a
       // tip callout, all from the fixture's Markdown.
       await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
