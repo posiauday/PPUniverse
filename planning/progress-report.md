@@ -5030,3 +5030,17 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Checks:** web tests 693, lint, typecheck and format pass; the new migration applies to the local database. Accessibility gate, local, About, Privacy, Terms, How we write and the guide pages in three engines: 293 of 294 passed; the one Firefox keyboard timeout (Privacy at 1280 px) passed on re-run.
 
 **Remaining:** the mailing-address question in the decision (not legal advice).
+
+## 2026-10-07 — Quick answers for every guide (MVP-046, drafts)
+
+**Story:** MVP-046's "quick answers on every guide", as drafts only (`docs/final-decisions.md`, "No personal details on the site; guide text and the admin panel": the agent researches and drafts; published guides are edited by an admin).
+
+**Done:**
+- A quick answer (`> [!ANSWER] Quick answer` and 2 to 4 numbered points) in each of the 54 guides that lacked one: 5 Power Apps, 17 Power Automate, 10 Power BI, 7 Copilot Studio, 5 Dataverse, 8 Power Pages, 2 Governance. All 57 launch guides now have one.
+- Each point is taken from the guide's own text (its summary table, checklist, decision rules or steps) and links to the heading that explains it. Nothing in a quick answer goes beyond what the guide says; no new research claims.
+- Placed after the introduction, before the "Checked against Microsoft Learn" note, like the first three.
+- `apps/web/lib/quick-answers.test.ts`: for every guide, the quick answer exists, has 2 to 4 points, and every link points at a heading in the same guide's outline. Proved by breaking one anchor on purpose: the test failed and named it.
+
+**Checks:** quick-answer tests 58, content-file tests 116, web tests 751, lint and format clean.
+
+**For the product owner:** published guides don't change from their files. To publish a quick answer, open the guide in `/admin/content` and paste the block from its file (right after the introduction).

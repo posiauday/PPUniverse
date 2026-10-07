@@ -9,6 +9,11 @@ searchPhrase: "power bi refresh failed"
 ---
 A failed refresh shows up as a stale report, a warning icon in the workspace or an email to the model owner. The cause is almost always one of a handful of things, and checking them in the right order saves an afternoon.
 
+> [!ANSWER] Quick answer
+> 1. [Read the error in **Refresh history**](#step-1-read-the-actual-error): the first failure after a run of successes shows what changed.
+> 2. [Sign in again under **Data source credentials**](#step-2-credentials-the-most-common-cause): credentials are the most common cause.
+> 3. [On-premises data? Check the gateway is online](#step-3-the-gateway-for-on-premises-data) and its service is running.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. "Semantic model" is what Power BI used to call a dataset; the REST API still says datasets.
 

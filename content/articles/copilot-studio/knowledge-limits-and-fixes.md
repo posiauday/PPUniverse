@@ -9,6 +9,11 @@ searchPhrase: "copilot studio knowledge limits"
 ---
 An agent that can't find an answer it should know is rarely broken. Usually a limit was reached quietly, a file is too big to read, or the agent's sign-in setting doesn't fit the source or channel. This page puts those rules side by side.
 
+> [!ANSWER] Quick answer
+> 1. [Match sign-in to the channel and source](#the-sign-in-setting-must-fit-the-channel-and-the-source): SharePoint and Dataverse knowledge need sign-in, and Teams accepts only **Authenticate with Microsoft**.
+> 2. [Test as the person chatting](#the-agent-says-it-doesnt-know-a-checklist): SharePoint and Dataverse answer as that user, so they must be able to open the content.
+> 3. [Check the file is small enough and readable](#the-agent-says-it-doesnt-know-a-checklist), and publish again after every change.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Copilot Studio changes often, so check the **Sources** list for Microsoft's current figures.
 

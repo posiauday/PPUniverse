@@ -9,6 +9,11 @@ searchPhrase: "502 bad gateway power automate"
 ---
 Intermittent failures are the most frustrating kind: the same flow, the same data, sometimes green and sometimes red with **502 Bad Gateway** or **500 InternalServerError**. Usually the problem isn't in your flow at all. This page helps you prove that quickly, keep the flow working through it, and know when it *is* yours to fix.
 
+> [!ANSWER] Quick answer
+> 1. [Re-run one failed run](#is-it-you-or-them): if it succeeds unchanged, the failure was temporary.
+> 2. [Leave the default retry policy on](#make-sure-retries-are-working-for-you): on the Medium and High profiles it retries up to 12 times over about an hour.
+> 3. [If failures outlast the retries](#survive-the-outage-instead-of-just-failing), catch them and re-process later. [Report it](#when-to-report-it) if it goes on for more than a day.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

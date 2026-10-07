@@ -9,6 +9,11 @@ searchPhrase: "power bi refresh retry"
 ---
 Scheduled refresh at fixed times works until it doesn't: the data lands late, one huge table makes everything slow, or a refresh fails at 3 a.m. and nobody re-runs it. Power BI now gives you finer control. Here's what to use, and when.
 
+> [!ANSWER] Quick answer
+> 1. [Know your limits](#know-your-limits-first): 8 scheduled refreshes a day on Pro, 48 on Premium, PPU or Fabric; 4 failures in a row turn the schedule off.
+> 2. [Refresh when the data is ready](#3-refresh-when-the-data-is-ready-power-automate), from a Power Automate flow, instead of guessing a time.
+> 3. [Add failure contacts](#4-make-the-scheduled-ones-healthier), and on Premium, PPU or Embedded [let the enhanced refresh API retry](#2-retry-failures-automatically-premium-ppu-embedded).
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

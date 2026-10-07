@@ -9,6 +9,11 @@ searchPhrase: "restore deleted flow power automate"
 ---
 Deleting a flow doesn't remove it straight away. For **21 days** it's kept as a *soft-deleted* flow, and an environment admin can bring it back. After that, nobody can restore it, not even Microsoft Support. So act quickly.
 
+> [!ANSWER] Quick answer
+> 1. [Act within 21 days](#before-you-start): only an **environment admin** can restore a deleted cloud flow.
+> 2. [Run **Restore Deleted Flow as Admin**](#option-1-a-button-flow-no-powershell) from a button flow, or [use PowerShell](#option-2-powershell).
+> 3. [Check its connections, then turn it on](#after-its-restored): a restored flow comes back turned off.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

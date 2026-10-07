@@ -11,6 +11,11 @@ You build a table visual, check a few rows against the source, and they're right
 
 This isn't a bug. It's **filter context**, the single most important idea in DAX. Once you see it, wrong totals become easy to fix.
 
+> [!ANSWER] Quick answer
+> 1. [The total row is evaluated with no row filter](#what-the-total-row-actually-does): it isn't the sum of the rows above it.
+> 2. [For a rule that applies per item, iterate](#case-1-a-condition-in-the-measure) with `SUMX` or `AVERAGEX` over that item.
+> 3. [For a share of the total, use `CALCULATE` with `REMOVEFILTERS`](#case-3-a-share-of-the-total) on only the right table.
+
 ## What the total row actually does
 
 A measure has no fixed value. Power BI evaluates it separately for every cell in a visual, each time with a different set of filters:

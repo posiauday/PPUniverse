@@ -9,6 +9,11 @@ searchPhrase: "move on-premises data gateway"
 ---
 The on-premises data gateway is the bridge between Power BI (and Power Apps, Power Automate and Fabric) and data inside your network. Most gateway trouble comes from four jobs: **moving** it, **updating** it, **sharing** it, and **network** changes. Done in the right order, none of them needs to break a single refresh.
 
+> [!ANSWER] Quick answer
+> 1. [Keep the recovery key in a shared password vault](#before-anything-find-the-recovery-key): Microsoft can't retrieve it, and moving or restoring needs it.
+> 2. [Move with no downtime](#move-it-to-a-new-server-no-downtime): add the new server to the existing cluster, at the same version, then retire the old one.
+> 3. [Update every month, one member at a time](#update-it-every-month): Microsoft supports only the last six releases.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

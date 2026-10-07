@@ -9,6 +9,11 @@ searchPhrase: "child flow error handling"
 ---
 A flow with a hundred actions is hard to read and harder to fix. **Child flows** let you split it into small flows that each do one job, such as "create the customer" or "file the document", and reuse them from many parent flows. The catch: when a child fails, the parent sees only a vague **ActionFailed**. This pattern makes the child report back clearly, so the parent can decide what to do.
 
+> [!ANSWER] Quick answer
+> 1. [Give the child its own connections](#step-1-give-the-child-its-own-connections) under **Run only users**, or the parent fails.
+> 2. [Make the child always answer](#step-2-make-the-child-always-answer) with `ok`, `message` and `result`, on success and on failure.
+> 3. [Let the parent check `ok`](#step-3-let-the-parent-decide) and decide what to do.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

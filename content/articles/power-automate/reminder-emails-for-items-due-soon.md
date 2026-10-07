@@ -9,6 +9,11 @@ searchPhrase: "send reminder email before due date"
 ---
 "Email the owner three days before the due date" sounds simple, and it nearly is. The usual problems are **time zones** (reminders a day early or late), **filters** that miss items, and **duplicates**. This pattern handles all three.
 
+> [!ANSWER] Quick answer
+> 1. [Run once a day at a fixed hour in your time zone](#step-1-schedule-it-in-your-time-zone), and [convert dates with `convertTimeZone`](#step-2-work-out-the-dates-in-your-time-zone) before comparing.
+> 2. [Get a small window of items](#step-3-get-a-small-window-of-items), then [keep only those due on the target date](#step-4-keep-only-the-right-date).
+> 3. [Send, then mark each item as reminded](#step-5-send-then-mark-it), so no one gets it twice.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -9,6 +9,11 @@ searchPhrase: "power platform dlp policy"
 ---
 Data policies (still widely called **DLP policies**) decide which connectors can be used together in an app, flow or agent, and which can't be used at all. Done well, they stop company data quietly flowing to personal services without slowing makers down. Done badly, one change suspends dozens of flows overnight. This page is the admin's reference for doing it well.
 
+> [!ANSWER] Quick answer
+> 1. [Business and Non-business connectors can't be used together](#how-a-data-policy-works) in one app, flow or agent; **Blocked** ones can't be used at all.
+> 2. [Take an inventory and pilot in a test environment](#rollout-checklist) before changing a policy makers depend on.
+> 3. [Set the admin contact and help link](#rollout-checklist) for the error messages, and expect the change to take effect after a delay.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

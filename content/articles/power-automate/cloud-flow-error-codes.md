@@ -9,6 +9,11 @@ searchPhrase: "power automate error codes"
 ---
 A red action in Power Automate's run history tells you *that* something failed. The error code on it tells you *why*, but only once you know where to look and what each code really points to. Keep this page open next to your run history.
 
+> [!ANSWER] Quick answer
+> 1. [Open the failed run and find the first red action](#first-find-the-real-error): later red actions are usually knock-on failures.
+> 2. [Read its **Outputs**, not the headline](#first-find-the-real-error): the real status code and message are there.
+> 3. [Look the code up in the quick index](#quick-index). No run at all? [The trigger is the problem](#when-the-flow-didnt-run-at-all).
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Limits change over time; the **Sources** list at the end links to Microsoft's current pages.
 

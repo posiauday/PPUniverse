@@ -9,6 +9,11 @@ searchPhrase: "power bi workspace roles permissions"
 ---
 Power BI access comes from three places: **workspace roles**, **item permissions** (especially on semantic models) and **apps or sharing links**. Most "why can they see that?" and "why can't they see this?" questions come down to how these combine. Look it up here.
 
+> [!ANSWER] Quick answer
+> 1. [Workspaces are for builders, apps for consumers](#apps-the-right-way-to-reach-consumers): publish an app with audiences, and select **Update app** after changes.
+> 2. [Admins, Members and Contributors see all the data](#row-level-security-rls-who-it-applies-to): RLS applies only to people with **Read** or **Build**.
+> 3. [Viewers can use Analyze in Excel only with **Build**](#workspace-roles) on the model, and can't download the PBIX.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -9,6 +9,11 @@ searchPhrase: "dataverse missing privilege error"
 ---
 "It works for me but not for them" is the most common Dataverse support request. Dataverse runs two checks every time someone touches a row, and almost every access error means one of them failed. Once you know which one, the fix is quick.
 
+> [!ANSWER] Quick answer
+> 1. [Two checks decide access](#the-two-checks): the privilege on that kind of row, then access to that particular row.
+> 2. [Use **Check Access** on a row](#how-to-find-out-what-someone-can-see) to see who can reach it, and why.
+> 3. [Start custom roles from **App Opener**](#start-from-the-right-role), and test as a user with exactly those roles: admin accounts pass every check.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

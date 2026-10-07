@@ -11,6 +11,11 @@ Dataverse security is a set of simple parts: privileges, access levels, roles, b
 
 This pattern keeps it untangled. It starts from one rule that shapes everything else.
 
+> [!ANSWER] Quick answer
+> 1. [Access only adds up](#the-rule-access-only-adds-up): grant the minimum, then add. Another role can't take access away.
+> 2. [Design roles around jobs](#step-1-design-roles-around-jobs-not-people), and [use business units only where data must be separated](#step-2-use-business-units-for-real-boundaries-only).
+> 3. [Manage membership through Microsoft Entra groups](#step-4-manage-membership-through-microsoft-entra-groups), and [protect sensitive columns separately](#step-6-protect-sensitive-columns-separately).
+
 ## The rule: access only adds up
 
 All Dataverse privileges are **cumulative**, and the greatest access wins. If any role a user holds, directly or through a team, grants organization-wide read on contacts, there is no way to hide one contact from them with another role.

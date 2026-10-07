@@ -9,6 +9,11 @@ searchPhrase: "move flow to solution missing dependencies"
 ---
 A flow built straight in **My flows** works fine until you need to move it to test or production, hand it to someone else, or call it from an agent. Then you need it in a **solution**: a package of the flow and everything it depends on, which is how Power Platform moves work between environments. This guide covers getting flows in, and getting solutions to import.
 
+> [!ANSWER] Quick answer
+> 1. [Add the flow from **Solutions**](#add-an-existing-flow-to-a-solution): **Add existing → Automation → Cloud flow**, on the **Outside Dataverse** tab.
+> 2. [Use connection references and environment variables](#make-it-deploy-cleanly) before the first export, and keep child flows in the same solution.
+> 3. [Missing dependencies on import?](#import-failed-due-to-missing-dependencies) Select **Show dependencies**, then add or install what the target lacks.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

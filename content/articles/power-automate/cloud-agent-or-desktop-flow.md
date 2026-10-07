@@ -9,6 +9,11 @@ searchPhrase: "agent flow vs cloud flow"
 ---
 Power Automate cloud flows, Copilot Studio agent flows and Power Automate desktop flows all automate steps, and from a distance they look alike. They're licensed differently, managed in different places, and each has things it can't do. Choose before you build, because switching later isn't always possible.
 
+> [!ANSWER] Quick answer
+> 1. [The systems have connectors or an API](#cloud-flows): build a **cloud flow**.
+> 2. [It's a tool your Copilot Studio agent calls](#agent-flows), or you want to pay per use: build an **agent flow**.
+> 3. [The only way in is the screen](#desktop-flows): build a **desktop flow**, usually started from a cloud flow.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

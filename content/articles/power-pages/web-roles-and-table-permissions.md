@@ -11,6 +11,11 @@ The most common security mistake on Power Pages sites comes from Dataverse exper
 
 The good news is that Power Pages is secure by default: until you grant access, lists and forms show nothing. The risk is in how you grant it.
 
+> [!ANSWER] Quick answer
+> 1. [Give every visitor-specific table a lookup to Contact or Account](#1-design-relationships-before-permissions).
+> 2. [Grant the narrowest access type](#2-grant-the-narrowest-access-type-that-works) and only the privileges each page needs; **Global** only for public data.
+> 3. [Test like an attacker](#test-it-like-an-attacker): with two accounts, signed out, and by changing record IDs.
+
 ## How the pieces fit
 
 - **Web roles:**

@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **No personal details on the site; MVP-047 added.**
+Last updated: 2026-10-07 (latest) — **Quick answers drafted for all 54 remaining guides (MVP-046).**
+- **Every launch guide** now has a quick answer in its file: 2 to 4 points, each linking to a heading in the same guide. A new test checks the links for every guide.
+- **Drafts only:** published guides don't change from files (product owner, 2026-10-07: drafts for now; admins edit guide text). To publish one, paste its quick answer into the guide in `/admin/content`.
+
+Last updated (previous): 2026-10-07 — **No personal details on the site; MVP-047 added.**
 - **Removed:** the owner's name, province and city from About, Privacy and Terms; copyright and the MIT notice now say LowCodeStacks. The Terms' governing law names no province. New Privacy and Terms versions, 2026-10-09.
 - **Byline:** guides show "Posted by the Maker Desk". Structured data stays brand only; the named author is withdrawn.
 - **New story:** MVP-047, a redesigned admin panel and a Contributor role (abilities to be decided), designed on the canvas first.

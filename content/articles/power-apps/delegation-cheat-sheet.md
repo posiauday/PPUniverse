@@ -11,6 +11,11 @@ A canvas app only sees every row when the data source does the work. When a form
 
 For the why and a worked example, read [Why your gallery stops at 500 rows](/learn/power-apps-delegation-500-rows) first.
 
+> [!ANSWER] Quick answer
+> 1. [If any part of a query can't be delegated, none of it is](#the-rules-that-apply-everywhere): the whole query works on the first 500 rows (2,000 at most).
+> 2. [Rewrite the common traps](#rewrites-for-the-common-traps): for example `StartsWith` instead of `Search`, and `= Blank()` instead of `IsBlank`, on SharePoint.
+> 3. [Set the data row limit to 1 while you build](#test-that-it-really-delegates), so anything that isn't delegated shows at once.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Microsoft extends delegation support over time, so trust the warning in Power Apps Studio over any table, including this one.
 

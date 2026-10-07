@@ -11,6 +11,11 @@ searchPhrase: "measure power apps adoption"
 
 This guide sets out six KPIs that together show whether a Power Apps app is adopted and worth keeping, where each number comes from, and how to report time saved without overclaiming.
 
+> [!ANSWER] Quick answer
+> 1. [Track six KPIs together](#the-six-kpis): reach, stickiness, retention, task completion, error rate and time saved, not launches alone.
+> 2. [Keep usage history longer](#keeping-history-longer) than the admin center's 28 days.
+> 3. [Report time saved as a range](#reporting-time-saved-honestly), with its inputs.
+
 ## The six KPIs
 
 | KPI | Question it answers | Formula |

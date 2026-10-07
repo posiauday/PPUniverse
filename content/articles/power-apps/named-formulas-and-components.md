@@ -15,6 +15,11 @@ This pattern keeps an app maintainable as it grows. It has three layers:
 2. **User-defined functions** for logic it reuses.
 3. **A component library** for UI it repeats.
 
+> [!ANSWER] Quick answer
+> 1. [Move calculated values into named formulas](#layer-1-named-formulas-instead-of-apponstart) in `App.Formulas`, and keep `App.OnStart` for true start-up actions.
+> 2. [Put logic you repeat into typed user-defined functions](#layer-2-user-defined-functions-for-repeated-logic).
+> 3. [Put UI you repeat into a component library](#layer-3-a-component-library-for-repeated-ui), with explicit input and output properties.
+
 ## Layer 1: named formulas instead of App.OnStart
 
 `App.OnStart` runs its statements in order, and the app can't show its first screen until they finish. Every `Set` and `ClearCollect` there adds to the load time, and a variable set there can be changed anywhere else in the app.
