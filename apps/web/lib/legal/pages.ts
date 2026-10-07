@@ -19,18 +19,19 @@ export const CONTACT_EMAIL = "contact@lowcodestacks.com";
 export const BYLINE_NAME = "the Maker Desk";
 
 /** The date the current Terms took effect. Also the PolicyVersion `version`
- * recorded when someone accepts the Terms: they last changed when the owner's
- * name and location came off the site, and the sign-in sentence was brought
- * up to date (migration 20261009000000_add_policy_versions_2026_10_09). */
-export const POLICY_EFFECTIVE_DATE = "2026-10-09";
-export const POLICY_EFFECTIVE_LABEL = "October 9, 2026";
+ * recorded when someone accepts the Terms: they last changed when the
+ * "Comments" section was added (MVP-040; before that, the owner's name and
+ * location came off the site). Migration
+ * 20261011000000_add_policy_versions_2026_10_10. */
+export const POLICY_EFFECTIVE_DATE = "2026-10-10";
+export const POLICY_EFFECTIVE_LABEL = "October 10, 2026";
 
-/** The date the current Privacy notice took effect: it last changed when the
- * owner's name and location came off the site (before that: feedback on
- * guides, MVP-039 and MVP-038). Its PolicyVersion row is migration
- * 20261009000000_add_policy_versions_2026_10_09. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-09";
-export const PRIVACY_EFFECTIVE_LABEL = "October 9, 2026";
+/** The date the current Privacy notice took effect: it last changed when
+ * "Comments and your profile" was added (MVP-040; before that, the owner's
+ * name and location came off the site). Its PolicyVersion row is migration
+ * 20261011000000_add_policy_versions_2026_10_10. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-10";
+export const PRIVACY_EFFECTIVE_LABEL = "October 10, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms" | "/how-we-write";
@@ -140,6 +141,14 @@ You don't need an account to tell us whether a guide helped.
 - **"Something here changed?"** We store your note, which guide it was about, and when. Please don't put personal details in a note: we can't reply to it, and we delete each note once we've checked it.
 - **Limits:** to stop votes and notes being sent in bulk, we count recent ones for each network (IP) address. Addresses are stored only as hashes, and each count is deleted a day after it was last used.
 
+## Comments and your profile
+
+If you're signed in, we give you a **display name** and an **avatar** at random, which you can change on your profile page. When you comment, we store the comment, the guide it's on, when you posted it, and your account. Your comment is public, shown with your display name and avatar, **never your email address**.
+
+- You can delete your comments at any time; they're gone straight away.
+- If we remove a comment that breaks the Terms, we keep it, hidden, so a mistake can be undone. It's deleted with your account.
+- Anyone can report a comment. We keep only that it was reported and when, nothing about who reported it. To limit abuse we keep a scrambled (hashed) counter for each address for a day.
+
 ## Cookies
 
 We use only the cookies the site needs:
@@ -182,6 +191,7 @@ We don't sell, rent or trade personal information. We would disclose it only if 
 - Sign-in sessions expire after 30 days, sign-in links after 24 hours, and password links after 1 hour.
 - Counts of failed sign-in attempts, votes and notes are deleted a day after they were last used.
 - Notes sent with "Something here changed?" are deleted once we've checked them. Vote answers are kept with the guide; they say nothing about who voted.
+- Comments are kept until you delete them, or until your account is deleted. That includes comments we've removed and kept hidden.
 - Records of your choices and of deletion requests are kept as proof of what you asked for, even after the rest of your account information is removed.
 - Logs are kept only as long as needed to run and protect the site.
 
@@ -231,6 +241,14 @@ You're welcome to read, bookmark and share everything here. Please don't:
 You don't need an account to read the guides. If you create one, it's tied to your email address. You sign in with a link sent there, with Google, or with a password if you set one. Keep your password and access to that email secure, because anyone who has them can sign in as you. You can end your sessions or ask for your account to be deleted at any time.
 
 We may suspend an account that's being used to harm the site or other people.
+
+## Comments
+
+If you're signed in, you can comment on guides. Comments are public, under your display name and avatar, and appear straight away.
+
+- **Be useful and kind.** No spam or advertising, nothing unlawful, hateful or harassing, and no one else's personal details. Don't pretend to be someone else, or to speak for LowCodeStacks or Microsoft.
+- **What you post stays yours.** You give us a non-exclusive, worldwide, royalty-free licence to show, store and format it on lowcodestacks.com, for as long as it's there. Code you share in a comment may be reused by others under the [MIT License](#mit-license), like ours.
+- **We may remove comments** that break these rules, or that readers report and we agree with, and suspend accounts used to break them. You can delete your own comments at any time.
 
 ## What you can reuse
 

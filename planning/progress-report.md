@@ -5061,3 +5061,13 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 **Checks:** domain 9, repository integration on Postgres 5, routes 18, component 5; web tests 766; typecheck and lint clean. Accessibility gate, local, every guide, profile and admin state in three engines (comments on): 269 of 315 passed first time. 42 failures were the two new error states: the gate's server refuses posts from `localhost` because its site address differs, so they now fake the route's answer like the feedback states. The other 4 were Firefox and WebKit timeouts. All 66 then passed.
 
 **Remaining:** the product owner approves the Terms and Privacy wording; then the legal pages get new versions and `FEATURE_COMMENTS` is switched on in Netlify.
+
+## 2026-10-07 — Comments wording on the legal pages (MVP-040)
+
+The product owner approved the Terms and Privacy wording as written (`docs/final-decisions.md`, "Comments wording, admin panel, speed check and the Learn module", decision 1).
+- `apps/web/lib/legal/pages.ts`: Terms "Comments"; Privacy "Comments and your profile", plus a retention line under "How long we keep it" restating the approved text. New effective dates 2026-10-10.
+- Migration `20261011000000_add_policy_versions_2026_10_10`: the two `policy_versions` rows (additive; rollback in the file), applied locally.
+- `pages.test.ts` pins the approved sections. Legal tests: 11 passed.
+- Open question 75 decided.
+
+**For the product owner:** after the release deploys, set `FEATURE_COMMENTS=on` in Netlify (Production).

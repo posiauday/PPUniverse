@@ -2137,3 +2137,12 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 **Guide text.** For now the agent researches and drafts improved guide text as files only (drafts). Published guides are changed in the admin. In future, guide text is **editable by an admin only**.
 
 **Admin panel and a Contributor role (MVP-047).** The product owner asked for *"a more powerful, full of features, more admin-friendly admin panel ... with all required things there to manage the whole site"*, and to **create a Contributor role**, whose abilities are **to be decided**. Until then a Contributor can do nothing an ordinary signed-in reader can't. Designed on the canvas first, for approval.
+
+## 2026-10-07 — Comments wording, admin panel, speed check and the Learn module
+
+**Source:** direct product-owner answers in this session, by multiple choice.
+
+1. **Comments (MVP-040): the Terms and Privacy wording is approved as written** in `docs/plans/mvp-040-comments.md`. It goes into the Terms ("Comments") and the Privacy notice ("Comments and your profile") with new versions. The product owner then sets `FEATURE_COMMENTS=on` in Netlify.
+2. **Admin panel (MVP-047): concept A, "Command centre".** A sidebar with every area, grouped (Content, Community, People, Site), with live counts. The home shows what needs the admin now, then the site's health. The Contributor role's abilities are still to be decided (2026-10-07 entry above).
+3. **Page-speed check (MVP-042): measured with Playwright, not Lighthouse CI.** Lighthouse CI's dependencies carry 4 high-severity advisories (tmp, extract-zip, basic-ftp), which would fail the security audit. The check measures LCP and CLS, and long tasks as the lab stand-in for INP, in Chromium with the tools already in the repo. The budget is the one approved on 2026-10-06 (LCP ≤ 2.5 s, CLS < 0.1). This supersedes "a Lighthouse budget" in "SEO additions alongside the guide-page redesign", decision 4.
+4. **The Learn module: go ahead as planned** in `docs/plans/learn-module.md`. Topics made of short lessons at `/topics`, with the fixed lesson shape, optional progress for signed-in readers, and "check yourself" questions. First topics: one per technology. Next step: 3 design concepts for the topic and lesson pages, for sign-off before building.

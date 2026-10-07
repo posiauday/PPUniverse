@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **MVP-040 (comments) is built behind a flag, off until the product owner approves the Terms and Privacy wording.**
+Last updated: 2026-10-07 (latest) — **Comments wording approved and on the legal pages; four product-owner decisions recorded.**
+- **Decisions** (`docs/final-decisions.md`, "Comments wording, admin panel, speed check and the Learn module"): the comments wording as written; admin panel concept A; the speed check with Playwright instead of Lighthouse CI; the Learn module as planned.
+- **Legal pages:** Terms "Comments" and Privacy "Comments and your profile", versions 2026-10-10 (migration `20261011000000`). After the release, the product owner sets `FEATURE_COMMENTS=on`.
+- **Next:** the Playwright speed check (MVP-042), then admin panel A (MVP-047), then 3 Learn module concepts.
+
+Last updated (previous): 2026-10-07 — **MVP-040 (comments) is built behind a flag, off until the product owner approves the Terms and Privacy wording.**
 - **Built:** comments on guides (shown at once, plain text and code, at most 2 links with `rel="ugc nofollow"`), report and delete, a random display name and avatar for every signed-in reader with `/account/profile` to change them, and `/admin/comments` to remove, restore or accept.
 - **Waiting on the product owner:** the proposed Terms and Privacy wording in `docs/plans/mvp-040-comments.md`; then set `FEATURE_COMMENTS=on` in Netlify. Defaults applied: open questions 70 to 75.
 - **Not built:** a page-speed budget (MVP-042). Lighthouse CI brings 4 high-severity advisories through its dependencies, so the approach is a question for the product owner.

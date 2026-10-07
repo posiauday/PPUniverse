@@ -223,4 +223,4 @@ these questions.
 72. **Reports.** **Default applied:** anyone can report (no sign-in), nothing about the reporter is kept, and a reported comment stays up until an admin acts in `/admin/comments` (the product owner chose "show at once, remove if reported").
 73. **Removed comments.** **Default applied:** hidden from the guide but kept, so an admin can restore one removed by mistake; authors can delete their own for good.
 74. **Generated names.** **Default applied:** "Adjective Noun 123" from everyday Power Platform words (for example "Tidy Trigger 418"), no product names; names that look official ("admin", "moderator", "LowCodeStacks", "Maker Desk", "Microsoft" and the like) are refused when a reader types one.
-75. **Launch.** Comments stay off (`FEATURE_COMMENTS`) until the product owner approves the Terms and Privacy wording proposed in `docs/plans/mvp-040-comments.md`.
+75. **DECIDED 2026-10-07: wording approved as written.** **Launch.** Comments stay off (`FEATURE_COMMENTS`) until the product owner approves the Terms and Privacy wording proposed in `docs/plans/mvp-040-comments.md`.
