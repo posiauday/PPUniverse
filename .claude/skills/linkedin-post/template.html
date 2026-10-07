@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- LowCodeStacks LinkedIn image template (Daylight). Fill the {{...}} parts.
+     Keep the tint/ink pair from SKILL.md's table for the chosen area. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; src: url("../../../apps/web/assets/fonts/bricolage-grotesque-latin.woff2") format("woff2"); font-weight: 200 800; }
+  @font-face { font-family: "Instrument Serif"; src: url("../../../apps/web/assets/fonts/instrument-serif-italic-latin.woff2") format("woff2"); font-style: italic; }
+  @font-face { font-family: "Geist"; src: url("../../../apps/web/assets/fonts/geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: "Geist Mono"; src: url("../../../apps/web/assets/fonts/geist-mono-latin.woff2") format("woff2"); font-weight: 100 900; }
+  :root {
+    --paper: #fbf8f3; --ink: #14141a; --muted: #4a4a57; --lime: #a3e635;
+    /* Area colours: replace with the row from SKILL.md (default: Power Apps). */
+    --tint: #ede4ff; --tech-ink: #5b21b6;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: "Geist", system-ui, sans-serif; }
+  .slide { width: 1080px; height: 1350px; padding: 56px; display: flex; flex-direction: column; gap: 36px; position: relative; overflow: hidden; background: var(--paper); }
+  .brand { display: flex; align-items: center; gap: 16px; font-family: "Bricolage Grotesque"; font-weight: 700; font-size: 34px; letter-spacing: -0.02em; }
+  .panel { flex: 1; border-radius: 56px; background: var(--tint); padding: 72px 72px 64px; display: flex; flex-direction: column; gap: 36px; position: relative; overflow: hidden; }
+  .eyebrow { font-family: "Geist Mono", monospace; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--tech-ink); }
+  h1 { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 104px; line-height: 0.98; letter-spacing: -0.03em; }
+  h1 em { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-style: italic; color: var(--tech-ink); letter-spacing: 0; }
+  .body { font-size: 34px; line-height: 1.45; color: var(--ink); max-width: 860px; }
+  .points { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 18px; font-size: 32px; line-height: 1.35; }
+  .points li { display: flex; gap: 18px; align-items: baseline; }
+  .points li::before { content: ""; flex: none; width: 16px; height: 16px; border-radius: 50%; background: var(--tech-ink); transform: translateY(-4px); }
+  .pills { display: flex; gap: 14px; flex-wrap: wrap; margin-top: auto; }
+  .pill { border-radius: 999px; padding: 14px 26px; font-weight: 600; font-size: 26px; background: #fff; }
+  .pill.ink { background: var(--ink); color: #fff; }
+  .pill.new { background: var(--lime); color: var(--ink); font-weight: 800; }
+  .footer { display: flex; justify-content: space-between; align-items: center; font-size: 24px; color: var(--muted); }
+  .footer b { color: var(--ink); font-family: "Bricolage Grotesque"; font-size: 28px; }
+  .sphere { position: absolute; width: 150px; height: 150px; border-radius: 50%; right: 64px; bottom: 56px; background: radial-gradient(circle at 32% 30%, #c4b5fd, #7c3aed 60%, #4c1d95); box-shadow: 0 30px 60px -20px rgba(76,29,149,.45); }
+</style>
+</head>
+<body>
+<section class="slide">
+  <div class="brand">
+    <svg width="56" height="56" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9f99d"/><stop offset="1" stop-color="#65a30d"/></linearGradient><linearGradient id="gc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb199"/><stop offset="1" stop-color="#e5532d"/></linearGradient><linearGradient id="gv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9b86ff"/><stop offset="1" stop-color="#4a2fc4"/></linearGradient></defs><rect x="13" y="6.5" width="30" height="24" rx="9.5" fill="url(#gl)"/><rect x="9" y="12" width="30" height="24" rx="9.5" fill="url(#gc)"/><rect x="5" y="17.5" width="30" height="24" rx="9.5" fill="url(#gv)"/><path d="M15.5 24.5 L10.5 29.5 L15.5 34.5 M24.5 24.5 L29.5 29.5 L24.5 34.5 M21.8 23.5 L18.2 35.5" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    LowCodeStacks
+  </div>
+  <div class="panel">
+    <span class="sphere" aria-hidden="true"></span>
+    <p class="eyebrow">{{EYEBROW e.g. POWER APPS · TUTORIAL}}</p>
+    <h1>{{HEADLINE start}} <em>{{accent phrase}}</em></h1>
+    <p class="body">{{One or two plain sentences.}}</p>
+    <ul class="points">
+      <li>{{Point one}}</li>
+      <li>{{Point two}}</li>
+      <li>{{Point three}}</li>
+    </ul>
+    <div class="pills">
+      <span class="pill new">{{New, or delete}}</span>
+      <span class="pill ink">{{Read the guide}}</span>
+    </div>
+  </div>
+  <div class="footer">
+    <b>lowcodestacks.com</b>
+    <span>Independent site. Not affiliated with or endorsed by Microsoft.</span>
+  </div>
+</section>
+</body>
+</html>
