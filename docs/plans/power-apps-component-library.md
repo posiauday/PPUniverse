@@ -84,8 +84,11 @@ The everyday pieces that are hard to get right. Each comes with variations.
 
 Competitors' lists (for coverage, not to copy) include charts, timelines, steppers, chips, date pickers, breadcrumbs, file upload and KPI cards. Those are candidates for later waves.
 
+## Decided since (2026-10-08)
+
+- **Sign-in only, first set** (the product owner can change any of these in the admin, and show or hide any component): open to everyone: Button, Text field, Tabs and segmented control, Toast, Empty/loading/error states. Sign-in to copy: Dialog, Navigation shell, Data table, and screen templates later. The larger, more valuable pieces earn an account; the everyday ones bring people in.
+- **Previews are interactive web replicas** built for the site, with a **property playground**: change inputs, see outputs update live, fire events (shown in an event log), call actions, try functions, with the matching Power Fx formula shown for each. Each page says it is a web replica and Studio may look slightly different.
+
 ## Open questions
 
-1. Which items are **members-only** (sign-in to copy)? Proposal: the larger ones (Data table, Navigation shell) and complete screen templates later.
-2. Preview images: captured by the product owner during testing (proposed), or drawn by us as close copies (risk of not matching Studio)?
-3. Sign-off on the standard above, then 3 design concepts for `/components` and the component page.
+1. Sign-off on the standard above, then the 3 design concepts for the component page.

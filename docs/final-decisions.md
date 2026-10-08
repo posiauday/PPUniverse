@@ -2178,5 +2178,7 @@ The accessibility gate runs in **6 shards instead of 4**. The time limit stays a
 4. **The bar:** modern UI and UX, top features, fully dynamic, following standards, working without errors, and exposing every type of custom property, so most makers can use them. Each component has a guide and variations.
 5. **Testing:** the product owner paste-tests every component in a free Power Apps Developer environment before it is published.
 6. **Reader feedback on each component:** comments, a 1 to 5 star rating, "Worked in my app", and "Report a problem".
+7. **Sign-in only and visibility (2026-10-08, follow-up):** the agent picks the first sign-in-only set; the product owner can then show, hide, or make any component sign-in only from the admin.
+8. **Previews are interactive web replicas** (follow-up): each component gets a working copy built for the site, which readers can use, not a screenshot. The pages say it is a web replica and that the look in Studio may differ slightly.
 
 The plan, with the proposed standard and pages (still to be signed off): `docs/plans/power-apps-component-library.md` (MVP-049).
