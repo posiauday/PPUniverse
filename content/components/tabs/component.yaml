@@ -1,7 +1,7 @@
 ComponentDefinitions:
   lcsTabs:
     DefinitionType: CanvasComponent
-    Description: "LowCodeStacks tabs: the modern tab list with a selected-tab output, a change event, a select action and four looks, for tabs or a segmented control."
+    Description: "LowCodeStacks tabs: the modern tab list with counts on tabs, tabs hidden by name, a selected-tab output, a change event, a select action and four looks, for tabs or a segmented control."
     CustomProperties:
       Items:
         PropertyKind: Input
@@ -27,6 +27,19 @@ ComponentDefinitions:
         DataType: Text
         Description: "What the tabs switch between, for screen readers, such as Request sections."
         Default: ="Sections"
+      Counts:
+        PropertyKind: Input
+        DisplayName: Counts
+        DataType: Table
+        Description: "Numbers to show on tabs, as a table with Tab and Count columns, such as Table({Tab: \"Open\", Count: 3}). A tab with 0 shows no number."
+        Default: |-
+          =Table({Tab: "", Count: 0})
+      HiddenTabs:
+        PropertyKind: Input
+        DisplayName: HiddenTabs
+        DataType: Text
+        Description: "Tabs to leave out, by name, separated by commas, such as \"History\" for people who can't see it."
+        Default: =""
       SelectedTab:
         PropertyKind: Output
         DisplayName: SelectedTab
@@ -67,7 +80,17 @@ ComponentDefinitions:
       Width: =480
       Height: =48
       Fill: =RGBA(0, 0, 0, 0)
-      SelectedTab: =tabList.Selected.Value
+      SelectedTab: |-
+        =With(
+            {shown: tabList.Selected.Value},
+            Coalesce(
+                LookUp(
+                    ForAll(lcsTabs.Items As tab, {Tab: tab.Value, Shown: tab.Value & With({n: LookUp(lcsTabs.Counts As c, c.Tab = tab.Value, c.Count)}, If(n > 0, " (" & n & ")", ""))}),
+                    Shown = shown
+                ).Tab,
+                shown
+            )
+        )
       ItemsFromText: =ForAll(Split(List, ","), Trim(ThisRecord.Value))
       SelectTab: |-
         =Set(locTab, Tab);
@@ -80,8 +103,16 @@ ComponentDefinitions:
             Y: =0
             Width: =Parent.Width
             Height: =Parent.Height
-            Items: =lcsTabs.Items
-            Default: =Coalesce(locTab, lcsTabs.DefaultTab)
+            Items: |-
+              =ForAll(
+                  Filter(lcsTabs.Items As tab, !(tab.Value in ForAll(Split(lcsTabs.HiddenTabs, ","), Trim(ThisRecord.Value)))) As tab,
+                  tab.Value & With({n: LookUp(lcsTabs.Counts As c, c.Tab = tab.Value, c.Count)}, If(n > 0, " (" & n & ")", ""))
+              )
+            Default: |-
+              =With(
+                  {want: Coalesce(locTab, lcsTabs.DefaultTab)},
+                  want & With({n: LookUp(lcsTabs.Counts As c, c.Tab = want, c.Count)}, If(n > 0, " (" & n & ")", ""))
+              )
             Appearance: |-
               =Switch(
                   lcsTabs.Look,
@@ -92,4 +123,6 @@ ComponentDefinitions:
               )
             Alignment: =TabListAlignment.Start
             AccessibleLabel: =lcsTabs.AccessibleName
-            OnChange: =lcsTabs.OnChange(Self.Selected.Value)
+            OnChange: |-
+              =Set(locTab, lcsTabs.SelectedTab);
+              lcsTabs.OnChange(locTab)

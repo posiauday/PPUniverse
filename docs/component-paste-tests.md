@@ -18,7 +18,20 @@ Tell the agent about anything that didn't work, with a screenshot if you can; it
 
 ## Button: `lcsButton` → name it `MyButton`
 
-The pilot checklist (`.nav-mock/components/pilot-test-checklist.md`) has the full table: Label, Appearance, IconName, IsBusy, ClickCount, OnClick, FormatLabel, IsValidLabel, ResetCount.
+The pilot checklist (`.nav-mock/components/pilot-test-checklist.md`) has the full table for 0.1.0: Label, Appearance, IconName, IsBusy, ClickCount, OnClick, FormatLabel, IsValidLabel, ResetCount. **0.2.0** adds a timer inside the component (`Timer@2.1.0`, our first), so check the paste first, then:
+
+**Timers run only in preview (F5)** in Studio. Test the rows marked ⏱ in preview.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Set `AccentColor` to `RGBA(124, 58, 237, 1)` | A purple Primary button; hover and pressed are darker purples |
+| Input | Set `Theme` to `"Dark"`, `Screen1.Fill` to `RGBA(31, 31, 31, 1)`, then try each `Appearance` | Light text and borders; Secondary looks like Outline; Subtle has no light hover |
+| Input | `IsBusy` true, in both themes | "Working…", greyed, not selectable |
+| Input ⏱ | `RequireConfirm` true, `OnClick` set to `Notify("Deleted")`; select once | Red, a warning icon, "Select again" |
+| Event ⏱ | Select again within 4 seconds | "Deleted"; the button is back to normal |
+| Input ⏱ | Select once, then wait 4 seconds | Back to normal, no message |
+| Output ⏱ | A label: `MyButton.IsArmed` | true only while it waits |
+
 
 ## Text field: `lcsTextField` → name it `txtEmail`
 
@@ -60,6 +73,21 @@ Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, a
 | Output | A label: `tstMain.IsOpen & " / " & tstMain.CurrentKind` | Matches what's showing |
 | Action | `tstMain.Hide()` | It closes, without OnDismiss |
 
+**0.2.0** adds a timer (`Timer@2.1.0`) and a collection inside the component.
+
+**Timers run only in preview (F5)** in Studio. Test the rows marked ⏱ in preview.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input ⏱ | Leave `Duration` at 6; Show a message | It closes by itself after about 6 seconds |
+| Input ⏱ | `Duration` 0 | It stays until ✕ |
+| Action ⏱ | Select the Show button three times quickly | The first message, with "(2 more)"; each closes into the next |
+| Output | A label: `tstMain.QueueCount` | 2, then 1, then 0 |
+| Action | `tstMain.Hide()` with messages queued | It closes and the queue is empty |
+| Input | `Theme` `"Dark"` on a dark screen; Show each kind | Dark bars with light text |
+| Input | `AccentColor` purple; Show an `"Info"` message | A purple border and a light purple tint |
+
+
 ## Tabs: `lcsTabs` → name it `tabsRequest`
 
 | Kind | Do this | Expect |
@@ -72,6 +100,17 @@ Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, a
 | OutputFunction | In Screen1.OnVisible: `Set(gblTabs, tabsRequest.ItemsFromText("Open, Waiting, Done"))`, then set `Items` to `gblTabs` | Three tabs: Open, Waiting, Done |
 | Keyboard | Tab to the tabs, then the arrow keys | The selection moves |
 
+**0.2.0:**
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | `Counts` to `Table({Tab: "Details", Count: 3})` | The tab reads "Details (3)" |
+| Output | Select Details; the `SelectedTab` label | "Details", without the count |
+| Event | `OnChange` to `Notify(Tab)`; select Details | "Details", without the count |
+| Input | Change the count while Details is selected | The number changes; Details stays selected |
+| Input | `HiddenTabs` to `"History"` | Two tabs |
+
+
 ## Empty, loading and error states: `lcsStates` → name it `stsRequests`
 
 | Kind | Do this | Expect |
@@ -82,3 +121,13 @@ Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, a
 | Event | Set `OnAction` to `Notify(State)`; select the button | "Empty" or "Error" |
 | Output | A label: `stsRequests.IsShowing` | true for the three states, false for `""` |
 | OutputFunction | A label: `stsRequests.StateFor(false, true, 3)` | "Error" |
+
+**0.2.0:**
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | `State` `"Skeleton"`, `Title` `"Loading requests…"` | A small grey line and four grey placeholder rows |
+| Input | `SkeletonRows` 2, then 12 | Two rows; then as many as fit (four) |
+| Input | `AccentColor` purple; `State` `"Loading"`, then `"Empty"` | A purple spinner; a purple button |
+| Input | `Theme` `"Dark"` on a dark screen, each state | Light text, dark circles and rows |
+| Output | `stsRequests.IsShowing` with `"Skeleton"` | true |

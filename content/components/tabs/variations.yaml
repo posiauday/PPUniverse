@@ -19,3 +19,15 @@
     DefaultTab: ="Week"
     Look: ="Subtle"
     AccessibleName: ="Time range"
+- name: Counts on tabs
+  description: How many items wait in each status, shown in the tab's text.
+  settings:
+    Items: =["Open", "Waiting", "Done"]
+    DefaultTab: ="Open"
+    Look: ="Filled"
+    AccessibleName: ="Show requests that are"
+    Counts: '=Table({Tab: "Open", Count: 12}, {Tab: "Waiting", Count: 3})'
+- name: A tab hidden
+  description: History is left out, such as for people who can't see it.
+  settings:
+    HiddenTabs: ="History"

@@ -5,11 +5,18 @@
   settings:
     ActionText: =""
 - name: With Undo
-  description: A button to reverse what just happened. Handle it in OnAction.
+  description: A button to reverse what just happened, with 10 seconds to reach it. Handle it in OnAction.
   settings:
     ActionText: ="Undo"
+    Duration: =10
 - name: With View
-  description: A button that takes the user to what was just created.
+  description: A button that takes the user to what was just created. It stays until closed.
   settings:
     ActionText: ="View"
     ToastWidth: =480
+    Duration: =0
+- name: Dark, in your brand colour
+  description: On a dark screen, with Info messages tinted in your brand colour.
+  settings:
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)
