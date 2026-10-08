@@ -887,12 +887,12 @@ describe("robots.txt and sitemap.xml routes", () => {
     // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
     // one each of MAX_SITEMAP_URLS (50,000), and the 7 hubs (six products and
     // Governance & admin, MVP-033) plus /updates are reserved, and so are
-    // 1,000 Learn pages (MVP-048); the remaining 48,986 is split
-    // between the catalog and content repositories
+    // 1,000 Learn pages (MVP-048) and 500 component library pages (MVP-049);
+    // the remaining 48,486 is split between the catalog and content repositories
     // (see lib/seo/sitemap.ts's generateSitemap). No section has content here,
     // so none is listed.
-    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_493);
-    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_493);
+    expect(repository.listSitemapEntries).toHaveBeenCalledWith(24_243);
+    expect(content.listPublishedArticleSlugs).toHaveBeenCalledWith(24_243);
   });
 
   it("sitemap.xml lists /updates once an update is published (open question 69)", async () => {
