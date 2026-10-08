@@ -2,7 +2,13 @@ import type { SitemapEntries } from "@ppu/domain-catalog";
 import type { ArticleSitemapEntries } from "@ppu/domain-content";
 import { describe, expect, it, vi } from "vitest";
 import type { SiteUrlResult } from "../site-url.js";
-import { MAX_LEARN_URLS, MAX_SITEMAP_URLS, buildSitemap, generateSitemap } from "./sitemap.js";
+import {
+  MAX_COMPONENT_URLS,
+  MAX_LEARN_URLS,
+  MAX_SITEMAP_URLS,
+  buildSitemap,
+  generateSitemap,
+} from "./sitemap.js";
 import { MAX_SECTION_PATHS } from "../technology-sections.js";
 
 const SITE: SiteUrlResult = { ok: true, origin: "https://example.com" };
@@ -21,10 +27,16 @@ const ARTICLES: ArticleSitemapEntries = {
 // The home page and /learn hub take one slot each, and MVP-028's technology
 // section tabs (MAX_SECTION_PATHS) are reserved up front.
 const CATALOG_BUDGET = Math.ceil(
-  (MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS - MAX_LEARN_URLS) / 2,
+  (MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS - MAX_LEARN_URLS - MAX_COMPONENT_URLS) / 2,
 );
 const ARTICLE_BUDGET =
-  MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS - MAX_LEARN_URLS - CATALOG_BUDGET;
+  MAX_SITEMAP_URLS -
+  2 -
+  4 -
+  MAX_SECTION_PATHS -
+  MAX_LEARN_URLS -
+  MAX_COMPONENT_URLS -
+  CATALOG_BUDGET;
 
 describe("buildSitemap", () => {
   it("lists the home page, category base URLs, product URLs, the /learn hub and Article URLs — as absolute URLs", () => {
@@ -141,6 +153,32 @@ describe("generateSitemap", () => {
     );
     const capped = await generateSitemap(deps);
     expect(capped.filter((entry) => /\/x\d+$/.test(entry.url))).toHaveLength(MAX_SECTION_PATHS);
+  });
+
+  it("lists the component library after the Learn pages, capped at MAX_COMPONENT_URLS (MVP-049)", async () => {
+    const changed = new Date("2026-10-08T00:00:00Z");
+    const { deps } = make({
+      listLearnEntries: async () => [{ path: "/topics" }],
+      listComponentEntries: async () => [
+        { path: "/components" },
+        { path: "/components/button", lastModified: changed },
+      ],
+    });
+    const urls = (await generateSitemap(deps)).map((entry) => entry.url);
+    const at = (url: string) => urls.indexOf(url);
+    expect(at("https://example.com/components")).toBeGreaterThan(at("https://example.com/topics"));
+    expect(at("https://example.com/components/button")).toBeLessThan(
+      at("https://example.com/about"),
+    );
+
+    const many = make({
+      listComponentEntries: async () =>
+        Array.from({ length: MAX_COMPONENT_URLS + 5 }, (_, i) => ({ path: `/components/c${i}` })),
+    });
+    const capped = await generateSitemap(many.deps);
+    expect(capped.filter((entry) => /\/components\/c\d+$/.test(entry.url))).toHaveLength(
+      MAX_COMPONENT_URLS,
+    );
   });
 
   it("returns an empty sitemap — and never touches the database — when the origin is unavailable", async () => {
