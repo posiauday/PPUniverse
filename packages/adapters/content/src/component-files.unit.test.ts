@@ -2,7 +2,11 @@ import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readComponentFolder, rejectedPropertyProblems } from "./component-files.js";
+import {
+  readComponentFolder,
+  rejectedPropertyProblems,
+  sizeFromVariableProblems,
+} from "./component-files.js";
 
 const MD = `---
 title: "Toggle"
@@ -168,6 +172,16 @@ describe("readComponentFolder", () => {
         { btn: { Control: "ModernButton@1.0.0", Properties: { AccessibleLabel: '="Save"' } } },
       ]),
     ).toEqual([]);
+  });
+
+  it("rejects a component sized from one of its own variables", () => {
+    const yamlText = "OnSelect: =Set(locOpen, !locOpen)";
+    expect(
+      sizeFromVariableProblems(yamlText, { Width: "=If(locOpen, 240, 56)", Height: "=56" }),
+    ).toEqual(["the component's Width reads the variable locOpen; size it from its inputs only"]);
+    expect(sizeFromVariableProblems(yamlText, { Width: "=If(lcsFab.SpeedDial, 240, 56)" })).toEqual(
+      [],
+    );
   });
 
   it("needs the folder to be named after the slug", () => {

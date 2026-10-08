@@ -137,14 +137,14 @@ ComponentDefinitions:
             },
             Max(
                 If(lcsFab.Extended, fabSize + labelWidth + 16, fabSize),
-                If(locOpen && lcsFab.SpeedDial, 240, 0)
+                If(lcsFab.SpeedDial, 240, 0)
             )
         )
       Height: |-
         =With(
             {fabSize: Switch(lcsFab.Size, "Small", 40, "Large", 72, 56)},
             If(
-                locOpen && lcsFab.SpeedDial,
+                lcsFab.SpeedDial,
                 fabSize + 12 + CountRows(lcsFab.Items) * lcsFab.ItemHeight,
                 fabSize
             )

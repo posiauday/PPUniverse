@@ -35,7 +35,7 @@ Every component must meet all of these before it's published. CI checks what it 
 6. **Accessible:** `AccessibleLabel` on every interactive control (a classic button is named by its `Text` instead, which Studio requires), a sensible `TabIndex` order, a visible focus state, text contrast at least 4.5:1 in both themes, live text announced where content changes, nothing that only works on hover.
 7. **Delegation-safe:** components that take data never filter or sort it themselves in a way that hides rows. Paging, sorting and filtering are done by the app through events, or the component documents its limit.
 8. **Naming:** component `lcs<Name>`; controls named by type and role (`btnPrimary`, `lblTitle`, `cntHeader`); properties in PascalCase; no abbreviations a maker can't guess.
-9. **Blank-safe:** every input the component reads survives a blank value (`Coalesce`, `IsBlank`), so it never errors while the app's data is still loading. Component variables used by the component's own properties are set in `OnReset`.
+9. **Blank-safe:** every input the component reads survives a blank value (`Coalesce`, `IsBlank`), so it never errors while the app's data is still loading. The component's own Width and Height come from its inputs only, never from a variable (Studio rejects that; CI checks it).
 10. **Colours derived, not fixed:** hover and pressed states come from the maker's colours (`ColorFade(AccentColor, …)`), so any brand colour looks right.
 11. **Works in a component library:** no `AccessAppScope`, no `App.` references; everything comes in through inputs and goes out through outputs.
 12. **Performance:** few controls, no timers unless the feature needs one.

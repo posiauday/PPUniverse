@@ -133,6 +133,29 @@ export function rejectedPropertyProblems(children: unknown): string[] {
   return problems;
 }
 
+/**
+ * Studio reports a variable as an error in the component's own Width or Height
+ * (lcsFab paste-test, 2026-10-08, even with an OnReset that sets it), so the
+ * component must be sized from its inputs only.
+ */
+export function sizeFromVariableProblems(yamlText: string, properties: unknown): string[] {
+  const variables = new Set(
+    [...yamlText.matchAll(/\bSet\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*,/g)].map((m) => m[1]),
+  );
+  const own = isRecord(properties) ? properties : {};
+  const problems: string[] = [];
+  for (const key of ["Width", "Height"]) {
+    const formula = text(own[key]);
+    for (const variable of variables) {
+      if (variable && new RegExp(`\\b${variable}\\b`).test(formula))
+        problems.push(
+          `the component's ${key} reads the variable ${variable}; size it from its inputs only`,
+        );
+    }
+  }
+  return problems;
+}
+
 /** The custom properties of one component definition, in the YAML's order. */
 export function readProperties(definition: Record<string, unknown>): ComponentProperty[] {
   const custom = isRecord(definition["CustomProperties"]) ? definition["CustomProperties"] : {};
@@ -240,6 +263,7 @@ export function readComponentFolder(path: string, folder: string): ComponentFold
   }
   errors.push(...componentStandardProblems(componentName, properties));
   errors.push(...rejectedPropertyProblems(definition["Children"]));
+  errors.push(...sizeFromVariableProblems(yamlText, definition["Properties"]));
 
   const variationsFile = join(path, "variations.yaml");
   let variations: ComponentVariation[] = [];

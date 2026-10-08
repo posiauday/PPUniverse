@@ -79,7 +79,7 @@ fabMain.IconSvg("Search", "#0F6CBD")
 
 ## Known limits
 
-- With the menu open, the component grows upward and to the left to fit the items, so leave room above it.
+- With `SpeedDial` on, the component is always as big as the open menu, so the button sits in its bottom-right corner. The empty area is transparent and lets taps through while the menu is closed. Leave room above it.
 - Clicking outside the menu closes it only within the component's area; call `Close()` from the screen's other actions if needed.
 - **IconSvg** is an output function, so it only uses its two parameters. Colours are hex codes, such as `#FFFFFF`.
 
