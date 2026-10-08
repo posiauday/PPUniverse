@@ -2217,3 +2217,12 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **MIT-licensed sample components may be used as references**, and their code may be reused, with the licence's copyright notice kept wherever code is reused.
 2. **How the agent applies it:** it learns from the samples the facts about Power Apps Studio (control names and versions, property names, structure that pastes cleanly) and writes LowCodeStacks components fresh, improving on the samples' gaps. Icons stay our own glyphs (the earlier "own glyphs only" rule); third-party icon sets are not copied.
 3. **Other free libraries (follow-up, same session):** the product owner asked the agent to check other sites that offer free YAML components and to improve on them. Only sources with an **explicit open licence** (for example an MIT LICENSE file in a public repository) are used; "free to use" without a licence, or terms that forbid copying or scraping, means reference only, nothing copied. Every reused piece keeps its source, licence and copyright notice in `content/components/NOTICES.md`.
+
+## 2026-10-08 — Component library: direction, differentiators and build order
+
+**Source:** direct product-owner approval in this session ("all approved, start building") of the recommendation in `docs/research/2026-10-08-component-roadmap-and-differentiators.md`.
+
+1. **Direction:** fewer components, each clearly better than the best free equivalent, plus the components that fill real gaps; full screen templates next; no race to the biggest catalogue.
+2. **The ten library-wide differentiators** (section 4 of the research) are part of the component standard: a live playground for every property; actions and events that pass what happened; paste-tested with the Studio version shown and no breaking renames; accessible by design; works in component libraries and on mobile; `AccentColor` and `Theme`; options hidden or disabled by key; every visible word an input; delegation-safe data components; a linked guide.
+3. **Build order:** Wave 1 upgrades first (Dialog, then theme and brand colour on Button, Toast, Tabs and States, then Toast auto-dismiss and queue, Tabs badges, States skeleton). Wave 2: Date and time picker, People picker, Pagination, Data table, Navigation shell, Tree view, Stepper. Wave 3: Kanban board, screen templates, charts last.
+4. **Sign-in to copy:** Data table, Navigation shell, Kanban board, screen templates, and the **People picker**.
