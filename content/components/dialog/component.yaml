@@ -1,8 +1,14 @@
 ComponentDefinitions:
   lcsDialog:
     DefinitionType: CanvasComponent
-    Description: "LowCodeStacks dialog: a confirm or alert box over a dimmed screen, opened and closed from your app with actions, with events for the answer."
+    Description: "LowCodeStacks dialog: confirm, alert, form or danger, over a dimmed screen. Up to three buttons from a table, a validated text box, type-to-confirm for destructive actions, opened and closed by actions."
     CustomProperties:
+      Kind:
+        PropertyKind: Input
+        DisplayName: Kind
+        DataType: Text
+        Description: "Confirm (two buttons), Alert (one button: the cancel key is hidden), Form (a text box), or Danger (the user types ConfirmWord before the confirm button unlocks; it turns red)."
+        Default: ="Confirm"
       Title:
         PropertyKind: Input
         DisplayName: Title
@@ -13,26 +19,72 @@ ComponentDefinitions:
         PropertyKind: Input
         DisplayName: Message
         DataType: Text
-        Description: "One or two sentences that explain what happens next."
+        Description: "One or two sentences that say what happens next. The dialog grows to fit."
         Default: ="It will be removed for everyone. You can't undo this."
-      ConfirmText:
+      Buttons:
         PropertyKind: Input
-        DisplayName: ConfirmText
-        DataType: Text
-        Description: "The confirm button's text. Name the action, such as Delete, not OK."
-        Default: ="Delete"
-      CancelText:
+        DisplayName: Buttons
+        DataType: Table
+        Description: "Up to three buttons, left to right, with Key, Label and Style (Primary, Secondary, Outline, Subtle or Danger). Name the action on the label, such as Delete, not OK."
+        Default: |-
+          =Table(
+              {Key: "cancel", Label: "Cancel", Style: "Secondary"},
+              {Key: "confirm", Label: "Delete", Style: "Primary"}
+          )
+      Icon:
         PropertyKind: Input
-        DisplayName: CancelText
+        DisplayName: Icon
         DataType: Text
-        Description: "The cancel button's text. Leave empty for an alert with one button."
-        Default: ="Cancel"
+        Description: "Auto (from Kind), Info, Warning, Error, Success or None."
+        Default: ="Auto"
+      InputLabel:
+        PropertyKind: Input
+        DisplayName: InputLabel
+        DataType: Text
+        Description: "The text box's label when Kind is Form, such as Reason for rejecting."
+        Default: ="Reason"
+      InputPlaceholder:
+        PropertyKind: Input
+        DisplayName: InputPlaceholder
+        DataType: Text
+        Description: "Example text in the empty text box (Form)."
+        Default: =""
+      InputRequired:
+        PropertyKind: Input
+        DisplayName: InputRequired
+        DataType: Boolean
+        Description: "When true (Form), the primary buttons stay disabled until the text box has text."
+        Default: =true
+      ConfirmWord:
+        PropertyKind: Input
+        DisplayName: ConfirmWord
+        DataType: Text
+        Description: "The word the user types to unlock a Danger dialog's confirm button. Not case-sensitive."
+        Default: ="DELETE"
       DialogWidth:
         PropertyKind: Input
         DisplayName: DialogWidth
         DataType: Number
-        Description: "The box's width in pixels. It never gets wider than the screen allows."
+        Description: "The dialog's width in pixels. It never gets wider than the screen allows."
         Default: =440
+      ShowClose:
+        PropertyKind: Input
+        DisplayName: ShowClose
+        DataType: Boolean
+        Description: "Show a close button in the corner, and let a tap outside the dialog close it. Turn off for decisions that must be answered."
+        Default: =true
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "The colour of the primary buttons and the info icon. Use your app's brand colour."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light or Dark."
+        Default: ="Light"
       IsOpen:
         PropertyKind: Output
         DisplayName: IsOpen
@@ -42,24 +94,49 @@ ComponentDefinitions:
         PropertyKind: Output
         DisplayName: Result
         DataType: Text
-        Description: "The last answer: Confirmed, Cancelled, or empty before the first answer."
-      OnConfirm:
+        Description: "The Key of the last button selected, or empty after a dismiss."
+      InputText:
+        PropertyKind: Output
+        DisplayName: InputText
+        DataType: Text
+        Description: "What's typed in the text box now."
+      ValidateInput:
+        PropertyKind: InputFunction
+        DisplayName: ValidateInput
+        DataType: Text
+        Description: "Your own check for the Form text box. Receives the text and returns an error message, or empty text when it's fine."
+        Parameters:
+          - Text:
+              DataType: Text
+              Description: "The text in the box."
+              Default: =""
+        Default: =""
+      OnButtonSelect:
         PropertyKind: Event
-        DisplayName: OnConfirm
+        DisplayName: OnButtonSelect
         ReturnType: None
-        Description: "Runs in the app when the user selects the confirm button. The dialog has already closed."
+        Description: "Runs in the app when a button is selected. Receives the button's Key and the typed text. The dialog has already closed."
+        Parameters:
+          - Key:
+              DataType: Text
+              Description: "The Key of the selected button, such as confirm."
+              Default: =""
+          - InputText:
+              DataType: Text
+              Description: "What was typed in the text box (Form and Danger)."
+              Default: =""
         Default: =false
-      OnCancel:
+      OnDismiss:
         PropertyKind: Event
-        DisplayName: OnCancel
+        DisplayName: OnDismiss
         ReturnType: None
-        Description: "Runs in the app when the user selects the cancel button. The dialog has already closed."
+        Description: "Runs in the app when the dialog is closed with the close button or a tap outside it."
         Default: =false
       Open:
         PropertyKind: Action
         DisplayName: Open
         ReturnType: None
-        Description: "Shows the dialog and clears the last answer."
+        Description: "Shows the dialog, with an empty text box and no result."
       Close:
         PropertyKind: Action
         DisplayName: Close
@@ -69,89 +146,325 @@ ComponentDefinitions:
       Width: =1366
       Height: =768
       Fill: =RGBA(0, 0, 0, 0)
+      OnReset: |-
+        =Set(locOpen, false);
+        Set(locResult, "")
       IsOpen: =locOpen
       Result: =locResult
+      InputText: =txtInput.Text
       Open: |-
-        =Set(locResult, "");
+        =Reset(txtInput);
+        Set(locResult, "");
         Set(locOpen, true)
       Close: =Set(locOpen, false)
     Children:
       - shpScrim:
-          Control: ModernText@1.0.0
+          Control: Rectangle@2.3.0
           Properties:
             X: =0
             Y: =0
             Width: =Parent.Width
             Height: =Parent.Height
             Visible: =locOpen
-            Text: =""
             Fill: =RGBA(0, 0, 0, 0.45)
-      - shpCard:
-          Control: ModernText@1.0.0
+            OnSelect: |-
+              =If(
+                  lcsDialog.ShowClose,
+                  Set(locOpen, false);
+                  Set(locResult, "");
+                  lcsDialog.OnDismiss()
+              )
+      - cntCard:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
           Properties:
+            Visible: =locOpen
             Width: =Min(lcsDialog.DialogWidth, Parent.Width - 32)
-            Height: =220
+            Height: =btnFirst.Y + btnFirst.Height + 24
             X: =(Parent.Width - Self.Width) / 2
             Y: =Max(16, (Parent.Height - Self.Height) / 2)
-            Visible: =locOpen
-            Text: =""
-            Fill: =RGBA(255, 255, 255, 1)
-            RadiusTopLeft: =8
-            RadiusTopRight: =8
-            RadiusBottomLeft: =8
-            RadiusBottomRight: =8
-      - lblTitle:
-          Control: ModernText@1.0.0
-          Properties:
-            X: =shpCard.X + 24
-            Y: =shpCard.Y + 24
-            Width: =shpCard.Width - 48
-            Height: =32
-            Visible: =locOpen
-            Text: =lcsDialog.Title
-            Size: =20
-            FontWeight: =FontWeight.Semibold
-            PaddingLeft: =0
-      - lblMessage:
-          Control: ModernText@1.0.0
-          Properties:
-            X: =lblTitle.X
-            Y: =lblTitle.Y + lblTitle.Height + 8
-            Width: =lblTitle.Width
-            Height: =72
-            Visible: =locOpen
-            Text: =lcsDialog.Message
-            Size: =14
-            Wrap: =true
-            VerticalAlign: =VerticalAlign.Top
-            PaddingLeft: =0
-      - btnConfirm:
-          Control: ModernButton@1.0.0
-          Properties:
-            Width: =Max(96, Len(lcsDialog.ConfirmText) * 9 + 32)
-            Height: =36
-            X: =shpCard.X + shpCard.Width - 24 - Self.Width
-            Y: =shpCard.Y + shpCard.Height - 24 - Self.Height
-            Visible: =locOpen
-            Text: =lcsDialog.ConfirmText
-            Appearance: =ButtonAppearance.Primary
-            AccessibleLabel: =lcsDialog.ConfirmText
-            OnSelect: |-
-              =Set(locOpen, false);
-              Set(locResult, "Confirmed");
-              lcsDialog.OnConfirm()
-      - btnCancel:
-          Control: ModernButton@1.0.0
-          Properties:
-            Width: =Max(96, Len(lcsDialog.CancelText) * 9 + 32)
-            Height: =36
-            X: =btnConfirm.X - 8 - Self.Width
-            Y: =btnConfirm.Y
-            Visible: =locOpen && !IsBlank(lcsDialog.CancelText)
-            Text: =lcsDialog.CancelText
-            Appearance: =ButtonAppearance.Outline
-            AccessibleLabel: =lcsDialog.CancelText
-            OnSelect: |-
-              =Set(locOpen, false);
-              Set(locResult, "Cancelled");
-              lcsDialog.OnCancel()
+            Fill: =If(lcsDialog.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            BorderColor: =RGBA(0, 0, 0, 0)
+            DropShadow: =DropShadow.Semilight
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+          Children:
+            - imgIcon:
+                Control: Image@2.2.3
+                Properties:
+                  X: =24
+                  Y: =26
+                  Width: =24
+                  Height: =24
+                  Visible: =If(lcsDialog.Icon = "Auto", lcsDialog.Kind <> "Form", lcsDialog.Icon <> "None")
+                  Image: |-
+                    ="data:image/svg+xml;utf8," & EncodeUrl(
+                        With(
+                            {
+                                kind: If(lcsDialog.Icon = "Auto", Switch(lcsDialog.Kind, "Danger", "Warning", "Alert", "Info", "Form", "None", "Info"), lcsDialog.Icon),
+                                hex: Switch(
+                                    If(lcsDialog.Icon = "Auto", Switch(lcsDialog.Kind, "Danger", "Warning", "Alert", "Info", "Form", "None", "Info"), lcsDialog.Icon),
+                                    "Warning", "#BC4B09",
+                                    "Error", "#C4314B",
+                                    "Success", "#0E700E",
+                                    Mid(JSON(lcsDialog.AccentColor), 2, 7)
+                                )
+                            },
+                            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='" & hex &
+                            "' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>" &
+                            Switch(
+                                kind,
+                                "Warning", "<path d='M12 3l10 18H2z'/><path d='M12 10v5M12 18v.5'/>",
+                                "Error", "<circle cx='12' cy='12' r='9'/><path d='M9 9l6 6M15 9l-6 6'/>",
+                                "Success", "<circle cx='12' cy='12' r='9'/><path d='M8 12l3 3 5-6'/>",
+                                "<circle cx='12' cy='12' r='9'/><path d='M12 11v6M12 7.5v.5'/>"
+                            ) &
+                            "</svg>"
+                        )
+                    )
+            - lblTitle:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =If(imgIcon.Visible, 58, 24)
+                  Y: =24
+                  Width: =Parent.Width - Self.X - If(lcsDialog.ShowClose, 56, 24)
+                  Height: =28
+                  Text: =lcsDialog.Title
+                  Size: =18
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+            - btnClose:
+                Control: ModernButton@1.0.0
+                Properties:
+                  X: =Parent.Width - 16 - Self.Width
+                  Y: =16
+                  Width: =36
+                  Height: =36
+                  Visible: =lcsDialog.ShowClose
+                  Text: ="Close"
+                  Icon: ="Dismiss"
+                  Layout: =ButtonLayout.IconOnly
+                  Appearance: =ButtonAppearance.Subtle
+                  AccessibleLabel: ="Close dialog"
+                  OnSelect: |-
+                    =Set(locOpen, false);
+                    Set(locResult, "");
+                    lcsDialog.OnDismiss()
+            - lblMessage:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =lblTitle.X
+                  Y: =lblTitle.Y + lblTitle.Height + 8
+                  Width: =Parent.Width - Self.X - 24
+                  Height: =24
+                  AutoHeight: =true
+                  Wrap: =true
+                  Text: =lcsDialog.Message
+                  Size: =14
+                  VerticalAlign: =VerticalAlign.Top
+                  Color: =If(lcsDialog.Theme = "Dark", RGBA(214, 214, 214, 1), RGBA(66, 66, 66, 1))
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+            - lblInput:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =24
+                  Y: =lblMessage.Y + lblMessage.Height + 16
+                  Width: =Parent.Width - 48
+                  Height: =20
+                  Visible: =lcsDialog.Kind in ["Form", "Danger"]
+                  Text: |-
+                    =If(
+                        lcsDialog.Kind = "Danger",
+                        "Type " & lcsDialog.ConfirmWord & " to confirm",
+                        lcsDialog.InputLabel & If(lcsDialog.InputRequired, " *", "")
+                    )
+                  Size: =13
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+            - txtInput:
+                Control: ModernTextInput@1.0.0
+                Properties:
+                  X: =24
+                  Y: =lblInput.Y + lblInput.Height + 4
+                  Width: =Parent.Width - 48
+                  Height: =If(lcsDialog.Kind = "Form", 72, 40)
+                  Visible: =lcsDialog.Kind in ["Form", "Danger"]
+                  Type: =If(lcsDialog.Kind = "Form", TextInputType.Multiline, TextInputType.SingleLine)
+                  Placeholder: =If(lcsDialog.Kind = "Danger", lcsDialog.ConfirmWord, lcsDialog.InputPlaceholder)
+                  Appearance: =Appearance.Outline
+                  BasePaletteColor: =lcsDialog.AccentColor
+                  Size: =14
+                  Color: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  Fill: =If(lcsDialog.Theme = "Dark", RGBA(31, 31, 31, 1), RGBA(255, 255, 255, 1))
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+                  AccessibleLabel: =lblInput.Text
+            - lblInputError:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =24
+                  Y: =txtInput.Y + txtInput.Height + 4
+                  Width: =Parent.Width - 48
+                  Height: =18
+                  Visible: =txtInput.Visible
+                  Text: |-
+                    =With(
+                        {problem: If(lcsDialog.Kind = "Form" && !IsBlank(txtInput.Text), lcsDialog.ValidateInput(txtInput.Text), "")},
+                        If(IsBlank(problem), "", "⚠ " & problem)
+                    )
+                  Size: =12
+                  Color: =If(lcsDialog.Theme = "Dark", RGBA(241, 112, 123, 1), RGBA(196, 49, 75, 1))
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+            - btnFirst:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 0
+                  Text: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))}, btn.Label)
+                  AccessibleLabel: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))}, btn.Label)
+                  Width: =Max(96, Len(Self.Text) * 8 + 32)
+                  Height: =36
+                  X: =Parent.Width - 24 - Self.Width
+                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
+                  Appearance: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", ButtonAppearance.Secondary,
+                            "Outline", ButtonAppearance.Outline,
+                            "Subtle", ButtonAppearance.Subtle,
+                            ButtonAppearance.Primary
+                        )
+                    )
+                  BasePaletteColor: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
+                    )
+                  DisplayMode: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        If(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) in ["Primary", "Danger"] && !(If(lcsDialog.Kind = "Danger", Upper(Trim(txtInput.Text)) = Upper(Trim(lcsDialog.ConfirmWord)), lcsDialog.Kind = "Form", !(lcsDialog.InputRequired && IsBlank(Trim(txtInput.Text))) && IsBlank(lcsDialog.ValidateInput(txtInput.Text)), true)),
+                            DisplayMode.Disabled,
+                            DisplayMode.Edit
+                        )
+                    )
+                  OnSelect: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        Set(locResult, btn.Key);
+                        Set(locOpen, false);
+                        lcsDialog.OnButtonSelect(btn.Key, txtInput.Text);
+                        Reset(txtInput)
+                    )
+            - btnSecond:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 1
+                  Text: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))}, btn.Label)
+                  AccessibleLabel: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))}, btn.Label)
+                  Width: =Max(96, Len(Self.Text) * 8 + 32)
+                  Height: =36
+                  X: =btnFirst.X - 8 - Self.Width
+                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
+                  Appearance: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", ButtonAppearance.Secondary,
+                            "Outline", ButtonAppearance.Outline,
+                            "Subtle", ButtonAppearance.Subtle,
+                            ButtonAppearance.Primary
+                        )
+                    )
+                  BasePaletteColor: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
+                    )
+                  DisplayMode: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        If(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) in ["Primary", "Danger"] && !(If(lcsDialog.Kind = "Danger", Upper(Trim(txtInput.Text)) = Upper(Trim(lcsDialog.ConfirmWord)), lcsDialog.Kind = "Form", !(lcsDialog.InputRequired && IsBlank(Trim(txtInput.Text))) && IsBlank(lcsDialog.ValidateInput(txtInput.Text)), true)),
+                            DisplayMode.Disabled,
+                            DisplayMode.Edit
+                        )
+                    )
+                  OnSelect: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        Set(locResult, btn.Key);
+                        Set(locOpen, false);
+                        lcsDialog.OnButtonSelect(btn.Key, txtInput.Text);
+                        Reset(txtInput)
+                    )
+            - btnThird:
+                Control: ModernButton@1.0.0
+                Properties:
+                  Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 2
+                  Text: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))}, btn.Label)
+                  AccessibleLabel: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))}, btn.Label)
+                  Width: =Max(96, Len(Self.Text) * 8 + 32)
+                  Height: =36
+                  X: =btnSecond.X - 8 - Self.Width
+                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
+                  Appearance: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", ButtonAppearance.Secondary,
+                            "Outline", ButtonAppearance.Outline,
+                            "Subtle", ButtonAppearance.Subtle,
+                            ButtonAppearance.Primary
+                        )
+                    )
+                  BasePaletteColor: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
+                    )
+                  DisplayMode: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        If(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) in ["Primary", "Danger"] && !(If(lcsDialog.Kind = "Danger", Upper(Trim(txtInput.Text)) = Upper(Trim(lcsDialog.ConfirmWord)), lcsDialog.Kind = "Form", !(lcsDialog.InputRequired && IsBlank(Trim(txtInput.Text))) && IsBlank(lcsDialog.ValidateInput(txtInput.Text)), true)),
+                            DisplayMode.Disabled,
+                            DisplayMode.Edit
+                        )
+                    )
+                  OnSelect: |-
+                    =With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Set(locResult, btn.Key);
+                        Set(locOpen, false);
+                        lcsDialog.OnButtonSelect(btn.Key, txtInput.Text);
+                        Reset(txtInput)
+                    )

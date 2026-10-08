@@ -140,6 +140,8 @@ export function ButtonFace({
   dark,
   onClick,
   as = "button",
+  danger = false,
+  disabled = false,
 }: {
   label: string;
   appearance: Appearance;
@@ -148,12 +150,19 @@ export function ButtonFace({
   dark: boolean;
   onClick?: () => void;
   as?: "button" | "span";
+  /** A destructive action: red instead of the brand colour. */
+  danger?: boolean;
+  /** Greyed and unselectable, without the busy spinner. */
+  disabled?: boolean;
 }) {
-  const look = busy
+  const off = busy || disabled;
+  const look = off
     ? dark
       ? "border-[#424242] bg-[#141414] text-[#8a8a8a] cursor-not-allowed"
       : "border-[#e0e0e0] bg-[#f0f0f0] text-[#616161] cursor-not-allowed"
-    : APPEARANCE_CLASS[appearance][dark ? "dark" : "light"];
+    : danger
+      ? "bg-[#c4314b] text-white hover:bg-[#a52a40]"
+      : APPEARANCE_CLASS[appearance][dark ? "dark" : "light"];
   const className = `inline-flex h-10 min-w-24 items-center justify-center gap-1.5 rounded border border-transparent px-3.5 text-sm font-semibold [font-family:"Segoe_UI",system-ui,sans-serif] motion-safe:transition-colors ${look}`;
   const content = (
     <>
@@ -172,8 +181,8 @@ export function ButtonFace({
     <button
       type="button"
       className={className}
-      aria-disabled={busy || undefined}
-      onClick={busy ? undefined : onClick}
+      aria-disabled={off || undefined}
+      onClick={off ? undefined : onClick}
     >
       {content}
     </button>
