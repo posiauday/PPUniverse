@@ -1,0 +1,89 @@
+ComponentDefinitions:
+  lcsButton:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks pilot: a button that shows every custom property kind (Input, Output, InputFunction, OutputFunction, Event, Action)."
+    CustomProperties:
+      Label:
+        PropertyKind: Input
+        DataType: Text
+        Description: "The button's text."
+        Default: ="Save"
+      Appearance:
+        PropertyKind: Input
+        DataType: Text
+        Description: "Primary, Secondary, Outline or Subtle."
+        Default: ="Primary"
+      IconName:
+        PropertyKind: Input
+        DataType: Text
+        Description: "A Fluent icon name, such as Checkmark. Leave empty for no icon."
+        Default: =""
+      IsBusy:
+        PropertyKind: Input
+        DataType: Boolean
+        Description: "While true, the button is disabled and says it's working."
+        Default: =false
+      ClickCount:
+        PropertyKind: Output
+        DataType: Number
+        Description: "How many times the button was selected since the last ResetCount()."
+      FormatLabel:
+        PropertyKind: InputFunction
+        ReturnType: Text
+        Description: "Lets the app change how the label is shown. Receives the label, returns the text to show."
+        Parameters:
+          - Text:
+              DataType: Text
+              Description: "The label to format."
+        Default: =Text
+      IsValidLabel:
+        PropertyKind: OutputFunction
+        ReturnType: Boolean
+        Description: "True when the text is a usable button label: not empty and at most 40 characters."
+        Parameters:
+          - Text:
+              DataType: Text
+              Description: "The label to check."
+      OnClick:
+        PropertyKind: Event
+        ReturnType: None
+        Description: "Runs in the app when the button is selected. Receives the new click count."
+        Parameters:
+          - Count:
+              DataType: Number
+              Description: "The click count, including this click."
+        Default: =false
+      ResetCount:
+        PropertyKind: Action
+        ReturnType: None
+        Description: "Sets ClickCount back to 0."
+    Properties:
+      Width: =160
+      Height: =40
+      Fill: =RGBA(0, 0, 0, 0)
+      ClickCount: =Coalesce(locClicks, 0)
+      IsValidLabel: =!IsBlank(Trim(Text)) && Len(Text) <= 40
+      ResetCount: =Set(locClicks, 0)
+    Children:
+      - btnMain:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Text: =If(lcsButton.IsBusy, "Working…", lcsButton.FormatLabel(lcsButton.Label))
+            Appearance: |-
+              =Switch(
+                  lcsButton.Appearance,
+                  "Secondary", ButtonAppearance.Secondary,
+                  "Outline", ButtonAppearance.Outline,
+                  "Subtle", ButtonAppearance.Subtle,
+                  ButtonAppearance.Primary
+              )
+            Icon: =lcsButton.IconName
+            DisplayMode: =If(lcsButton.IsBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            AccessibleLabel: =lcsButton.Label
+            OnSelect: |-
+              =Set(locClicks, Coalesce(locClicks, 0) + 1);
+              lcsButton.OnClick(locClicks)

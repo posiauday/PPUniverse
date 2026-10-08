@@ -339,3 +339,78 @@ model LessonProgress {
   @@unique([userId, lessonId])
   @@map("lesson_progress")
 }
+
+/// The Power Apps component library (MVP-049; docs/final-decisions.md,
+/// 2026-10-08, "Power Apps component library: first, copy-paste YAML, free").
+/// Imported from content/components as drafts. Publishing needs a recorded
+/// paste-test (testedAt, testedStudioVersion) of the current YAML; replacing
+/// a draft's YAML clears it. `hidden` lets the product owner take a published
+/// component off the site without losing its history. `yaml` and `guide` are
+/// text, never rendered as raw HTML.
+enum ComponentAccess {
+  /// Anyone can copy the YAML.
+  OPEN
+  /// Free, but copying the YAML needs sign-in.
+  MEMBERS
+}
+
+enum ComponentEventAction {
+  TESTED
+  PUBLISHED
+  SETTINGS_CHANGED
+}
+
+model LibraryComponent {
+  id                  String          @id @default(cuid())
+  slug                String          @unique
+  title               String
+  /// The component's name in Power Apps, such as lcsButton.
+  componentName       String
+  /// An id from COMPONENT_CATEGORIES in @ppu/domain-content.
+  category            String
+  summary             String
+  /// The guide, as Markdown.
+  guide               String          @db.Text
+  /// The paste-ready pa.yaml (schema v3.0) text.
+  yaml                String          @db.Text
+  /// The custom properties read from the YAML (ComponentProperty[]).
+  properties          Json
+  /// Named presets (ComponentVariation[]).
+  variations          Json
+  access              ComponentAccess @default(OPEN)
+  version             String
+  needsModernControls Boolean         @default(true)
+  status              ArticleStatus   @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten.
+  publishedAt         DateTime?
+  hidden              Boolean         @default(false)
+  testedAt            DateTime?
+  testedStudioVersion String?
+  authorUserId        String
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  author User             @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events ComponentEvent[]
+
+  @@index([status, hidden, category])
+  @@map("library_components")
+}
+
+/// Append-only audit trail for the component library: tests, publishes and
+/// setting changes (detail holds what changed).
+model ComponentEvent {
+  id          String               @id @default(cuid())
+  componentId String
+  actorUserId String
+  action      ComponentEventAction
+  detail      Json?
+  createdAt   DateTime             @default(now())
+
+  component LibraryComponent @relation(fields: [componentId], references: [id], onDelete: Restrict)
+  actor     User             @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([componentId, createdAt])
+  @@index([createdAt])
+  @@map("component_events")
+}
