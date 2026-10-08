@@ -274,11 +274,13 @@ export function buildTopicMetadata(input: {
   });
 }
 
-/** MVP-048: a published lesson, shared as an article with its dates. */
+/** MVP-048: a published lesson. Lessons need sign-in, so search engines can't
+ * read them: noindex (links still followed), and no article dates
+ * (docs/final-decisions.md, 2026-10-08, "Learn: lessons need sign-in"). */
 export function buildLessonMetadata(input: {
   site: SiteUrlResult;
   topic: { slug: string; title: string };
-  lesson: { slug: string; title: string; outcomes: string[]; publishedAt: Date; updatedAt: Date };
+  lesson: { slug: string; title: string; outcomes: string[] };
 }): Metadata {
   const { site, topic, lesson } = input;
   const title = normalizeDisplayText(lesson.title) ?? SITE_NAME;
@@ -291,12 +293,8 @@ export function buildLessonMetadata(input: {
       `${title} on ${SITE_NAME}.`,
     ),
     url: site.ok ? lessonUrl(site.origin, topic.slug, lesson.slug) : undefined,
-    robots: INDEXABLE_ROBOTS,
+    robots: NOINDEX_FOLLOW_ROBOTS,
     image: site.ok ? siteShareImageUrl(site.origin) : undefined,
-    article: {
-      publishedTime: lesson.publishedAt.toISOString(),
-      modifiedTime: lesson.updatedAt.toISOString(),
-    },
   });
 }
 

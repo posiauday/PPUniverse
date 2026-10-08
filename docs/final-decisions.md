@@ -2167,3 +2167,12 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 **Source:** direct product-owner answer in this session, by multiple choice (TD-030's options).
 
 The accessibility gate runs in **6 shards instead of 4**. The time limit stays at 20 minutes per job. Every engine, width, page state and rule stays, and the self-check still runs in every shard. Only the split of the same test list changes. This resolves TD-030: shards took 8 to 17 minutes and were cancelled at the limit on slower runners with no failing test. The reporting standard of "Accessibility suite mitigation" (2026-09-23) still applies: per-shard times and the total check count are reported on the first run.
+
+## 2026-10-08 — Learn: lessons need sign-in; progress saved to the account
+
+**Source:** direct product-owner answers in this session, by multiple choice: *"Only logged in user can do learn"*, confirmed as "Whole Learn module needs sign-in", and "Saved to their account" for progress, with the Privacy wording shown in the question.
+
+1. **Lessons need sign-in.** Signed-out visitors can see `/topics` and each topic page (what it covers and its lesson titles); those stay public and indexable. Opening a lesson needs an account: a signed-out visitor sees the lesson's title and "What you'll understand", and a button to sign in and come back to it.
+2. **So lessons aren't indexed.** Search engines can't read them, and showing them the content but not visitors would be cloaking. Lesson pages are `noindex`, left out of the sitemap, and IndexNow is told only about topic pages. This supersedes "Each lesson is a normal indexable page" in `docs/plans/learn-module.md` ("Search and AI tools"). The product owner chose this over search traffic to lessons when both were set out.
+3. **Progress is saved to the reader's account.** A signed-in reader can mark a lesson as done; it fills the lesson's ring across the topic, and their profile lists it, with a way to clear it. It is deleted with the account.
+4. **Privacy notice, approved wording**, as a new section, with a new version and effective date: *"Learn progress: if you're signed in and mark a lesson as done, we store which lessons you've finished and when. Only you see it. You can clear it on your profile page, and it's deleted with your account."*

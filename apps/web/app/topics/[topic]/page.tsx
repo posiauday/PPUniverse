@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { currentUserId } from "../../../lib/comments";
 import { learnEnabled } from "../../../lib/feature-flags";
 import { learnRepository } from "../../../lib/learn";
 import { homeUrl, topicUrl, topicsIndexUrl } from "../../../lib/seo/canonical";
@@ -46,6 +47,14 @@ export default async function TopicPage({ params }: TopicPageProps) {
   const palette = paletteFor(topic.technology);
   const minutes = topic.lessons.reduce((sum, lesson) => sum + lesson.minutes, 0);
   const first = topic.lessons[0];
+  // Lessons need sign-in; a signed-in reader sees what they've finished
+  // (docs/final-decisions.md, 2026-10-08).
+  const userId = await currentUserId();
+  const done = new Set(userId ? await learnRepository.listDoneLessonSlugs(userId, topic.slug) : []);
+  const next = topic.lessons.find((lesson) => !done.has(lesson.slug)) ?? first;
+  const nextPath = next
+    ? `/topics/${encodeURIComponent(topic.slug)}/${encodeURIComponent(next.slug)}`
+    : null;
   const site = getSiteUrl();
   const breadcrumbJsonLd = site.ok
     ? buildBreadcrumbJsonLd([
@@ -70,15 +79,27 @@ export default async function TopicPage({ params }: TopicPageProps) {
           <span className="rounded-full bg-card/80 px-3.5 py-1.5">
             {topic.lessons.length} lessons · {minutes} min
           </span>
+          {userId && done.size > 0 ? (
+            <span className="rounded-full bg-card/80 px-3.5 py-1.5">
+              {done.size} of {topic.lessons.length} done
+            </span>
+          ) : null}
         </p>
-        {first ? (
-          <p>
+        {next && nextPath ? (
+          <p className="flex flex-wrap items-center gap-3">
             <Link
-              href={`/topics/${encodeURIComponent(topic.slug)}/${encodeURIComponent(first.slug)}`}
+              href={userId ? nextPath : `/signin?callbackUrl=${encodeURIComponent(nextPath)}`}
               className="motion-press inline-flex min-h-11 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground no-underline"
             >
-              Start lesson 1 →
+              {!userId
+                ? "Sign in to start →"
+                : done.size === 0
+                  ? "Start lesson 1 →"
+                  : done.size === topic.lessons.length
+                    ? "Read it again →"
+                    : `Continue: lesson ${topic.lessons.indexOf(next) + 1} →`}
             </Link>
+            {!userId ? <span className="text-sm">Lessons are free with an account.</span> : null}
           </p>
         ) : null}
       </header>
@@ -96,13 +117,18 @@ export default async function TopicPage({ params }: TopicPageProps) {
               >
                 <span
                   aria-hidden="true"
-                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl font-display font-bold ${palette.tint} ${palette.ink}`}
+                  className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl font-display font-bold ${
+                    done.has(lesson.slug)
+                      ? "bg-accent text-white"
+                      : `${palette.tint} ${palette.ink}`
+                  }`}
                 >
-                  {index + 1}
+                  {done.has(lesson.slug) ? "✓" : index + 1}
                 </span>
                 <span className="font-display text-lg leading-snug font-bold">
                   <span className="sr-only">Lesson {index + 1}: </span>
                   {lesson.title}
+                  {done.has(lesson.slug) ? <span className="sr-only"> (done)</span> : null}
                 </span>
                 <span className="ml-auto shrink-0 text-sm text-muted-foreground">
                   {lesson.minutes} min

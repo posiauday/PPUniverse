@@ -67,6 +67,7 @@ The Learn module (`docs/plans/learn-module.md`): topics made of 3 to 6 lessons a
 - `LearnTopic` (`learn_topics`): `slug` (unique; the address and the importer's key), `title`, `summary` (plain text), `technology` (required `Technology`, including `GOVERNANCE_ADMIN`), `sortOrder` (order among the area's topics), `status`, `publishedAt`, `authorUserId`.
 - `LearnLesson` (`learn_lessons`): `topicId`, `slug` and `position` (each unique within the topic), `title`, `minutes`, `outcomes` (`TEXT[]`, 2 or 3), `body` (Markdown in the fixed lesson shape, never rendered as raw HTML), `checkedOn` (`DATE`, nullable), `status`, `publishedAt`, `authorUserId`. A lesson is public only when it and its topic are both `PUBLISHED`.
 - `LearnPublishEvent` (`learn_publish_events`): append-only, one row per publish: `topicId`, `lessonId` (null when the topic itself was published), `actorUserId`, `action`.
+- `LessonProgress` (`lesson_progress`, 2026-10-08): `userId`, `lessonId` (unique together), `completedAt`. Personal data: only the reader sees it and can clear it; `Cascade` on the user and the lesson, so it goes with the account (Privacy notice, "Learn progress").
 - The lesson shape and the knowledge-check rules are checked in `@ppu/domain-content` (`learn.ts`) by the importer, the content gate and the admin editor.
 
 ## Operations

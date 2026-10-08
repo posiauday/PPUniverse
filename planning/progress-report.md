@@ -5169,3 +5169,19 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not done:** RSS for lessons (the plan lists it; `/learn/feed.xml` stays guides only for now); View Transitions between lessons (the lesson slides in with `motion-rise` instead).
 
 **Remaining:** 3 progress for signed-in readers (lessons ticked done, rings filled across lessons); 4 the first six topics as drafts; then the product owner publishes and sets `FEATURE_LEARN=on`.
+
+## 2026-10-08 — Learn module, slice 3: sign-in and progress; module benched (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014, FR-017). Decisions: `docs/final-decisions.md`, 2026-10-08, "Learn: lessons need sign-in; progress saved to the account" (lessons need sign-in, topics stay public; progress saved to the account; the Privacy wording approved as asked).
+
+**Built:**
+- **Lessons need sign-in:** a signed-out reader gets the lesson's title, topic and outcomes, "Sign in to read" (back to the lesson after sign-in) and "Create a free account". No lesson text, no knowledge check. Lessons are noindex, carry no article data, and are left out of the sitemap; IndexNow is told only about the topic page. The topic page's button reads "Sign in to start" for guests.
+- **Progress:** `lesson_progress` (migration `20261014000000_add_lesson_progress`, additive, rollback in the file; Cascade on the user and the lesson; RLS). `POST/DELETE /api/learn/progress`: signed-in, same-origin, published lessons only, the reader's own progress only. "Mark as done" (undo-able) at the end of each lesson; done lessons show a full ring and ✓ in the lesson list and topic page; the topic shows "N of M done" and "Continue: lesson N". The profile lists progress per topic with "Clear my Learn progress" (confirm first).
+- **Privacy notice:** "Learn progress" in the approved wording, plus a retention line; new version 2026-10-12 (same migration).
+- **Gate:** lesson states sign in as a member; new `lesson-signed-out` state.
+
+**Checked on a real local database** (Prisma's local Postgres): the new migration applies; the repository's database tests (4, including progress deleted with the account) pass; the gate's Learn, admin and profile states pass every axe, overflow and title check in Chromium (the only keyboard-check failures are the Next.js dev-tools button, dev mode only).
+
+**Commands:** `vitest run` (web: 799 passed; 4 new progress route tests), `tsc --noEmit`, `eslint`, `prettier`, `prisma migrate deploy`, the integration tests and `playwright test tests/a11y --project=chromium --grep "topic|lesson|profile"` against the local database.
+
+**Benched** (product owner, 2026-10-08): the code is done and off in production (`FEATURE_LEARN`). To launch: write the first topics in `content/topics`, publish them in the admin, then set `FEATURE_LEARN=on`. MVP-048 stays In Progress until the content exists (Definition of Done).

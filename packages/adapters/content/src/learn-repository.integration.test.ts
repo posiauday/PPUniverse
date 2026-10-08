@@ -108,4 +108,37 @@ describe.skipIf(!hasDatabase)("PrismaLearnRepository (integration, MVP-048)", ()
     expect((await repo.listTopics()).find((t) => t.id === created.id)?.lessons).toHaveLength(2);
     expect((await repo.findTopicWithLessons(created.id))?.lessons.map((l) => l.position)).toEqual([1, 2]);
   });
+
+  it("keeps a reader's progress, only for published lessons, and clears it", async () => {
+    const user = await author("learn-repo-progress@example.test");
+    const reader = await author("learn-repo-reader@example.test");
+    const created = await topic("learn-repo-progress", user.id);
+    const first = await repo.createLesson(lesson(created.id, user.id, 1));
+    const second = await repo.createLesson(lesson(created.id, user.id, 2));
+    expect(await repo.findPublishedLessonId("learn-repo-progress", "lesson-1")).toBeNull();
+
+    await repo.publishLesson(first.id, user.id);
+    await repo.publishLesson(second.id, user.id);
+    await repo.publishTopic(created.id, user.id);
+    expect(await repo.findPublishedLessonId("learn-repo-progress", "lesson-1")).toBe(first.id);
+
+    await repo.setLessonDone(reader.id, first.id, true);
+    await repo.setLessonDone(reader.id, first.id, true);
+    expect(await repo.listDoneLessonSlugs(reader.id, "learn-repo-progress")).toEqual(["lesson-1"]);
+    expect(await repo.listProgress(reader.id)).toEqual([
+      { topicSlug: "learn-repo-progress", topicTitle: "Topic learn-repo-progress", done: 1, total: 2 },
+    ]);
+    expect(await repo.listProgress(user.id)).toEqual([]);
+
+    await repo.setLessonDone(reader.id, first.id, false);
+    expect(await repo.listDoneLessonSlugs(reader.id, "learn-repo-progress")).toEqual([]);
+
+    await repo.setLessonDone(reader.id, second.id, true);
+    await repo.clearProgress(reader.id);
+    expect(await repo.listProgress(reader.id)).toEqual([]);
+
+    await repo.setLessonDone(reader.id, second.id, true);
+    await db.user.delete({ where: { id: reader.id } });
+    expect(await db.lessonProgress.count({ where: { userId: reader.id } })).toBe(0);
+  });
 });
