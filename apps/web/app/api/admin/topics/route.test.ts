@@ -23,6 +23,13 @@ vi.mock("@ppu/db", () => ({
   prisma: { user: { findUnique: (...args: unknown[]) => findUnique(...args) } },
 }));
 vi.mock("../../../../lib/learn", () => ({ learnRepository: repo }));
+const notifyIndexNow = vi.fn();
+vi.mock("../../../../lib/indexnow", () => ({
+  notifyIndexNow: (...args: unknown[]) => notifyIndexNow(...args),
+}));
+vi.mock("../../../../lib/site-url", () => ({
+  getSiteUrl: () => ({ ok: true, origin: "https://example.com" }),
+}));
 
 const { GET, POST } = await import("./route");
 const { PATCH: PATCH_TOPIC } = await import("./[id]/route");
@@ -268,5 +275,31 @@ describe("/api/admin/topics and /api/admin/lessons (MVP-048 slice 1b)", () => {
     expect((await PUBLISH_TOPIC(empty(), params("nope"))).status).toBe(404);
     expect((await PATCH_LESSON(json(LESSON, "PATCH"), params("nope"))).status).toBe(404);
     expect((await PUBLISH_LESSON(empty(), params("nope"))).status).toBe(404);
+  });
+
+  it("tells IndexNow about a published lesson only once its page is public", async () => {
+    signedInAs("ADMIN");
+    repo.publishLesson.mockResolvedValue({ id: "l1", status: "PUBLISHED" });
+    process.env["FEATURE_LEARN"] = "on";
+    try {
+      repo.findLessonById.mockResolvedValueOnce(lessonRow(1));
+      repo.findTopicById.mockResolvedValueOnce({ id: "t1", slug: "delegation", status: "DRAFT" });
+      await PUBLISH_LESSON(empty(), params("l1"));
+      expect(notifyIndexNow).not.toHaveBeenCalled();
+
+      repo.findLessonById.mockResolvedValueOnce(lessonRow(1));
+      repo.findTopicById.mockResolvedValueOnce({
+        id: "t1",
+        slug: "delegation",
+        status: "PUBLISHED",
+      });
+      await PUBLISH_LESSON(empty(), params("l1"));
+      expect(notifyIndexNow).toHaveBeenCalledWith(
+        ["https://example.com/topics/delegation/lesson-1", "https://example.com/topics/delegation"],
+        expect.anything(),
+      );
+    } finally {
+      delete process.env["FEATURE_LEARN"];
+    }
   });
 });

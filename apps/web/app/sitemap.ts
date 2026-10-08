@@ -2,6 +2,8 @@ import { logger } from "@ppu/telemetry";
 import type { MetadataRoute } from "next";
 import { catalogRepository } from "../lib/catalog";
 import { contentRepository } from "../lib/content";
+import { learnEnabled } from "../lib/feature-flags";
+import { learnRepository } from "../lib/learn";
 import { generateSitemap } from "../lib/seo/sitemap";
 import { getSiteUrl } from "../lib/site-url";
 import { listSectionPathsWithContent } from "../lib/technology-sections";
@@ -24,6 +26,28 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
         updateRepository.listPublishedUpdateTimes(1),
       ]);
       return updates.length > 0 ? [...hubs, "/updates"] : hubs;
+    },
+    // MVP-048: /topics, then each published topic and its published lessons,
+    // only while the Learn module is switched on (FEATURE_LEARN).
+    listLearnEntries: async () => {
+      if (!learnEnabled()) return [];
+      const topics = (await learnRepository.listPublishedTopics()).filter(
+        (topic) => topic.lessons.length > 0,
+      );
+      if (topics.length === 0) return [];
+      return [
+        { path: "/topics" },
+        ...topics.flatMap((topic) => {
+          const base = `/topics/${encodeURIComponent(topic.slug)}`;
+          return [
+            { path: base, lastModified: topic.updatedAt },
+            ...topic.lessons.map((lesson) => ({
+              path: `${base}/${encodeURIComponent(lesson.slug)}`,
+              lastModified: lesson.updatedAt,
+            })),
+          ];
+        }),
+      ];
     },
     warn: (event, fields) => logger.warn(event, fields),
   });

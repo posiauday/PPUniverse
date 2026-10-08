@@ -193,7 +193,14 @@ const publishedLessons = {
   lessons: {
     where: { status: "PUBLISHED" as const },
     orderBy: { position: "asc" as const },
-    select: { slug: true, position: true, title: true, minutes: true, publishedAt: true },
+    select: {
+      slug: true,
+      position: true,
+      title: true,
+      minutes: true,
+      publishedAt: true,
+      updatedAt: true,
+    },
   },
 };
 
@@ -229,7 +236,14 @@ function toTopic(row: TopicRow): TopicRecord {
 
 function toPublishedTopic(
   row: TopicRow & {
-    lessons: { slug: string; position: number; title: string; minutes: number; publishedAt: Date | null }[];
+    lessons: {
+      slug: string;
+      position: number;
+      title: string;
+      minutes: number;
+      publishedAt: Date | null;
+      updatedAt: Date;
+    }[];
   },
 ): PublishedTopic {
   return {

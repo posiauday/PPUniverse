@@ -1,10 +1,14 @@
 import { TOPIC_LESSONS_MIN, isValidArticleStatusTransition } from "@ppu/domain-content";
 import { getCorrelationId, logger } from "@ppu/telemetry";
 import { NextResponse } from "next/server";
+import { learnEnabled } from "../../../../../../lib/feature-flags";
+import { notifyIndexNow } from "../../../../../../lib/indexnow";
 import { learnRepository } from "../../../../../../lib/learn";
 import { invalidState, notFoundEnvelope } from "../../../../../../lib/learn-routes";
 import { withObservability } from "../../../../../../lib/observability";
 import { notFoundForNonAdmin, requireAdmin } from "../../../../../../lib/require-admin";
+import { topicUrl, topicsIndexUrl } from "../../../../../../lib/seo/canonical";
+import { getSiteUrl } from "../../../../../../lib/site-url";
 
 /**
  * Publishes a topic: DRAFT -> PUBLISHED only (MVP-048 slice 1b), appending
@@ -35,6 +39,18 @@ export const POST = withObservability(
 
     const published = await learnRepository.publishTopic(id, admin.userId);
     logger.info("learn.topic_published", { topicId: id, actorUserId: admin.userId });
+    // MVP-046/048: tell IndexNow search engines, once the Learn pages are public
+    // and the topic has a published lesson to show (never fails the publish).
+    const site = getSiteUrl();
+    if (
+      site.ok &&
+      learnEnabled() &&
+      topic.lessons.some((lesson) => lesson.status === "PUBLISHED")
+    ) {
+      await notifyIndexNow([topicsIndexUrl(site.origin), topicUrl(site.origin, topic.slug)], {
+        site,
+      });
+    }
     return NextResponse.json({ topic: published }, { status: 200 });
   },
 );

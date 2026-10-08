@@ -176,6 +176,8 @@ export interface FixtureSet {
   /** MVP-048: a DRAFT Learn topic with one DRAFT lesson, for the admin Learn pages. */
   draftTopic: { id: string; slug: string; title: string };
   draftLesson: { id: string; title: string };
+  /** MVP-048: a PUBLISHED Learn topic with three PUBLISHED lessons, at /topics/[topic]/[lesson]. */
+  publishedTopic: { slug: string; title: string; lessons: { slug: string; title: string }[] };
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
    * support/compatibility/release) — visible in the admin products list,
    * and exercises the "still missing mandatory fields" publish-readiness
@@ -759,6 +761,44 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       },
     });
 
+    // MVP-048: a published topic with three published lessons, for the public pages.
+    const publishedTopicSlug = `${prefix}published-topic`;
+    assertReserved("topic", publishedTopicSlug);
+    const topicPublishedAt = new Date();
+    const publishedTopic = await prisma.learnTopic.create({
+      data: {
+        slug: publishedTopicSlug,
+        title: `E2E fixture: published topic ${prefix}`,
+        summary: "A test topic for the accessibility gate. Not a real lesson.",
+        technology: "POWER_APPS",
+        sortOrder: 1,
+        status: "PUBLISHED",
+        publishedAt: topicPublishedAt,
+        authorUserId: admin.id,
+      },
+    });
+    created.topicIds.push(publishedTopic.id);
+    const publishedLessons = [];
+    for (const position of [1, 2, 3]) {
+      publishedLessons.push(
+        await prisma.learnLesson.create({
+          data: {
+            topicId: publishedTopic.id,
+            slug: `lesson-${position}`,
+            position,
+            title: `E2E fixture: lesson ${position} ${prefix}`,
+            minutes: 10,
+            outcomes: ["The first outcome", "The second outcome"],
+            body: FIXTURE_LESSON_BODY,
+            checkedOn: new Date("2026-10-07T00:00:00Z"),
+            status: "PUBLISHED",
+            publishedAt: topicPublishedAt,
+            authorUserId: admin.id,
+          },
+        }),
+      );
+    }
+
     // MVP-012 (FR-009): admin product/release editor fixtures. Deliberately
     // built with direct Prisma writes, not through the admin API routes --
     // this is fixture setup for the accessibility harness, not the
@@ -971,6 +1011,11 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       draftUpdate: { id: draftUpdate.id, slug: draftUpdate.slug, title: draftUpdate.title },
       draftTopic: { id: draftTopic.id, slug: draftTopic.slug, title: draftTopic.title },
       draftLesson: { id: draftLesson.id, title: draftLesson.title },
+      publishedTopic: {
+        slug: publishedTopic.slug,
+        title: publishedTopic.title,
+        lessons: publishedLessons.map((lesson) => ({ slug: lesson.slug, title: lesson.title })),
+      },
       draftAdminProduct: {
         id: draftAdminProduct.id,
         slug: draftAdminProduct.slug,

@@ -9,10 +9,13 @@ import {
   learnIndexUrl,
   learnShareImageUrl,
   learnUrl,
+  lessonUrl,
   productShareImageUrl,
   productUrl,
   siteShareImageUrl,
   technologySectionUrl,
+  topicUrl,
+  topicsIndexUrl,
 } from "./canonical";
 import type { CategoryIndexingDecision } from "./category-indexing";
 import { SHARE_IMAGE_SIZE } from "./share-image-size";
@@ -234,6 +237,66 @@ export function buildTechnologySectionMetadata(input: {
     url: site.ok ? technologySectionUrl(site.origin, path) : undefined,
     robots: hasContent ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
     image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
+}
+
+/** MVP-048: the Learn home. Indexable once it lists a topic; until then noindex, like the /learn hub. */
+export function buildTopicsIndexMetadata(input: {
+  site: SiteUrlResult;
+  hasTopics: boolean;
+}): Metadata {
+  const { site, hasTopics } = input;
+  return composeMetadata({
+    title: `Learn Power Platform, topic by topic | ${SITE_NAME}`,
+    socialTitle: "Learn Power Platform, topic by topic",
+    description:
+      "Short lessons that explain how Power Platform really works: what it does, the important things, a small exercise and a quick check.",
+    url: site.ok ? topicsIndexUrl(site.origin) : undefined,
+    robots: hasTopics ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
+}
+
+/** MVP-048: a published Learn topic. */
+export function buildTopicMetadata(input: {
+  site: SiteUrlResult;
+  topic: { slug: string; title: string; summary: string };
+}): Metadata {
+  const { site, topic } = input;
+  const title = normalizeDisplayText(topic.title) ?? SITE_NAME;
+  return composeMetadata({
+    title: `${title} | ${SITE_NAME}`,
+    socialTitle: title,
+    description: toMetaDescription(topic.summary, `${title} on ${SITE_NAME}.`),
+    url: site.ok ? topicUrl(site.origin, topic.slug) : undefined,
+    robots: INDEXABLE_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
+}
+
+/** MVP-048: a published lesson, shared as an article with its dates. */
+export function buildLessonMetadata(input: {
+  site: SiteUrlResult;
+  topic: { slug: string; title: string };
+  lesson: { slug: string; title: string; outcomes: string[]; publishedAt: Date; updatedAt: Date };
+}): Metadata {
+  const { site, topic, lesson } = input;
+  const title = normalizeDisplayText(lesson.title) ?? SITE_NAME;
+  const topicTitle = normalizeDisplayText(topic.title) ?? SITE_NAME;
+  return composeMetadata({
+    title: `${title} · ${topicTitle} | ${SITE_NAME}`,
+    socialTitle: title,
+    description: toMetaDescription(
+      `${topicTitle}: ${lesson.outcomes.join("; ")}.`,
+      `${title} on ${SITE_NAME}.`,
+    ),
+    url: site.ok ? lessonUrl(site.origin, topic.slug, lesson.slug) : undefined,
+    robots: INDEXABLE_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+    article: {
+      publishedTime: lesson.publishedAt.toISOString(),
+      modifiedTime: lesson.updatedAt.toISOString(),
+    },
   });
 }
 

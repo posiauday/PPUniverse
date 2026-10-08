@@ -18,6 +18,15 @@ import {
 /** sitemaps.org limit for one sitemap file; a sitemap index is the documented follow-up beyond it. */
 export const MAX_SITEMAP_URLS = 50_000;
 
+/** MVP-048: slots reserved for the Learn module (/topics, its topics and lessons). */
+export const MAX_LEARN_URLS = 1_000;
+
+/** A Learn page for the sitemap: its site-relative path and when it last changed. */
+export interface LearnSitemapEntry {
+  path: string;
+  lastModified?: Date;
+}
+
 /**
  * sitemap.xml contents (MVP-021, FR-017; extended by MVP-017, FR-014): the
  * home page, About/Privacy/Terms (MVP-032), categories that currently have
@@ -39,6 +48,8 @@ export function buildSitemap(
   articles: ReadonlyArray<{ slug: string; updatedAt: Date }>,
   /** MVP-028: site-relative paths of technology section tabs that have content. */
   sectionPaths: readonly string[] = [],
+  /** MVP-048: the Learn module's published pages, when it is switched on. */
+  learn: readonly LearnSitemapEntry[] = [],
 ): MetadataRoute.Sitemap {
   const newestArticle = articles.reduce<Date | null>(
     (newest, article) => (newest && newest > article.updatedAt ? newest : article.updatedAt),
@@ -56,6 +67,10 @@ export function buildSitemap(
       url: learnUrl(origin, article.slug),
       lastModified: article.updatedAt,
     })),
+    ...learn.map((entry) => ({
+      url: technologySectionUrl(origin, entry.path),
+      ...(entry.lastModified ? { lastModified: entry.lastModified } : {}),
+    })),
     // MVP-032: About, Privacy and Terms, always listed, last.
     ...INFO_PAGE_PATHS.map((path) => ({ url: infoPageUrl(origin, path) })),
   ];
@@ -67,6 +82,8 @@ export interface SitemapDeps {
   contentRepository: Pick<ContentRepository, "listPublishedArticleSlugs">;
   /** MVP-028: technology section tabs with content (at most MAX_SECTION_PATHS). */
   listSectionPaths: () => Promise<string[]>;
+  /** MVP-048: the Learn module's published pages (at most MAX_LEARN_URLS); empty while it is off. */
+  listLearnEntries?: () => Promise<LearnSitemapEntry[]>;
   warn: (event: string, fields: LogFields) => void;
 }
 
@@ -83,7 +100,8 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
   // catalog entries and Article slugs so one domain's growth cannot silently
   // starve the other's sitemap coverage.
   // MVP-028: the technology section tabs are reserved up front too.
-  const budget = MAX_SITEMAP_URLS - 2 - INFO_PAGE_PATHS.length - MAX_SECTION_PATHS;
+  // MVP-048: and the Learn module's pages.
+  const budget = MAX_SITEMAP_URLS - 2 - INFO_PAGE_PATHS.length - MAX_SECTION_PATHS - MAX_LEARN_URLS;
   const catalogBudget = Math.ceil(budget / 2);
   const articleBudget = budget - catalogBudget;
 
@@ -98,5 +116,6 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
     });
   }
   const sectionPaths = (await deps.listSectionPaths()).slice(0, MAX_SECTION_PATHS);
-  return buildSitemap(site.origin, entries, articles.entries, sectionPaths);
+  const learn = (await (deps.listLearnEntries?.() ?? Promise.resolve([]))).slice(0, MAX_LEARN_URLS);
+  return buildSitemap(site.origin, entries, articles.entries, sectionPaths, learn);
 }

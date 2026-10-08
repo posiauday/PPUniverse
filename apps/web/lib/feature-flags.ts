@@ -20,3 +20,14 @@ export function componentsEnabled(): boolean {
 export function commentsEnabled(): boolean {
   return process.env["FEATURE_COMMENTS"] === "on";
 }
+
+/**
+ * FEATURE_LEARN: the public Learn module at /topics (MVP-048). Off until the
+ * first topic is published: off, /topics and its pages answer 404, they stay
+ * out of the sitemap, and the top bar's Learn button keeps opening the guides
+ * (/learn). On, the Learn button opens /topics (docs/plans/learn-module.md,
+ * "Where it lives"). The admin works either way.
+ */
+export function learnEnabled(): boolean {
+  return process.env["FEATURE_LEARN"] === "on";
+}
