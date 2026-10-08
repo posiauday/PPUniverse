@@ -1,0 +1,95 @@
+ComponentDefinitions:
+  lcsTabs:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks tabs: the modern tab list with a selected-tab output, a change event, a select action and four looks, for tabs or a segmented control."
+    CustomProperties:
+      Items:
+        PropertyKind: Input
+        DisplayName: Items
+        DataType: Table
+        Description: "The tabs, as a one-column table of text, such as [\"Overview\", \"Details\", \"History\"]."
+        Default: =["Overview", "Details", "History"]
+      DefaultTab:
+        PropertyKind: Input
+        DisplayName: DefaultTab
+        DataType: Text
+        Description: "The tab selected when the screen loads. It must be one of Items."
+        Default: ="Overview"
+      Look:
+        PropertyKind: Input
+        DisplayName: Look
+        DataType: Text
+        Description: "Underline (tabs), Filled (segmented control), Subtle or Transparent."
+        Default: ="Underline"
+      AccessibleName:
+        PropertyKind: Input
+        DisplayName: AccessibleName
+        DataType: Text
+        Description: "What the tabs switch between, for screen readers, such as Request sections."
+        Default: ="Sections"
+      SelectedTab:
+        PropertyKind: Output
+        DisplayName: SelectedTab
+        DataType: Text
+        Description: "The text of the selected tab. Use it to show the matching content."
+      ItemsFromText:
+        PropertyKind: OutputFunction
+        DisplayName: ItemsFromText
+        DataType: Table
+        Description: "Turns comma-separated text, such as \"Open, Waiting, Done\", into tabs for Items."
+        Parameters:
+          - List:
+              DataType: Text
+              Description: "The tab names, separated by commas."
+              Default: =""
+      OnChange:
+        PropertyKind: Event
+        DisplayName: OnChange
+        ReturnType: None
+        Description: "Runs in the app when the user picks a different tab. Receives the new tab's text."
+        Parameters:
+          - Tab:
+              DataType: Text
+              Description: "The newly selected tab."
+              Default: =""
+        Default: =false
+      SelectTab:
+        PropertyKind: Action
+        DisplayName: SelectTab
+        ReturnType: None
+        Description: "Selects a tab from your app, such as after saving. It must be one of Items."
+        Parameters:
+          - Tab:
+              DataType: Text
+              Description: "The tab to select."
+              Default: =""
+    Properties:
+      Width: =480
+      Height: =48
+      Fill: =RGBA(0, 0, 0, 0)
+      SelectedTab: =tabList.Selected.Value
+      ItemsFromText: =ForAll(Split(List, ","), Trim(ThisRecord.Value))
+      SelectTab: |-
+        =Set(locTab, Tab);
+        Reset(tabList)
+    Children:
+      - tabList:
+          Control: ModernTabList@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Items: =lcsTabs.Items
+            Default: =Coalesce(locTab, lcsTabs.DefaultTab)
+            Appearance: |-
+              =Switch(
+                  lcsTabs.Look,
+                  "Filled", TabListAppearance.Filled,
+                  "Subtle", TabListAppearance.Subtle,
+                  "Transparent", TabListAppearance.Transparent,
+                  TabListAppearance.Underline
+              )
+            Alignment: =TabListAlignment.Start
+            AccessibleLabel: =lcsTabs.AccessibleName
+            OnChange: =lcsTabs.OnChange(Self.Selected.Value)

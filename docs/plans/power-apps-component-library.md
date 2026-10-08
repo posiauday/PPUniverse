@@ -11,6 +11,9 @@ Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages come later, 
 ## How makers get a component (verified 2026-10-08)
 
 - **Copy-paste:** Power Apps Studio accepts a component's YAML pasted into the **Components** tab (**New component**, click outside it, then Ctrl+V). The product owner confirmed this works with another library, and that library's YAML has the same top-level shape as Microsoft's source-code schema: `ComponentDefinitions:` → name → `DefinitionType: CanvasComponent`.
+- **Pilot passed (2026-10-08, Studio 3.26094.8):** the product owner pasted `lcsButton` with all six property kinds and its test checklist passed. Studio differs from the published schema in two ways, both now enforced in CI (`content/components/README.md`):
+  - function properties (InputFunction, OutputFunction) give their return type as `DataType`, not `ReturnType` (otherwise PA1011/PA1003);
+  - every parameter needs a `Default`, or the paste fails with no details. Studio also writes `DisplayName` on every property, and so do we.
 - **Format:** Microsoft's pa.yaml schema v3.0 ([schema](https://raw.githubusercontent.com/microsoft/PowerApps-Tooling/refs/heads/master/schemas/pa-yaml/v3.0/pa.schema.yaml), [docs](https://learn.microsoft.com/power-apps/maker/canvas-apps/power-apps-yaml)). Its custom property kinds are **Input** and **Output** (data), **InputFunction** and **OutputFunction**, **Event** and **Action** ([component properties](https://learn.microsoft.com/power-apps/maker/canvas-apps/component-properties)). Data types: Text, Number, Boolean, DateAndTime, Screen, Record, Table, Image, VideoOrAudio, Color, Currency.
 - **Needs:** the "Enhanced component properties" setting (on by default for new apps), and "Modern controls and themes" when a component uses modern controls.
 - **Limits to state on every page:** function properties can't read variables or the component's other properties (only their parameters); a component inside a component library can't use `AccessAppScope`.
@@ -29,12 +32,15 @@ Every component must meet all of these before it's published. CI checks what it 
    - **Functions:** an InputFunction where the app should shape output (formatting, labels), and an OutputFunction for pure helpers.
 4. **Fully dynamic design:** a `Theme` input (a Record: colours, radius, font, spacing) with light and dark defaults, plus a short list of direct overrides. Nothing hard-coded that a maker could want to change.
 5. **Responsive:** sizes come from `Parent` and inputs, never fixed screen positions; it works from 320 px wide.
-6. **Accessible:** `AccessibleLabel` on every interactive control, a sensible `TabIndex` order, a visible focus state, text contrast at least 4.5:1 in both themes, live text announced where content changes, nothing that only works on hover.
+6. **Accessible:** `AccessibleLabel` on every interactive control (a classic button is named by its `Text` instead, which Studio requires), a sensible `TabIndex` order, a visible focus state, text contrast at least 4.5:1 in both themes, live text announced where content changes, nothing that only works on hover.
 7. **Delegation-safe:** components that take data never filter or sort it themselves in a way that hides rows. Paging, sorting and filtering are done by the app through events, or the component documents its limit.
 8. **Naming:** component `lcs<Name>`; controls named by type and role (`btnPrimary`, `lblTitle`, `cntHeader`); properties in PascalCase; no abbreviations a maker can't guess.
-9. **Performance:** few controls, no timers unless the feature needs one, no `AccessAppScope` unless documented.
-10. **No premium surprise:** standard controls only, no connectors inside the component, so using it never makes an app premium. Every page states this.
-11. **Documented:** every property with type, default and description (from the YAML itself), usage examples, variations, an architecture tree, known limits, and a change log.
+9. **Blank-safe:** every input the component reads survives a blank value (`Coalesce`, `IsBlank`), so it never errors while the app's data is still loading. The component's own Width and Height come from its inputs only, never from a variable (Studio rejects that; CI checks it).
+10. **Colours derived, not fixed:** hover and pressed states come from the maker's colours (`ColorFade(AccentColor, …)`), so any brand colour looks right.
+11. **Works in a component library:** no `AccessAppScope`, no `App.` references; everything comes in through inputs and goes out through outputs.
+12. **Performance:** few controls, no timers unless the feature needs one.
+13. **No premium surprise:** standard controls only, no connectors inside the component, so using it never makes an app premium. Every page states this.
+14. **Documented:** every property with type, default and description (from the YAML itself), usage examples, variations, an architecture tree, known limits, and a change log.
 
 ## Testing (the product owner)
 
@@ -87,7 +93,7 @@ Competitors' lists (for coverage, not to copy) include charts, timelines, steppe
 ## Decided since (2026-10-08)
 
 - **Sign-in only, first set** (the product owner can change any of these in the admin, and show or hide any component): open to everyone: Button, Text field, Tabs and segmented control, Toast, Empty/loading/error states. Sign-in to copy: Dialog, Navigation shell, Data table, and screen templates later. The larger, more valuable pieces earn an account; the everyday ones bring people in.
-- **Previews are interactive web replicas** built for the site, with a **property playground**: change inputs, see outputs update live, fire events (shown in an event log), call actions, try functions, with the matching Power Fx formula shown for each. Each page says it is a web replica and Studio may look slightly different.
+- **Previews are interactive web replicas** built for the site, in **one live view** (docs/final-decisions.md, 2026-10-08, "Component pages: one live view, exactly as in Power Apps"): the component on a Power Apps screen, starting as it is when pasted and behaving exactly as it does in Studio, with its variations as chips and the screen's formulas listed underneath (events shown the way Power Apps shows them, through `Notify` or a label). Each page says it is a web replica and Studio may look slightly different.
 
 ## Open questions
 

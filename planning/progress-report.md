@@ -5217,3 +5217,44 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not yet:** ratings, "Worked in my app", comments and "Report a problem" on components (plan step 5); the product owner's paste-test of lcsButton; more components (next PR); components in the sitemap.
 
 **Risks:** the YAML format is unproven until the paste-test; the standard is still a proposal.
+
+## 2026-10-08 — Component library: the pilot paste-test passed (MVP-049, In Progress)
+
+**What happened:** the product owner paste-tested `lcsButton` in Power Apps Studio 3.26094.8.
+- First paste failed: "PA1011: The keyword 'DataType' is required" and "PA1003: 'ReturnType' is not known" on the two function properties. Microsoft's published schema says `ReturnType`; Studio wants `DataType` for functions.
+- Second paste failed with no details. Narrowed down with three small test components (inputs and outputs passed; events/actions and functions failed), then compared with the code Studio itself writes (View code): **every parameter needs a `Default`**.
+- With both fixes, both test components and the full `lcsButton` pasted and passed their checklist.
+
+**Changed:** the CI check follows Studio (functions use `DataType`; every parameter has a `Default`); all six components updated, with `DisplayName` on every property as Studio writes; `content/components/README.md` and the plan record the rules. These were caught during the story, before release, so they're in this report rather than bug records.
+
+**Next:** paste-test the other five; record each Studio version in `/admin/components` after the release.
+
+## 2026-10-08 — Component library: first wave of components (MVP-049, In Progress)
+
+**Built:** five more components as drafts, each with a guide and variations, on top of #116 (which carries their live web replicas):
+- **Text field** (`lcsTextField`, open): label, hint, required marker, character count, error after the user leaves the box, `Validate` input function, `IsValid`/`Value` outputs, `OnChange`, `Reset()`.
+- **Dialog** (`lcsDialog`, sign-in to copy): confirm or alert over a dimmed screen; `Open()`/`Close()`, `OnConfirm`/`OnCancel`, `IsOpen`/`Result`.
+- **Toast** (`lcsToast`, open): `Show(Message, Kind)` and `Hide()`, four kinds with symbols and 4.5:1 text, optional action button, `FormatMessage` input function.
+- **Tabs and segmented control** (`lcsTabs`, open): on the modern tab list; `SelectedTab`, `OnChange(Tab)`, `SelectTab(Tab)`, `ItemsFromText(List)`, four looks.
+- **Empty, loading and error states** (`lcsStates`, open): one panel for the three states; `StateFor(IsLoading, HasError, RowCount)`, `IsShowing`, `OnAction(State)`.
+
+**Checked:** control names, versions, property names and enums against Microsoft Learn's current modern-control pages (ModernText@1.0.0, ModernTextInput@1.0.0, ModernButton@1.0.0, ModernSpinner@1.1.0, ModernTabList@1.0.0); function properties only use their parameters (Microsoft: they can't read variables or the component's controls), so `IsSelected` on Tabs was replaced by a pure helper. All six pass Microsoft's pa.yaml schema and the standard. The importer created all six as drafts on a local database, and every component page passed axe and overflow checks in each tab, at 375 and 1280 px, light and dark.
+
+**Not yet:** the product owner's paste-tests; nothing is tested in Studio.
+
+## 2026-10-08 — Component pages: one live view, exactly as in Power Apps (MVP-049, In Progress)
+
+**Asked:** show clicks and other events on the page; then "only keep one that shows the component, and if you interact with it, it interacts exactly like Power Apps", with the best UI and motion (docs/final-decisions.md, 2026-10-08).
+
+**Changed (on #116):**
+- Component pages have **Preview** and **YAML** tabs only. The Playground tab, the property controls and the event logs are removed; the Activity panel idea was dropped before it shipped.
+- Each replica now starts at its YAML defaults and behaves as the YAML does: the Dialog and Toast stay hidden until a screen button calls `Open()` or `Show()`; the Dialog doesn't move focus or close on Escape; the Text field's `OnChange` and its first error come when you leave the box; the Button is 160 by 40 and shows "Working…" without a spinner when busy.
+- Events show as Power Apps shows them: `Notify` banners across the top of the screen (10 seconds, closable, announced), and a label for outputs. The formulas the screen uses are listed under it, coloured, each with a copy button.
+- Variations are chips above the screen, with "Default" first.
+- New **FAB** replica (extended, disabled, small, speed dial up and down); every published component now has a live preview.
+- A richer page header (name in Studio, version, property counts) and a library page with a still picture on every card, category links and a lift on hover. Motion stays on the page around the component; reduced motion turns it off.
+- `propertyCounts` in the domain package ("1 output", not "1 outputs"), used on the library, component and admin pages.
+
+**Checked:** typecheck, lint, unit tests (web components and domain); a local axe and overflow run over the library page and all seven component pages, at 375 and 1280 pixels, light and dark, before and after each interaction: no violations, no sideways scrolling. The e2e state `component-playground` became `component-live` (click Save, expect the Notify banner).
+
+**Next:** the product owner's paste-tests of the remaining components; CI on #116.

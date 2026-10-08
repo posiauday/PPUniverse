@@ -1,26 +1,16 @@
 "use client";
 
-import { useId, useState } from "react";
-import { ACTION_BUTTON, EventLog, FIELD, Formula, Group, OutputValue, pushLog } from "./parts";
-import { fromPowerFx, type ReplicaApi } from "./replica";
+import { useId, useRef, useState } from "react";
+import { useNotify } from "./notify";
+import { fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./replica";
 
-/** A web replica of lcsTextField (MVP-049): label, hint, error, count, IsValid. */
-
-const CHECKS: Record<string, { formula: string; check: (text: string) => string }> = {
-  none: { formula: '""', check: () => "" },
-  email: {
-    formula:
-      'If(IsMatch(Text, Match.Email) || IsBlank(Text), "", "Enter an email like name@example.com.")',
-    check: (text) =>
-      text === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)
-        ? ""
-        : "Enter an email like name@example.com.",
-  },
-  digits: {
-    formula: 'If(IsMatch(Text, "\\d*"), "", "Use numbers only.")',
-    check: (text) => (/^\d*$/.test(text) ? "" : "Use numbers only."),
-  },
-};
+/**
+ * A web replica of lcsTextField (MVP-049; docs/final-decisions.md, 2026-10-08,
+ * "One live view"): label, modern text input, hint or error, and count, 340
+ * wide, as its YAML lays them out. As in Power Apps, the count and Value change
+ * on every key, but OnChange runs only when you leave the box after changing
+ * it, and that's also when a required or invalid value first shows its error.
+ */
 
 interface Inputs {
   Label: string;
@@ -31,276 +21,160 @@ interface Inputs {
   MaxLength: number;
   Multiline: boolean;
   ErrorMessage: string;
+  Look: string;
+  AccentColor: string;
+  Theme: string;
 }
 
-const START: Inputs = {
+/** The inputs' defaults in the component's YAML. */
+const DEFAULTS: Inputs = {
   Label: "Full name",
   Hint: "As it appears on your badge.",
-  Placeholder: "",
+  Placeholder: "Jordan Lee",
   DefaultValue: "",
-  Required: true,
-  MaxLength: 60,
+  Required: false,
+  MaxLength: 100,
   Multiline: false,
   ErrorMessage: "",
+  Look: "Outline",
+  AccentColor: "#0f6cbd",
+  Theme: "Light",
 };
 
-function TextFieldFace({
-  inputs,
-  value,
-  error,
-  dark,
-  inputId,
-  onChange,
-  onBlur,
-  interactive = true,
-}: {
-  inputs: Inputs;
-  value: string;
-  error: string;
-  dark: boolean;
-  inputId?: string;
-  onChange?: (value: string) => void;
-  onBlur?: () => void;
-  interactive?: boolean;
-}) {
-  const ink = dark ? "text-white" : "text-[#242424]";
-  const sub = dark ? "text-[#adadad]" : "text-[#616161]";
-  const errorInk = dark ? "text-[#f1707b]" : "text-[#c4314b]";
-  const box = `w-full rounded border ${dark ? "bg-[#292929]" : "bg-white"} px-2.5 text-sm ${ink} ${
-    error
-      ? dark
-        ? "border-[#f1707b]"
-        : "border-[#c4314b]"
-      : dark
-        ? "border-[#666]"
-        : "border-[#d1d1d1]"
-  } border-b-2 ${error ? "" : dark ? "border-b-[#479ef5]" : "border-b-[#0f6cbd]"} outline-none focus-visible:ring-2 focus-visible:ring-[#0f6cbd]`;
-  const messageId = inputId ? `${inputId}-message` : undefined;
-  return (
-    <div
-      className={`w-72 max-w-full text-left [font-family:"Segoe_UI",system-ui,sans-serif] ${ink}`}
-    >
-      {interactive ? (
-        <label htmlFor={inputId} className="block text-sm font-semibold">
-          {inputs.Label}
-          {inputs.Required ? " *" : ""}
-        </label>
-      ) : (
-        <span className="block text-sm font-semibold">
-          {inputs.Label}
-          {inputs.Required ? " *" : ""}
-        </span>
-      )}
-      {interactive ? (
-        inputs.Multiline ? (
-          <textarea
-            id={inputId}
-            className={`${box} mt-1 h-24 py-1.5`}
-            value={value}
-            placeholder={inputs.Placeholder}
-            maxLength={inputs.MaxLength > 0 ? inputs.MaxLength : undefined}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={messageId}
-            onChange={(event) => onChange?.(event.target.value)}
-            onBlur={onBlur}
-          />
-        ) : (
-          <input
-            id={inputId}
-            className={`${box} mt-1 h-8`}
-            value={value}
-            placeholder={inputs.Placeholder}
-            maxLength={inputs.MaxLength > 0 ? inputs.MaxLength : undefined}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={messageId}
-            onChange={(event) => onChange?.(event.target.value)}
-            onBlur={onBlur}
-          />
-        )
-      ) : (
-        <span
-          className={`${box} mt-1 flex ${inputs.Multiline ? "h-16" : "h-8"} items-center ${value ? "" : sub}`}
-        >
-          {value || inputs.Placeholder}
-        </span>
-      )}
-      <span id={messageId} className="mt-1 flex justify-between gap-2 text-xs">
-        <span className={error ? errorInk : sub}>{error || inputs.Hint}</span>
-        {inputs.MaxLength > 0 ? (
-          <span className={sub}>
-            {value.length}/{inputs.MaxLength}
-          </span>
-        ) : null}
-      </span>
-    </div>
-  );
+/** RGBA(15, 108, 189, 1) as a CSS colour; anything else keeps the default. */
+function cssColor(formula: string): string {
+  const match = formula.match(/RGBA\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/i);
+  return match ? `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${match[4]})` : DEFAULTS.AccentColor;
 }
 
-function errorFor(
-  inputs: Inputs,
-  value: string,
-  touched: boolean,
-  check: (text: string) => string,
-) {
+function read(settings: Record<string, string>): Inputs {
+  const next = { ...DEFAULTS };
+  for (const [key, formula] of Object.entries(settings)) {
+    if (key === "AccentColor") next.AccentColor = cssColor(formula);
+    else if (key in next) (next as unknown as Record<string, unknown>)[key] = fromPowerFx(formula);
+  }
+  return next;
+}
+
+/** The component's error rule: ErrorMessage first, then required, once the box has changed. */
+function problemFor(inputs: Inputs, value: string, touched: boolean): string {
   if (inputs.ErrorMessage) return inputs.ErrorMessage;
   if (!touched) return "";
   if (inputs.Required && value.trim() === "") return "This field is required.";
-  return check(value);
+  return "";
 }
 
 export function useTextFieldReplica(): ReplicaApi {
   const id = useId();
-  const [inputs, setInputs] = useState<Inputs>(START);
-  const [value, setValue] = useState(START.DefaultValue);
+  const notify = useNotify();
+  const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
+  const [value, setValue] = useState(DEFAULTS.DefaultValue);
   const [touched, setTouched] = useState(false);
-  const [check, setCheck] = useState("none");
-  const [logs, setLogs] = useState<string[]>([]);
-  const validate = CHECKS[check]!.check;
-  const error = errorFor(inputs, value, touched, validate);
-  const isValid =
-    !inputs.ErrorMessage && !(inputs.Required && value.trim() === "") && validate(value) === "";
-  const set = <K extends keyof Inputs>(key: K, next: Inputs[K]) =>
-    setInputs((current) => ({ ...current, [key]: next }));
+  const atFocus = useRef(value);
 
-  function applySettings(settings: Record<string, string>) {
-    const next: Inputs = { ...START, Hint: "", Required: false, MaxLength: 100 };
-    for (const [key, formula] of Object.entries(settings)) {
-      const parsed = fromPowerFx(formula);
-      if (key in next) (next as unknown as Record<string, unknown>)[key] = parsed;
-    }
-    return next;
-  }
+  const dark = inputs.Theme === "Dark";
+  const problem = problemFor(inputs, value, touched);
+  const isValid = !inputs.ErrorMessage && !(inputs.Required && value.trim() === "");
+  const fill = dark
+    ? inputs.Look === "Outline"
+      ? "bg-[#292929]"
+      : "bg-[#1f1f1f]"
+    : inputs.Look === "Outline"
+      ? "bg-white"
+      : inputs.Look === "Filled"
+        ? "bg-[#f0f0f0]"
+        : "bg-[#fafafa]";
+  const border = problem
+    ? dark
+      ? "border-[#f1707b]"
+      : "border-[#c4314b]"
+    : inputs.Look === "Outline"
+      ? dark
+        ? "border-[#666] border-b-[#adadad]"
+        : "border-[#d1d1d1] border-b-[#616161]"
+      : "border-transparent";
+  const sub = dark ? "text-[#adadad]" : "text-[#616161]";
+  const messageId = `${id}-message`;
+  const field = {
+    id: `${id}-input`,
+    value,
+    placeholder: inputs.Placeholder,
+    maxLength: inputs.MaxLength > 0 ? inputs.MaxLength : undefined,
+    "aria-invalid": problem ? true : undefined,
+    "aria-describedby": messageId,
+    onFocus: () => {
+      atFocus.current = value;
+    },
+    onChange: (event: { target: { value: string } }) => setValue(event.target.value),
+    onBlur: () => {
+      if (value === atFocus.current) return;
+      setTouched(true);
+      notify(`Changed to "${value}"`);
+    },
+    className: `block w-full rounded-md bg-transparent px-3 text-sm ${dark ? "placeholder:text-[#8a8a8a]" : "placeholder:text-[#707070]"}`,
+  };
+
+  const wiring: Wiring[] = [
+    {
+      control: "Text1",
+      property: "Text",
+      formula: '"Value: " & lcsTextField_1.Value & "   IsValid: " & lcsTextField_1.IsValid',
+    },
+    ...(dark ? [{ control: "Text1", property: "Color", formula: "RGBA(255, 255, 255, 1)" }] : []),
+    {
+      control: "lcsTextField_1",
+      property: "OnChange",
+      formula: 'Notify("Changed to """ & Value & """")',
+    },
+  ];
 
   return {
-    stage: (dark) => (
-      <TextFieldFace
-        inputs={inputs}
-        value={value}
-        error={error}
-        dark={dark}
-        inputId={`${id}-stage`}
-        onChange={setValue}
-        onBlur={() => {
-          setTouched(true);
-          setLogs((current) => pushLog(current, `OnChange(Value: ${JSON.stringify(value)})`));
-        }}
-      />
-    ),
-    controls: (
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Group kind="Input" title="Data in">
-          <label htmlFor={`${id}-label`}>Label</label>
-          <input
-            id={`${id}-label`}
-            className={FIELD}
-            value={inputs.Label}
-            onChange={(e) => set("Label", e.target.value)}
+    screen: (
+      <div className={`w-[340px] max-w-full text-left ${SEGOE}`}>
+        <label
+          htmlFor={field.id}
+          className={`block text-sm font-semibold ${dark ? "text-white" : "text-[#242424]"}`}
+        >
+          {inputs.Label}
+          {inputs.Required ? " *" : ""}
+        </label>
+        {/* Fluent's focus underline grows from the middle in the accent colour, as the modern input does. */}
+        <div
+          style={{ ["--accent" as string]: inputs.AccentColor }}
+          className={`group relative mt-1.5 rounded-md border ${fill} ${border} ${dark ? "text-white" : "text-[#242424]"}`}
+        >
+          {inputs.Multiline ? (
+            <textarea {...field} rows={4} className={`${field.className} h-24 resize-none py-2`} />
+          ) : (
+            <input {...field} className={`${field.className} h-10`} />
+          )}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-1 -bottom-px h-0.5 scale-x-0 rounded-full bg-[var(--accent)] group-focus-within:scale-x-100 motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out"
           />
-          <label htmlFor={`${id}-hint`}>Hint</label>
-          <input
-            id={`${id}-hint`}
-            className={FIELD}
-            value={inputs.Hint}
-            onChange={(e) => set("Hint", e.target.value)}
-          />
-          <label htmlFor={`${id}-max`}>MaxLength</label>
-          <input
-            id={`${id}-max`}
-            type="number"
-            min={0}
-            className={FIELD}
-            value={inputs.MaxLength}
-            onChange={(e) => set("MaxLength", Math.max(0, Number(e.target.value) || 0))}
-          />
-          <label htmlFor={`${id}-server`}>ErrorMessage</label>
-          <input
-            id={`${id}-server`}
-            className={FIELD}
-            value={inputs.ErrorMessage}
-            onChange={(e) => set("ErrorMessage", e.target.value)}
-          />
-          <label className="flex min-h-11 items-center gap-2">
-            <input
-              type="checkbox"
-              checked={inputs.Required}
-              onChange={(e) => set("Required", e.target.checked)}
-            />{" "}
-            Required
-          </label>
-          <label className="flex min-h-11 items-center gap-2">
-            <input
-              type="checkbox"
-              checked={inputs.Multiline}
-              onChange={(e) => set("Multiline", e.target.checked)}
-            />{" "}
-            Multiline
-          </label>
-          <Formula name="txtName.Required" value={String(inputs.Required)} />
-        </Group>
-        <div className="flex flex-col gap-3">
-          <Group kind="Output" title="State out">
-            <p className="flex flex-wrap items-center gap-2">
-              <code className="font-mono text-sm">txtName.Value</code>
-              <OutputValue>{JSON.stringify(value)}</OutputValue>
-            </p>
-            <p className="flex flex-wrap items-center gap-2">
-              <code className="font-mono text-sm">txtName.IsValid</code>
-              <OutputValue>{String(isValid)}</OutputValue>
-            </p>
-          </Group>
-          <Group kind="InputFunction" title="Validate(Text)">
-            <label htmlFor={`${id}-check`}>Formula in your app</label>
-            <select
-              id={`${id}-check`}
-              className={FIELD}
-              value={check}
-              onChange={(e) => setCheck(e.target.value)}
-            >
-              <option value="none">No extra check</option>
-              <option value="email">Email format</option>
-              <option value="digits">Numbers only</option>
-            </select>
-            <Formula name="txtName.Validate" value={CHECKS[check]!.formula} />
-          </Group>
         </div>
-        <Group kind="Event" title="OnChange(Value)">
-          <p className="text-sm text-muted-foreground">
-            Type in the field, then leave it: OnChange runs on blur.
-          </p>
-          <EventLog entries={logs} empty="Nothing yet." />
-        </Group>
-        <Group kind="Action" title="Reset()">
-          <button
-            type="button"
-            className={ACTION_BUTTON}
-            onClick={() => {
-              setValue(inputs.DefaultValue);
-              setTouched(false);
-              setLogs((current) => pushLog(current, "Reset()"));
-            }}
-          >
-            Call txtName.Reset()
-          </button>
-        </Group>
+        <p id={messageId} className="mt-1.5 flex min-h-5 justify-between gap-3 text-xs">
+          <span className={problem ? (dark ? "text-[#f1707b]" : "text-[#c4314b]") : sub}>
+            {problem ? `⚠ ${problem}` : inputs.Hint}
+          </span>
+          {inputs.MaxLength > 0 ? (
+            <span className={`${sub} shrink-0`}>
+              {value.length}/{inputs.MaxLength}
+            </span>
+          ) : null}
+        </p>
+        <p className={`mt-6 text-sm break-words ${dark ? "text-white" : "text-[#242424]"}`}>
+          Value: {value} IsValid: {String(isValid)}
+        </p>
       </div>
     ),
     apply: (settings) => {
-      const next = applySettings(settings);
+      const next = read(settings);
       setInputs(next);
       setValue(next.DefaultValue);
       setTouched(false);
     },
-    thumbnail: (settings, dark) => {
-      const next = applySettings(settings);
-      return (
-        <TextFieldFace
-          inputs={next}
-          value={next.DefaultValue}
-          error={next.ErrorMessage}
-          dark={dark}
-          interactive={false}
-        />
-      );
-    },
+    dark,
+    wiring,
   };
 }

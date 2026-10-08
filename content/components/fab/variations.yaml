@@ -1,0 +1,37 @@
+# Named presets of lcsFab: each sets inputs with Power Fx formulas.
+- name: Add new
+  description: The usual case. A + that adds a new item; set OnSelect to NewForm and Navigate.
+  settings:
+    Icon: ="Add"
+    Label: ="Add new"
+- name: New request, extended
+  description: The + with its label, so people know what they're adding.
+  settings:
+    Icon: ="Add"
+    Label: ="New request"
+    Extended: =true
+- name: Can't add yet
+  description: Greyed out while the user can't add, such as without permission.
+  settings:
+    Icon: ="Add"
+    Label: ="New request"
+    Disabled: =true
+- name: Speed dial
+  description: Opens a short menu of related actions.
+  settings:
+    Icon: ="Add"
+    Label: ="Create"
+    SpeedDial: =true
+- name: Small
+  description: A smaller button for desktop screens.
+  settings:
+    Icon: ="Chat"
+    Label: ="Ask a question"
+    Size: ="Small"
+- name: Menu below
+  description: For a button at the top of a screen; the menu opens downward.
+  settings:
+    Icon: ="Add"
+    Label: ="Create"
+    SpeedDial: =true
+    Direction: ="Down"

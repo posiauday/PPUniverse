@@ -1588,19 +1588,17 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
-    id: "component-playground",
+    id: "component-live",
     route: "/components/[slug]",
-    description: "a component's Playground tab, after a click on the live replica",
+    description:
+      "a component's live preview after a click: its OnClick runs Notify, whose banner shows on the screen",
     auth: "guest",
     status: 200,
     path: (seed) => `/components/${seed.publishedComponent.slug}`,
     prepare: async (page) => {
-      await page.getByRole("tab", { name: "Playground" }).click();
-      const panel = page.getByRole("tabpanel", { name: "Playground" });
+      const panel = page.getByRole("tabpanel", { name: "Preview" });
       await panel.getByRole("button", { name: "Save" }).click();
-      await expect(panel.getByRole("log", { name: "Event log" })).toContainText(
-        "OnClick(Count: 1)",
-      );
+      await expect(panel.getByRole("status").filter({ hasText: "Clicked 1 time" })).toBeVisible();
     },
   },
   {

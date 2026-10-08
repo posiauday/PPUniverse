@@ -385,6 +385,30 @@ samp {
   }
 }
 
+/* MVP-049: a component page's live screen, when a variation loads, and
+   Notify's banner sliding down across the top of that screen. */
+/* Opacity only: a transform would make the screen's wrapper the containing
+   block of the absolutely placed parts (a dialog's scrim, a FAB in the corner). */
+@keyframes lcs-screen-in {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lcs-banner {
+  from {
+    opacity: 0.25;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes lcs-word {
   from {
     opacity: 0.25;
