@@ -5298,3 +5298,22 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not yet:** the product owner's paste-test; Power Fx accepts only part of regular expression syntax, so the patterns are kept simple.
 
 **Next:** wave 2, starting with the Date and time picker.
+
+## 2026-10-08 — Component library: Date and time picker (MVP-049, wave 2, In Progress)
+
+**Asked:** "continue": wave 2 of the approved build order, starting with the Date and time picker (docs/research/2026-10-08-component-roadmap-and-differentiators.md).
+
+**Built** `lcsDatePicker` 0.1.0 (open to copy), on Microsoft's modern date picker and dropdown:
+- `Mode`: `Date`, `DateTime` (a time list in `TimeStep` minutes, 12- or 24-hour) or `Range` (start and end);
+- quick picks (Today, Tomorrow, In a week; This week, Next 7 days, Last 30 days); with weekends blocked they never land on one;
+- `MinDate` and `MaxDate` (greyed out by the date picker); `BlockWeekends` and a `BlockedDates` table, refused with clear messages, because the date picker can't grey out single days;
+- `Value`, `EndValue`, `Days`, `IsValid`, the `WorkingDays(Start, End)` helper, `OnChange(Start, End)`, `SetDates(Start, End)` and `Reset()`;
+- the time zone in the hint in DateTime mode; label, hint, required marker, `AccentColor` and `Theme`.
+
+The YAML comes from a small generator (the date-with-time formula repeats in several places). The live preview has a calendar like the modern date picker's (arrow keys, Escape, a click outside closes it), the time list, the quick picks and the same checks, with the screen kept tall enough for the calendar.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests (time list, working days, quick picks with and without weekends, the checks in order); a local axe and overflow run over the page and its flows at 375 and 1280 pixels, light and dark: 36 states, clean.
+
+**Not yet:** the product owner's paste-test. `ModernDatePicker@1.0.0` and `ModernDropdown@1.0.0` are new to this library.
+
+**Next:** the People picker (sign-in to copy).

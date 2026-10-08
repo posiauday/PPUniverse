@@ -146,3 +146,27 @@ Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, a
 | Input | `AccentColor` purple; `State` `"Loading"`, then `"Empty"` | A purple spinner; a purple button |
 | Input | `Theme` `"Dark"` on a dark screen, each state | Light text, dark circles and rows |
 | Output | `stsRequests.IsShowing` with `"Skeleton"` | true |
+
+## Date and time picker: `lcsDatePicker` → name it `dtpDue`
+
+New controls for this library: `ModernDatePicker@1.0.0` and `ModernDropdown@1.0.0`. Check the paste first.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Leave `Mode` at `"Date"`; open the calendar and pick a day | The date shows as "Mon d, yyyy" |
+| Event | `OnChange` to `Notify(Text(Start, "mmm d, yyyy"))`; pick a day, then a quick pick | A message each time |
+| Input | `ShowPresets` true; select Today, Tomorrow, In a week | The date changes to each |
+| Input | `Mode` `"DateTime"`; pick a date and a time | A time list beside the date; `Value` (in a label) has the time |
+| Input | `TimeStep` 30, `Use24Hour` true | Times every 30 minutes, 00:00 to 23:30 |
+| Input | `Mode` `"DateTime"`, `ShowTimeZone` true | The hint ends with your time zone, such as "(UTC-6)" |
+| Input | `Mode` `"Range"`; pick an end before the start | "⚠ The end date must be on or after the start date." |
+| Input | `Mode` `"Range"`, select This week | Monday to Sunday; `Days` 7 |
+| Input | `BlockWeekends` true; pick a Saturday | "⚠ Choose a weekday. Weekends aren't available." |
+| Input | `BlockWeekends` true, `Mode` `"Range"`; select This week | Monday to Friday (quick picks skip weekends) |
+| Input | `BlockedDates` to `[Date(2026, 12, 25)]`; pick that day | "⚠ That day isn't available. Choose another." |
+| Input | `MinDate` `Today()` | Days before today are greyed out |
+| Input | `Required` true; pick a date, then clear it | "⚠ Choose a date." |
+| OutputFunction | A label: `dtpDue.WorkingDays(Date(2026, 3, 2), Date(2026, 3, 8))` | 5 |
+| Action | A button: `dtpDue.SetDates(Date(2026, 1, 5), Date(2026, 1, 9))` | The field shows those dates |
+| Action | A button: `dtpDue.Reset()` | Back to the defaults, no error |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a purple calendar |
