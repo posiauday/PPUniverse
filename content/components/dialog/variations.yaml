@@ -1,0 +1,22 @@
+# Named presets of lcsDialog: each sets inputs with Power Fx formulas.
+- name: Confirm delete
+  description: Ask before something that can't be undone. Name the action on the button.
+  settings:
+    Title: ="Delete this request?"
+    Message: ="It will be removed for everyone. You can't undo this."
+    ConfirmText: ="Delete"
+    CancelText: ="Cancel"
+- name: Unsaved changes
+  description: Leaving a screen with changes that would be lost.
+  settings:
+    Title: ="Leave without saving?"
+    Message: ="Your changes to this form will be lost."
+    ConfirmText: ="Leave"
+    CancelText: ="Stay"
+- name: Alert
+  description: One button, to tell the user something they must read.
+  settings:
+    Title: ="Request sent"
+    Message: ="Your manager will get an email and a Teams message."
+    ConfirmText: ="Got it"
+    CancelText: =""

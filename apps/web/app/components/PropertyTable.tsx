@@ -1,5 +1,5 @@
 import { PROPERTY_KINDS, PROPERTY_KIND_LABEL, type ComponentProperty } from "@ppu/domain-content";
-import { KindChip } from "./replicas/ButtonReplica";
+import { KindChip } from "./replicas/parts";
 
 /** How a property is called in a formula: functions, events and actions show their parameters. */
 function signature(property: ComponentProperty): string {

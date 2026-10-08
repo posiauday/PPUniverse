@@ -1,0 +1,140 @@
+ComponentDefinitions:
+  lcsToast:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks toast: a coloured message bar for success, info, warning and error, shown with one action, with an optional button and a close button."
+    CustomProperties:
+      ActionText:
+        PropertyKind: Input
+        DataType: Text
+        Description: "Text for an optional button on the toast, such as Undo or View. Leave empty for none."
+        Default: =""
+      ToastWidth:
+        PropertyKind: Input
+        DataType: Number
+        Description: "The toast's width in pixels. It never gets wider than the component."
+        Default: =420
+      IsOpen:
+        PropertyKind: Output
+        DataType: Boolean
+        Description: "True while the toast is showing."
+      CurrentKind:
+        PropertyKind: Output
+        DataType: Text
+        Description: "The kind of the toast showing now: Success, Info, Warning or Error."
+      FormatMessage:
+        PropertyKind: InputFunction
+        ReturnType: Text
+        Description: "Lets your app change how messages read, such as adding a prefix. Receives the message and its kind."
+        Parameters:
+          - Message:
+              DataType: Text
+              Description: "The message passed to Show."
+          - Kind:
+              DataType: Text
+              Description: "Success, Info, Warning or Error."
+        Default: =Message
+      OnAction:
+        PropertyKind: Event
+        ReturnType: None
+        Description: "Runs in the app when the user selects the toast's button. The toast closes first."
+        Default: =false
+      OnDismiss:
+        PropertyKind: Event
+        ReturnType: None
+        Description: "Runs in the app when the user closes the toast."
+        Default: =false
+      Show:
+        PropertyKind: Action
+        ReturnType: None
+        Description: "Shows a message. Kind is Success, Info, Warning or Error; anything else shows as Info."
+        Parameters:
+          - Message:
+              DataType: Text
+              Description: "The message, in one short sentence."
+          - Kind:
+              DataType: Text
+              Description: "Success, Info, Warning or Error."
+      Hide:
+        PropertyKind: Action
+        ReturnType: None
+        Description: "Closes the toast without running OnDismiss."
+    Properties:
+      Width: =460
+      Height: =64
+      Fill: =RGBA(0, 0, 0, 0)
+      IsOpen: =locOpen
+      CurrentKind: =locKind
+      Show: |-
+        =Set(locMessage, Message);
+        Set(locKind, If(Kind in ["Success", "Info", "Warning", "Error"], Kind, "Info"));
+        Set(locOpen, true)
+      Hide: =Set(locOpen, false)
+    Children:
+      - lblToast:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Min(lcsToast.ToastWidth, Parent.Width)
+            Height: =Parent.Height
+            Visible: =locOpen
+            Text: |-
+              =Switch(locKind, "Success", "✓ ", "Warning", "! ", "Error", "✕ ", "i ") &
+              lcsToast.FormatMessage(locMessage, locKind)
+            Wrap: =true
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            PaddingLeft: =16
+            PaddingRight: =If(IsBlank(lcsToast.ActionText), 52, 140)
+            Color: |-
+              =Switch(
+                  locKind,
+                  "Success", RGBA(14, 112, 14, 1),
+                  "Warning", RGBA(131, 75, 0, 1),
+                  "Error", RGBA(166, 21, 46, 1),
+                  RGBA(15, 84, 140, 1)
+              )
+            Fill: |-
+              =Switch(
+                  locKind,
+                  "Success", RGBA(223, 246, 221, 1),
+                  "Warning", RGBA(255, 244, 206, 1),
+                  "Error", RGBA(253, 231, 233, 1),
+                  RGBA(235, 243, 252, 1)
+              )
+            BorderColor: =Self.Color
+            BorderThickness: =1
+            RadiusTopLeft: =6
+            RadiusTopRight: =6
+            RadiusBottomLeft: =6
+            RadiusBottomRight: =6
+      - btnAction:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =84
+            Height: =32
+            X: =lblToast.X + lblToast.Width - 48 - Self.Width
+            Y: =(Parent.Height - Self.Height) / 2
+            Visible: =locOpen && !IsBlank(lcsToast.ActionText)
+            Text: =lcsToast.ActionText
+            Appearance: =ButtonAppearance.Outline
+            AccessibleLabel: =lcsToast.ActionText
+            OnSelect: |-
+              =Set(locOpen, false);
+              lcsToast.OnAction()
+      - btnClose:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =32
+            Height: =32
+            X: =lblToast.X + lblToast.Width - 8 - Self.Width
+            Y: =(Parent.Height - Self.Height) / 2
+            Visible: =locOpen
+            Text: ="Close"
+            Icon: ="Dismiss"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            AccessibleLabel: ="Close message"
+            OnSelect: |-
+              =Set(locOpen, false);
+              lcsToast.OnDismiss()

@@ -11,6 +11,11 @@ import {
   type ReactNode,
 } from "react";
 import { useButtonReplica } from "./replicas/ButtonReplica";
+import { useDialogReplica } from "./replicas/DialogReplica";
+import { useStatesReplica } from "./replicas/StatesReplica";
+import { useTabsReplica } from "./replicas/TabsReplica";
+import { useTextFieldReplica } from "./replicas/TextFieldReplica";
+import { useToastReplica } from "./replicas/ToastReplica";
 import type { ReplicaApi } from "./replicas/replica";
 
 /**
@@ -23,13 +28,22 @@ import type { ReplicaApi } from "./replicas/replica";
 
 type Host = ComponentType<{ children: (api: ReplicaApi) => ReactNode }>;
 
-function ButtonHost({ children }: { children: (api: ReplicaApi) => ReactNode }) {
-  return <>{children(useButtonReplica())}</>;
+/** Wraps a replica hook as a component, so each page calls exactly one hook. */
+function hostFor(useReplica: () => ReplicaApi): Host {
+  function ReplicaHost({ children }: { children: (api: ReplicaApi) => ReactNode }) {
+    return <>{children(useReplica())}</>;
+  }
+  return ReplicaHost;
 }
 
 /** The components that have a web replica, by their Power Apps name. */
 const REPLICAS: Record<string, Host> = {
-  lcsButton: ButtonHost,
+  lcsButton: hostFor(useButtonReplica),
+  lcsTextField: hostFor(useTextFieldReplica),
+  lcsDialog: hostFor(useDialogReplica),
+  lcsToast: hostFor(useToastReplica),
+  lcsTabs: hostFor(useTabsReplica),
+  lcsStates: hostFor(useStatesReplica),
 };
 
 export function hasReplica(componentName: string): boolean {
@@ -80,7 +94,7 @@ function CopyYaml({ yaml }: { yaml: string }) {
 function Stage({ dark, children }: { dark: boolean; children: ReactNode }) {
   return (
     <div
-      className={`grid min-h-48 place-items-center rounded-2xl p-6 pt-16 [background-size:14px_14px] ${
+      className={`grid min-h-48 place-items-center rounded-2xl p-3 pt-16 sm:p-6 sm:pt-16 [background-size:14px_14px] ${
         dark
           ? "bg-[#1f1f1f] [background-image:radial-gradient(#2c2c2c_1px,transparent_1px)]"
           : "bg-white [background-image:radial-gradient(#e7e5ef_1px,transparent_1px)]"
@@ -179,9 +193,15 @@ export function ComponentWorkbench({
             hidden={tab !== entry.id}
             tabIndex={0}
           >
-            {entry.id === "yaml" ? (
+            {/* Only the open tab is rendered, so the live replica and its ids are on the page once. */}
+            {tab !== entry.id ? null : entry.id === "yaml" ? (
               yaml ? (
-                <pre className="max-h-96 overflow-auto rounded-2xl bg-code p-4 font-mono text-[0.8125rem] leading-relaxed text-code-foreground">
+                <pre
+                  role="region"
+                  tabIndex={0}
+                  aria-label={`${title} YAML`}
+                  className="max-h-96 overflow-auto rounded-2xl bg-code p-4 font-mono text-[0.8125rem] leading-relaxed text-code-foreground"
+                >
                   <code>{yaml}</code>
                 </pre>
               ) : (

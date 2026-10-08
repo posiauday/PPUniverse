@@ -1,0 +1,146 @@
+ComponentDefinitions:
+  lcsDialog:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks dialog: a confirm or alert box over a dimmed screen, opened and closed from your app with actions, with events for the answer."
+    CustomProperties:
+      Title:
+        PropertyKind: Input
+        DataType: Text
+        Description: "The question or headline, such as Delete this request?"
+        Default: ="Delete this request?"
+      Message:
+        PropertyKind: Input
+        DataType: Text
+        Description: "One or two sentences that explain what happens next."
+        Default: ="It will be removed for everyone. You can't undo this."
+      ConfirmText:
+        PropertyKind: Input
+        DataType: Text
+        Description: "The confirm button's text. Name the action, such as Delete, not OK."
+        Default: ="Delete"
+      CancelText:
+        PropertyKind: Input
+        DataType: Text
+        Description: "The cancel button's text. Leave empty for an alert with one button."
+        Default: ="Cancel"
+      DialogWidth:
+        PropertyKind: Input
+        DataType: Number
+        Description: "The box's width in pixels. It never gets wider than the screen allows."
+        Default: =440
+      IsOpen:
+        PropertyKind: Output
+        DataType: Boolean
+        Description: "True while the dialog is showing."
+      Result:
+        PropertyKind: Output
+        DataType: Text
+        Description: "The last answer: Confirmed, Cancelled, or empty before the first answer."
+      OnConfirm:
+        PropertyKind: Event
+        ReturnType: None
+        Description: "Runs in the app when the user selects the confirm button. The dialog has already closed."
+        Default: =false
+      OnCancel:
+        PropertyKind: Event
+        ReturnType: None
+        Description: "Runs in the app when the user selects the cancel button. The dialog has already closed."
+        Default: =false
+      Open:
+        PropertyKind: Action
+        ReturnType: None
+        Description: "Shows the dialog and clears the last answer."
+      Close:
+        PropertyKind: Action
+        ReturnType: None
+        Description: "Hides the dialog without an answer."
+    Properties:
+      Width: =1366
+      Height: =768
+      Fill: =RGBA(0, 0, 0, 0)
+      IsOpen: =locOpen
+      Result: =locResult
+      Open: |-
+        =Set(locResult, "");
+        Set(locOpen, true)
+      Close: =Set(locOpen, false)
+    Children:
+      - shpScrim:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Visible: =locOpen
+            Text: =""
+            Fill: =RGBA(0, 0, 0, 0.45)
+      - shpCard:
+          Control: ModernText@1.0.0
+          Properties:
+            Width: =Min(lcsDialog.DialogWidth, Parent.Width - 32)
+            Height: =220
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =Max(16, (Parent.Height - Self.Height) / 2)
+            Visible: =locOpen
+            Text: =""
+            Fill: =RGBA(255, 255, 255, 1)
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+      - lblTitle:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =shpCard.X + 24
+            Y: =shpCard.Y + 24
+            Width: =shpCard.Width - 48
+            Height: =32
+            Visible: =locOpen
+            Text: =lcsDialog.Title
+            Size: =20
+            FontWeight: =FontWeight.Semibold
+            PaddingLeft: =0
+      - lblMessage:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =lblTitle.X
+            Y: =lblTitle.Y + lblTitle.Height + 8
+            Width: =lblTitle.Width
+            Height: =72
+            Visible: =locOpen
+            Text: =lcsDialog.Message
+            Size: =14
+            Wrap: =true
+            VerticalAlign: =VerticalAlign.Top
+            PaddingLeft: =0
+      - btnConfirm:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =Max(96, Len(lcsDialog.ConfirmText) * 9 + 32)
+            Height: =36
+            X: =shpCard.X + shpCard.Width - 24 - Self.Width
+            Y: =shpCard.Y + shpCard.Height - 24 - Self.Height
+            Visible: =locOpen
+            Text: =lcsDialog.ConfirmText
+            Appearance: =ButtonAppearance.Primary
+            AccessibleLabel: =lcsDialog.ConfirmText
+            OnSelect: |-
+              =Set(locOpen, false);
+              Set(locResult, "Confirmed");
+              lcsDialog.OnConfirm()
+      - btnCancel:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =Max(96, Len(lcsDialog.CancelText) * 9 + 32)
+            Height: =36
+            X: =btnConfirm.X - 8 - Self.Width
+            Y: =btnConfirm.Y
+            Visible: =locOpen && !IsBlank(lcsDialog.CancelText)
+            Text: =lcsDialog.CancelText
+            Appearance: =ButtonAppearance.Outline
+            AccessibleLabel: =lcsDialog.CancelText
+            OnSelect: |-
+              =Set(locOpen, false);
+              Set(locResult, "Cancelled");
+              lcsDialog.OnCancel()
