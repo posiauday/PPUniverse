@@ -95,6 +95,44 @@ const formula = (value: unknown): string | null => {
   return value.startsWith("=") ? value.slice(1) : value;
 };
 
+/**
+ * Properties Power Apps Studio rejected on paste for a control type, found by
+ * the product owner's paste-tests ("PA2108: Unknown property"). Keyed by the
+ * control's name without its version.
+ */
+const REJECTED_PROPERTIES: Record<string, { properties: string[]; instead: string }> = {
+  "Classic/Button": {
+    properties: ["AccessibleLabel"],
+    instead: "a classic button's accessible name is its Text (make it transparent to hide it)",
+  },
+};
+
+/** Problems with properties Studio is known to reject, in every control of the component. */
+export function rejectedPropertyProblems(children: unknown): string[] {
+  const problems: string[] = [];
+  const walk = (list: unknown) => {
+    if (!Array.isArray(list)) return;
+    for (const entry of list) {
+      if (!isRecord(entry)) continue;
+      for (const [name, control] of Object.entries(entry)) {
+        if (!isRecord(control)) continue;
+        const type = text(control["Control"]).split("@")[0] ?? "";
+        const rule = REJECTED_PROPERTIES[type];
+        const properties = isRecord(control["Properties"]) ? control["Properties"] : {};
+        for (const property of rule?.properties ?? []) {
+          if (property in properties)
+            problems.push(
+              `${name}: Studio doesn't accept ${property} on ${type}; ${rule?.instead ?? ""}`,
+            );
+        }
+        walk(control["Children"]);
+      }
+    }
+  };
+  walk(children);
+  return problems;
+}
+
 /** The custom properties of one component definition, in the YAML's order. */
 export function readProperties(definition: Record<string, unknown>): ComponentProperty[] {
   const custom = isRecord(definition["CustomProperties"]) ? definition["CustomProperties"] : {};
@@ -201,6 +239,7 @@ export function readComponentFolder(path: string, folder: string): ComponentFold
       errors.push(`${property.name}: unknown PropertyKind ${property.kind}`);
   }
   errors.push(...componentStandardProblems(componentName, properties));
+  errors.push(...rejectedPropertyProblems(definition["Children"]));
 
   const variationsFile = join(path, "variations.yaml");
   let variations: ComponentVariation[] = [];

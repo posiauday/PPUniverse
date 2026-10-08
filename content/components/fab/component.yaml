@@ -180,8 +180,7 @@ ComponentDefinitions:
             Width: =Parent.Width
             Height: =Parent.Height
             Visible: =locOpen && lcsFab.SpeedDial
-            Text: =""
-            AccessibleLabel: ="Close menu"
+            Text: ="Close menu"
             Fill: =RGBA(0, 0, 0, 0)
             Color: =RGBA(0, 0, 0, 0)
             BorderColor: =RGBA(0, 0, 0, 0)
@@ -254,8 +253,7 @@ ComponentDefinitions:
                   Y: =cntItem.Y
                   Width: =cntItem.Width
                   Height: =cntItem.Height
-                  Text: =""
-                  AccessibleLabel: =ThisItem.Label
+                  Text: =ThisItem.Label
                   Fill: =RGBA(0, 0, 0, 0)
                   Color: =RGBA(0, 0, 0, 0)
                   BorderColor: =RGBA(0, 0, 0, 0)
@@ -325,14 +323,14 @@ ComponentDefinitions:
                   Y: =0
                   Width: =Parent.Width
                   Height: =Parent.Height
-                  Text: =""
-                  AccessibleLabel: =lcsFab.Label & If(lcsFab.SpeedDial, If(locOpen, ", close menu", ", open menu"), "")
+                  Text: =lcsFab.Label & If(lcsFab.SpeedDial, If(locOpen, ", close menu", ", open menu"), "")
                   Tooltip: =lcsFab.Label
                   DisplayMode: =If(lcsFab.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
                   Fill: =RGBA(0, 0, 0, 0)
                   Color: =RGBA(0, 0, 0, 0)
                   BorderColor: =RGBA(0, 0, 0, 0)
                   DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
                   DisabledBorderColor: =RGBA(0, 0, 0, 0)
                   HoverFill: =RGBA(255, 255, 255, 0.12)
                   HoverColor: =RGBA(0, 0, 0, 0)

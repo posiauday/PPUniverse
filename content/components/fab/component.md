@@ -73,7 +73,7 @@ fabMain.IconSvg("Search", "#0F6CBD")
 ## Accessibility
 
 - The button's accessible name is its `Label`, even when only the icon shows, plus "open menu" or "close menu" with a speed dial. Write the label as the action: "New request", not "Plus".
-- Every speed-dial item is a button named after its label.
+- Every speed-dial item is a button named after its label. The hit areas are classic buttons, whose accessible name is their `Text`; the text is there, in a transparent colour.
 - Keep `ContentColor` readable on `AccentColor`: white on the default blue is 5:1.
 - Regular (56) and Large (72) sizes are comfortable to tap; prefer Small (40) only on desktop screens.
 

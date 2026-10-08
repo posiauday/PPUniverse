@@ -64,7 +64,7 @@ From pastes that worked in the product owner's developer environment. Use these 
 | Modern text input | `ModernTextInput@1.0.0` | |
 | Container | `GroupContainer@1.5.0` with `Variant: ManualLayout` | `Fill`, `DropShadow`, `RadiusTopLeft`… and its own `Children` |
 | Gallery | `Gallery@2.15.0` with `Variant: Vertical` | `Items`, `TemplateSize`, `TemplatePadding`, `ShowScrollbar`; `ThisItem` in its children |
-| Classic button | `Classic/Button@2.2.0` | useful as a transparent hit area |
+| Classic button | `Classic/Button@2.2.0` | useful as a transparent hit area. **No `AccessibleLabel`** (PA2108): its accessible name is its `Text`, so set the label there with transparent `Color`, `HoverColor`, `PressedColor` and `DisabledColor`. CI checks this. |
 | Image | `Image@2.2.3` | an SVG data URI works as `Image` |
 | Rectangle | `Rectangle@2.3.0` | |
 

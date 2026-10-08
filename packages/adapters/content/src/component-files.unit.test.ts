@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readComponentFolder } from "./component-files.js";
+import { readComponentFolder, rejectedPropertyProblems } from "./component-files.js";
 
 const MD = `---
 title: "Toggle"
@@ -142,6 +142,32 @@ describe("readComponentFolder", () => {
     expect(result.ok).toBe(false);
     if (!result.ok)
       expect(result.errors.join(" ")).toMatch(/OnChange\(Value\): parameters need a Default/);
+  });
+
+  it("catches properties Studio rejects, in nested controls too", () => {
+    const children = [
+      {
+        cnt: {
+          Control: "GroupContainer@1.5.0",
+          Children: [
+            {
+              btnHit: {
+                Control: "Classic/Button@2.2.0",
+                Properties: { AccessibleLabel: '="Save"' },
+              },
+            },
+          ],
+        },
+      },
+    ];
+    expect(rejectedPropertyProblems(children)).toEqual([
+      "btnHit: Studio doesn't accept AccessibleLabel on Classic/Button; a classic button's accessible name is its Text (make it transparent to hide it)",
+    ]);
+    expect(
+      rejectedPropertyProblems([
+        { btn: { Control: "ModernButton@1.0.0", Properties: { AccessibleLabel: '="Save"' } } },
+      ]),
+    ).toEqual([]);
   });
 
   it("needs the folder to be named after the slug", () => {
