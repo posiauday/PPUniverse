@@ -1,76 +1,356 @@
 import { avatarFromSeed, type AvatarSpec } from "@ppu/domain-content";
 
-/** Written out in full so Tailwind finds the classes. */
-const TINT: Record<AvatarSpec["tint"], string> = {
-  apps: "bg-tech-apps text-tech-apps-ink",
-  automate: "bg-tech-automate text-tech-automate-ink",
-  bi: "bg-tech-bi text-tech-bi-ink",
-  copilot: "bg-tech-copilot text-tech-copilot-ink",
-  dataverse: "bg-tech-dataverse text-tech-dataverse-ink",
-  pages: "bg-tech-pages text-tech-pages-ink",
-  gov: "bg-tech-gov text-tech-gov-ink",
-};
-
-/** Our own simple shapes, on a 24 x 24 grid. */
-const SHAPE: Record<AvatarSpec["shape"], React.ReactNode> = {
-  stack: (
-    <>
-      <rect x="8" y="4" width="11" height="9" rx="3" />
-      <rect x="5" y="11" width="11" height="9" rx="3" fill="currentColor" />
-    </>
-  ),
-  spark: <path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z" fill="currentColor" />,
-  loop: (
-    <>
-      <path d="M18 12a6 6 0 1 1-2-4.5" />
-      <path d="M16 3.5v4.5h-4.5" />
-    </>
-  ),
-  grid: (
-    <>
-      <rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor" />
-      <rect x="13" y="4" width="7" height="7" rx="2" />
-      <rect x="4" y="13" width="7" height="7" rx="2" />
-      <rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor" />
-    </>
-  ),
-  wave: <path d="M3 14c3-6 6 6 9 0s6 6 9 0" />,
-  node: (
-    <>
-      <path d="M7 7l10 5-10 5" />
-      <circle cx="7" cy="7" r="2.5" fill="currentColor" />
-      <circle cx="17" cy="12" r="2.5" fill="currentColor" />
-      <circle cx="7" cy="17" r="2.5" fill="currentColor" />
-    </>
-  ),
-};
-
 /**
- * A reader's generated avatar (MVP-040): one of our area tints and one of our
- * own shapes, picked by their avatar seed. Decorative: their display name is
- * always shown next to it.
+ * A reader's generated avatar, a "maker critter" (MVP-040; redrawn
+ * 2026-10-08): a small character with one low-code accessory, drawn from
+ * their avatar seed by avatarFromSeed. Our own drawing on a 64 x 64 grid, no
+ * product logos. Decorative: the display name is always shown next to it.
+ *
+ * Plain SVG with no ids (no gradients, <pattern> or clip-path defs; the
+ * rounded corners clip it), so any number of avatars can share a page
+ * without duplicate ids.
  */
+
+const PALETTE: Record<
+  AvatarSpec["palette"],
+  { bg: string; glow: string; body: string; ink: string }
+> = {
+  apps: { bg: "#efe7ff", glow: "#d9cbff", body: "#8b5cf6", ink: "#5b21b6" },
+  automate: { bg: "#e1eeff", glow: "#c3d9ff", body: "#3b82f6", ink: "#1e40af" },
+  bi: { bg: "#fff3cc", glow: "#ffe08a", body: "#f59e0b", ink: "#92400e" },
+  copilot: { bg: "#d6f7ee", glow: "#aeeedb", body: "#14b8a6", ink: "#115e59" },
+  dataverse: { bg: "#ddf8e6", glow: "#b6efc9", body: "#22c55e", ink: "#065f46" },
+  pages: { bg: "#ffe0ee", glow: "#ffc2db", body: "#ec4899", ink: "#9d174d" },
+  gov: { bg: "#e8edf3", glow: "#cdd6e2", body: "#64748b", ink: "#334155" },
+  coral: { bg: "#ffe6d9", glow: "#ffcbb0", body: "#f97316", ink: "#9a3412" },
+};
+
+const DARK = "#14141a";
+const GOLD = "#facc15";
+
+function Pattern({ kind, ink }: { kind: AvatarSpec["pattern"]; ink: string }) {
+  const style = { opacity: 0.16 };
+  if (kind === "dots") {
+    const dots = [];
+    for (let x = 6; x < 64; x += 9)
+      for (let y = 6; y < 64; y += 9)
+        dots.push(<circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill={ink} />);
+    return <g style={style}>{dots}</g>;
+  }
+  if (kind === "rings") {
+    return (
+      <g style={style} fill="none" stroke={ink} strokeWidth="1.5">
+        {[8, 16, 24, 32].map((r) => (
+          <circle key={r} cx="54" cy="10" r={r} />
+        ))}
+      </g>
+    );
+  }
+  if (kind === "stripes") {
+    return (
+      <g style={style} stroke={ink} strokeWidth="2">
+        {[-48, -36, -24, -12, 0, 12, 24, 36, 48].map((o) => (
+          <line key={o} x1={o} y1="64" x2={o + 64} y2="0" />
+        ))}
+      </g>
+    );
+  }
+  return (
+    <g style={style} stroke={ink} strokeWidth="1">
+      {[8, 16, 24, 32, 40, 48, 56].map((p) => (
+        <g key={p}>
+          <line x1={p} y1="0" x2={p} y2="64" />
+          <line x1="0" y1={p} x2="64" y2={p} />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+function Head({ kind, fill }: { kind: AvatarSpec["head"]; fill: string }) {
+  if (kind === "round") return <circle cx="32" cy="37" r="17" fill={fill} />;
+  if (kind === "hex")
+    return (
+      <polygon
+        points="32,19 47.5,28 47.5,46 32,55 16.5,46 16.5,28"
+        fill={fill}
+        strokeLinejoin="round"
+        stroke={fill}
+        strokeWidth="3"
+      />
+    );
+  if (kind === "blob")
+    return (
+      <path
+        d="M30.5 20c11-1 18.5 6 18.5 16.5 0 10-6.5 17.5-17.5 17.5S15 47 15 37.5C15 26.5 20.5 21 30.5 20z"
+        fill={fill}
+      />
+    );
+  return <rect x="15" y="21" width="34" height="32" rx="12" fill={fill} />;
+}
+
+function Eyes({ kind, glint }: { kind: AvatarSpec["eyes"]; glint: string }) {
+  const arc = (x: number) => (
+    <path
+      d={`M${x - 3} 35.5q3-4 6 0`}
+      fill="none"
+      stroke={DARK}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    />
+  );
+  const dot = (x: number, rx = 2.8, ry = 2.8) => (
+    <g>
+      <ellipse cx={x} cy="34.5" rx={rx} ry={ry} fill={DARK} />
+      <circle cx={x + 0.9} cy={34.5 - ry / 2.4} r="0.95" fill="#fff" />
+    </g>
+  );
+  if (kind === "ovals")
+    return (
+      <>
+        {dot(26, 2.6, 3.8)}
+        {dot(38, 2.6, 3.8)}
+      </>
+    );
+  if (kind === "happy")
+    return (
+      <>
+        {arc(26)}
+        {arc(38)}
+      </>
+    );
+  if (kind === "wink")
+    return (
+      <>
+        {dot(26)}
+        {arc(38)}
+      </>
+    );
+  if (kind === "visor")
+    return (
+      <g>
+        <rect x="19.5" y="30" width="25" height="9" rx="4.5" fill={DARK} />
+        <circle cx="26.5" cy="34.5" r="2" fill={glint} />
+        <circle cx="37.5" cy="34.5" r="2" fill={glint} />
+        <path
+          d="M22 31.8h5"
+          stroke="#fff"
+          strokeOpacity=".35"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </g>
+    );
+  return (
+    <>
+      {dot(26)}
+      {dot(38)}
+    </>
+  );
+}
+
+function Mouth({ kind }: { kind: AvatarSpec["mouth"] }) {
+  const line = { fill: "none", stroke: DARK, strokeWidth: 2.2, strokeLinecap: "round" as const };
+  if (kind === "open") return <ellipse cx="32" cy="44" rx="2.6" ry="2.3" fill={DARK} />;
+  if (kind === "grin")
+    return (
+      <g>
+        <path d="M27 42h10q0 6-5 6t-5-6z" fill={DARK} />
+        <rect x="29" y="42" width="6" height="1.8" rx=".6" fill="#fff" />
+      </g>
+    );
+  if (kind === "line") return <path d="M29 44h6" {...line} />;
+  if (kind === "cat") return <path d="M27.5 43q2.25 3 4.5 0q2.25 3 4.5 0" {...line} />;
+  return <path d="M28 43q4 4.5 8 0" {...line} />;
+}
+
+function Gear({ ink, bg }: { ink: string; bg: string }) {
+  const teeth = Array.from({ length: 8 }, (_, i) => (
+    <rect
+      key={i}
+      x="15"
+      y="5.5"
+      width="4"
+      height="5"
+      rx="1"
+      fill={ink}
+      transform={`rotate(${i * 45} 17 15)`}
+    />
+  ));
+  return (
+    <g>
+      {teeth}
+      <circle cx="17" cy="15" r="6.2" fill={ink} />
+      <circle cx="17" cy="15" r="2.4" fill={bg} />
+    </g>
+  );
+}
+
+/** Accessories drawn behind the head (their base is hidden by it). */
+function BackAccessory({
+  kind,
+  ink,
+  bg,
+}: {
+  kind: AvatarSpec["accessory"];
+  ink: string;
+  bg: string;
+}) {
+  if (kind === "antenna")
+    return (
+      <g>
+        <path d="M32 24V10" stroke={DARK} strokeWidth="2" strokeLinecap="round" />
+        <circle cx="32" cy="9" r="3.6" fill={ink} stroke={DARK} strokeWidth="1.4" />
+        <circle
+          cx="32"
+          cy="9"
+          r="7"
+          fill="none"
+          stroke={ink}
+          strokeOpacity=".35"
+          strokeWidth="1.2"
+        />
+      </g>
+    );
+  if (kind === "gear") return <Gear ink={ink} bg={bg} />;
+  return null;
+}
+
+/** Accessories drawn on top of the head. */
+function FrontAccessory({ kind, ink }: { kind: AvatarSpec["accessory"]; ink: string }) {
+  switch (kind) {
+    case "bolt":
+      return (
+        <polygon
+          points="50,4 42.5,16 47.5,16 44.5,27 54,12.5 48.8,12.5 52.5,4"
+          fill={GOLD}
+          stroke={DARK}
+          strokeWidth="1.3"
+          strokeLinejoin="round"
+        />
+      );
+    case "bars":
+      return (
+        <g stroke={DARK} strokeWidth="1.3" strokeLinejoin="round">
+          <rect x="24.5" y="12" width="5" height="9" rx="1.2" fill={ink} />
+          <rect x="30" y="7" width="5" height="14" rx="1.2" fill={GOLD} />
+          <rect x="35.5" y="14" width="5" height="7" rx="1.2" fill={ink} />
+          <path d="M22.5 21.5h20" strokeLinecap="round" />
+        </g>
+      );
+    case "bubble":
+      return (
+        <g>
+          <path
+            d="M39 6.5h14a4 4 0 0 1 4 4v7a4 4 0 0 1-4 4h-8l-4.5 4v-4H39a4 4 0 0 1-4-4v-7a4 4 0 0 1 4-4z"
+            fill="#fff"
+            stroke={DARK}
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+          {[41, 46, 51].map((x) => (
+            <circle key={x} cx={x} cy="14" r="1.4" fill={ink} />
+          ))}
+        </g>
+      );
+    case "cylinder":
+      return (
+        <g stroke={DARK} strokeWidth="1.3">
+          <path d="M23 11v9.5c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5V11" fill={ink} />
+          <path d="M23 15.8c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5" fill="none" strokeOpacity=".6" />
+          <ellipse cx="32" cy="11" rx="9" ry="3.4" fill={GOLD} />
+        </g>
+      );
+    case "spark":
+      return (
+        <g fill={GOLD} stroke={DARK} strokeWidth="1.2" strokeLinejoin="round">
+          <path d="M49 4l2.2 6.3L57.5 12.5l-6.3 2.2L49 21l-2.2-6.3-6.3-2.2 6.3-2.2z" />
+          <path d="M57 19l1 2.8 2.8 1-2.8 1-1 2.8-1-2.8-2.8-1 2.8-1z" />
+        </g>
+      );
+    case "headset":
+      return (
+        <g>
+          <path
+            d="M14.5 36a17.5 17.5 0 0 1 35 0"
+            fill="none"
+            stroke={DARK}
+            strokeWidth="2.6"
+            strokeLinecap="round"
+          />
+          <rect
+            x="10.5"
+            y="31"
+            width="7"
+            height="12"
+            rx="3.5"
+            fill={ink}
+            stroke={DARK}
+            strokeWidth="1.3"
+          />
+          <rect
+            x="46.5"
+            y="31"
+            width="7"
+            height="12"
+            rx="3.5"
+            fill={ink}
+            stroke={DARK}
+            strokeWidth="1.3"
+          />
+          <path
+            d="M14 42.5q1.5 7.5 10 7.5"
+            fill="none"
+            stroke={DARK}
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+          <circle cx="25" cy="50" r="2" fill={DARK} />
+        </g>
+      );
+    default:
+      return null;
+  }
+}
+
 export function Avatar({ seed, size = 40 }: { seed: string; size?: number }) {
   const spec = avatarFromSeed(seed);
+  const colors = PALETTE[spec.palette];
   return (
-    <span
+    <svg
       aria-hidden="true"
-      className={`inline-grid shrink-0 place-items-center rounded-[30%] ${TINT[spec.tint]}`}
-      style={{ width: size, height: size }}
-      data-avatar={`${spec.tint}-${spec.shape}`}
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      className="shrink-0 overflow-hidden rounded-[30%]"
+      data-avatar={`${spec.palette}-${spec.head}-${spec.accessory}`}
     >
-      <svg
-        width={size * 0.6}
-        height={size * 0.6}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {SHAPE[spec.shape]}
-      </svg>
-    </span>
+      <rect width="64" height="64" fill={colors.bg} />
+      <circle cx="56" cy="6" r="30" fill={colors.glow} opacity=".7" />
+      <Pattern kind={spec.pattern} ink={colors.ink} />
+      <ellipse cx="32" cy="58.5" rx="15" ry="2.6" fill={DARK} opacity=".1" />
+      <g transform={`rotate(${spec.tilt} 32 38)`}>
+        <BackAccessory kind={spec.accessory} ink={colors.ink} bg={colors.bg} />
+        <Head kind={spec.head} fill={colors.body} />
+        <ellipse
+          cx="25"
+          cy="26.5"
+          rx="6"
+          ry="3"
+          fill="#fff"
+          opacity=".28"
+          transform="rotate(-20 25 26.5)"
+        />
+        {spec.blush ? (
+          <g fill="#ff8fab" opacity=".6">
+            <ellipse cx="21.8" cy="40.5" rx="3" ry="1.8" />
+            <ellipse cx="42.2" cy="40.5" rx="3" ry="1.8" />
+          </g>
+        ) : null}
+        <Eyes kind={spec.eyes} glint={colors.glow} />
+        <Mouth kind={spec.mouth} />
+        <FrontAccessory kind={spec.accessory} ink={colors.ink} />
+      </g>
+    </svg>
   );
 }

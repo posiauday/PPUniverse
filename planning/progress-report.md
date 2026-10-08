@@ -5185,3 +5185,15 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Commands:** `vitest run` (web: 799 passed; 4 new progress route tests), `tsc --noEmit`, `eslint`, `prettier`, `prisma migrate deploy`, the integration tests and `playwright test tests/a11y --project=chromium --grep "topic|lesson|profile"` against the local database.
 
 **Benched** (product owner, 2026-10-08): the code is done and off in production (`FEATURE_LEARN`). To launch: write the first topics in `content/topics`, publish them in the admin, then set `FEATURE_LEARN=on`. MVP-048 stays In Progress until the content exists (Definition of Done).
+
+## 2026-10-08 — Maker critter avatars and wider niche names (MVP-040 follow-up)
+
+**Asked for:** by the product owner: "by default [the reader] gets an avatar and name related to [the] Microsoft niche ... be creative and be artistic to build avatar".
+
+**Already there (MVP-040):** every signed-in reader is given a random name ("Tidy Trigger 418") and avatar, both changeable on `/account/profile` ("Draw a new avatar" re-rolls the seed).
+
+**Built:**
+- **Avatars** (`apps/web/app/Avatar.tsx`, `avatarFromSeed` in `@ppu/domain-content`): a "maker critter" drawn from the seed. Parts: 8 palettes (our area colours and coral), 4 background patterns, 4 head shapes, 5 eyes, 5 mouths, optional blush, a slight tilt, and one low-code accessory (connector antenna, flow bolt, report bars, agent chat bubble, admin gear, data cylinder, sparkle, support headset): 51,200 combinations. Our own drawings, no product logos. Plain SVG with no ids, so many avatars on a page never duplicate an id. Existing readers get the new art automatically: their stored seed is drawn the new way; nothing in the database changes.
+- **Names:** 32 adjectives and 48 low-code nouns (was 16 and 16), still no product names; the reserved words are unchanged.
+
+**Checked:** a 48-avatar gallery rendered at 96 px and at 24 to 64 px on light and dark; domain tests (74) and web tests (799) pass; typecheck, lint and Prettier are clean.
