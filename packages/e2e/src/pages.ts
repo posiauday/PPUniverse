@@ -449,6 +449,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
     prepare: async (page) => {
       await submitSignIn(page, "");
       await expect(page.getByLabel("Email address")).toHaveAttribute("aria-invalid", "true");
+      // Focus moves to the email field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Email address")).toBeFocused();
     },
   },
   {
@@ -462,6 +465,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       const interception = await interceptSignInSend(page, "failed");
       await submitSignIn(page, VALID_EMAIL, interception);
       await expect(page.getByLabel("Email address")).toHaveAccessibleDescription(/try again/i);
+      // Focus moves to the email field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Email address")).toBeFocused();
     },
   },
   {
@@ -901,6 +907,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
         "aria-invalid",
         "true",
       );
+      // Focus moves to the password field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
     },
   },
   {
@@ -952,6 +961,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
         "aria-invalid",
         "true",
       );
+      // Focus moves to the password field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
     },
   },
   {
@@ -991,6 +1003,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await answerPasswordApi(page, "confirm", 400, { error: "invalid-link" });
       await (await whenHydrated(page.getByRole("button", { name: "Confirm" }))).click();
       await expect(page.getByRole("heading", { level: 1 })).toContainText(/expired/i);
+      // Focus moves to the new heading after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
     },
   },
   {
@@ -1051,6 +1066,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByLabel("New password", { exact: true })).toHaveAccessibleDescription(
         /12 characters/i,
       );
+      // Focus moves to the password field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("New password", { exact: true })).toBeFocused();
     },
   },
   {
