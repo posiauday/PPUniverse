@@ -1,0 +1,15 @@
+# Named presets of lcsToast: each sets inputs with Power Fx formulas.
+# The message and kind come from the Show action, shown in the guide.
+- name: Plain
+  description: A message and a close button, for confirmations like "Saved".
+  settings:
+    ActionText: =""
+- name: With Undo
+  description: A button to reverse what just happened. Handle it in OnAction.
+  settings:
+    ActionText: ="Undo"
+- name: With View
+  description: A button that takes the user to what was just created.
+  settings:
+    ActionText: ="View"
+    ToastWidth: =480

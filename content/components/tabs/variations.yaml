@@ -1,0 +1,21 @@
+# Named presets of lcsTabs: each sets inputs with Power Fx formulas.
+- name: Tabs
+  description: Sections of one record, with an underline under the selected tab.
+  settings:
+    Items: =["Overview", "Details", "History"]
+    DefaultTab: ="Overview"
+    Look: ="Underline"
+- name: Segmented control
+  description: A small set of choices that filter what's shown, such as a status.
+  settings:
+    Items: =["Open", "Waiting", "Done"]
+    DefaultTab: ="Open"
+    Look: ="Filled"
+    AccessibleName: ="Show requests that are"
+- name: Subtle
+  description: Quiet tabs for a side panel or a card.
+  settings:
+    Items: =["Day", "Week", "Month"]
+    DefaultTab: ="Week"
+    Look: ="Subtle"
+    AccessibleName: ="Time range"

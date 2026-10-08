@@ -1,0 +1,167 @@
+ComponentDefinitions:
+  lcsTextField:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks text field: a label, a hint, validation with an error message, a character count and a required marker, around the modern text input."
+    CustomProperties:
+      Label:
+        PropertyKind: Input
+        DataType: Text
+        Description: "The field's label, shown above the box and read by screen readers."
+        Default: ="Full name"
+      Hint:
+        PropertyKind: Input
+        DataType: Text
+        Description: "Help text under the box, shown while there's no error. Leave empty for none."
+        Default: ="As it appears on your badge."
+      Placeholder:
+        PropertyKind: Input
+        DataType: Text
+        Description: "Example text inside the empty box. Don't use it instead of a label."
+        Default: =""
+      DefaultValue:
+        PropertyKind: Input
+        DataType: Text
+        Description: "The text in the box when it loads, such as ThisItem.Title in an edit screen."
+        Default: =""
+      Required:
+        PropertyKind: Input
+        DataType: Boolean
+        Description: "When true, the label shows * and an empty box is an error once the user has left it."
+        Default: =false
+      MaxLength:
+        PropertyKind: Input
+        DataType: Number
+        Description: "The most characters allowed. 0 means no limit and hides the character count."
+        Default: =100
+      Multiline:
+        PropertyKind: Input
+        DataType: Boolean
+        Description: "When true, the box takes several lines. Make the component taller to show them."
+        Default: =false
+      ErrorMessage:
+        PropertyKind: Input
+        DataType: Text
+        Description: "An error your app sets, such as one from the server. It overrides the field's own checks."
+        Default: =""
+      Value:
+        PropertyKind: Output
+        DataType: Text
+        Description: "The text in the box now."
+      IsValid:
+        PropertyKind: Output
+        DataType: Boolean
+        Description: "True when the text passes every check: required, your Validate formula and ErrorMessage."
+      Validate:
+        PropertyKind: InputFunction
+        ReturnType: Text
+        Description: "Your own check. Receives the text and returns an error message, or empty text when it's fine."
+        Parameters:
+          - Text:
+              DataType: Text
+              Description: "The text in the box."
+        Default: =""
+      OnChange:
+        PropertyKind: Event
+        ReturnType: None
+        Description: "Runs in the app when the user changes the text and leaves the box. Receives the new text."
+        Parameters:
+          - Value:
+              DataType: Text
+              Description: "The new text."
+        Default: =false
+      Reset:
+        PropertyKind: Action
+        ReturnType: None
+        Description: "Puts the box back to DefaultValue and clears the error until the user edits it again."
+    Properties:
+      Width: =320
+      Height: =100
+      Fill: =RGBA(0, 0, 0, 0)
+      Value: =txtInput.Text
+      IsValid: |-
+        =IsBlank(lcsTextField.ErrorMessage) &&
+        !(lcsTextField.Required && IsBlank(Trim(txtInput.Text))) &&
+        IsBlank(lcsTextField.Validate(txtInput.Text))
+      Reset: |-
+        =Reset(txtInput);
+        Set(locTouched, false)
+    Children:
+      - lblLabel:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =22
+            Text: =lcsTextField.Label & If(lcsTextField.Required, " *", "")
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            PaddingLeft: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - txtInput:
+          Control: ModernTextInput@1.0.0
+          Properties:
+            X: =0
+            Y: =26
+            Width: =Parent.Width
+            Height: =If(lcsTextField.Multiline, Max(32, Parent.Height - 52), 32)
+            Default: =lcsTextField.DefaultValue
+            Placeholder: =lcsTextField.Placeholder
+            Type: =If(lcsTextField.Multiline, TextInputType.Multiline, TextInputType.SingleLine)
+            MaxLength: =If(lcsTextField.MaxLength > 0, lcsTextField.MaxLength, 10000)
+            Required: =lcsTextField.Required
+            ValidationState: =If(IsBlank(lblError.Text), ValidationState.None, ValidationState.Error)
+            AccessibleLabel: =lcsTextField.Label & If(lcsTextField.Required, ", required", "") & If(IsBlank(lblError.Text), "", ". " & lblError.Text)
+            OnChange: |-
+              =Set(locTouched, true);
+              lcsTextField.OnChange(Self.Text)
+      - lblError:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =txtInput.Y + txtInput.Height + 4
+            Width: =Parent.Width - If(lcsTextField.MaxLength > 0, 64, 0)
+            Height: =20
+            Visible: =!IsBlank(Self.Text)
+            Text: |-
+              =If(
+                  !IsBlank(lcsTextField.ErrorMessage), lcsTextField.ErrorMessage,
+                  !locTouched, "",
+                  lcsTextField.Required && IsBlank(Trim(txtInput.Text)), "This field is required.",
+                  lcsTextField.Validate(txtInput.Text)
+              )
+            Size: =12
+            Color: =RGBA(196, 49, 75, 1)
+            PaddingLeft: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - lblHint:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =lblError.Y
+            Width: =lblError.Width
+            Height: =20
+            Visible: =IsBlank(lblError.Text) && !IsBlank(lcsTextField.Hint)
+            Text: =lcsTextField.Hint
+            Size: =12
+            Color: =RGBA(97, 97, 97, 1)
+            PaddingLeft: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - lblCount:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =Parent.Width - 64
+            Y: =lblError.Y
+            Width: =64
+            Height: =20
+            Visible: =lcsTextField.MaxLength > 0
+            Text: =Len(txtInput.Text) & "/" & lcsTextField.MaxLength
+            Align: =Align.Right
+            Size: =12
+            Color: =RGBA(97, 97, 97, 1)
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
