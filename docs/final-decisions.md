@@ -2191,3 +2191,11 @@ The accessibility gate runs in **6 shards instead of 4**. The time limit stays a
 8. **Previews are interactive web replicas** (follow-up): each component gets a working copy built for the site, which readers can use, not a screenshot. The pages say it is a web replica and that the look in Studio may differ slightly.
 
 The plan, with the proposed standard and pages (still to be signed off): `docs/plans/power-apps-component-library.md` (MVP-049).
+
+## 2026-10-08 — Reader avatars: maker critters wearing a name tag
+
+**Source:** direct product-owner instructions in this session: avatars and names "related to [the] Microsoft niche ... be creative and be artistic"; then, from seven styles and three ways to add initials, "make a version with combination of reader initial with makers critters" and "Name tag".
+
+1. **Every reader's avatar is a "maker critter"**: a small character drawn from their avatar seed (palette, pattern, head, eyes, mouth, blush, tilt) with one low-code accessory, our own drawing with no product logos. "Draw a new avatar" re-rolls it.
+2. **It wears a name tag with the reader's initials** (the first letters of the first two words of their display name), wherever a name is shown with it: comments, the comment form and the profile.
+3. **Generated names** use everyday low-code words, never product names (32 adjectives, 48 nouns, a number).

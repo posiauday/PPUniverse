@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ViewerSummary } from "../lib/viewer";
+import { Avatar } from "./Avatar";
 import { componentsEnabled, learnEnabled } from "../lib/feature-flags";
 import { buildTechnologyMenu, type TechnologyMenuArea } from "../lib/technology-menu";
 import type { Theme } from "../lib/theme";
@@ -50,11 +52,14 @@ const NAV_LINK =
 export function SiteHeader({
   theme,
   signedIn,
+  viewer = null,
   menu = buildTechnologyMenu(ALL_AREAS, null),
   updateTimes = [],
 }: {
   theme: Theme;
   signedIn: boolean;
+  /** The signed-in reader's avatar, name and admin flag (lib/viewer.ts). */
+  viewer?: ViewerSummary | null;
   /** The Power Platform menu (lib/technology-menu.ts); without it, areas and sections only. */
   menu?: readonly TechnologyMenuArea[];
   /** Newest published update times, for the Updates badge (lib/update-times.ts). */
@@ -64,7 +69,7 @@ export function SiteHeader({
   // until then it keeps opening the guides.
   const learnHref = learnEnabled() ? "/topics" : "/learn";
   const account = signedIn
-    ? { name: "Account", href: "/account/sessions" }
+    ? { name: "Account", href: "/account" }
     : { name: "Sign in", href: "/signin" };
   const links = mainLinks();
   return (
@@ -94,9 +99,28 @@ export function SiteHeader({
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <HeaderSearch />
-          <Link href={account.href} className={`${NAV_LINK} font-semibold max-lg:hidden`}>
-            {account.name}
-          </Link>
+          {viewer?.isAdmin ? (
+            <Link href="/admin" className={`${NAV_LINK} font-semibold max-lg:hidden`}>
+              Admin
+            </Link>
+          ) : null}
+          {signedIn ? (
+            <Link
+              href={account.href}
+              className="motion-press inline-flex min-h-11 items-center gap-2 rounded-full py-1 pr-3.5 pl-1.5 font-semibold text-foreground no-underline hover:bg-muted max-lg:hidden"
+            >
+              <Avatar
+                seed={viewer?.avatarSeed ?? "account"}
+                name={viewer?.displayName ?? undefined}
+                size={32}
+              />
+              {account.name}
+            </Link>
+          ) : (
+            <Link href={account.href} className={`${NAV_LINK} font-semibold max-lg:hidden`}>
+              {account.name}
+            </Link>
+          )}
           <span className="max-lg:hidden">
             <ThemeToggle initialTheme={theme} />
           </span>
@@ -115,6 +139,7 @@ export function SiteHeader({
           themeToggle={<ThemeToggle initialTheme={theme} />}
           updateTimes={updateTimes}
           learnHref={learnHref}
+          viewer={viewer}
         />
       </div>
     </header>
