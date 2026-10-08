@@ -238,3 +238,86 @@ model CommentReport {
   @@index([commentId])
   @@map("comment_reports")
 }
+
+/// The Learn module (MVP-048; docs/final-decisions.md, 2026-10-07, "Learn
+/// module design: Workspace"; docs/plans/learn-module.md): a topic is a short
+/// series of 3 to 6 lessons at /topics/<topic>/<lesson>. Drafted in
+/// content/topics and imported as drafts, or written in the admin; published
+/// by the product owner. Same lifecycle and audit rules as Article: publishedAt
+/// is set once and never rewritten, and every publish appends a
+/// LearnPublishEvent. A lesson is public only when it and its topic are both
+/// PUBLISHED. Lesson bodies are Markdown, never rendered as raw HTML.
+model LearnTopic {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  /// One or two sentences: what the topic explains and for whom.
+  summary      String
+  /// The area it belongs to: one of the six technologies or Governance & admin.
+  technology   Technology
+  /// Order among the area's topics, lowest first.
+  sortOrder    Int           @default(0)
+  status       ArticleStatus @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten.
+  publishedAt  DateTime?
+  authorUserId String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  author  User                @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  lessons LearnLesson[]
+  events  LearnPublishEvent[]
+
+  @@index([technology, status, sortOrder])
+  @@map("learn_topics")
+}
+
+model LearnLesson {
+  id           String        @id @default(cuid())
+  topicId      String
+  /// Unique within its topic.
+  slug         String
+  /// 1-based place in the topic, unique within it.
+  position     Int
+  title        String
+  /// Reading time in minutes.
+  minutes      Int
+  /// "What you'll understand": 2 or 3 short outcomes.
+  outcomes     String[]
+  /// Markdown in the fixed lesson shape (@ppu/domain-content LESSON_SECTIONS).
+  body         String        @db.Text
+  /// When it was last checked against its sources; null if never.
+  checkedOn    DateTime?     @db.Date
+  status       ArticleStatus @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten.
+  publishedAt  DateTime?
+  authorUserId String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  topic  LearnTopic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  author User                @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events LearnPublishEvent[]
+
+  @@unique([topicId, slug])
+  @@unique([topicId, position])
+  @@map("learn_lessons")
+}
+
+/// Append-only audit trail for publishing topics and lessons: lessonId is
+/// null when the topic itself was published.
+model LearnPublishEvent {
+  id          String               @id @default(cuid())
+  topicId     String
+  lessonId    String?
+  actorUserId String
+  action      ArticlePublishAction
+  createdAt   DateTime             @default(now())
+
+  topic  LearnTopic   @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  lesson LearnLesson? @relation(fields: [lessonId], references: [id], onDelete: Restrict)
+  actor  User         @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([topicId, createdAt])
+  @@map("learn_publish_events")
+}
