@@ -11,7 +11,7 @@ vi.mock("next/link", async () => {
 
 import { ComponentWorkbench, hasReplica } from "./ComponentWorkbench";
 import { readButtons, visibleButtons } from "./replicas/DialogReplica";
-import { stateFor } from "./replicas/StatesReplica";
+import { skeletonRows, stateFor } from "./replicas/StatesReplica";
 import { itemsFromText, tabText } from "./replicas/TabsReplica";
 
 const render = (componentName: string, yaml: string | null = "ComponentDefinitions: {}") =>
@@ -56,6 +56,12 @@ describe("replica helpers match the components' own formulas", () => {
     expect(tabText("Open", { Open: 12, Waiting: 0 })).toBe("Open (12)");
     expect(tabText("Waiting", { Open: 12, Waiting: 0 })).toBe("Waiting");
     expect(tabText("Done", {})).toBe("Done");
+  });
+
+  it("Skeleton draws as many rows as fit in the panel, at least one", () => {
+    expect(skeletonRows(3)).toBe(3);
+    expect(skeletonRows(12)).toBe(4);
+    expect(skeletonRows(0)).toBe(1);
   });
 
   it("ItemsFromText splits on commas and trims", () => {

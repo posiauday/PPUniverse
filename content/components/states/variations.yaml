@@ -26,3 +26,18 @@
     Title: ="No matches"
     Message: ="Try fewer words, or clear the filters."
     ActionText: ="Clear filters"
+- name: Skeleton rows
+  description: Placeholder rows in the shape of the list while it loads.
+  settings:
+    State: ="Skeleton"
+    Title: ="Loading requests…"
+    SkeletonRows: =4
+- name: Dark, in your brand colour
+  description: An empty list on a dark screen, with the button in your brand colour.
+  settings:
+    State: ="Empty"
+    Title: ="No requests yet"
+    Message: ="Requests you create appear here."
+    ActionText: ="New request"
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

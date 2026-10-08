@@ -50,7 +50,7 @@ ComponentDefinitions:
         DisplayName: ConfirmLabel
         DataType: Text
         Description: "What the button says while it waits for the confirming select."
-        Default: ="Select again to confirm"
+        Default: ="Select again"
       ConfirmSeconds:
         PropertyKind: Input
         DisplayName: ConfirmSeconds

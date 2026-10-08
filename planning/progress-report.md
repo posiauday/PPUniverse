@@ -5258,3 +5258,19 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Checked:** typecheck, lint, unit tests (web components and domain); a local axe and overflow run over the library page and all seven component pages, at 375 and 1280 pixels, light and dark, before and after each interaction: no violations, no sideways scrolling. The e2e state `component-playground` became `component-live` (click Save, expect the Notify banner).
 
 **Next:** the product owner's paste-tests of the remaining components; CI on #116.
+
+## 2026-10-08 — Component library: wave 1 upgrades (MVP-049, In Progress)
+
+**Asked:** "go ahead, start" on the approved build order (docs/final-decisions.md, 2026-10-08, "direction, differentiators and build order", item 3).
+
+**Built** (on `feature/component-upgrades`), each with its guide, variations, live preview and paste-test checklist (`docs/component-paste-tests.md`):
+- **Button 0.2.0:** `AccentColor` (the modern button's `BasePaletteColor`, so hover and pressed follow it), `Theme` (dark: Secondary drawn as Outline, Subtle as Transparent, since the modern button has no fill of its own), and select-again-to-confirm: `RequireConfirm`, `ConfirmLabel` ("Select again", short enough for 160 pixels), `ConfirmSeconds`, `IsArmed`. A hidden `Timer@2.1.0` resets it.
+- **Toast 0.2.0:** `Duration` (closes itself; 0 keeps it), a queue in a collection inside the component (`QueueCount`, "(2 more)" on the bar), `AccentColor` for Info messages, `Theme`.
+- **Tabs 0.2.0:** `Counts` in the tab's text ("Open (3)") while `SelectedTab` and `OnChange` keep the plain name, and `HiddenTabs`. Microsoft's modern tab list has no brand colour, per-tab disable or badge hooks (checked on Microsoft Learn), so those parts of the plan aren't possible on it; the guide says so.
+- **States 0.2.0:** a `Skeleton` state (placeholder rows in a gallery, `SkeletonRows`, as many as fit), `AccentColor` (spinner and button), `Theme`.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and unit tests; a local axe and overflow run over the new variations at 375 and 1280 pixels, light and dark, before and after interactions: 47 of 48 steps clean, one timed out only because the confirm wait (4 seconds) ended during the scan.
+
+**Not yet:** the product owner's paste-tests. `Timer@2.1.0` and a collection inside a component are new to this library; the README lists the timer as not yet paste-tested.
+
+**Next:** Text field input formats (`Format`: email, phone, postal code), then wave 2 (Date and time picker first).

@@ -14,7 +14,7 @@ Use **lcsButton** wherever people start an action: Save, Submit, Export, Edit. C
 - **Four looks** from one input, `Appearance`: Primary, Secondary, Outline and Subtle.
 - **Your brand colour** from one input, `AccentColor`. Hover and pressed colours are worked out from it, so any colour looks right.
 - **Light or dark.** Set `Theme` to `"Dark"` on a dark screen: text and borders turn light.
-- **Select again to confirm.** Set `RequireConfirm` to `true` for actions that can't be undone. The first select turns the button red and says "Select again to confirm"; `OnClick` runs only if it's selected again within `ConfirmSeconds`, otherwise it goes back to normal. No dialog to build.
+- **Select again to confirm.** Set `RequireConfirm` to `true` for actions that can't be undone. The first select turns the button red and says "Select again"; `OnClick` runs only if it's selected again within `ConfirmSeconds`, otherwise it goes back to normal. No dialog to build.
 - **A busy state.** Set `IsBusy` to `true` while a Patch or flow runs. The button is disabled and says "Working…", so nobody submits twice.
 - **A click count** (`ClickCount`) and an **OnClick** event that receives it.
 - **Your own label format** through `FormatLabel`, and a `ResetCount()` action.

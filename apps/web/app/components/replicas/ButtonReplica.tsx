@@ -202,7 +202,7 @@ const DEFAULTS: Inputs = {
   AccentColor: "#0f6cbd",
   Theme: "Light",
   RequireConfirm: false,
-  ConfirmLabel: "Select again to confirm",
+  ConfirmLabel: "Select again",
   ConfirmSeconds: 4,
 };
 
