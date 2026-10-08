@@ -1,0 +1,24 @@
+# Named presets of lcsFab: each sets inputs with Power Fx formulas.
+- name: Regular
+  description: The screen's main action, icon only.
+  settings:
+    Icon: ="Add"
+    Label: ="New request"
+- name: Extended
+  description: The icon with its label, when the action needs words.
+  settings:
+    Icon: ="Edit"
+    Label: ="New note"
+    Extended: =true
+- name: Speed dial
+  description: Opens a short menu of related actions.
+  settings:
+    Icon: ="Add"
+    Label: ="Create"
+    SpeedDial: =true
+- name: Small
+  description: A smaller button for desktop screens.
+  settings:
+    Icon: ="Chat"
+    Label: ="Ask a question"
+    Size: ="Small"
