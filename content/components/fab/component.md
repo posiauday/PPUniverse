@@ -2,14 +2,14 @@
 title: "Floating action button"
 slug: fab
 category: buttons-and-actions
-summary: "The screen's main action as a floating button: round, extended with a label, or opening a speed-dial menu of more actions. Accessible, sized for touch, and coloured to match your app."
+summary: "The screen's main action, usually Add new, as a floating button: ready with no setup, extended with a label, or opening a speed-dial menu of more actions. Accessible, sized for touch, coloured to match your app."
 access: OPEN
 version: 0.2.0
 modernControls: yes
 ---
 ## When to use it
 
-Use **lcsFab** for the one action people come to a screen for: a new request, a new note, a photo. It floats in a corner, so it's always within reach on a phone.
+Use **lcsFab** for the one action people come to a screen for, which is usually **adding a new item**: a new request, a new note, a new contact. It floats in a corner, so it's always within reach on a phone. Out of the box it's a **+** labelled "Add new"; you only set what happens on select.
 
 - **Plain:** an icon in a rounded square. Set `Size` to Small, Regular or Large.
 - **Extended:** the icon plus a label, when the action needs words ("New request").
@@ -28,12 +28,37 @@ Parent.Width - Self.Width - 24
 Parent.Height - Self.Height - 24
 ```
 
-A plain button:
+**Add a new item** (the usual case). With a form on another screen:
 
 ```powerfx
 // fabMain.OnSelect
 NewForm(frmRequest);
 Navigate(scrEdit)
+```
+
+Or add a row straight away and open it:
+
+```powerfx
+// fabMain.OnSelect
+Set(locNew, Patch(Requests, Defaults(Requests), { Title: "New request" }));
+Navigate(scrEdit)
+```
+
+Say what's being added, so screen reader users hear it, and show it on wider screens:
+
+```powerfx
+// fabMain.Label
+"New request"
+
+// fabMain.Extended
+App.Width > 640
+```
+
+Only let people add when they can:
+
+```powerfx
+// fabMain.Disabled
+!locCanCreate
 ```
 
 A speed dial that does something different for each item:

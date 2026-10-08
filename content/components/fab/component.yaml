@@ -13,8 +13,8 @@ ComponentDefinitions:
         PropertyKind: Input
         DisplayName: Label
         DataType: Text
-        Description: "What the button does, such as New request. Shown when Extended is true, and always read by screen readers."
-        Default: ="New request"
+        Description: "What the button does, such as Add new or New request. Shown when Extended is true, and always read by screen readers."
+        Default: ="Add new"
       Extended:
         PropertyKind: Input
         DisplayName: Extended
