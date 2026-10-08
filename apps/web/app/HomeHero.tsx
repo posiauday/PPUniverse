@@ -143,6 +143,7 @@ const STATUS_TONE = {
   late: "bg-[#ffe4e6] text-[#9f1239]",
 } as const;
 
+// The dot follows this path with the lcs-run-flow keyframes in globals.css: change both together.
 const FLOW_PATH = "M30 26 H115 V104 H198";
 
 /**
@@ -252,10 +253,7 @@ function HeroStage() {
               strokeDasharray="2 7"
             />
           </svg>
-          <span
-            className="motion-run absolute top-0 left-0 h-3 w-3 rounded-full bg-[#2563eb]"
-            style={{ offsetPath: `path("${FLOW_PATH}")`, offsetAnchor: "center" }}
-          />
+          <span className="motion-run-flow absolute top-0 left-0 h-3 w-3 rounded-full bg-[#2563eb]" />
           <svg
             viewBox="0 0 230 130"
             width="230"
