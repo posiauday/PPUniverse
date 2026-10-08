@@ -8,7 +8,6 @@ import { expect, test } from "../../../src/fixtures.js";
 test.describe("BUG-008: the 404 page has a main landmark, a heading and a way home", () => {
   for (const path of [
     "/no-such-page-e2e",
-    "/account",
     "/products/zz-e2e-a11y-no-such-product",
     "/categories/zz-e2e-a11y-no-such-category",
   ]) {

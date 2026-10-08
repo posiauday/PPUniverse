@@ -9,6 +9,7 @@ import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo/site";
 import { loadTechnologyMenu } from "../lib/technology-menu";
 import { loadUpdateTimes } from "../lib/update-times";
 import { updateRepository } from "../lib/updates";
+import { loadViewerSummary } from "../lib/viewer";
 import { THEME_COOKIE, resolveTheme } from "../lib/theme";
 import { fontVariables } from "./fonts";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
@@ -40,6 +41,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     loadTechnologyMenu(ALL_AREAS, contentRepository),
     loadUpdateTimes(updateRepository),
   ]);
+  // The signed-in reader's avatar, name and Admin link for the header. If it
+  // can't be read, the header simply shows "Account" without them.
+  const viewer = session?.user?.id
+    ? await loadViewerSummary(session.user.id).catch(() => null)
+    : null;
 
   return (
     <html lang="en" data-theme={theme} style={{ colorScheme: theme }} className={fontVariables}>
@@ -50,6 +56,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <SiteHeader
           theme={theme}
           signedIn={Boolean(session)}
+          viewer={viewer}
           menu={menu}
           updateTimes={updateTimes}
         />

@@ -5198,6 +5198,8 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 
 **Checked:** a 48-avatar gallery rendered at 96 px and at 24 to 64 px on light and dark; domain tests (74) and web tests (799) pass; typecheck, lint and Prettier are clean.
 
+**Follow-up, same day:** the product owner compared seven avatar styles and three ways to add initials, and chose the critter **wearing a name tag** with the reader's initials (`docs/final-decisions.md`, "Reader avatars: maker critters wearing a name tag"). `initialsOf()` takes the first letter of the first two words (any alphabet; "?" if none). Comments, the comment form and the profile pass the display name. Web tests: 803 (4 new in `Avatar.test.tsx`).
+
 ## 2026-10-08 — Component library: pipeline, admin and Docs pages (MVP-049, In Progress)
 
 **Story:** MVP-049 (FR-009, FR-014, NFR-005). Decisions: `docs/final-decisions.md`, 2026-10-08, "Power Apps component library: first, copy-paste YAML, free" and "Component library: page design, admin menu, and overnight drafts" (design A · Docs; "Component library" and "Marketplace products" in the admin menu; the standard stays a proposal).

@@ -29,8 +29,6 @@ import {
  * - /api/*, robots.txt and sitemap.xml: route handlers and metadata files, not pages.
  * - next-auth's built-in pages under /api/auth (error, verify-request): framework-
  *   rendered, not part of this app's own pages. Listed as not verified.
- * - /account: it is not a page (only /account/sessions is). It is covered as a 404.
- *   If /account becomes a real page, that story must add it here.
  */
 
 export interface GatedPage {
@@ -477,6 +475,32 @@ export const GATED_PAGES: readonly GatedPage[] = [
       const interception = await interceptSignInSend(page, "sent");
       await submitSignIn(page, VALID_EMAIL, interception);
       await expect(page.getByRole("status")).toContainText(/check your email/i);
+    },
+  },
+  {
+    // The account overview (2026-10-08): where "Account" in the header goes.
+    id: "account-overview",
+    route: "/account",
+    description: "account overview, signed in as a member",
+    auth: "member",
+    status: 200,
+    path: () => "/account",
+    prepare: async (page) => {
+      await expect(page.getByRole("navigation", { name: "Account" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Admin" })).toHaveCount(0);
+    },
+  },
+  {
+    // An admin sees every admin area on the overview, no addresses to remember.
+    id: "account-overview-admin",
+    route: "/account",
+    description: "account overview, signed in as ADMIN, with the admin links",
+    auth: "admin",
+    status: 200,
+    path: () => "/account",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { name: "Admin" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Deletion requests" })).toBeVisible();
     },
   },
   {
@@ -1879,13 +1903,5 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/no-such-page-e2e",
-  },
-  {
-    id: "not-found-account",
-    route: null,
-    description: "404 for /account, which is not a page",
-    auth: "guest",
-    status: 404,
-    path: () => "/account",
   },
 ];
