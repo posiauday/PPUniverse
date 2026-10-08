@@ -36,7 +36,7 @@ export default async function AccountProfilePage() {
         you like. Your email address is never shown.
       </p>
       <div className="mt-6 flex items-center gap-4">
-        <Avatar seed={profile.avatarSeed} size={64} />
+        <Avatar seed={profile.avatarSeed} name={profile.displayName} size={64} />
         <p className="font-display text-2xl font-bold">{profile.displayName}</p>
       </div>
       <ProfileForm displayName={profile.displayName} />
