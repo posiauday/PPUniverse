@@ -35,6 +35,7 @@ const YAML = `ComponentDefinitions:
           - Value:
               DataType: Boolean
               Description: "The new value."
+              Default: =false
         Default: =false
 `;
 
@@ -73,7 +74,14 @@ describe("readComponentFolder", () => {
         dataType: "None",
         description: "Runs when the toggle changes.",
         defaultValue: "false",
-        parameters: [{ name: "Value", dataType: "Boolean", description: "The new value." }],
+        parameters: [
+          {
+            name: "Value",
+            dataType: "Boolean",
+            description: "The new value.",
+            defaultValue: "false",
+          },
+        ],
       },
     ]);
     expect(result.component.variations).toEqual([
@@ -119,12 +127,21 @@ describe("readComponentFolder", () => {
           - Text:
               DataType: Text
               Description: "The label."
+              Default: =""
         Default: =Text
 `;
     expect(folder({ "component.md": MD, "component.yaml": fn("DataType") }).ok).toBe(true);
     const rejected = folder({ "component.md": MD, "component.yaml": fn("ReturnType") });
     expect(rejected.ok).toBe(false);
     if (!rejected.ok) expect(rejected.errors.join(" ")).toMatch(/required property 'DataType'/);
+  });
+
+  it("needs a Default on every parameter, as Studio writes", () => {
+    const noDefault = YAML.replace("              Default: =false\n", "");
+    const result = folder({ "component.md": MD, "component.yaml": noDefault });
+    expect(result.ok).toBe(false);
+    if (!result.ok)
+      expect(result.errors.join(" ")).toMatch(/OnChange\(Value\): parameters need a Default/);
   });
 
   it("needs the folder to be named after the slug", () => {

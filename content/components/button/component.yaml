@@ -5,56 +5,68 @@ ComponentDefinitions:
     CustomProperties:
       Label:
         PropertyKind: Input
+        DisplayName: Label
         DataType: Text
         Description: "The button's text."
         Default: ="Save"
       Appearance:
         PropertyKind: Input
+        DisplayName: Appearance
         DataType: Text
         Description: "Primary, Secondary, Outline or Subtle."
         Default: ="Primary"
       IconName:
         PropertyKind: Input
+        DisplayName: IconName
         DataType: Text
         Description: "A Fluent icon name, such as Checkmark. Leave empty for no icon."
         Default: =""
       IsBusy:
         PropertyKind: Input
+        DisplayName: IsBusy
         DataType: Boolean
         Description: "While true, the button is disabled and says it's working."
         Default: =false
       ClickCount:
         PropertyKind: Output
+        DisplayName: ClickCount
         DataType: Number
         Description: "How many times the button was selected since the last ResetCount()."
       FormatLabel:
         PropertyKind: InputFunction
+        DisplayName: FormatLabel
         DataType: Text
         Description: "Lets the app change how the label is shown. Receives the label, returns the text to show."
         Parameters:
           - Text:
               DataType: Text
               Description: "The label to format."
+              Default: =""
         Default: =Text
       IsValidLabel:
         PropertyKind: OutputFunction
+        DisplayName: IsValidLabel
         DataType: Boolean
         Description: "True when the text is a usable button label: not empty and at most 40 characters."
         Parameters:
           - Text:
               DataType: Text
               Description: "The label to check."
+              Default: =""
       OnClick:
         PropertyKind: Event
+        DisplayName: OnClick
         ReturnType: None
         Description: "Runs in the app when the button is selected. Receives the new click count."
         Parameters:
           - Count:
               DataType: Number
               Description: "The click count, including this click."
+              Default: =0
         Default: =false
       ResetCount:
         PropertyKind: Action
+        DisplayName: ResetCount
         ReturnType: None
         Description: "Sets ClickCount back to 0."
     Properties:

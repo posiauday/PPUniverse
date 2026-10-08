@@ -5,53 +5,64 @@ ComponentDefinitions:
     CustomProperties:
       Title:
         PropertyKind: Input
+        DisplayName: Title
         DataType: Text
         Description: "The question or headline, such as Delete this request?"
         Default: ="Delete this request?"
       Message:
         PropertyKind: Input
+        DisplayName: Message
         DataType: Text
         Description: "One or two sentences that explain what happens next."
         Default: ="It will be removed for everyone. You can't undo this."
       ConfirmText:
         PropertyKind: Input
+        DisplayName: ConfirmText
         DataType: Text
         Description: "The confirm button's text. Name the action, such as Delete, not OK."
         Default: ="Delete"
       CancelText:
         PropertyKind: Input
+        DisplayName: CancelText
         DataType: Text
         Description: "The cancel button's text. Leave empty for an alert with one button."
         Default: ="Cancel"
       DialogWidth:
         PropertyKind: Input
+        DisplayName: DialogWidth
         DataType: Number
         Description: "The box's width in pixels. It never gets wider than the screen allows."
         Default: =440
       IsOpen:
         PropertyKind: Output
+        DisplayName: IsOpen
         DataType: Boolean
         Description: "True while the dialog is showing."
       Result:
         PropertyKind: Output
+        DisplayName: Result
         DataType: Text
         Description: "The last answer: Confirmed, Cancelled, or empty before the first answer."
       OnConfirm:
         PropertyKind: Event
+        DisplayName: OnConfirm
         ReturnType: None
         Description: "Runs in the app when the user selects the confirm button. The dialog has already closed."
         Default: =false
       OnCancel:
         PropertyKind: Event
+        DisplayName: OnCancel
         ReturnType: None
         Description: "Runs in the app when the user selects the cancel button. The dialog has already closed."
         Default: =false
       Open:
         PropertyKind: Action
+        DisplayName: Open
         ReturnType: None
         Description: "Shows the dialog and clears the last answer."
       Close:
         PropertyKind: Action
+        DisplayName: Close
         ReturnType: None
         Description: "Hides the dialog without an answer."
     Properties:

@@ -57,6 +57,8 @@ export interface ComponentParameter {
   name: string;
   dataType: string;
   description: string;
+  /** The default formula without its leading "=". Studio needs one on every parameter. */
+  defaultValue?: string | null;
 }
 
 /** One custom property, read from the component's YAML. */
@@ -114,8 +116,7 @@ export interface ComponentSource {
 }
 
 export type ComponentSourceResult =
-  | { ok: true; component: ComponentSource }
-  | { ok: false; errors: string[] };
+  { ok: true; component: ComponentSource } | { ok: false; errors: string[] };
 
 export function parseComponentSource(text: string): ComponentSourceResult {
   const parsed = frontMatter(text, [
@@ -177,7 +178,9 @@ export function componentStandardProblems(
 ): string[] {
   const problems: string[] = [];
   if (!new RegExp(`^${COMPONENT_NAME_PREFIX}[A-Z][A-Za-z0-9]*$`).test(name))
-    problems.push(`the component name must be ${COMPONENT_NAME_PREFIX} + PascalCase, such as lcsButton`);
+    problems.push(
+      `the component name must be ${COMPONENT_NAME_PREFIX} + PascalCase, such as lcsButton`,
+    );
   if (properties.length === 0) problems.push("a component needs at least one custom property");
   for (const property of properties) {
     if (!/^[A-Z][A-Za-z0-9]*$/.test(property.name))
@@ -189,6 +192,10 @@ export function componentStandardProblems(
     for (const parameter of property.parameters) {
       if (parameter.description.trim().length === 0)
         problems.push(`${property.name}(${parameter.name}): parameters need a description`);
+      // Studio writes a Default on every parameter, and a paste without one fails
+      // (the product owner's paste-tests, 2026-10-08).
+      if (parameter.defaultValue === null || parameter.defaultValue === undefined)
+        problems.push(`${property.name}(${parameter.name}): parameters need a Default`);
     }
   }
   return problems;
@@ -206,9 +213,11 @@ export function variationProblems(
     if (variation.name.trim() === "") problems.push("every variation needs a name");
     if (names.has(variation.name)) problems.push(`duplicate variation: ${variation.name}`);
     names.add(variation.name);
-    if (variation.description.trim() === "") problems.push(`${variation.name}: needs a description`);
+    if (variation.description.trim() === "")
+      problems.push(`${variation.name}: needs a description`);
     for (const key of Object.keys(variation.settings)) {
-      if (!inputs.has(key)) problems.push(`${variation.name}: ${key} is not an input of the component`);
+      if (!inputs.has(key))
+        problems.push(`${variation.name}: ${key} is not an input of the component`);
     }
   }
   return problems;
@@ -249,7 +258,9 @@ export interface ComponentAdminUpdate {
 }
 
 /** A component can be published once its current YAML has been paste-tested. */
-export function canPublishComponent(component: Pick<ComponentRecord, "status" | "testedAt">): boolean {
+export function canPublishComponent(
+  component: Pick<ComponentRecord, "status" | "testedAt">,
+): boolean {
   return component.status === "DRAFT" && component.testedAt !== null;
 }
 
@@ -267,7 +278,11 @@ export interface ComponentRepository {
   /** Published and not hidden, for the site. */
   listPublic(): Promise<ComponentRecord[]>;
   findPublicBySlug(slug: string): Promise<ComponentRecord | null>;
-  updateSettings(id: string, change: ComponentAdminUpdate, actorUserId: string): Promise<ComponentRecord>;
+  updateSettings(
+    id: string,
+    change: ComponentAdminUpdate,
+    actorUserId: string,
+  ): Promise<ComponentRecord>;
   markTested(id: string, studioVersion: string, actorUserId: string): Promise<ComponentRecord>;
   publish(id: string, actorUserId: string): Promise<ComponentRecord>;
 }

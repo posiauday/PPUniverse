@@ -5,50 +5,61 @@ ComponentDefinitions:
     CustomProperties:
       State:
         PropertyKind: Input
+        DisplayName: State
         DataType: Text
         Description: "Empty, Loading or Error. Any other value, such as empty text, shows nothing."
         Default: ="Empty"
       Title:
         PropertyKind: Input
+        DisplayName: Title
         DataType: Text
         Description: "A short headline, such as No requests yet. Leave empty to use the default for the state."
         Default: =""
       Message:
         PropertyKind: Input
+        DisplayName: Message
         DataType: Text
         Description: "One sentence that says what to do next. Leave empty to use the default for the state."
         Default: =""
       ActionText:
         PropertyKind: Input
+        DisplayName: ActionText
         DataType: Text
         Description: "Text for the button, such as New request or Try again. Leave empty for no button."
         Default: ="New request"
       IsShowing:
         PropertyKind: Output
+        DisplayName: IsShowing
         DataType: Boolean
         Description: "True when a state is showing. Hide your gallery or form while it is."
       StateFor:
         PropertyKind: OutputFunction
+        DisplayName: StateFor
         DataType: Text
         Description: "Picks the state from what your app knows: Loading first, then Error, then Empty when there are no rows, otherwise empty text."
         Parameters:
           - IsLoading:
               DataType: Boolean
               Description: "True while the data is loading."
+              Default: =false
           - HasError:
               DataType: Boolean
               Description: "True when loading failed."
+              Default: =false
           - RowCount:
               DataType: Number
               Description: "How many rows there are to show."
+              Default: =0
       OnAction:
         PropertyKind: Event
+        DisplayName: OnAction
         ReturnType: None
         Description: "Runs in the app when the user selects the button. Receives the state it was showing."
         Parameters:
           - State:
               DataType: Text
               Description: "Empty or Error."
+              Default: =""
         Default: =false
     Properties:
       Width: =360

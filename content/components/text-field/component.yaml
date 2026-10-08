@@ -5,72 +5,87 @@ ComponentDefinitions:
     CustomProperties:
       Label:
         PropertyKind: Input
+        DisplayName: Label
         DataType: Text
         Description: "The field's label, shown above the box and read by screen readers."
         Default: ="Full name"
       Hint:
         PropertyKind: Input
+        DisplayName: Hint
         DataType: Text
         Description: "Help text under the box, shown while there's no error. Leave empty for none."
         Default: ="As it appears on your badge."
       Placeholder:
         PropertyKind: Input
+        DisplayName: Placeholder
         DataType: Text
         Description: "Example text inside the empty box. Don't use it instead of a label."
         Default: =""
       DefaultValue:
         PropertyKind: Input
+        DisplayName: DefaultValue
         DataType: Text
         Description: "The text in the box when it loads, such as ThisItem.Title in an edit screen."
         Default: =""
       Required:
         PropertyKind: Input
+        DisplayName: Required
         DataType: Boolean
         Description: "When true, the label shows * and an empty box is an error once the user has left it."
         Default: =false
       MaxLength:
         PropertyKind: Input
+        DisplayName: MaxLength
         DataType: Number
         Description: "The most characters allowed. 0 means no limit and hides the character count."
         Default: =100
       Multiline:
         PropertyKind: Input
+        DisplayName: Multiline
         DataType: Boolean
         Description: "When true, the box takes several lines. Make the component taller to show them."
         Default: =false
       ErrorMessage:
         PropertyKind: Input
+        DisplayName: ErrorMessage
         DataType: Text
         Description: "An error your app sets, such as one from the server. It overrides the field's own checks."
         Default: =""
       Value:
         PropertyKind: Output
+        DisplayName: Value
         DataType: Text
         Description: "The text in the box now."
       IsValid:
         PropertyKind: Output
+        DisplayName: IsValid
         DataType: Boolean
         Description: "True when the text passes every check: required, your Validate formula and ErrorMessage."
       Validate:
         PropertyKind: InputFunction
+        DisplayName: Validate
         DataType: Text
         Description: "Your own check. Receives the text and returns an error message, or empty text when it's fine."
         Parameters:
           - Text:
               DataType: Text
               Description: "The text in the box."
+              Default: =""
         Default: =""
       OnChange:
         PropertyKind: Event
+        DisplayName: OnChange
         ReturnType: None
         Description: "Runs in the app when the user changes the text and leaves the box. Receives the new text."
         Parameters:
           - Value:
               DataType: Text
               Description: "The new text."
+              Default: =""
         Default: =false
       Reset:
         PropertyKind: Action
+        DisplayName: Reset
         ReturnType: None
         Description: "Puts the box back to DefaultValue and clears the error until the user edits it again."
     Properties:

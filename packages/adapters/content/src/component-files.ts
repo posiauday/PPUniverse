@@ -107,6 +107,7 @@ export function readProperties(definition: Record<string, unknown>): ComponentPr
                 name: parameterName,
                 dataType: text(isRecord(detail) ? detail["DataType"] : ""),
                 description: text(isRecord(detail) ? detail["Description"] : ""),
+                defaultValue: formula(isRecord(detail) ? detail["Default"] : undefined),
               }))
             : [],
         )

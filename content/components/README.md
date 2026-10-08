@@ -51,6 +51,7 @@ ComponentDefinitions:
 - Named `lcs` + PascalCase. Properties in PascalCase.
 - Every custom property has a description (10 characters or more). Every input has a default. Every parameter has a description.
 - **Function properties (InputFunction, OutputFunction) give their return type as `DataType`, not `ReturnType`.** Microsoft's published schema says `ReturnType`, but Power Apps Studio rejects it on paste ("PA1011: The keyword 'DataType' is required"; found by the lcsButton paste-test, 2026-10-08). Events and actions keep `ReturnType: None`. The CI check follows Studio.
+- **Every parameter has a `Default`** (such as `Default: =""`), and every property a `DisplayName`, the way Studio writes them in **View code**. A parameter without a default makes the paste fail with no details (paste-tests, 2026-10-08).
 
 ## variations.yaml
 
