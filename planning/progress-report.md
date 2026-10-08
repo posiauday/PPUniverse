@@ -5217,3 +5217,15 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not yet:** ratings, "Worked in my app", comments and "Report a problem" on components (plan step 5); the product owner's paste-test of lcsButton; more components (next PR); components in the sitemap.
 
 **Risks:** the YAML format is unproven until the paste-test; the standard is still a proposal.
+
+## 2026-10-08 — Page speed: inline CSS and composited animations (TD-032, MVP-042 follow-up)
+
+**Asked:** the product owner's PageSpeed Insights report for the live home page (render-blocking CSS, legacy JavaScript, LCP render delay, animations that aren't composited, and more).
+
+**Changed:** `experimental.inlineCss` in `apps/web/next.config.ts`; the hero marker and the two running dots animate with `transform` only (`apps/web/app/globals.css`, `HomeHero.tsx`, `home/TechnologyPanels.tsx`).
+
+**Measured** (`pnpm --filter @ppu/e2e test:speed --workers=1`, throttled phone profile, median of 3, same database, before → after): LCP home 2,016 → 1,512 ms, guides index 1,528 → 1,128 ms, a guide 2,000 → 1,512 ms, a hub 1,592 → 1,096 ms; CLS unchanged (0 to 0.011); TBT 193 to 255 ms, unchanged within noise. A first run was spoiled by the local PGlite database dropping connections (pages errored); it was restarted and both builds were measured again.
+
+**Not changed:** Next.js's own polyfills, the DOM size, the unattributed reflow and the main chunk's long task; reasons in `planning/tech-debt/TD-032.md`.
+
+**Next:** re-run PageSpeed Insights on production after the release, mobile and desktop.

@@ -147,16 +147,23 @@ samp {
   letter-spacing: 0;
 }
 
-/* The lime marker that sweeps under an accent word once, on load. */
+/* The lime marker that sweeps under an accent word once, on load. It's a
+   layer behind the word that grows with transform (scaleX), so the browser's
+   compositor draws the sweep instead of repainting the text every frame (an
+   animated background-size can't be composited: PageSpeed, TD-032). With
+   motion off it rests fully drawn. For one word on one line only. */
 .marker {
-  background: linear-gradient(
-      transparent 58%,
-      var(--color-highlight) 58%,
-      var(--color-highlight) 90%,
-      transparent 90%
-    )
-    no-repeat 0 0 / 100% 100%;
+  position: relative;
+  z-index: 0;
   padding-inline: 0.06em;
+}
+.marker::after {
+  content: "";
+  position: absolute;
+  inset: 58% 0 10%;
+  z-index: -1;
+  background: var(--color-highlight);
+  transform-origin: left center;
   animation: lcs-marker 0.9s 0.9s cubic-bezier(0.7, 0, 0.2, 1) both;
 }
 
@@ -398,10 +405,10 @@ samp {
 
 @keyframes lcs-marker {
   from {
-    background-size: 0% 100%;
+    transform: scaleX(0);
   }
   to {
-    background-size: 100% 100%;
+    transform: none;
   }
 }
 
@@ -488,13 +495,81 @@ samp {
   }
 }
 
-/* A dot running along a CSS offset-path (a flow's steps). */
-@keyframes lcs-run {
-  from {
-    offset-distance: 0%;
+/* A dot running along a drawn path, moved with transform so the compositor
+   runs it (offset-distance along an offset-path repaints every frame and runs
+   forever: PageSpeed, TD-032). Each set of keyframes follows one drawing's
+   path, so a change to the path needs new keyframes:
+   - lcs-run-flow: FLOW_PATH in HomeHero.tsx, "M30 26 H115 V104 H198", a 12 px
+     dot, steps placed by their share of the path's length (85, 78 and 83 px).
+   - lcs-run-try: TRY_CATCH_PATH in home/TechnologyPanels.tsx, a 16 px dot,
+     sampled at 16 equal lengths along the curve.
+   Each keyframe is the point on the path minus half the dot. */
+@keyframes lcs-run-flow {
+  0% {
+    transform: translate(24px, 20px);
   }
-  to {
-    offset-distance: 100%;
+  34.55% {
+    transform: translate(109px, 20px);
+  }
+  66.26% {
+    transform: translate(109px, 98px);
+  }
+  100% {
+    transform: translate(192px, 98px);
+  }
+}
+
+@keyframes lcs-run-try {
+  0% {
+    transform: translate(44px, 26px);
+  }
+  6.25% {
+    transform: translate(61.5px, 26.8px);
+  }
+  12.5% {
+    transform: translate(78.2px, 29.5px);
+  }
+  18.75% {
+    transform: translate(94.5px, 35.2px);
+  }
+  25% {
+    transform: translate(108.6px, 44.6px);
+  }
+  31.25% {
+    transform: translate(119.7px, 58px);
+  }
+  37.5% {
+    transform: translate(128.3px, 73px);
+  }
+  43.75% {
+    transform: translate(138.8px, 86.4px);
+  }
+  50% {
+    transform: translate(154.4px, 91.9px);
+  }
+  56.25% {
+    transform: translate(171.6px, 94.4px);
+  }
+  62.5% {
+    transform: translate(186.9px, 102.3px);
+  }
+  68.75% {
+    transform: translate(199.9px, 112.9px);
+  }
+  75% {
+    transform: translate(212.4px, 125px);
+  }
+  81.25% {
+    transform: translate(225px, 137.1px);
+  }
+  87.5% {
+    transform: translate(238.4px, 147.7px);
+  }
+  93.75% {
+    transform: translate(253.2px, 155.2px);
+  }
+  100% {
+    transform: translate(270px, 158px);
   }
 }
 
@@ -745,8 +820,14 @@ samp {
   transform-origin: bottom;
   animation: lcs-grow 6s ease-in-out infinite;
 }
-.motion-run {
-  animation: lcs-run 3.2s linear infinite;
+/* At rest (motion off) each dot sits at its path's start. */
+.motion-run-flow {
+  transform: translate(24px, 20px);
+  animation: lcs-run-flow 3.2s linear infinite;
+}
+.motion-run-try {
+  transform: translate(44px, 26px);
+  animation: lcs-run-try 3s linear infinite;
 }
 .motion-question {
   animation: lcs-question 9s infinite;
