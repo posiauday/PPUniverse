@@ -78,6 +78,7 @@ This file is written for a new session that has none of the previous conversatio
    - The earlier concepts are in the untracked `.nav-mock/learn-concepts.html` and `learn-L1/L2/L3.png`.
    - After the choice, build it in vertical slices.
 2. **TD-032:** cut blocking time (about 380 to 490 ms on a phone profile, mostly hydration of the header's client components), then make the speed check blocking.
+   - The product owner's PageSpeed Insights run (desktop, score 79, TBT 390 ms) is recorded in `planning/tech-debt/TD-032.md`, with a list of things to inspect. Do it after the Learn module.
 3. **Contributor role:** the product owner still has to decide what a Contributor can do. Until then, it has no extra powers.
 
 **Product-owner to-dos (remind them; never do these for them):**

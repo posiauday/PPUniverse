@@ -9,6 +9,7 @@ vi.mock("next/link", async () => {
   };
 });
 
+import { textOf } from "../../lib/test-text";
 import { TrustStrip } from "./TrustStrip";
 
 const trust = {
@@ -20,9 +21,11 @@ const trust = {
 
 describe("TrustStrip", () => {
   it("credits the site's byline, never a person (No personal details on the site)", () => {
-    const text = renderToStaticMarkup(
-      <TrustStrip trust={trust} updatedAt={new Date("2026-10-07T00:00:00Z")} />,
-    ).replace(/<[^>]+>/g, "");
+    const text = textOf(
+      renderToStaticMarkup(
+        <TrustStrip trust={trust} updatedAt={new Date("2026-10-07T00:00:00Z")} />,
+      ),
+    );
     expect(text).toContain("Posted by the Maker Desk");
     expect(text).toContain("Checked against Microsoft Learn");
     expect(text).toContain("6 Oct 2026 · 5 sources");

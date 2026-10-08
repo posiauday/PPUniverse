@@ -1,10 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { outlineOf } from "../../lib/article-outline";
+import { textOf } from "../../lib/test-text";
 import { ArticleBody } from "./ArticleBody";
 
 const render = (markdown: string) => renderToStaticMarkup(<ArticleBody markdown={markdown} />);
-const text = (html: string) => html.replace(/<[^>]+>/g, "").replace(/&#x27;/g, "'");
+const text = (html: string) => textOf(html).replace(/&#x27;/g, "'");
 
 /** Slice 2 (MVP-041): the Markdown conventions behind the G2 and G3 blocks. */
 describe("guide blocks", () => {
