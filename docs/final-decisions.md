@@ -2209,3 +2209,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 3. **More components before the pilot result:** the agent may write further component drafts (Text field, Dialog, Toast, Tabs, empty/loading/error states) before the product owner's `lcsButton` paste-test. Each must pass Microsoft's pa.yaml schema in CI; if the paste-test finds a format problem, all are fixed the same way. Nothing is published until each is paste-tested.
 4. **The component standard stays a proposal.** It is not yet approved; the product owner reviews it later (`docs/plans/power-apps-component-library.md`).
 5. **Release PR:** the agent prepares a release PR (develop to main) for the product owner to merge.
+
+## 2026-10-08 — Component library: learning from MIT-licensed samples
+
+**Source:** direct product-owner instruction in this session, after sharing a floating action button sample ("those are MIT license so we can reuse it; make it even better with the gaps it has").
+
+1. **MIT-licensed sample components may be used as references**, and their code may be reused, with the licence's copyright notice kept wherever code is reused.
+2. **How the agent applies it:** it learns from the samples the facts about Power Apps Studio (control names and versions, property names, structure that pastes cleanly) and writes LowCodeStacks components fresh, improving on the samples' gaps. Icons stay our own glyphs (the earlier "own glyphs only" rule); third-party icon sets are not copied.
+3. **Other free libraries (follow-up, same session):** the product owner asked the agent to check other sites that offer free YAML components and to improve on them. Only sources with an **explicit open licence** (for example an MIT LICENSE file in a public repository) are used; "free to use" without a licence, or terms that forbid copying or scraping, means reference only, nothing copied. Every reused piece keeps its source, licence and copyright notice in `content/components/NOTICES.md`.
