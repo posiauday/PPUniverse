@@ -12,11 +12,14 @@
     "test": "vitest run",
     "content:import": "node scripts/import-articles.mjs",
     "updates:import": "node scripts/import-updates.mjs",
-    "topics:import": "node scripts/import-topics.mjs"
+    "topics:import": "node scripts/import-topics.mjs",
+    "components:import": "node scripts/import-components.mjs"
   },
   "dependencies": {
     "@ppu/db": "workspace:*",
-    "@ppu/domain-content": "workspace:*"
+    "@ppu/domain-content": "workspace:*",
+    "ajv": "8.20.0",
+    "js-yaml": "3.15.2"
   },
   "devDependencies": {
     "@types/node": "^22.20.3",

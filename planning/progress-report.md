@@ -5199,3 +5199,21 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Checked:** a 48-avatar gallery rendered at 96 px and at 24 to 64 px on light and dark; domain tests (74) and web tests (799) pass; typecheck, lint and Prettier are clean.
 
 **Follow-up, same day:** the product owner compared seven avatar styles and three ways to add initials, and chose the critter **wearing a name tag** with the reader's initials (`docs/final-decisions.md`, "Reader avatars: maker critters wearing a name tag"). `initialsOf()` takes the first letter of the first two words (any alphabet; "?" if none). Comments, the comment form and the profile pass the display name. Web tests: 803 (4 new in `Avatar.test.tsx`).
+
+## 2026-10-08 — Component library: pipeline, admin and Docs pages (MVP-049, In Progress)
+
+**Story:** MVP-049 (FR-009, FR-014, NFR-005). Decisions: `docs/final-decisions.md`, 2026-10-08, "Power Apps component library: first, copy-paste YAML, free" and "Component library: page design, admin menu, and overnight drafts" (design A · Docs; "Component library" and "Marketplace products" in the admin menu; the standard stays a proposal).
+
+**Built:**
+- **Content pipeline:** `content/components/<slug>/` (component.md, component.yaml, variations.yaml; `content/components/README.md`). `component-files.ts` reads each folder, checks the YAML against Microsoft's pa.yaml v3.0 schema (vendored, MIT, notice kept: `packages/adapters/content/schema/`), one canvas component per file, the machine-checkable parts of the standard (`lcs` + PascalCase name, PascalCase properties, descriptions, input defaults, parameter descriptions), and that variations only set inputs. CI gate: `component-files.test.ts`.
+- **First component:** `button` (lcsButton 0.1.0, the pilot) with five variations. Waits for the product owner's paste-test.
+- **Data:** `library_components` and the append-only `component_events` (migration `20261015000000_add_component_library`, additive, rollback in the file). Publishing needs a recorded paste-test (Studio version and date); re-importing a draft with changed YAML clears it.
+- **Import:** `components:import`, also run on each production release (drafts only; existing drafts updated; published ones never touched).
+- **Admin:** `/admin/components` (list) and `/admin/components/[id]` (record the paste-test, sign-in-to-copy and hidden settings, publish once tested); API routes `PATCH /api/admin/components/[id]`, `POST .../test`, `POST .../publish`; every change in the audit log.
+- **Site (behind `FEATURE_COMPONENTS`):** `/components` and `/components/[slug]` in design A: the library on the left, Preview / Playground / YAML tabs over a live web replica of lcsButton (every property kind: inputs, outputs, input and output functions, the event with an event log, the action), variations that load into the preview, what it needs, the properties table read from the YAML, the paste steps, the guide, and "On this page". Members-only YAML is never sent to a signed-out reader. Header and footer "Components" links now go to `/components`.
+
+**Checked:** domain (81), content (167 with 4 new database tests, on Prisma's local Postgres) and web (801) tests pass; typecheck, lint and the build are clean. In Chromium against the local database, the gate's 50 component states passed except two phone-width problems (the property tables' scroll regions needed focus; a playground fieldset was 13 px too wide), both fixed. The local database then failed repeatedly, so the full three-browser gate is left to CI.
+
+**Not yet:** ratings, "Worked in my app", comments and "Report a problem" on components (plan step 5); the product owner's paste-test of lcsButton; more components (next PR); components in the sitemap.
+
+**Risks:** the YAML format is unproven until the paste-test; the standard is still a proposal.

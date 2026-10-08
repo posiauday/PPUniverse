@@ -61,7 +61,7 @@ function unquote(value: string): string {
 }
 
 /** Front matter as key -> values (in order), plus the body, or the errors. */
-function frontMatter(
+export function frontMatter(
   text: string,
   keys: readonly string[],
   repeatable: readonly string[] = [],
@@ -87,7 +87,7 @@ function frontMatter(
   return { fields, body: (match[2] as string).trim(), errors };
 }
 
-const first = (fields: Map<string, string[]>, key: string) => fields.get(key)?.[0] ?? "";
+export const first = (fields: Map<string, string[]>, key: string) => fields.get(key)?.[0] ?? "";
 
 /** A whole number written as digits only, or NaN. */
 const whole = (value: string) => (/^\d+$/.test(value) ? Number(value) : Number.NaN);

@@ -21,6 +21,9 @@ export const MAX_SITEMAP_URLS = 50_000;
 /** MVP-048: slots reserved for the Learn module (/topics, its topics and lessons). */
 export const MAX_LEARN_URLS = 1_000;
 
+/** MVP-049: slots reserved for the component library (/components and its pages). */
+export const MAX_COMPONENT_URLS = 500;
+
 /** A Learn page for the sitemap: its site-relative path and when it last changed. */
 export interface LearnSitemapEntry {
   path: string;
@@ -48,7 +51,7 @@ export function buildSitemap(
   articles: ReadonlyArray<{ slug: string; updatedAt: Date }>,
   /** MVP-028: site-relative paths of technology section tabs that have content. */
   sectionPaths: readonly string[] = [],
-  /** MVP-048: the Learn module's published pages, when it is switched on. */
+  /** MVP-048/049: the Learn module's and the component library's pages, when switched on. */
   learn: readonly LearnSitemapEntry[] = [],
 ): MetadataRoute.Sitemap {
   const newestArticle = articles.reduce<Date | null>(
@@ -84,6 +87,8 @@ export interface SitemapDeps {
   listSectionPaths: () => Promise<string[]>;
   /** MVP-048: the Learn module's published pages (at most MAX_LEARN_URLS); empty while it is off. */
   listLearnEntries?: () => Promise<LearnSitemapEntry[]>;
+  /** MVP-049: the component library's public pages (at most MAX_COMPONENT_URLS); empty while it is off. */
+  listComponentEntries?: () => Promise<LearnSitemapEntry[]>;
   warn: (event: string, fields: LogFields) => void;
 }
 
@@ -100,8 +105,14 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
   // catalog entries and Article slugs so one domain's growth cannot silently
   // starve the other's sitemap coverage.
   // MVP-028: the technology section tabs are reserved up front too.
-  // MVP-048: and the Learn module's pages.
-  const budget = MAX_SITEMAP_URLS - 2 - INFO_PAGE_PATHS.length - MAX_SECTION_PATHS - MAX_LEARN_URLS;
+  // MVP-048: and the Learn module's pages; MVP-049: and the component library's.
+  const budget =
+    MAX_SITEMAP_URLS -
+    2 -
+    INFO_PAGE_PATHS.length -
+    MAX_SECTION_PATHS -
+    MAX_LEARN_URLS -
+    MAX_COMPONENT_URLS;
   const catalogBudget = Math.ceil(budget / 2);
   const articleBudget = budget - catalogBudget;
 
@@ -117,5 +128,12 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
   }
   const sectionPaths = (await deps.listSectionPaths()).slice(0, MAX_SECTION_PATHS);
   const learn = (await (deps.listLearnEntries?.() ?? Promise.resolve([]))).slice(0, MAX_LEARN_URLS);
-  return buildSitemap(site.origin, entries, articles.entries, sectionPaths, learn);
+  const components = (await (deps.listComponentEntries?.() ?? Promise.resolve([]))).slice(
+    0,
+    MAX_COMPONENT_URLS,
+  );
+  return buildSitemap(site.origin, entries, articles.entries, sectionPaths, [
+    ...learn,
+    ...components,
+  ]);
 }

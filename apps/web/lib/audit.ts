@@ -8,7 +8,7 @@ import { ROLE_LABEL } from "./role-labels";
  * question 4). Reads and merges the existing append-only per-domain event
  * tables rather than writing to a new unified table: ProductStatusEvent
  * (MVP-019), ReleasePublishEvent (MVP-014), DeletionRequestEvent (MVP-020),
- * ArticlePublishEvent (MVP-017) and LearnPublishEvent (MVP-048). No new schema, no dual writes, no
+ * ArticlePublishEvent (MVP-017), LearnPublishEvent (MVP-048) and ComponentEvent (MVP-049). No new schema, no dual writes, no
  * change to any existing write path.
  *
  * `limit` bounds each underlying query independently, then the merged,
@@ -23,6 +23,7 @@ export type AuditLogDomain =
   | "deletion_request"
   | "article_publish"
   | "learn_publish"
+  | "component"
   | "role_change";
 
 export interface AuditLogEntry {
@@ -116,6 +117,38 @@ async function listLearnPublishEntries(limit: number): Promise<AuditLogEntry[]> 
   }));
 }
 
+/** MVP-049: component library tests, publishes and setting changes. */
+async function listComponentEntries(limit: number): Promise<AuditLogEntry[]> {
+  const rows = await prisma.componentEvent.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: { component: { select: { title: true } } },
+  });
+  return rows.map((row) => {
+    const detail = (row.detail ?? {}) as Record<string, unknown>;
+    const title = `"${row.component.title}"`;
+    const summary =
+      row.action === "TESTED"
+        ? `Recorded a paste-test of component ${title} in Studio ${String(detail["studioVersion"] ?? "")}`
+        : row.action === "PUBLISHED"
+          ? `Published component ${title}`
+          : `Changed component ${title}: ${Object.entries(detail)
+              .map(([key, change]) => {
+                const { from, to } = (change ?? {}) as { from?: unknown; to?: unknown };
+                return `${key} ${String(from)} to ${String(to)}`;
+              })
+              .join(", ")}`;
+    return {
+      id: row.id,
+      domain: "component" as const,
+      actorUserId: row.actorUserId,
+      summary,
+      reason: null,
+      occurredAt: row.createdAt,
+    };
+  });
+}
+
 /** MVP-047: role changes. Names people by display name, falling back to "someone": no emails in the log's summaries. */
 async function listRoleChangeEntries(limit: number): Promise<AuditLogEntry[]> {
   const rows = await prisma.roleChangeEvent.findMany({
@@ -141,6 +174,7 @@ export async function listRecentAuditLogEntries(limit: number): Promise<AuditLog
     listDeletionRequestEntries(limit),
     listArticlePublishEntries(limit),
     listLearnPublishEntries(limit),
+    listComponentEntries(limit),
     listRoleChangeEntries(limit),
   ]);
   return sources

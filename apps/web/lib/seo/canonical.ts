@@ -36,6 +36,15 @@ export function learnUrl(origin: string, slug: string): string {
 }
 
 /** MVP-048: the Learn module's home, a topic, and a lesson. */
+/** MVP-049: the Power Apps component library. */
+export function componentsIndexUrl(origin: string): string {
+  return `${origin}/components`;
+}
+
+export function componentUrl(origin: string, slug: string): string {
+  return `${origin}/components/${encodeURIComponent(slug)}`;
+}
+
 export function topicsIndexUrl(origin: string): string {
   return `${origin}/topics`;
 }

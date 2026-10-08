@@ -1,0 +1,31 @@
+import { describe, expect, it } from "vitest";
+import { readComponentFolders } from "./component-files.js";
+
+/**
+ * The component library gate (MVP-049): every folder in content/components
+ * must be importable. component.md parses; the folder is named after its
+ * slug; component.yaml passes Microsoft's pa.yaml v3.0 schema, holds exactly
+ * one canvas component and meets the LowCodeStacks standard; variations only
+ * set real inputs; and slugs and component names are unique. Runs in CI, so a
+ * broken component fails the build before it can be imported.
+ */
+describe("content/components", () => {
+  const folders = readComponentFolders();
+
+  it("has at least one component", () => {
+    expect(folders.length).toBeGreaterThan(0);
+  });
+
+  it.each(folders.map((entry) => [entry.folder, entry.result] as const))(
+    "%s is a valid, standard component",
+    (_folder, result) => {
+      expect(result.ok ? [] : result.errors).toEqual([]);
+    },
+  );
+
+  it("uses each slug and component name once", () => {
+    const ok = folders.flatMap((entry) => (entry.result.ok ? [entry.result.component] : []));
+    const names = ok.map((component) => component.componentName);
+    expect(new Set(names).size).toBe(names.length);
+  });
+});

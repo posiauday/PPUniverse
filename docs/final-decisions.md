@@ -2199,3 +2199,13 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **Every reader's avatar is a "maker critter"**: a small character drawn from their avatar seed (palette, pattern, head, eyes, mouth, blush, tilt) with one low-code accessory, our own drawing with no product logos. "Draw a new avatar" re-rolls it.
 2. **It wears a name tag with the reader's initials** (the first letters of the first two words of their display name), wherever a name is shown with it: comments, the comment form and the profile.
 3. **Generated names** use everyday low-code words, never product names (32 adjectives, 48 nouns, a number).
+
+## 2026-10-08 — Component library: page design, admin menu, and overnight drafts
+
+**Source:** direct product-owner instructions in this session (choices from the concepts in `.nav-mock/components-concepts.html`, and answers by multiple choice).
+
+1. **Component page design: A · Docs.** The library list on the left, the component in the middle with Preview, Playground and YAML tabs, and "On this page" on the right, like the best UI-library docs.
+2. **Admin menu:** "Component library" opens the new library admin (`/admin/components`); the old products page is renamed "Marketplace products".
+3. **More components before the pilot result:** the agent may write further component drafts (Text field, Dialog, Toast, Tabs, empty/loading/error states) before the product owner's `lcsButton` paste-test. Each must pass Microsoft's pa.yaml schema in CI; if the paste-test finds a format problem, all are fixed the same way. Nothing is published until each is paste-tested.
+4. **The component standard stays a proposal.** It is not yet approved; the product owner reviews it later (`docs/plans/power-apps-component-library.md`).
+5. **Release PR:** the agent prepares a release PR (develop to main) for the product owner to merge.
