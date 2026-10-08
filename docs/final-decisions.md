@@ -2167,3 +2167,16 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 **Source:** direct product-owner answer in this session, by multiple choice (TD-030's options).
 
 The accessibility gate runs in **6 shards instead of 4**. The time limit stays at 20 minutes per job. Every engine, width, page state and rule stays, and the self-check still runs in every shard. Only the split of the same test list changes. This resolves TD-030: shards took 8 to 17 minutes and were cancelled at the limit on slower runners with no failing test. The reporting standard of "Accessibility suite mitigation" (2026-09-23) still applies: per-shard times and the total check count are reported on the first run.
+
+## 2026-10-08 — Power Apps component library: first, copy-paste YAML, free
+
+**Source:** direct product-owner instructions in this session, after the market research (`docs/research/2026-10-08-components-and-offers-by-technology.md`), and answers by multiple choice.
+
+1. **The Power Apps component library comes first.** The other technologies follow later, step by step.
+2. **Copy-paste YAML only**, for now: components that makers paste into Power Apps Studio's Components tab, complete with their design and custom properties.
+3. **Everything is free for now.** Some items can be **sign-in only** (free, but you need an account to copy them).
+4. **The bar:** modern UI and UX, top features, fully dynamic, following standards, working without errors, and exposing every type of custom property, so most makers can use them. Each component has a guide and variations.
+5. **Testing:** the product owner paste-tests every component in a free Power Apps Developer environment before it is published.
+6. **Reader feedback on each component:** comments, a 1 to 5 star rating, "Worked in my app", and "Report a problem".
+
+The plan, with the proposed standard and pages (still to be signed off): `docs/plans/power-apps-component-library.md` (MVP-049).
