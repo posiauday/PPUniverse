@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 /**
  * The picture on each card in the component library (MVP-049; docs/final-decisions.md,
  * 2026-10-08, "One live view"): a small, still drawing of the component in its
- * best-known use, in the colours its YAML gives it. Decorative: the card's own
- * text names and describes the component.
+ * best-known use, in the colours its YAML gives it, on a white mini screen like
+ * Studio's, so those light-theme colours keep their contrast when the page is
+ * dark. Decorative: the card's own text names and describes the component.
  */
 
 const SEGOE = '[font-family:"Segoe_UI",system-ui,sans-serif]';
@@ -55,7 +56,7 @@ const ART: Record<string, ReactNode> = {
     </span>
   ),
   lcsFab: (
-    <span className="relative block h-36 w-48 rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+    <span className="relative block h-32 w-44">
       <span className="absolute right-3 bottom-[4.25rem] flex flex-col items-end gap-1.5">
         {["New note", "Take a photo"].map((label) => (
           <span
@@ -148,7 +149,10 @@ const ART: Record<string, ReactNode> = {
 
 export function ComponentArt({ componentName }: { componentName: string }) {
   return (
-    <span aria-hidden="true" className={`grid place-items-center ${SEGOE}`}>
+    <span
+      aria-hidden="true"
+      className={`grid min-h-32 min-w-44 place-items-center rounded-xl bg-white p-4 shadow-[0_8px_24px_-12px_rgba(46,16,101,0.35)] ring-1 ring-black/5 ${SEGOE}`}
+    >
       {ART[componentName] ?? (
         <span className="grid size-14 place-items-center rounded-2xl bg-[#0f6cbd] text-white">
           <Glyph d="M12 5v14M5 12h14" className="size-6" />
