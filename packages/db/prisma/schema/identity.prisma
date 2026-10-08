@@ -58,6 +58,7 @@ model User {
   learnTopics            LearnTopic[]
   learnLessons           LearnLesson[]
   learnPublishActions    LearnPublishEvent[]
+  lessonProgress         LessonProgress[]
   releasePublishActions  ReleasePublishEvent[]
   productStatusActions   ProductStatusEvent[]
   orders                 Order[]
