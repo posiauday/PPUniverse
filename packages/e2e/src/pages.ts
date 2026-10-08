@@ -1436,6 +1436,60 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
   },
   {
+    // MVP-048 slice 1b: the admin Learn topics list, with a draft topic and its draft lesson.
+    id: "admin-topics-populated",
+    route: "/admin/topics",
+    description: "admin Learn topics list, signed in as ADMIN, with a draft topic and lesson",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/topics",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("main").getByText(seed.draftTopic.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.draftLesson.title)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-topics-denied",
+    route: null,
+    description: "admin Learn topics list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/topics",
+  },
+  {
+    id: "admin-topics-new",
+    route: "/admin/topics/new",
+    description: "admin new-topic form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/topics/new",
+  },
+  {
+    id: "admin-topics-edit",
+    route: "/admin/topics/[id]/edit",
+    description: "admin edit-topic form with its lessons, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/topics/${seed.draftTopic.id}/edit`,
+  },
+  {
+    id: "admin-lessons-new",
+    route: "/admin/topics/[id]/lessons/new",
+    description: "admin new-lesson form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/topics/${seed.draftTopic.id}/lessons/new`,
+  },
+  {
+    id: "admin-lessons-edit",
+    route: "/admin/lessons/[id]/edit",
+    description:
+      "admin edit-lesson form, signed in as ADMIN, pre-filled with a lesson in the fixed shape",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/lessons/${seed.draftLesson.id}/edit`,
+  },
+  {
     // The positive admin state: proves the surface actually lists real
     // Products (one DRAFT, one PUBLISHED), not just that it denies a
     // non-admin (below) — mirrors admin-content-populated.

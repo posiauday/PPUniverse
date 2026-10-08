@@ -8,7 +8,7 @@ import { ROLE_LABEL } from "./role-labels";
  * question 4). Reads and merges the existing append-only per-domain event
  * tables rather than writing to a new unified table: ProductStatusEvent
  * (MVP-019), ReleasePublishEvent (MVP-014), DeletionRequestEvent (MVP-020),
- * and ArticlePublishEvent (MVP-017). No new schema, no dual writes, no
+ * ArticlePublishEvent (MVP-017) and LearnPublishEvent (MVP-048). No new schema, no dual writes, no
  * change to any existing write path.
  *
  * `limit` bounds each underlying query independently, then the merged,
@@ -18,7 +18,12 @@ import { ROLE_LABEL } from "./role-labels";
  */
 
 export type AuditLogDomain =
-  "product_status" | "release_publish" | "deletion_request" | "article_publish" | "role_change";
+  | "product_status"
+  | "release_publish"
+  | "deletion_request"
+  | "article_publish"
+  | "learn_publish"
+  | "role_change";
 
 export interface AuditLogEntry {
   id: string;
@@ -92,6 +97,25 @@ async function listArticlePublishEntries(limit: number): Promise<AuditLogEntry[]
   }));
 }
 
+/** MVP-048: Learn topics and lessons published. */
+async function listLearnPublishEntries(limit: number): Promise<AuditLogEntry[]> {
+  const rows = await prisma.learnPublishEvent.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: { topic: { select: { title: true } }, lesson: { select: { title: true } } },
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    domain: "learn_publish",
+    actorUserId: row.actorUserId,
+    summary: row.lesson
+      ? `Published lesson "${row.lesson.title}" in topic "${row.topic.title}"`
+      : `Published topic "${row.topic.title}"`,
+    reason: null,
+    occurredAt: row.createdAt,
+  }));
+}
+
 /** MVP-047: role changes. Names people by display name, falling back to "someone": no emails in the log's summaries. */
 async function listRoleChangeEntries(limit: number): Promise<AuditLogEntry[]> {
   const rows = await prisma.roleChangeEvent.findMany({
@@ -116,6 +140,7 @@ export async function listRecentAuditLogEntries(limit: number): Promise<AuditLog
     listReleasePublishEntries(limit),
     listDeletionRequestEntries(limit),
     listArticlePublishEntries(limit),
+    listLearnPublishEntries(limit),
     listRoleChangeEntries(limit),
   ]);
   return sources

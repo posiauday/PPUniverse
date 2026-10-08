@@ -125,6 +125,14 @@ export class PrismaLearnRepository implements LearnRepository {
     return row ? toLesson(row) : null;
   }
 
+  async findTopicWithLessons(id: string): Promise<TopicWithLessons | null> {
+    const row = await this.db.learnTopic.findUnique({
+      where: { id },
+      include: { lessons: { orderBy: { position: "asc" } } },
+    });
+    return row ? { ...toTopic(row), lessons: row.lessons.map(toLesson) } : null;
+  }
+
   async listTopics(): Promise<TopicWithLessons[]> {
     const rows = await this.db.learnTopic.findMany({
       orderBy: [{ technology: "asc" }, { sortOrder: "asc" }, { slug: "asc" }],

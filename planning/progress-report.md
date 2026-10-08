@@ -5128,3 +5128,22 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Risks:** the repository's database tests ran only in CI (the local embedded Postgres wasn't available).
 
 **Remaining:** 1b admin (topic and lesson editors, publish controls, API with ADMIN checks, audit log entries); 2 public pages (`/topics`, topic, and lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS); 3 progress for signed-in readers; 4 the first six topics as drafts.
+
+## 2026-10-07 — Learn module, slice 1b: the admin (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014). Writing and publishing topics and lessons in the admin. Nothing public yet (slice 2).
+
+**Built:**
+- **API** (`app/api/admin/topics`, `app/api/admin/lessons`; `docs/07-api-contracts.md`): list, create, edit and publish topics; add, edit and publish lessons. Admins only, with the identical 404 for anyone else. Bodies are validated by `lib/learn-input.ts` with the importer's own rules, so the admin and `content/topics` can never disagree. Slug and lesson number are unique within a topic (`lib/learn-lesson-conflicts.ts`). A topic needs at least 3 lessons to publish. A lesson's body is checked against the fixed shape again at publish time.
+- **Pages:** `/admin/topics` (each topic with its lessons, status and publish buttons that give the server's reason when they can't publish), `/admin/topics/new`, `/admin/topics/{id}/edit` (the topic and its lessons, "Add a lesson" up to 6), `/admin/topics/{id}/lessons/new` (the next free lesson number filled in, and a "Start from the lesson outline" button), `/admin/lessons/{id}/edit`. Every error is tied to its field, and a lesson body lists all its problems at once.
+- **Sidebar and audit:** "Learn topics" under Content; topic and lesson publishes appear in the audit log ("Learn").
+- **Repository:** `findTopicWithLessons(id)` for the editor and the publish check.
+- **Gate:** five new routes and six states (populated list, member denied, the four forms), with a seeded draft topic and lesson in the fixed shape, cleaned up before the fixture users.
+
+**Commands:** `vitest run` (web: 788 passed, including 10 new route tests; e2e: 86 passed, including route coverage), `tsc --noEmit`, `eslint`, `prettier`.
+
+**Security:** admin role re-read from the database on every route; content-only edits can't change status, publishedAt or a lesson's topic; publish is its own route with an append-only audit event; lesson bodies are stored as Markdown and never rendered as HTML here.
+
+**Not done here:** IndexNow on publish waits for the public pages (slice 2). A sidebar count for Learn drafts was left out to keep this slice small.
+
+**Remaining:** 2 public pages (`/topics`, topic, lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS, IndexNow on publish); 3 progress for signed-in readers; 4 the first six topics as drafts.

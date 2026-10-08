@@ -152,6 +152,8 @@ export interface LearnRepository {
   findTopicBySlug(slug: string): Promise<TopicRecord | null>;
   findLessonById(id: string): Promise<LessonRecord | null>;
   findLesson(topicId: string, slug: string): Promise<LessonRecord | null>;
+  /** One topic with all its lessons, every status, in order: the admin editor. */
+  findTopicWithLessons(id: string): Promise<TopicWithLessons | null>;
   /** Every topic and lesson, every status: the admin list. */
   listTopics(): Promise<TopicWithLessons[]>;
   /** PUBLISHED topics with their PUBLISHED lessons, by area order; optionally one area. */
