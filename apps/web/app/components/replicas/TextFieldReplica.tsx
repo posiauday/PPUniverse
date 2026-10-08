@@ -31,6 +31,8 @@ interface Inputs {
   MaxLength: number;
   Multiline: boolean;
   ErrorMessage: string;
+  Look: string;
+  Theme: string;
 }
 
 const START: Inputs = {
@@ -42,6 +44,8 @@ const START: Inputs = {
   MaxLength: 60,
   Multiline: false,
   ErrorMessage: "",
+  Look: "Outline",
+  Theme: "Light",
 };
 
 function TextFieldFace({
@@ -63,10 +67,20 @@ function TextFieldFace({
   onBlur?: () => void;
   interactive?: boolean;
 }) {
+  dark = dark || inputs.Theme === "Dark";
   const ink = dark ? "text-white" : "text-[#242424]";
   const sub = dark ? "text-[#adadad]" : "text-[#616161]";
   const errorInk = dark ? "text-[#f1707b]" : "text-[#c4314b]";
-  const box = `w-full rounded border ${dark ? "bg-[#292929]" : "bg-white"} px-2.5 text-sm ${ink} ${
+  const filled = inputs.Look === "Filled" || inputs.Look === "FilledLight";
+  const box = `w-full rounded-md border ${
+    dark
+      ? "bg-[#292929]"
+      : filled
+        ? inputs.Look === "Filled"
+          ? "bg-[#f0f0f0]"
+          : "bg-[#fafafa]"
+        : "bg-white"
+  } px-3 text-sm ${ink} ${
     error
       ? dark
         ? "border-[#f1707b]"
@@ -107,7 +121,7 @@ function TextFieldFace({
         ) : (
           <input
             id={inputId}
-            className={`${box} mt-1 h-8`}
+            className={`${box} mt-1.5 h-10`}
             value={value}
             placeholder={inputs.Placeholder}
             maxLength={inputs.MaxLength > 0 ? inputs.MaxLength : undefined}
@@ -119,13 +133,13 @@ function TextFieldFace({
         )
       ) : (
         <span
-          className={`${box} mt-1 flex ${inputs.Multiline ? "h-16" : "h-8"} items-center ${value ? "" : sub}`}
+          className={`${box} mt-1.5 flex ${inputs.Multiline ? "h-16" : "h-10"} items-center ${value ? "" : sub}`}
         >
           {value || inputs.Placeholder}
         </span>
       )}
-      <span id={messageId} className="mt-1 flex justify-between gap-2 text-xs">
-        <span className={error ? errorInk : sub}>{error || inputs.Hint}</span>
+      <span id={messageId} className="mt-1.5 flex justify-between gap-2 text-xs">
+        <span className={error ? errorInk : sub}>{error ? `⚠ ${error}` : inputs.Hint}</span>
         {inputs.MaxLength > 0 ? (
           <span className={sub}>
             {value.length}/{inputs.MaxLength}

@@ -27,3 +27,17 @@
     Label: ="Username"
     DefaultValue: ="maker01"
     ErrorMessage: ="That username is taken. Try another."
+- name: Dark
+  description: On a dark screen, with a lighter accent for contrast.
+  settings:
+    Label: ="Project code"
+    Hint: ="Six letters or numbers."
+    MaxLength: =6
+    Theme: ="Dark"
+    AccentColor: =RGBA(71, 158, 245, 1)
+- name: Filled
+  description: A filled box, for dense forms where borders get busy.
+  settings:
+    Label: ="City"
+    Look: ="Filled"
+    Hint: =""

@@ -46,6 +46,11 @@ const REPLICAS: Record<string, Host> = {
   lcsStates: hostFor(useStatesReplica),
 };
 
+/** A variation that sets Theme to "Dark" is pictured on a dark background. */
+function isDarkVariation(variation: ComponentVariation): boolean {
+  return /"Dark"/.test(variation.settings["Theme"] ?? "");
+}
+
 export function hasReplica(componentName: string): boolean {
   return componentName in REPLICAS;
 }
@@ -274,10 +279,12 @@ export function ComponentWorkbench({
                 <>
                   {api ? (
                     <span
-                      className="grid min-h-24 place-items-center rounded-xl bg-white"
+                      className={`grid min-h-24 place-items-center rounded-xl p-2 ${
+                        isDarkVariation(variation) ? "bg-[#1f1f1f]" : "bg-white"
+                      }`}
                       aria-hidden="true"
                     >
-                      {api.thumbnail(variation.settings, false)}
+                      {api.thumbnail(variation.settings, isDarkVariation(variation))}
                     </span>
                   ) : null}
                   <span className="mt-2 block font-semibold">{variation.name}</span>

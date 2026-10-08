@@ -4,7 +4,7 @@ slug: text-field
 category: inputs-and-forms
 summary: "A text box with its label, hint, required marker, character count and error message built in. Add your own check with one formula, and read IsValid before you save."
 access: OPEN
-version: 0.1.0
+version: 0.2.0
 modernControls: yes
 ---
 ## When to use it
@@ -14,7 +14,8 @@ Use **lcsTextField** for any text your app asks for: a name, an email, a referen
 - a **label** that screen readers read with the box, and a `*` when it's **required**;
 - a **hint** under the box, replaced by the **error** when there is one;
 - a **character count** when you set `MaxLength`;
-- an **IsValid** output to check before you save.
+- an **IsValid** output to check before you save;
+- three **looks** (Outline, Filled, FilledLight), your **AccentColor** for the focus line, and a **Dark** theme.
 
 Errors only show after the user has left the box, so nobody sees "required" before they've typed.
 
@@ -70,7 +71,7 @@ galContacts.Selected.Name
 ## Accessibility
 
 - The box's accessible name is the label, plus "required" and the current error, so a screen reader user hears all three.
-- The error turns the box red (`ValidationState.Error`) **and** shows text, so it doesn't rely on colour alone.
+- The error turns the box red (`ValidationState.Error`) **and** shows text starting with ⚠, so it doesn't rely on colour alone.
 - Keep `Placeholder` for examples only. It disappears as soon as the user types, so it can't replace the label.
 
 ## Known limits
@@ -81,4 +82,5 @@ galContacts.Selected.Name
 
 ## Change log
 
-- **0.1.0:** first version, for testing in Power Apps Studio.
+- **0.2.0:** a cleaner design: an outlined, rounded, 40 px box with padding and more space around it; `Look`, `AccentColor` and `Theme` inputs; errors start with ⚠.
+- **0.1.0:** first version, pasted and tested in Power Apps Studio 3.26094.8.
