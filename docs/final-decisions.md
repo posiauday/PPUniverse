@@ -2176,3 +2176,11 @@ The accessibility gate runs in **6 shards instead of 4**. The time limit stays a
 2. **So lessons aren't indexed.** Search engines can't read them, and showing them the content but not visitors would be cloaking. Lesson pages are `noindex`, left out of the sitemap, and IndexNow is told only about topic pages. This supersedes "Each lesson is a normal indexable page" in `docs/plans/learn-module.md` ("Search and AI tools"). The product owner chose this over search traffic to lessons when both were set out.
 3. **Progress is saved to the reader's account.** A signed-in reader can mark a lesson as done; it fills the lesson's ring across the topic, and their profile lists it, with a way to clear it. It is deleted with the account.
 4. **Privacy notice, approved wording**, as a new section, with a new version and effective date: *"Learn progress: if you're signed in and mark a lesson as done, we store which lessons you've finished and when. Only you see it. You can clear it on your profile page, and it's deleted with your account."*
+
+## 2026-10-08 — Reader avatars: maker critters wearing a name tag
+
+**Source:** direct product-owner instructions in this session: avatars and names "related to [the] Microsoft niche ... be creative and be artistic"; then, from seven styles and three ways to add initials, "make a version with combination of reader initial with makers critters" and "Name tag".
+
+1. **Every reader's avatar is a "maker critter"**: a small character drawn from their avatar seed (palette, pattern, head, eyes, mouth, blush, tilt) with one low-code accessory, our own drawing with no product logos. "Draw a new avatar" re-rolls it.
+2. **It wears a name tag with the reader's initials** (the first letters of the first two words of their display name), wherever a name is shown with it: comments, the comment form and the profile.
+3. **Generated names** use everyday low-code words, never product names (32 adjectives, 48 nouns, a number).
