@@ -295,9 +295,10 @@ model LearnLesson {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  topic  LearnTopic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
-  author User                @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
-  events LearnPublishEvent[]
+  topic    LearnTopic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  author   User                @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events   LearnPublishEvent[]
+  progress LessonProgress[]
 
   @@unique([topicId, slug])
   @@unique([topicId, position])
@@ -320,4 +321,21 @@ model LearnPublishEvent {
 
   @@index([topicId, createdAt])
   @@map("learn_publish_events")
+}
+
+/// A signed-in reader marked a lesson as done (MVP-048; docs/final-decisions.md,
+/// 2026-10-08, "Learn: lessons need sign-in; progress saved to the account").
+/// Personal data: only the reader sees it, they can clear it, and it goes
+/// with their account (Cascade), as the Privacy notice says.
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson LearnLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
 }

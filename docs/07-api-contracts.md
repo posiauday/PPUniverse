@@ -66,3 +66,8 @@ Admin only: anyone else gets the identical `404 "Not found."`, like every admin 
 - `POST /api/admin/topics/{id}/lessons` `{ title, slug, position, minutes, outcomes, checkedOn, body }`: adds a DRAFT lesson. `outcomes` is an array or one-per-line text (2 or 3); `body` must follow the fixed lesson shape and knowledge-check rules (every problem returned under `fieldErrors.body`). `409` when another lesson in the topic has the slug or the position.
 - `GET` / `PATCH /api/admin/lessons/{id}`: fetch one; edit content only (never status, `publishedAt` or topic).
 - `POST /api/admin/lessons/{id}/publish`: DRAFT → PUBLISHED with a `LearnPublishEvent`. `409` when already published, or when the body no longer passes the shape check. A lesson shows on the site only once its topic is published too.
+
+### Learn progress (MVP-048; 2026-10-08)
+Signed-in readers only (`401` otherwise); same-origin only (`403`); `404` while `FEATURE_LEARN` is off. Only ever the caller's own progress: the user comes from the session.
+- `POST /api/learn/progress` `{ topic, lesson, done: "true" | "false" }`: marks a published lesson in a published topic done or not done. `404` for anything else; `400` for another `done` value.
+- `DELETE /api/learn/progress` `{}`: clears all of the reader's progress (the Privacy notice promises they can).

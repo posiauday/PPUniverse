@@ -1,6 +1,12 @@
 # Plan: the Learn module (in-depth topics)
 
-**Status:** approved (`docs/final-decisions.md`, 2026-10-07: "the Learn module: go ahead as planned", and "Learn module design: Workspace"). Story: MVP-048.
+**Status:** approved (`docs/final-decisions.md`, 2026-10-07: "the Learn module: go ahead as planned", and "Learn module design: Workspace"; 2026-10-08: "Learn: lessons need sign-in; progress saved to the account"). Story: MVP-048.
+
+**Benched (2026-10-08, product owner: "finish the setup required for learn and then bench it and move to high priority things first").** The code is complete: data, importer, admin, public pages, sign-in for lessons, and progress. It is off in production (`FEATURE_LEARN`). What's left to launch it:
+1. **Content:** the first topics as drafts in `content/topics` (format: `content/topics/README.md`), each lesson checked against Microsoft Learn. The plan's first six topics are below.
+2. **Publish** them in Admin → Learn topics.
+3. **Switch on:** `FEATURE_LEARN=on` in Netlify (Production).
+4. Not built, by choice: RSS for lessons, and View Transitions between lessons.
 
 **Asked for (product owner, 2026-10-07):** *"plan learn module where I want to explain topics in a detailed manner and important things"*, after the pending work is finished.
 
