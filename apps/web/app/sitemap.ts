@@ -27,8 +27,9 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
       ]);
       return updates.length > 0 ? [...hubs, "/updates"] : hubs;
     },
-    // MVP-048: /topics, then each published topic and its published lessons,
-    // only while the Learn module is switched on (FEATURE_LEARN).
+    // MVP-048: /topics and each published topic with a published lesson, only
+    // while the Learn module is on (FEATURE_LEARN). Not the lessons: they need
+    // sign-in and are noindex (docs/final-decisions.md, 2026-10-08).
     listLearnEntries: async () => {
       if (!learnEnabled()) return [];
       const topics = (await learnRepository.listPublishedTopics()).filter(
@@ -37,16 +38,10 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (topics.length === 0) return [];
       return [
         { path: "/topics" },
-        ...topics.flatMap((topic) => {
-          const base = `/topics/${encodeURIComponent(topic.slug)}`;
-          return [
-            { path: base, lastModified: topic.updatedAt },
-            ...topic.lessons.map((lesson) => ({
-              path: `${base}/${encodeURIComponent(lesson.slug)}`,
-              lastModified: lesson.updatedAt,
-            })),
-          ];
-        }),
+        ...topics.map((topic) => ({
+          path: `/topics/${encodeURIComponent(topic.slug)}`,
+          lastModified: topic.updatedAt,
+        })),
       ];
     },
     warn: (event, fields) => logger.warn(event, fields),

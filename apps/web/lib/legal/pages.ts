@@ -27,11 +27,11 @@ export const POLICY_EFFECTIVE_DATE = "2026-10-10";
 export const POLICY_EFFECTIVE_LABEL = "October 10, 2026";
 
 /** The date the current Privacy notice took effect: it last changed when
- * "Comments and your profile" was added (MVP-040; before that, the owner's
- * name and location came off the site). Its PolicyVersion row is migration
- * 20261011000000_add_policy_versions_2026_10_10. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-10";
-export const PRIVACY_EFFECTIVE_LABEL = "October 10, 2026";
+ * "Learn progress" was added (MVP-048; docs/final-decisions.md, 2026-10-08;
+ * before that, "Comments and your profile", MVP-040). Its PolicyVersion row is
+ * migration 20261014000000_add_lesson_progress. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-12";
+export const PRIVACY_EFFECTIVE_LABEL = "October 12, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms" | "/how-we-write";
@@ -149,6 +149,10 @@ If you're signed in, we give you a **display name** and an **avatar** at random,
 - If we remove a comment that breaks the Terms, we keep it, hidden, so a mistake can be undone. It's deleted with your account.
 - Anyone can report a comment. We keep only that it was reported and when, nothing about who reported it. To limit abuse we keep a scrambled (hashed) counter for each address for a day.
 
+## Learn progress
+
+If you're signed in and mark a lesson as done, we store which lessons you've finished and when. Only you see it. You can clear it on your profile page, and it's deleted with your account.
+
 ## Cookies
 
 We use only the cookies the site needs:
@@ -191,6 +195,7 @@ We don't sell, rent or trade personal information. We would disclose it only if 
 - Sign-in sessions expire after 30 days, sign-in links after 24 hours, and password links after 1 hour.
 - Counts of failed sign-in attempts, votes and notes are deleted a day after they were last used.
 - Notes sent with "Something here changed?" are deleted once we've checked them. Vote answers are kept with the guide; they say nothing about who voted.
+- Learn progress is kept until you clear it, or until your account is deleted.
 - Comments are kept until you delete them, or until your account is deleted. That includes comments we've removed and kept hidden.
 - Records of your choices and of deletion requests are kept as proof of what you asked for, even after the rest of your account information is removed.
 - Logs are kept only as long as needed to run and protect the site.

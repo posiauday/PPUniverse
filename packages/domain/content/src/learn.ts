@@ -139,6 +139,14 @@ export interface PublishedLesson {
   updatedAt: Date;
 }
 
+/** A reader's progress through one topic: its published lessons they marked done. */
+export interface TopicProgress {
+  topicSlug: string;
+  topicTitle: string;
+  done: number;
+  total: number;
+}
+
 export interface LearnRepository {
   createTopic(input: TopicCreateInput): Promise<TopicRecord>;
   /** Content-only edit: never changes status or publishedAt. */
@@ -165,6 +173,16 @@ export interface LearnRepository {
     topicSlug: string,
     lessonSlug: string,
   ): Promise<{ topic: PublishedTopic; lesson: PublishedLesson } | null>;
+  /** The id of a PUBLISHED lesson in a PUBLISHED topic, or null: what progress may be recorded against. */
+  findPublishedLessonId(topicSlug: string, lessonSlug: string): Promise<string | null>;
+  /** Marks a lesson done for a reader, or not done. Idempotent. */
+  setLessonDone(userId: string, lessonId: string, done: boolean): Promise<void>;
+  /** The slugs of a topic's lessons the reader marked done. */
+  listDoneLessonSlugs(userId: string, topicSlug: string): Promise<string[]>;
+  /** The reader's progress per published topic, for topics they've started. */
+  listProgress(userId: string): Promise<TopicProgress[]>;
+  /** Clears all of a reader's progress. */
+  clearProgress(userId: string): Promise<void>;
 }
 
 export const TOPIC_TITLE_MAX = 120;

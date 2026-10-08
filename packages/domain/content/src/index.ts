@@ -139,6 +139,7 @@ export {
   type PublishedLesson,
   type PublishedLessonSummary,
   type PublishedTopic,
+  type TopicProgress,
   type TopicCreateInput,
   type TopicInput,
   type TopicRecord,

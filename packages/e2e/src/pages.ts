@@ -1466,8 +1466,8 @@ export const GATED_PAGES: readonly GatedPage[] = [
   {
     id: "lesson-published",
     route: "/topics/[topic]/[lesson]",
-    description: "a lesson in the Workspace layout: lessons, the lesson, On this page",
-    auth: "guest",
+    description: "a lesson in the Workspace layout, signed in: lessons, the lesson, On this page",
+    auth: "member",
     status: 200,
     path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[1]!.slug}`,
   },
@@ -1475,12 +1475,24 @@ export const GATED_PAGES: readonly GatedPage[] = [
     id: "lesson-answered",
     route: null,
     description: "a lesson with a knowledge-check question answered wrongly, explanations shown",
-    auth: "guest",
+    auth: "member",
     status: 200,
     path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[0]!.slug}`,
     prepare: async (page) => {
       await page.getByRole("button", { name: "Yes" }).first().click();
       await expect(page.getByText("No: it is a test fixture.")).toBeVisible();
+    },
+  },
+  {
+    // Lessons need sign-in (docs/final-decisions.md, 2026-10-08): a guest gets the outcomes and a way in.
+    id: "lesson-signed-out",
+    route: null,
+    description: "a lesson, signed out: its outcomes and Sign in to read",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[0]!.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("link", { name: "Sign in to read" })).toBeVisible();
     },
   },
   {
