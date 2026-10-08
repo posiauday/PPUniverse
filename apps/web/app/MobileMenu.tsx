@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { ViewerSummary } from "../lib/viewer";
+import { Avatar } from "./Avatar";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { UpdatesLink } from "./UpdatesLink";
 
@@ -23,6 +25,7 @@ export function MobileMenu({
   themeToggle,
   updateTimes = [],
   learnHref = "/learn",
+  viewer = null,
 }: {
   links: readonly MenuLink[];
   technologies: readonly MenuLink[];
@@ -32,6 +35,8 @@ export function MobileMenu({
   updateTimes?: readonly string[];
   /** Where the Learn button goes: /topics when FEATURE_LEARN is on (MVP-048), else the guides. */
   learnHref?: string;
+  /** The signed-in reader's avatar, name and admin flag. */
+  viewer?: ViewerSummary | null;
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -112,7 +117,15 @@ export function MobileMenu({
           </ul>
         </nav>
         <div className="mt-3 flex items-center gap-2 border-t border-border px-1 pt-3">
-          <Link href={account.href} onClick={close} className={linkClass}>
+          {viewer?.isAdmin ? (
+            <Link href="/admin" onClick={close} className={linkClass}>
+              Admin
+            </Link>
+          ) : null}
+          <Link href={account.href} onClick={close} className={`${linkClass} gap-2`}>
+            {viewer ? (
+              <Avatar seed={viewer.avatarSeed} name={viewer.displayName ?? undefined} size={28} />
+            ) : null}
             {account.name}
           </Link>
           <span className="ml-auto">{themeToggle}</span>

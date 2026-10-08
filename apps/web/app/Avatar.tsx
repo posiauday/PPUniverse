@@ -3,7 +3,7 @@ import { avatarFromSeed, type AvatarSpec } from "@ppu/domain-content";
 /**
  * A reader's generated avatar, a "maker critter" (MVP-040; redrawn
  * 2026-10-08): a small character with one low-code accessory, drawn from
- * their avatar seed by avatarFromSeed. Our own drawing on a 64 x 64 grid, no
+ * their avatar seed by avatarFromSeed, wearing a name tag with their initials. Our own drawing on a 64 x 64 grid, no
  * product logos. Decorative: the display name is always shown next to it.
  *
  * Plain SVG with no ids (no gradients, <pattern> or clip-path defs; the
@@ -313,21 +313,26 @@ function FrontAccessory({ kind, ink }: { kind: AvatarSpec["accessory"]; ink: str
   }
 }
 
-export function Avatar({ seed, size = 40 }: { seed: string; size?: number }) {
-  const spec = avatarFromSeed(seed);
-  const colors = PALETTE[spec.palette];
+/** Up to two initials from a display name: the first letter of its first two words ("Nimble Webhook 481" gives "NW"). */
+export function initialsOf(name: string): string {
+  const letters = name
+    .trim()
+    .split(/\s+/)
+    .map((word) => Array.from(word)[0] ?? "")
+    .filter((char) => /\p{L}/u.test(char));
+  return letters.slice(0, 2).join("").toLocaleUpperCase() || "?";
+}
+
+/** The critter itself on the 64 x 64 grid: shadow, accessory, head and face. */
+function Critter({
+  spec,
+  colors,
+}: {
+  spec: AvatarSpec;
+  colors: (typeof PALETTE)[AvatarSpec["palette"]];
+}) {
   return (
-    <svg
-      aria-hidden="true"
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      className="shrink-0 overflow-hidden rounded-[30%]"
-      data-avatar={`${spec.palette}-${spec.head}-${spec.accessory}`}
-    >
-      <rect width="64" height="64" fill={colors.bg} />
-      <circle cx="56" cy="6" r="30" fill={colors.glow} opacity=".7" />
-      <Pattern kind={spec.pattern} ink={colors.ink} />
+    <g>
       <ellipse cx="32" cy="58.5" rx="15" ry="2.6" fill={DARK} opacity=".1" />
       <g transform={`rotate(${spec.tilt} 32 38)`}>
         <BackAccessory kind={spec.accessory} ink={colors.ink} bg={colors.bg} />
@@ -351,6 +356,54 @@ export function Avatar({ seed, size = 40 }: { seed: string; size?: number }) {
         <Mouth kind={spec.mouth} />
         <FrontAccessory kind={spec.accessory} ink={colors.ink} />
       </g>
+    </g>
+  );
+}
+
+const LETTERS = {
+  fontFamily: "var(--font-display), 'Segoe UI', system-ui, sans-serif",
+  fontWeight: 800,
+};
+
+/**
+ * With a `name`, the critter wears a name tag with the reader's initials
+ * (product owner's choice, 2026-10-08, "Name tag"). Without one, it's the
+ * critter alone.
+ */
+export function Avatar({ seed, size = 40, name }: { seed: string; size?: number; name?: string }) {
+  const spec = avatarFromSeed(seed);
+  const colors = PALETTE[spec.palette];
+  const initials = name ? initialsOf(name) : null;
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      className="shrink-0 overflow-hidden rounded-[30%]"
+      data-avatar={`${spec.palette}-${spec.head}-${spec.accessory}`}
+    >
+      <rect width="64" height="64" fill={colors.bg} />
+      <circle cx="56" cy="6" r="30" fill={colors.glow} opacity=".7" />
+      <Pattern kind={spec.pattern} ink={colors.ink} />
+      <Critter spec={spec} colors={colors} />
+      {initials ? (
+        <g transform="rotate(-8 49 50)">
+          <rect
+            x="36.5"
+            y="43"
+            width="25"
+            height="14"
+            rx="4.5"
+            fill="#fff"
+            stroke={DARK}
+            strokeWidth="1.3"
+          />
+          <text x="49" y="53.4" fontSize="9.5" textAnchor="middle" fill={DARK} style={LETTERS}>
+            {initials}
+          </text>
+        </g>
+      ) : null}
     </svg>
   );
 }

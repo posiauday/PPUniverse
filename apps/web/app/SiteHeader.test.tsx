@@ -55,8 +55,23 @@ describe("SiteHeader", () => {
       'href="/signin"',
     );
     const signedIn = renderToStaticMarkup(<SiteHeader theme="dark" signedIn />);
-    expect(signedIn).toContain('href="/account/sessions"');
+    expect(signedIn).toContain('href="/account"');
     expect(signedIn).not.toContain('href="/signin"');
+  });
+
+  it("shows a signed-in reader's avatar, and the Admin link only to an admin", () => {
+    const member = { isAdmin: false, displayName: "Ada Lovelace", avatarSeed: "seed-1" };
+    const memberHtml = renderToStaticMarkup(<SiteHeader theme="light" signedIn viewer={member} />);
+    expect(memberHtml).toContain("<svg");
+    expect(memberHtml).toContain(">AL<");
+    expect(memberHtml).not.toContain('href="/admin"');
+    const adminHtml = renderToStaticMarkup(
+      <SiteHeader theme="light" signedIn viewer={{ ...member, isAdmin: true }} />,
+    );
+    expect(adminHtml).toContain('href="/admin"');
+    expect(renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />)).not.toContain(
+      'href="/admin"',
+    );
   });
 
   it("renders the toggle already pressed in the dark theme", () => {

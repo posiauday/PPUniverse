@@ -37,9 +37,9 @@ describe("route coverage against the real routing tree", () => {
     expect(staleGatedRoutes(FILES, GATED_ROUTES), "gated routes that no longer exist").toEqual([]);
   });
 
-  it("knows /account is not a page (only /account/sessions is), so it is covered as a 404", () => {
+  it("knows /account is a page (the account overview) beside /account/sessions", () => {
     const routes = discoverPageRoutes(FILES);
-    expect(routes).not.toContain("/account");
+    expect(routes).toContain("/account");
     expect(routes).toContain("/account/sessions");
   });
 

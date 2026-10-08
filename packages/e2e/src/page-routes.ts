@@ -17,6 +17,7 @@ export const GATED_ROUTES = [
   "/password/confirm",
   "/password/forgot",
   "/password/reset",
+  "/account",
   "/account/sessions",
   "/account/privacy",
   "/account/profile",

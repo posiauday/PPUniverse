@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { OutlineItem } from "../../lib/article-outline";
+import { TocSpy } from "./TocSpy";
 
 /**
  * "On this page" (MVP-027 slice 3; Daylight look, MVP-031): links to the
@@ -9,7 +10,7 @@ import type { OutlineItem } from "../../lib/article-outline";
  * way. The column (StickyColumn) is what sticks, so anything placed under the
  * list, such as Copy link, moves with it instead of sliding under it
  * (BUG-026). Left out when there are fewer than two headings, where it would
- * add nothing.
+ * add nothing. TocSpy marks the section being read (BUG-029).
  */
 export function ArticleToc({ items }: { items: readonly OutlineItem[] }) {
   if (items.length < 2) return null;
@@ -24,18 +25,20 @@ export function ArticleToc({ items }: { items: readonly OutlineItem[] }) {
       >
         On this page
       </p>
-      <ol className="mt-3 text-sm">
-        {items.map((item) => (
-          <li key={item.id}>
-            <a
-              href={`#${item.id}`}
-              className={`flex min-h-10 items-center border-l-2 border-border py-1.5 pr-2 leading-snug text-muted-foreground no-underline hover:border-foreground hover:text-foreground ${item.level === 3 ? "pl-7" : "pl-4"}`}
-            >
-              {item.text}
-            </a>
-          </li>
-        ))}
-      </ol>
+      <TocSpy ids={items.map((item) => item.id)}>
+        <ol className="mt-3 text-sm">
+          {items.map((item) => (
+            <li key={item.id}>
+              <a
+                href={`#${item.id}`}
+                className={`flex min-h-10 items-center border-l-2 border-border py-1.5 pr-2 leading-snug text-muted-foreground no-underline hover:border-foreground hover:text-foreground aria-[current=location]:border-primary aria-[current=location]:font-semibold aria-[current=location]:text-foreground motion-safe:transition-colors ${item.level === 3 ? "pl-7" : "pl-4"}`}
+              >
+                {item.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </TocSpy>
     </nav>
   );
 }
