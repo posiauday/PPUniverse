@@ -49,13 +49,31 @@ ComponentDefinitions:
         PropertyKind: Input
         DisplayName: Items
         DataType: Table
-        Description: "The speed-dial actions, as a table with Icon and Label columns. Three to six work best."
+        Description: "The speed-dial actions, as a table with Key, Icon and Label columns. Key is a short id your OnItemSelect checks, such as note. Three to six work best."
         Default: |-
           =Table(
-              {Icon: "Edit", Label: "New note"},
-              {Icon: "Camera", Label: "Take a photo"},
-              {Icon: "Upload", Label: "Upload a file"}
+              {Key: "note", Icon: "Edit", Label: "New note"},
+              {Key: "photo", Icon: "Camera", Label: "Take a photo"},
+              {Key: "upload", Icon: "Upload", Label: "Upload a file"}
           )
+      HiddenKeys:
+        PropertyKind: Input
+        DisplayName: HiddenKeys
+        DataType: Text
+        Description: "Keys of items to hide, separated by commas, such as If(!IsAdmin, \"delete\", \"\"). Empty shows every item."
+        Default: =""
+      DisabledKeys:
+        PropertyKind: Input
+        DisplayName: DisabledKeys
+        DataType: Text
+        Description: "Keys of items to show greyed out and unselectable, separated by commas."
+        Default: =""
+      Direction:
+        PropertyKind: Input
+        DisplayName: Direction
+        DataType: Text
+        Description: "Where the menu opens: Up (above the button, for the bottom of a screen) or Down (below it, for the top)."
+        Default: ="Up"
       ItemHeight:
         PropertyKind: Input
         DisplayName: ItemHeight
@@ -73,11 +91,11 @@ ComponentDefinitions:
         DisplayName: IsOpen
         DataType: Boolean
         Description: "True while the speed-dial menu is open."
-      SelectedItem:
+      SelectedKey:
         PropertyKind: Output
-        DisplayName: SelectedItem
+        DisplayName: SelectedKey
         DataType: Text
-        Description: "The label of the speed-dial item chosen last."
+        Description: "The Key of the speed-dial item chosen last."
       IconSvg:
         PropertyKind: OutputFunction
         DisplayName: IconSvg
@@ -102,11 +120,15 @@ ComponentDefinitions:
         PropertyKind: Event
         DisplayName: OnItemSelect
         ReturnType: None
-        Description: "Runs in the app when a speed-dial item is selected. Receives the item's label. The menu has already closed."
+        Description: "Runs in the app when a speed-dial item is selected. Receives its Key and Label; use Switch(Key, ...) for what each does. The menu has already closed."
         Parameters:
-          - Item:
+          - Key:
               DataType: Text
-              Description: "The label of the selected item."
+              Description: "The Key of the selected item."
+              Default: =""
+          - Label:
+              DataType: Text
+              Description: "The Label of the selected item."
               Default: =""
         Default: =false
       Open:
@@ -128,7 +150,7 @@ ComponentDefinitions:
       Fill: =RGBA(0, 0, 0, 0)
       OnReset: |-
         =Set(locOpen, false);
-        Set(locSelected, "")
+        Set(locSelectedKey, "")
       Width: |-
         =With(
             {
@@ -145,12 +167,14 @@ ComponentDefinitions:
             {fabSize: Switch(lcsFab.Size, "Small", 40, "Large", 72, 56)},
             If(
                 lcsFab.SpeedDial,
-                fabSize + 12 + CountRows(lcsFab.Items) * lcsFab.ItemHeight,
+                fabSize + 12 + CountRows(
+                    Filter(lcsFab.Items As item, !(item.Key in ForAll(Split(lcsFab.HiddenKeys, ","), Trim(Value))))
+                ) * lcsFab.ItemHeight,
                 fabSize
             )
         )
       IsOpen: =locOpen && lcsFab.SpeedDial
-      SelectedItem: =locSelected
+      SelectedKey: =locSelectedKey
       IconSvg: |-
         ="data:image/svg+xml;utf8," & EncodeUrl(
             "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='" & Stroke &
@@ -199,11 +223,11 @@ ComponentDefinitions:
           Variant: Vertical
           Properties:
             X: =0
-            Y: =0
+            Y: =If(lcsFab.Direction = "Down", cntFab.Height + 12, 0)
             Width: =Parent.Width
-            Height: =CountRows(lcsFab.Items) * lcsFab.ItemHeight
+            Height: =CountRows(Self.AllItems) * lcsFab.ItemHeight
             Visible: =locOpen && lcsFab.SpeedDial
-            Items: =lcsFab.Items
+            Items: =Filter(lcsFab.Items As item, !(item.Key in ForAll(Split(lcsFab.HiddenKeys, ","), Trim(Value))))
             TemplateSize: =lcsFab.ItemHeight
             TemplatePadding: =0
             ShowScrollbar: =false
@@ -235,7 +259,12 @@ ComponentDefinitions:
                         Text: =ThisItem.Label
                         Size: =14
                         FontWeight: =FontWeight.Semibold
-                        Color: =RGBA(36, 36, 36, 1)
+                        Color: |-
+                          =If(
+                              ThisItem.Key in ForAll(Split(lcsFab.DisabledKeys, ","), Trim(Value)),
+                              RGBA(112, 112, 112, 1),
+                              RGBA(36, 36, 36, 1)
+                          )
                         Wrap: =false
                         PaddingLeft: =0
                         PaddingRight: =0
@@ -257,6 +286,15 @@ ComponentDefinitions:
                   Width: =cntItem.Width
                   Height: =cntItem.Height
                   Text: =ThisItem.Label
+                  DisplayMode: |-
+                    =If(
+                        ThisItem.Key in ForAll(Split(lcsFab.DisabledKeys, ","), Trim(Value)),
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
                   Fill: =RGBA(0, 0, 0, 0)
                   Color: =RGBA(0, 0, 0, 0)
                   BorderColor: =RGBA(0, 0, 0, 0)
@@ -271,9 +309,9 @@ ComponentDefinitions:
                   RadiusBottomLeft: =cntItem.Height / 2
                   RadiusBottomRight: =cntItem.Height / 2
                   OnSelect: |-
-                    =Set(locSelected, ThisItem.Label);
+                    =Set(locSelectedKey, ThisItem.Key);
                     Set(locOpen, false);
-                    lcsFab.OnItemSelect(ThisItem.Label)
+                    lcsFab.OnItemSelect(ThisItem.Key, ThisItem.Label)
       - cntFab:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout
@@ -281,7 +319,7 @@ ComponentDefinitions:
             Height: =Switch(lcsFab.Size, "Small", 40, "Large", 72, 56)
             Width: =If(lcsFab.Extended, Self.Height + Min(Len(lcsFab.Label) * 8, 200) + 16, Self.Height)
             X: =Parent.Width - Self.Width
-            Y: =Parent.Height - Self.Height
+            Y: =If(lcsFab.Direction = "Down", 0, Parent.Height - Self.Height)
             Fill: =If(lcsFab.Disabled, RGBA(224, 224, 224, 1), lcsFab.AccentColor)
             BorderColor: =RGBA(0, 0, 0, 0)
             DropShadow: =If(lcsFab.Disabled, DropShadow.None, DropShadow.Semilight)

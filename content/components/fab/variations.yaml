@@ -22,3 +22,10 @@
     Icon: ="Chat"
     Label: ="Ask a question"
     Size: ="Small"
+- name: Menu below
+  description: For a button at the top of a screen; the menu opens downward.
+  settings:
+    Icon: ="Add"
+    Label: ="Create"
+    SpeedDial: =true
+    Direction: ="Down"
