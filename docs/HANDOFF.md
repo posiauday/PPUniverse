@@ -15,7 +15,7 @@ This file is written for a new session that has none of the previous conversatio
 ## Product and live state
 
 - **Site:** LowCodeStacks, https://lowcodestacks.com. Free Power Platform learning: 57 guides in `content/articles/`, architecture patterns and KPIs.
-  - The marketplace (paid components) is built but hidden behind `FEATURE_COMPONENTS`.
+  - The free Power Apps component library (`/components`, MVP-049) is in review, behind `FEATURE_COMPONENTS`; the older paid marketplace is hidden too.
   - Comments are on (`FEATURE_COMMENTS=on`, since release #100).
   - The Learn module (`/topics`) is built but off behind `FEATURE_LEARN` (benched, see below).
 - **No personal details:**
@@ -31,17 +31,18 @@ This file is written for a new session that has none of the previous conversatio
 
 ## Where things stand
 
-**Live (`main`):** release #100 (2026-10-08): #88 to #99, comments on, IndexNow key served, RSS feed, migrations through `20261012000000`.
+**Live (`main`):** release #111 (2026-10-08): Learn module (off), maker critter avatars, Bing verification.
 
-**Merged into `develop` since:** #101 (CodeQL fixes, 6 accessibility shards, cached browser packages), #102 (docs), #103 (Learn data), #104 (Next.js 16.3.8 security fix), #105 (Learn admin).
+**Merged into `develop`, not yet live:** #112 (account overview at `/account`, avatar and Admin link in the header, the name-tag avatars that missed #111), #113 (the "On this page" bar follows the section being read, BUG-029), #114 (three guide drafts: Excel 256 rows, Patch Person/Choice/Lookup, shared mailbox).
 
-**Open PRs, merge in this order:**
-1. **#106 `feature/learn-pages`:** the public Learn pages, behind `FEATURE_LEARN`.
-2. **`feature/learn-progress`** (PR to open if not yet): lessons need sign-in, progress saved to the account, Privacy "Learn progress" (version 2026-10-12). Built on #106.
+**Open PRs, in this order:**
+1. **#116 `feature/component-library`** (MVP-049): the component library's pipeline, data (migration `20261015000000`, additive), import on release, admin (`/admin/components`), and the public pages in design A · Docs behind `FEATURE_COMPONENTS`, with live web replicas for six components and the sitemap entries.
+2. **#117 `feature/components-wave-1`** (stacked on #116): five more components as content (text field, dialog, toast, tabs, states) and `docs/component-paste-tests.md`.
+3. **#115 release `develop` → `main`:** merge last, once, after the others are in `develop` and its checks are green.
 
-**The next release applies:** `20261013000000` (Learn tables) and `20261014000000` (`lesson_progress` and the Privacy version).
+**The component library (MVP-049)** is the current focus. Nothing is tested in Power Apps Studio yet: the product owner paste-tests each component (`docs/component-paste-tests.md`), records the Studio version in `/admin/components`, publishes it, and switches on `FEATURE_COMPONENTS` when ready. The `lcsButton` pilot's paste-test decides whether the YAML format holds; if it fails, all six are fixed the same way. The component standard in `docs/plans/power-apps-component-library.md` is still a proposal (product owner, 2026-10-08).
 
-**The Learn module is benched** (product owner, 2026-10-08: finish its setup, then move to higher-priority work). Code complete, off in production. To launch: write the first topics in `content/topics`, publish them in Admin → Learn topics, then `FEATURE_LEARN=on` (`docs/plans/learn-module.md`).
+**The Learn module is benched** (product owner, 2026-10-08). Code complete, off in production. To launch: write the first topics in `content/topics`, publish them in Admin → Learn topics, then `FEATURE_LEARN=on` (`docs/plans/learn-module.md`).
 
 **Ticket status** (`planning/mvp-backlog.csv` is canonical):
 
@@ -49,23 +50,20 @@ This file is written for a new session that has none of the previous conversatio
 |---|---|
 | Done | 001 to 006, 010, 012, 014, 017 to 023, 026 to 028 |
 | QA | 029, 031 to 037, 039, 044, 047 |
-| In progress | 007, 030, 038, 040, 041, 042, 045, 046, 048 (benched) |
+| In progress | 007, 030, 038, 040, 041, 042, 045, 046, 048 (benched), 049 |
 | Backlog | 008, 009, 015, 016, 024, 025, 043 |
 | Superseded | 011, 013 |
 
 ## Next work
 
-The product owner wants the **high-priority work first: components (the marketplace) and KPIs (Power BI and the rest)**. Confirm which to start and its scope before building.
-- **Components:** checkout is MVP-007 (slices 1 and 2 built; slice 3, the checkout itself, was waiting on sales tax, which is now closed: `docs/open-questions.md` item 3). Then MVP-008 (webhook fulfilment) and MVP-009 (signed downloads). The catalog stays hidden behind `FEATURE_COMPONENTS` until the first product is published.
-- **KPIs:** each hub has a KPIs tab (MVP-028), and there are six KPI guides in `content/articles` (one per technology, e.g. `power-bi/designing-a-kpi-card.md`). Ask what "KPI for Power BI" should add: more guides, a KPI library, downloadable templates (which would be components).
-- **Later:** TD-032 (blocking time; the product owner's PageSpeed run is in `planning/tech-debt/TD-032.md`); the Contributor role's abilities (product owner to decide).
+- **Component library (MVP-049), next steps:** the product owner's paste-tests and fixes from them; reader feedback on components (plan step 5: ratings, "Worked in my app", comments, "Report a problem"); more components (navigation shell and data table, both sign-in to copy). Design: A · Docs (`docs/final-decisions.md`, 2026-10-08).
+- **Later:** the other technologies' libraries; KPIs; TD-032 (blocking time); the Contributor role's abilities.
 
 **Product-owner to-dos (remind them; never do these for them):**
-- Merge #106, then the Learn progress PR; later a release PR `develop` → `main`, and check the Netlify build log (it runs the migrations).
+- Merge #116, then #117, then the release #115; check the Netlify build log (it runs the migration and imports the component drafts).
+- Paste-test each component in a developer environment (`docs/component-paste-tests.md`), record the Studio version, publish, then set `FEATURE_COMPONENTS=on` in Netlify.
+- Review and publish the three new guide drafts in `/admin/content`.
 - Search Console: submit the sitemap and request indexing; check the "Deceptive pages" review.
-- Add the site in Bing Webmaster Tools (import from Search Console).
-- Submit the site at Brave's submit-url page.
-- Paste the quick answers into the live guides through `/admin/content`.
 - Consider making the GitHub repo **private**: the old history contains personal email addresses.
 - Answer the open PIPEDA mailing-address question.
 
