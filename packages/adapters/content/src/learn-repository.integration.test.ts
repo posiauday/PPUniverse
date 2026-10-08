@@ -106,5 +106,6 @@ describe.skipIf(!hasDatabase)("PrismaLearnRepository (integration, MVP-048)", ()
     const listed = await repo.listPublishedTopics({ technology: "POWER_APPS" });
     expect(listed.find((t) => t.id === created.id)?.lessons).toHaveLength(1);
     expect((await repo.listTopics()).find((t) => t.id === created.id)?.lessons).toHaveLength(2);
+    expect((await repo.findTopicWithLessons(created.id))?.lessons.map((l) => l.position)).toEqual([1, 2]);
   });
 });

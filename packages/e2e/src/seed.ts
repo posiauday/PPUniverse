@@ -4,6 +4,43 @@ import { mintUnsubscribeToken } from "@ppu/domain-notifications";
 import { assertSafeDatabaseTarget } from "./db-guard.js";
 import { RESERVED_PREFIX, assertReserved, newWorkerPrefix } from "./prefix.js";
 
+/** MVP-048: a lesson body in the fixed lesson shape (@ppu/domain-content LESSON_SECTIONS). */
+const FIXTURE_LESSON_BODY = [
+  "## The idea",
+  "",
+  "A test lesson.",
+  "",
+  "## How it works",
+  "",
+  "It is only a fixture.",
+  "",
+  "## The important things",
+  "",
+  "1. Nothing here is real.",
+  "",
+  "## Try it",
+  "",
+  "Nothing to try.",
+  "",
+  "## Check yourself",
+  "",
+  "> [!CHECK] Is this a real lesson?",
+  "> - [ ] Yes",
+  ">   No: it is a test fixture.",
+  "> - [x] No",
+  ">   Right: it is a test fixture.",
+  "",
+  "> [!CHECK] Who sees it?",
+  "> - [x] Admins",
+  ">   Right: it is a draft.",
+  "> - [ ] Everyone",
+  ">   No: drafts are never public.",
+  "",
+  "## Sources",
+  "",
+  "- [Power Apps](https://learn.microsoft.com/power-apps/)",
+].join("\n");
+
 /**
  * Temporary rows for the accessibility tests (decision Q36).
  *
@@ -136,6 +173,9 @@ export interface FixtureSet {
   /** MVP-033 slice D: a PUBLISHED platform update (on /updates, in the tracker) and a DRAFT one (admin only). */
   publishedUpdate: { id: string; slug: string; title: string };
   draftUpdate: { id: string; slug: string; title: string };
+  /** MVP-048: a DRAFT Learn topic with one DRAFT lesson, for the admin Learn pages. */
+  draftTopic: { id: string; slug: string; title: string };
+  draftLesson: { id: string; title: string };
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
    * support/compatibility/release) — visible in the admin products list,
    * and exercises the "still missing mandatory fields" publish-readiness
@@ -244,6 +284,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     productIds: [] as string[],
     articleIds: [] as string[],
     updateIds: [] as string[],
+    topicIds: [] as string[],
     fileScanIds: [] as string[],
   };
 
@@ -316,6 +357,21 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     await attempt(() =>
       prisma.updateItem.deleteMany({
         where: { id: { in: created.updateIds }, slug: { startsWith: RESERVED_PREFIX } },
+      }),
+    );
+    // MVP-048: Learn topics, lessons and their publish events use Restrict FKs
+    // on the admin user too, so they go before the user rows, events first.
+    if (created.topicIds.length > 0) {
+      await attempt(() =>
+        prisma.learnPublishEvent.deleteMany({ where: { topicId: { in: created.topicIds } } }),
+      );
+      await attempt(() =>
+        prisma.learnLesson.deleteMany({ where: { topicId: { in: created.topicIds } } }),
+      );
+    }
+    await attempt(() =>
+      prisma.learnTopic.deleteMany({
+        where: { id: { in: created.topicIds }, slug: { startsWith: RESERVED_PREFIX } },
       }),
     );
     // MVP-012: must also run BEFORE user.deleteMany below, for a subtler
@@ -676,6 +732,33 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.updateIds.push(draftUpdate.id);
 
+    // MVP-048: a draft Learn topic and one draft lesson in the fixed lesson shape.
+    const draftTopicSlug = `${prefix}draft-topic`;
+    assertReserved("topic", draftTopicSlug);
+    const draftTopic = await prisma.learnTopic.create({
+      data: {
+        slug: draftTopicSlug,
+        title: `E2E fixture: draft topic ${prefix}(not a real lesson)`,
+        summary: "A test topic for the accessibility gate.",
+        technology: "POWER_APPS",
+        sortOrder: 1,
+        authorUserId: admin.id,
+      },
+    });
+    created.topicIds.push(draftTopic.id);
+    const draftLesson = await prisma.learnLesson.create({
+      data: {
+        topicId: draftTopic.id,
+        slug: "first-lesson",
+        position: 1,
+        title: `E2E fixture: draft lesson ${prefix}`,
+        minutes: 10,
+        outcomes: ["The first outcome", "The second outcome"],
+        body: FIXTURE_LESSON_BODY,
+        authorUserId: admin.id,
+      },
+    });
+
     // MVP-012 (FR-009): admin product/release editor fixtures. Deliberately
     // built with direct Prisma writes, not through the admin API routes --
     // this is fixture setup for the accessibility harness, not the
@@ -886,6 +969,8 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         title: publishedUpdate.title,
       },
       draftUpdate: { id: draftUpdate.id, slug: draftUpdate.slug, title: draftUpdate.title },
+      draftTopic: { id: draftTopic.id, slug: draftTopic.slug, title: draftTopic.title },
+      draftLesson: { id: draftLesson.id, title: draftLesson.title },
       draftAdminProduct: {
         id: draftAdminProduct.id,
         slug: draftAdminProduct.slug,

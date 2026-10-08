@@ -57,3 +57,12 @@ All return `Cache-Control: no-store` where they change data. Public routes check
 - `POST /api/account/profile` `{ displayName }` or `{ avatar: "new" }`: signed in. `400 too-short | too-long | characters | reserved`; `409 taken`; `429` over 10 changes a day.
 - `POST /api/admin/comments/{id}/{remove | restore | keep | accept | unaccept}`: admin only; anyone else `404`. `keep` clears the comment's reports; `accept` marks it the guide's accepted fix (clearing any other).
 - `POST /api/admin/users/{id}/role` `{ role: "MEMBER" | "CONTRIBUTOR" | "ADMIN" }`: admin only; anyone else `404`. `409 self` (your own role), `409 last-admin`, `409 same`; `400 unknown-role`; `404` unknown user. Recorded in `role_change_events` and the audit log.
+
+## Learn topics and lessons (MVP-048 slice 1b; 2026-10-07)
+Admin only: anyone else gets the identical `404 "Not found."`, like every admin route. Bodies are validated with the same rules as the `content/topics` importer (`@ppu/domain-content`, `learn.ts`); field errors come back in the error envelope's `fieldErrors`.
+- `GET /api/admin/topics`: every topic with its lessons, every status. `POST /api/admin/topics` `{ slug, title, summary, technology, sortOrder }`: creates a DRAFT topic. `409` if the slug is taken.
+- `GET` / `PATCH /api/admin/topics/{id}`: fetch one; edit content only (never status or `publishedAt`).
+- `POST /api/admin/topics/{id}/publish`: DRAFT → PUBLISHED with a `LearnPublishEvent`, in one transaction. `409` when already published, or with fewer than 3 lessons (of any status).
+- `POST /api/admin/topics/{id}/lessons` `{ title, slug, position, minutes, outcomes, checkedOn, body }`: adds a DRAFT lesson. `outcomes` is an array or one-per-line text (2 or 3); `body` must follow the fixed lesson shape and knowledge-check rules (every problem returned under `fieldErrors.body`). `409` when another lesson in the topic has the slug or the position.
+- `GET` / `PATCH /api/admin/lessons/{id}`: fetch one; edit content only (never status, `publishedAt` or topic).
+- `POST /api/admin/lessons/{id}/publish`: DRAFT → PUBLISHED with a `LearnPublishEvent`. `409` when already published, or when the body no longer passes the shape check. A lesson shows on the site only once its topic is published too.
