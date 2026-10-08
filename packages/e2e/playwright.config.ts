@@ -104,6 +104,8 @@ export default defineConfig({
       NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://e2e.example.org",
       // MVP-040: comments are off in production until approved; the gate checks them.
       FEATURE_COMMENTS: "on",
+      // MVP-048: the Learn pages are off in production until the first topic is published.
+      FEATURE_LEARN: "on",
     },
   },
 });

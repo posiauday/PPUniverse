@@ -1436,6 +1436,128 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
   },
   {
+    // MVP-048 slice 2: the Learn home, listing the seeded published topic.
+    id: "topics-index",
+    route: "/topics",
+    description: "Learn home, with a published topic",
+    auth: "guest",
+    status: 200,
+    path: () => "/topics",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("main").getByText(seed.publishedTopic.title)).toBeVisible();
+    },
+  },
+  {
+    id: "topic-published",
+    route: "/topics/[topic]",
+    description: "a published Learn topic with its three lessons",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}`,
+  },
+  {
+    id: "topic-draft",
+    route: null,
+    description: "a draft Learn topic is a 404",
+    auth: "guest",
+    status: 404,
+    path: (seed) => `/topics/${seed.draftTopic.slug}`,
+  },
+  {
+    id: "lesson-published",
+    route: "/topics/[topic]/[lesson]",
+    description: "a lesson in the Workspace layout, signed in: lessons, the lesson, On this page",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[1]!.slug}`,
+  },
+  {
+    id: "lesson-answered",
+    route: null,
+    description: "a lesson with a knowledge-check question answered wrongly, explanations shown",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[0]!.slug}`,
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Yes" }).first().click();
+      await expect(page.getByText("No: it is a test fixture.")).toBeVisible();
+    },
+  },
+  {
+    // Lessons need sign-in (docs/final-decisions.md, 2026-10-08): a guest gets the outcomes and a way in.
+    id: "lesson-signed-out",
+    route: null,
+    description: "a lesson, signed out: its outcomes and Sign in to read",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[0]!.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("link", { name: "Sign in to read" })).toBeVisible();
+    },
+  },
+  {
+    id: "lesson-unknown",
+    route: null,
+    description: "an unknown lesson in a published topic is a 404",
+    auth: "guest",
+    status: 404,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/no-such-lesson`,
+  },
+  {
+    // MVP-048 slice 1b: the admin Learn topics list, with a draft topic and its draft lesson.
+    id: "admin-topics-populated",
+    route: "/admin/topics",
+    description: "admin Learn topics list, signed in as ADMIN, with a draft topic and lesson",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/topics",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("main").getByText(seed.draftTopic.title)).toBeVisible();
+      await expect(page.getByRole("main").getByText(seed.draftLesson.title)).toBeVisible();
+    },
+  },
+  {
+    id: "admin-topics-denied",
+    route: null,
+    description: "admin Learn topics list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/topics",
+  },
+  {
+    id: "admin-topics-new",
+    route: "/admin/topics/new",
+    description: "admin new-topic form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/topics/new",
+  },
+  {
+    id: "admin-topics-edit",
+    route: "/admin/topics/[id]/edit",
+    description: "admin edit-topic form with its lessons, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/topics/${seed.draftTopic.id}/edit`,
+  },
+  {
+    id: "admin-lessons-new",
+    route: "/admin/topics/[id]/lessons/new",
+    description: "admin new-lesson form, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/topics/${seed.draftTopic.id}/lessons/new`,
+  },
+  {
+    id: "admin-lessons-edit",
+    route: "/admin/lessons/[id]/edit",
+    description:
+      "admin edit-lesson form, signed in as ADMIN, pre-filled with a lesson in the fixed shape",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/lessons/${seed.draftLesson.id}/edit`,
+  },
+  {
     // The positive admin state: proves the surface actually lists real
     // Products (one DRAFT, one PUBLISHED), not just that it denies a
     // non-admin (below) — mirrors admin-content-populated.

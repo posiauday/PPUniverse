@@ -2167,3 +2167,27 @@ Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use i
 **Source:** direct product-owner answer in this session, by multiple choice (TD-030's options).
 
 The accessibility gate runs in **6 shards instead of 4**. The time limit stays at 20 minutes per job. Every engine, width, page state and rule stays, and the self-check still runs in every shard. Only the split of the same test list changes. This resolves TD-030: shards took 8 to 17 minutes and were cancelled at the limit on slower runners with no failing test. The reporting standard of "Accessibility suite mitigation" (2026-09-23) still applies: per-shard times and the total check count are reported on the first run.
+
+## 2026-10-08 — Learn: lessons need sign-in; progress saved to the account
+
+**Source:** direct product-owner answers in this session, by multiple choice: *"Only logged in user can do learn"*, confirmed as "Whole Learn module needs sign-in", and "Saved to their account" for progress, with the Privacy wording shown in the question.
+
+1. **Lessons need sign-in.** Signed-out visitors can see `/topics` and each topic page (what it covers and its lesson titles); those stay public and indexable. Opening a lesson needs an account: a signed-out visitor sees the lesson's title and "What you'll understand", and a button to sign in and come back to it.
+2. **So lessons aren't indexed.** Search engines can't read them, and showing them the content but not visitors would be cloaking. Lesson pages are `noindex`, left out of the sitemap, and IndexNow is told only about topic pages. This supersedes "Each lesson is a normal indexable page" in `docs/plans/learn-module.md` ("Search and AI tools"). The product owner chose this over search traffic to lessons when both were set out.
+3. **Progress is saved to the reader's account.** A signed-in reader can mark a lesson as done; it fills the lesson's ring across the topic, and their profile lists it, with a way to clear it. It is deleted with the account.
+4. **Privacy notice, approved wording**, as a new section, with a new version and effective date: *"Learn progress: if you're signed in and mark a lesson as done, we store which lessons you've finished and when. Only you see it. You can clear it on your profile page, and it's deleted with your account."*
+
+## 2026-10-08 — Power Apps component library: first, copy-paste YAML, free
+
+**Source:** direct product-owner instructions in this session, after the market research (`docs/research/2026-10-08-components-and-offers-by-technology.md`), and answers by multiple choice.
+
+1. **The Power Apps component library comes first.** The other technologies follow later, step by step.
+2. **Copy-paste YAML only**, for now: components that makers paste into Power Apps Studio's Components tab, complete with their design and custom properties.
+3. **Everything is free for now.** Some items can be **sign-in only** (free, but you need an account to copy them).
+4. **The bar:** modern UI and UX, top features, fully dynamic, following standards, working without errors, and exposing every type of custom property, so most makers can use them. Each component has a guide and variations.
+5. **Testing:** the product owner paste-tests every component in a free Power Apps Developer environment before it is published.
+6. **Reader feedback on each component:** comments, a 1 to 5 star rating, "Worked in my app", and "Report a problem".
+7. **Sign-in only and visibility (2026-10-08, follow-up):** the agent picks the first sign-in-only set; the product owner can then show, hide, or make any component sign-in only from the admin.
+8. **Previews are interactive web replicas** (follow-up): each component gets a working copy built for the site, which readers can use, not a screenshot. The pages say it is a web replica and that the look in Studio may differ slightly.
+
+The plan, with the proposed standard and pages (still to be signed off): `docs/plans/power-apps-component-library.md` (MVP-049).

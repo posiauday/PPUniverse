@@ -2,6 +2,8 @@ import { logger } from "@ppu/telemetry";
 import type { MetadataRoute } from "next";
 import { catalogRepository } from "../lib/catalog";
 import { contentRepository } from "../lib/content";
+import { learnEnabled } from "../lib/feature-flags";
+import { learnRepository } from "../lib/learn";
 import { generateSitemap } from "../lib/seo/sitemap";
 import { getSiteUrl } from "../lib/site-url";
 import { listSectionPathsWithContent } from "../lib/technology-sections";
@@ -24,6 +26,23 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
         updateRepository.listPublishedUpdateTimes(1),
       ]);
       return updates.length > 0 ? [...hubs, "/updates"] : hubs;
+    },
+    // MVP-048: /topics and each published topic with a published lesson, only
+    // while the Learn module is on (FEATURE_LEARN). Not the lessons: they need
+    // sign-in and are noindex (docs/final-decisions.md, 2026-10-08).
+    listLearnEntries: async () => {
+      if (!learnEnabled()) return [];
+      const topics = (await learnRepository.listPublishedTopics()).filter(
+        (topic) => topic.lessons.length > 0,
+      );
+      if (topics.length === 0) return [];
+      return [
+        { path: "/topics" },
+        ...topics.map((topic) => ({
+          path: `/topics/${encodeURIComponent(topic.slug)}`,
+          lastModified: topic.updatedAt,
+        })),
+      ];
     },
     warn: (event, fields) => logger.warn(event, fields),
   });

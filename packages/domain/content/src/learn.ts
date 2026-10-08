@@ -109,6 +109,8 @@ export interface PublishedLessonSummary {
   title: string;
   minutes: number;
   publishedAt: Date;
+  /** Last edited: the sitemap's lastModified. */
+  updatedAt: Date;
 }
 
 /** A PUBLISHED topic with its PUBLISHED lessons, in order. */
@@ -137,6 +139,14 @@ export interface PublishedLesson {
   updatedAt: Date;
 }
 
+/** A reader's progress through one topic: its published lessons they marked done. */
+export interface TopicProgress {
+  topicSlug: string;
+  topicTitle: string;
+  done: number;
+  total: number;
+}
+
 export interface LearnRepository {
   createTopic(input: TopicCreateInput): Promise<TopicRecord>;
   /** Content-only edit: never changes status or publishedAt. */
@@ -152,6 +162,8 @@ export interface LearnRepository {
   findTopicBySlug(slug: string): Promise<TopicRecord | null>;
   findLessonById(id: string): Promise<LessonRecord | null>;
   findLesson(topicId: string, slug: string): Promise<LessonRecord | null>;
+  /** One topic with all its lessons, every status, in order: the admin editor. */
+  findTopicWithLessons(id: string): Promise<TopicWithLessons | null>;
   /** Every topic and lesson, every status: the admin list. */
   listTopics(): Promise<TopicWithLessons[]>;
   /** PUBLISHED topics with their PUBLISHED lessons, by area order; optionally one area. */
@@ -161,6 +173,16 @@ export interface LearnRepository {
     topicSlug: string,
     lessonSlug: string,
   ): Promise<{ topic: PublishedTopic; lesson: PublishedLesson } | null>;
+  /** The id of a PUBLISHED lesson in a PUBLISHED topic, or null: what progress may be recorded against. */
+  findPublishedLessonId(topicSlug: string, lessonSlug: string): Promise<string | null>;
+  /** Marks a lesson done for a reader, or not done. Idempotent. */
+  setLessonDone(userId: string, lessonId: string, done: boolean): Promise<void>;
+  /** The slugs of a topic's lessons the reader marked done. */
+  listDoneLessonSlugs(userId: string, topicSlug: string): Promise<string[]>;
+  /** The reader's progress per published topic, for topics they've started. */
+  listProgress(userId: string): Promise<TopicProgress[]>;
+  /** Clears all of a reader's progress. */
+  clearProgress(userId: string): Promise<void>;
 }
 
 export const TOPIC_TITLE_MAX = 120;
@@ -275,7 +297,9 @@ export function parseKnowledgeChecks(body: string): KnowledgeQuestion[] {
     const explanation = line.match(EXPLANATION);
     const last = current.options[current.options.length - 1];
     if (explanation && last) {
-      last.why = last.why ? `${last.why} ${(explanation[1] as string).trim()}` : (explanation[1] as string).trim();
+      last.why = last.why
+        ? `${last.why} ${(explanation[1] as string).trim()}`
+        : (explanation[1] as string).trim();
     }
   }
   return questions;

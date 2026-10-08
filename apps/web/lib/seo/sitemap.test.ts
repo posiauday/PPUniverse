@@ -2,7 +2,7 @@ import type { SitemapEntries } from "@ppu/domain-catalog";
 import type { ArticleSitemapEntries } from "@ppu/domain-content";
 import { describe, expect, it, vi } from "vitest";
 import type { SiteUrlResult } from "../site-url.js";
-import { MAX_SITEMAP_URLS, buildSitemap, generateSitemap } from "./sitemap.js";
+import { MAX_LEARN_URLS, MAX_SITEMAP_URLS, buildSitemap, generateSitemap } from "./sitemap.js";
 import { MAX_SECTION_PATHS } from "../technology-sections.js";
 
 const SITE: SiteUrlResult = { ok: true, origin: "https://example.com" };
@@ -20,8 +20,11 @@ const ARTICLES: ArticleSitemapEntries = {
 // The home page and the /learn hub take one slot each.
 // The home page and /learn hub take one slot each, and MVP-028's technology
 // section tabs (MAX_SECTION_PATHS) are reserved up front.
-const CATALOG_BUDGET = Math.ceil((MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS) / 2);
-const ARTICLE_BUDGET = MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS - CATALOG_BUDGET;
+const CATALOG_BUDGET = Math.ceil(
+  (MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS - MAX_LEARN_URLS) / 2,
+);
+const ARTICLE_BUDGET =
+  MAX_SITEMAP_URLS - 2 - 4 - MAX_SECTION_PATHS - MAX_LEARN_URLS - CATALOG_BUDGET;
 
 describe("buildSitemap", () => {
   it("lists the home page, category base URLs, product URLs, the /learn hub and Article URLs — as absolute URLs", () => {
@@ -184,5 +187,31 @@ describe("generateSitemap", () => {
     const { deps, listSitemapEntries } = make();
     listSitemapEntries.mockRejectedValue(new Error("database unavailable"));
     await expect(generateSitemap(deps)).rejects.toThrow("database unavailable");
+  });
+});
+
+describe("Learn pages in the sitemap (MVP-048)", () => {
+  it("lists them before the info pages, with their last-changed dates", () => {
+    const changed = new Date("2026-10-07T00:00:00Z");
+    const result = buildSitemap(
+      "https://example.com",
+      { categorySlugs: [], productSlugs: [] },
+      [],
+      [],
+      [
+        { path: "/topics" },
+        { path: "/topics/power-apps-delegation/which-formulas-delegate", lastModified: changed },
+      ],
+    );
+    expect(result.map((entry) => entry.url)).toEqual([
+      "https://example.com/",
+      "https://example.com/topics",
+      "https://example.com/topics/power-apps-delegation/which-formulas-delegate",
+      "https://example.com/about",
+      "https://example.com/privacy",
+      "https://example.com/terms",
+      "https://example.com/how-we-write",
+    ]);
+    expect(result[2]?.lastModified).toEqual(changed);
   });
 });

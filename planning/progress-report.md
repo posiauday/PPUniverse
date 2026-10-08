@@ -5128,3 +5128,72 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Risks:** the repository's database tests ran only in CI (the local embedded Postgres wasn't available).
 
 **Remaining:** 1b admin (topic and lesson editors, publish controls, API with ADMIN checks, audit log entries); 2 public pages (`/topics`, topic, and lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS); 3 progress for signed-in readers; 4 the first six topics as drafts.
+
+## 2026-10-07 — Learn module, slice 1b: the admin (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014). Writing and publishing topics and lessons in the admin. Nothing public yet (slice 2).
+
+**Built:**
+- **API** (`app/api/admin/topics`, `app/api/admin/lessons`; `docs/07-api-contracts.md`): list, create, edit and publish topics; add, edit and publish lessons. Admins only, with the identical 404 for anyone else. Bodies are validated by `lib/learn-input.ts` with the importer's own rules, so the admin and `content/topics` can never disagree. Slug and lesson number are unique within a topic (`lib/learn-lesson-conflicts.ts`). A topic needs at least 3 lessons to publish. A lesson's body is checked against the fixed shape again at publish time.
+- **Pages:** `/admin/topics` (each topic with its lessons, status and publish buttons that give the server's reason when they can't publish), `/admin/topics/new`, `/admin/topics/{id}/edit` (the topic and its lessons, "Add a lesson" up to 6), `/admin/topics/{id}/lessons/new` (the next free lesson number filled in, and a "Start from the lesson outline" button), `/admin/lessons/{id}/edit`. Every error is tied to its field, and a lesson body lists all its problems at once.
+- **Sidebar and audit:** "Learn topics" under Content; topic and lesson publishes appear in the audit log ("Learn").
+- **Repository:** `findTopicWithLessons(id)` for the editor and the publish check.
+- **Gate:** five new routes and six states (populated list, member denied, the four forms), with a seeded draft topic and lesson in the fixed shape, cleaned up before the fixture users.
+
+**Commands:** `vitest run` (web: 788 passed, including 10 new route tests; e2e: 86 passed, including route coverage), `tsc --noEmit`, `eslint`, `prettier`.
+
+**Security:** admin role re-read from the database on every route; content-only edits can't change status, publishedAt or a lesson's topic; publish is its own route with an append-only audit event; lesson bodies are stored as Markdown and never rendered as HTML here.
+
+**Not done here:** IndexNow on publish waits for the public pages (slice 2). A sidebar count for Learn drafts was left out to keep this slice small.
+
+**Remaining:** 2 public pages (`/topics`, topic, lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS, IndexNow on publish); 3 progress for signed-in readers; 4 the first six topics as drafts.
+
+## 2026-10-08 — Learn module, slice 2: the public pages (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014, FR-017). The public Learn pages in the Workspace design (`docs/final-decisions.md`, "Learn module design: Workspace"), behind a new switch, `FEATURE_LEARN` (CLAUDE.md: "Use feature flags for incomplete or risky modules"). Off, `/topics` and its pages answer 404, stay out of the sitemap, and the Learn button keeps opening the guides.
+
+**Built:**
+- **`/topics`:** published topics with a published lesson, grouped by area, with lesson count and total minutes; noindex until it lists a topic.
+- **`/topics/[topic]`:** summary, area, "Start lesson 1", and the lessons in order; BreadcrumbList.
+- **`/topics/[topic]/[lesson]`:** three columns. The topic's lessons, with the current one's ring filling as it's read (`LessonChrome.tsx`). The lesson: outcomes, then the six sections (`lib/lesson-view.ts`), with "The important things" highlighted and "Check yourself" drawn as `KnowledgeCheck.tsx`, whose answers reveal every explanation, a small shake for a wrong answer (off with reduced motion) and a score, with nothing stored. "On this page" marks the section being read with a sliding marker and % read (xl and up). Below lg the lessons fold into a menu above the lesson. TechArticle with dates and BreadcrumbList. Next-lesson card, previous link.
+- **Top bar:** the Learn button opens `/topics` while the switch is on (`SiteHeader`, `MobileMenu`).
+- **Sitemap:** `/topics`, each topic and each lesson, with `lastModified`, in 1,000 reserved slots (`MAX_LEARN_URLS`), only while the switch is on.
+- **IndexNow:** publishing a lesson whose topic is published, or a topic with a published lesson, notifies IndexNow, only while the switch is on.
+- **Admin Settings:** the switch is listed with what it does.
+- **Gate:** three new routes; states `topics-index`, `topic-published`, `topic-draft` (404), `lesson-published`, `lesson-answered` (a wrong answer with explanations shown), `lesson-unknown` (404); a seeded published topic with three published lessons; `FEATURE_LEARN=on` for the gate server.
+
+**Checked locally on a real database:** Prisma's local Postgres (`prisma dev`, PGlite) with every migration applied. `topics:import` created the sample topic and three lessons as drafts, then skipped all four on a second run. The repository's database tests (3) pass. The pages render at 1440 and 375 px with no console errors. The knowledge check, ring and page marker work. The gate's Learn and admin states pass every axe, overflow and title check in Chromium; the only keyboard-check failures came from the Next.js dev-tools button, which exists only in dev mode (CI runs the production server).
+
+**Commands:** `vitest run` (web: 795 passed), `tsc --noEmit`, `eslint`, `prettier`, `prisma migrate deploy` and the integration tests against the local database, `playwright test tests/a11y --project=chromium --grep "topics|lesson"` (dev server).
+
+**Not done:** RSS for lessons (the plan lists it; `/learn/feed.xml` stays guides only for now); View Transitions between lessons (the lesson slides in with `motion-rise` instead).
+
+**Remaining:** 3 progress for signed-in readers (lessons ticked done, rings filled across lessons); 4 the first six topics as drafts; then the product owner publishes and sets `FEATURE_LEARN=on`.
+
+## 2026-10-08 — Learn module, slice 3: sign-in and progress; module benched (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014, FR-017). Decisions: `docs/final-decisions.md`, 2026-10-08, "Learn: lessons need sign-in; progress saved to the account" (lessons need sign-in, topics stay public; progress saved to the account; the Privacy wording approved as asked).
+
+**Built:**
+- **Lessons need sign-in:** a signed-out reader gets the lesson's title, topic and outcomes, "Sign in to read" (back to the lesson after sign-in) and "Create a free account". No lesson text, no knowledge check. Lessons are noindex, carry no article data, and are left out of the sitemap; IndexNow is told only about the topic page. The topic page's button reads "Sign in to start" for guests.
+- **Progress:** `lesson_progress` (migration `20261014000000_add_lesson_progress`, additive, rollback in the file; Cascade on the user and the lesson; RLS). `POST/DELETE /api/learn/progress`: signed-in, same-origin, published lessons only, the reader's own progress only. "Mark as done" (undo-able) at the end of each lesson; done lessons show a full ring and ✓ in the lesson list and topic page; the topic shows "N of M done" and "Continue: lesson N". The profile lists progress per topic with "Clear my Learn progress" (confirm first).
+- **Privacy notice:** "Learn progress" in the approved wording, plus a retention line; new version 2026-10-12 (same migration).
+- **Gate:** lesson states sign in as a member; new `lesson-signed-out` state.
+
+**Checked on a real local database** (Prisma's local Postgres): the new migration applies; the repository's database tests (4, including progress deleted with the account) pass; the gate's Learn, admin and profile states pass every axe, overflow and title check in Chromium (the only keyboard-check failures are the Next.js dev-tools button, dev mode only).
+
+**Commands:** `vitest run` (web: 799 passed; 4 new progress route tests), `tsc --noEmit`, `eslint`, `prettier`, `prisma migrate deploy`, the integration tests and `playwright test tests/a11y --project=chromium --grep "topic|lesson|profile"` against the local database.
+
+**Benched** (product owner, 2026-10-08): the code is done and off in production (`FEATURE_LEARN`). To launch: write the first topics in `content/topics`, publish them in the admin, then set `FEATURE_LEARN=on`. MVP-048 stays In Progress until the content exists (Definition of Done).
+
+## 2026-10-08 — Maker critter avatars and wider niche names (MVP-040 follow-up)
+
+**Asked for:** by the product owner: "by default [the reader] gets an avatar and name related to [the] Microsoft niche ... be creative and be artistic to build avatar".
+
+**Already there (MVP-040):** every signed-in reader is given a random name ("Tidy Trigger 418") and avatar, both changeable on `/account/profile` ("Draw a new avatar" re-rolls the seed).
+
+**Built:**
+- **Avatars** (`apps/web/app/Avatar.tsx`, `avatarFromSeed` in `@ppu/domain-content`): a "maker critter" drawn from the seed. Parts: 8 palettes (our area colours and coral), 4 background patterns, 4 head shapes, 5 eyes, 5 mouths, optional blush, a slight tilt, and one low-code accessory (connector antenna, flow bolt, report bars, agent chat bubble, admin gear, data cylinder, sparkle, support headset): 51,200 combinations. Our own drawings, no product logos. Plain SVG with no ids, so many avatars on a page never duplicate an id. Existing readers get the new art automatically: their stored seed is drawn the new way; nothing in the database changes.
+- **Names:** 32 adjectives and 48 low-code nouns (was 16 and 16), still no product names; the reserved words are unchanged.
+
+**Checked:** a 48-avatar gallery rendered at 96 px and at 24 to 64 px on light and dark; domain tests (74) and web tests (799) pass; typecheck, lint and Prettier are clean.

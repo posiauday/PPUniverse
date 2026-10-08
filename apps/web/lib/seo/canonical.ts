@@ -35,6 +35,19 @@ export function learnUrl(origin: string, slug: string): string {
   return `${origin}/learn/${encodeURIComponent(slug)}`;
 }
 
+/** MVP-048: the Learn module's home, a topic, and a lesson. */
+export function topicsIndexUrl(origin: string): string {
+  return `${origin}/topics`;
+}
+
+export function topicUrl(origin: string, topicSlug: string): string {
+  return `${origin}/topics/${encodeURIComponent(topicSlug)}`;
+}
+
+export function lessonUrl(origin: string, topicSlug: string, lessonSlug: string): string {
+  return `${topicUrl(origin, topicSlug)}/${encodeURIComponent(lessonSlug)}`;
+}
+
 /** Share images (SEO story; lib/seo/share-image.tsx), served under /og, not /api. */
 export function siteShareImageUrl(origin: string): string {
   return `${origin}/og`;

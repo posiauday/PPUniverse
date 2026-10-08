@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@ppu/db";
 import {
   isValidArticleStatusTransition,
+  type TopicProgress,
   type LearnRepository,
   type LearnStatus,
   type LessonCreateInput,
@@ -125,6 +126,14 @@ export class PrismaLearnRepository implements LearnRepository {
     return row ? toLesson(row) : null;
   }
 
+  async findTopicWithLessons(id: string): Promise<TopicWithLessons | null> {
+    const row = await this.db.learnTopic.findUnique({
+      where: { id },
+      include: { lessons: { orderBy: { position: "asc" } } },
+    });
+    return row ? { ...toTopic(row), lessons: row.lessons.map(toLesson) } : null;
+  }
+
   async listTopics(): Promise<TopicWithLessons[]> {
     const rows = await this.db.learnTopic.findMany({
       orderBy: [{ technology: "asc" }, { sortOrder: "asc" }, { slug: "asc" }],
@@ -179,13 +188,76 @@ export class PrismaLearnRepository implements LearnRepository {
       },
     };
   }
+
+  async findPublishedLessonId(topicSlug: string, lessonSlug: string): Promise<string | null> {
+    const row = await this.db.learnLesson.findFirst({
+      where: { slug: lessonSlug, status: "PUBLISHED", topic: { slug: topicSlug, status: "PUBLISHED" } },
+      select: { id: true },
+    });
+    return row?.id ?? null;
+  }
+
+  async setLessonDone(userId: string, lessonId: string, done: boolean): Promise<void> {
+    if (done) {
+      await this.db.lessonProgress.upsert({
+        where: { userId_lessonId: { userId, lessonId } },
+        create: { userId, lessonId },
+        update: {},
+      });
+    } else {
+      await this.db.lessonProgress.deleteMany({ where: { userId, lessonId } });
+    }
+  }
+
+  async listDoneLessonSlugs(userId: string, topicSlug: string): Promise<string[]> {
+    const rows = await this.db.lessonProgress.findMany({
+      where: { userId, lesson: { topic: { slug: topicSlug } } },
+      select: { lesson: { select: { slug: true } } },
+    });
+    return rows.map((row) => row.lesson.slug);
+  }
+
+  async listProgress(userId: string): Promise<TopicProgress[]> {
+    const rows = await this.db.learnTopic.findMany({
+      where: {
+        status: "PUBLISHED",
+        lessons: { some: { status: "PUBLISHED", progress: { some: { userId } } } },
+      },
+      orderBy: [{ technology: "asc" }, { sortOrder: "asc" }, { slug: "asc" }],
+      select: {
+        slug: true,
+        title: true,
+        lessons: {
+          where: { status: "PUBLISHED" },
+          select: { progress: { where: { userId }, select: { id: true } } },
+        },
+      },
+    });
+    return rows.map((row) => ({
+      topicSlug: row.slug,
+      topicTitle: row.title,
+      done: row.lessons.filter((lesson) => lesson.progress.length > 0).length,
+      total: row.lessons.length,
+    }));
+  }
+
+  async clearProgress(userId: string): Promise<void> {
+    await this.db.lessonProgress.deleteMany({ where: { userId } });
+  }
 }
 
 const publishedLessons = {
   lessons: {
     where: { status: "PUBLISHED" as const },
     orderBy: { position: "asc" as const },
-    select: { slug: true, position: true, title: true, minutes: true, publishedAt: true },
+    select: {
+      slug: true,
+      position: true,
+      title: true,
+      minutes: true,
+      publishedAt: true,
+      updatedAt: true,
+    },
   },
 };
 
@@ -221,7 +293,14 @@ function toTopic(row: TopicRow): TopicRecord {
 
 function toPublishedTopic(
   row: TopicRow & {
-    lessons: { slug: string; position: number; title: string; minutes: number; publishedAt: Date | null }[];
+    lessons: {
+      slug: string;
+      position: number;
+      title: string;
+      minutes: number;
+      publishedAt: Date | null;
+      updatedAt: Date;
+    }[];
   },
 ): PublishedTopic {
   return {

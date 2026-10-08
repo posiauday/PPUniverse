@@ -22,6 +22,7 @@ export function MobileMenu({
   account,
   themeToggle,
   updateTimes = [],
+  learnHref = "/learn",
 }: {
   links: readonly MenuLink[];
   technologies: readonly MenuLink[];
@@ -29,6 +30,8 @@ export function MobileMenu({
   themeToggle: ReactNode;
   /** Newest published update times, for the Updates badge (MVP-033 slice D). */
   updateTimes?: readonly string[];
+  /** Where the Learn button goes: /topics when FEATURE_LEARN is on (MVP-048), else the guides. */
+  learnHref?: string;
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -114,7 +117,7 @@ export function MobileMenu({
           </Link>
           <span className="ml-auto">{themeToggle}</span>
           <Link
-            href="/learn"
+            href={learnHref}
             onClick={close}
             className="motion-press inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline"
           >
