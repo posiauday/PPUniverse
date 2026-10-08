@@ -53,7 +53,7 @@ ComponentDefinitions:
         Description: "True when the text passes every check: required, your Validate formula and ErrorMessage."
       Validate:
         PropertyKind: InputFunction
-        ReturnType: Text
+        DataType: Text
         Description: "Your own check. Receives the text and returns an error message, or empty text when it's fine."
         Parameters:
           - Text:

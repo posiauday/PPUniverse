@@ -23,7 +23,7 @@ ComponentDefinitions:
         Description: "The kind of the toast showing now: Success, Info, Warning or Error."
       FormatMessage:
         PropertyKind: InputFunction
-        ReturnType: Text
+        DataType: Text
         Description: "Lets your app change how messages read, such as adding a prefix. Receives the message and its kind."
         Parameters:
           - Message:

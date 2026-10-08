@@ -29,7 +29,7 @@ ComponentDefinitions:
         Description: "True when a state is showing. Hide your gallery or form while it is."
       StateFor:
         PropertyKind: OutputFunction
-        ReturnType: Text
+        DataType: Text
         Description: "Picks the state from what your app knows: Loading first, then Error, then Empty when there are no rows, otherwise empty text."
         Parameters:
           - IsLoading:

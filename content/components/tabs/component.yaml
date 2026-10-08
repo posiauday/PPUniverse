@@ -29,7 +29,7 @@ ComponentDefinitions:
         Description: "The text of the selected tab. Use it to show the matching content."
       ItemsFromText:
         PropertyKind: OutputFunction
-        ReturnType: Table
+        DataType: Table
         Description: "Turns comma-separated text, such as \"Open, Waiting, Done\", into tabs for Items."
         Parameters:
           - List:
