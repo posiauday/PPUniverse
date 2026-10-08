@@ -1,7 +1,7 @@
 ComponentDefinitions:
   lcsTextField:
     DefinitionType: CanvasComponent
-    Description: "LowCodeStacks text field: a label, a hint, validation with an error message, a character count and a required marker, around the modern text input, in three looks and light or dark."
+    Description: "LowCodeStacks text field: a label, a hint, built-in format checks (email, phone, number, web address, postal and ZIP codes) and your own validation with an error message, a character count and a required marker, around the modern text input, in three looks and light or dark."
     CustomProperties:
       Label:
         PropertyKind: Input
@@ -45,6 +45,12 @@ ComponentDefinitions:
         DataType: Boolean
         Description: "When true, the box takes several lines. Make the component taller to show them."
         Default: =false
+      Format:
+        PropertyKind: Input
+        DisplayName: Format
+        DataType: Text
+        Description: "A built-in check for what the text must look like: None, Email, Phone, Number, Url, PostalCodeCA or ZipCodeUS. An empty box passes unless Required is on."
+        Default: ="None"
       ErrorMessage:
         PropertyKind: Input
         DisplayName: ErrorMessage
@@ -78,7 +84,7 @@ ComponentDefinitions:
         PropertyKind: Output
         DisplayName: IsValid
         DataType: Boolean
-        Description: "True when the text passes every check: required, your Validate formula and ErrorMessage."
+        Description: "True when the text passes every check: required, Format, your Validate formula and ErrorMessage."
       Validate:
         PropertyKind: InputFunction
         DisplayName: Validate
@@ -114,6 +120,18 @@ ComponentDefinitions:
       IsValid: |-
         =IsBlank(lcsTextField.ErrorMessage) &&
         !(lcsTextField.Required && IsBlank(Trim(txtInput.Text))) &&
+        (IsBlank(Trim(txtInput.Text)) || IsBlank(
+            Switch(
+                lcsTextField.Format,
+                "Email", If(IsMatch(Trim(txtInput.Text), Match.Email), "", "Enter an email address like name@example.com."),
+                "Phone", If(IsMatch(Trim(txtInput.Text), "\+?[0-9 ()\-]{7,20}"), "", "Enter a phone number with digits, spaces and + ( ) -."),
+                "Number", If(IsMatch(Trim(txtInput.Text), "-?[0-9]+([.,][0-9]+)?"), "", "Enter a number, such as 42 or 3.5."),
+                "Url", If(IsMatch(Trim(txtInput.Text), "https?://[^ ]+\.[^ ]+"), "", "Enter a web address that starts with https://."),
+                "PostalCodeCA", If(IsMatch(Upper(Trim(txtInput.Text)), "[A-Z][0-9][A-Z] ?[0-9][A-Z][0-9]"), "", "Enter a postal code like K1A 0B1."),
+                "ZipCodeUS", If(IsMatch(Trim(txtInput.Text), "[0-9]{5}(-[0-9]{4})?"), "", "Enter a ZIP code like 12345 or 12345-6789."),
+                ""
+            )
+        )) &&
         IsBlank(lcsTextField.Validate(txtInput.Text))
       Reset: |-
         =Reset(txtInput);
@@ -184,14 +202,32 @@ ComponentDefinitions:
             Text: |-
               =With(
                   {
-                      problem: If(
-                          !IsBlank(lcsTextField.ErrorMessage), lcsTextField.ErrorMessage,
-                          !locTouched, "",
-                          lcsTextField.Required && IsBlank(Trim(txtInput.Text)), "This field is required.",
-                          lcsTextField.Validate(txtInput.Text)
+                      formatProblem: If(
+                          IsBlank(Trim(txtInput.Text)), "",
+                          Switch(
+                              lcsTextField.Format,
+                              "Email", If(IsMatch(Trim(txtInput.Text), Match.Email), "", "Enter an email address like name@example.com."),
+                              "Phone", If(IsMatch(Trim(txtInput.Text), "\+?[0-9 ()\-]{7,20}"), "", "Enter a phone number with digits, spaces and + ( ) -."),
+                              "Number", If(IsMatch(Trim(txtInput.Text), "-?[0-9]+([.,][0-9]+)?"), "", "Enter a number, such as 42 or 3.5."),
+                              "Url", If(IsMatch(Trim(txtInput.Text), "https?://[^ ]+\.[^ ]+"), "", "Enter a web address that starts with https://."),
+                              "PostalCodeCA", If(IsMatch(Upper(Trim(txtInput.Text)), "[A-Z][0-9][A-Z] ?[0-9][A-Z][0-9]"), "", "Enter a postal code like K1A 0B1."),
+                              "ZipCodeUS", If(IsMatch(Trim(txtInput.Text), "[0-9]{5}(-[0-9]{4})?"), "", "Enter a ZIP code like 12345 or 12345-6789."),
+                              ""
+                          )
                       )
                   },
-                  If(IsBlank(problem), "", "⚠ " & problem)
+                  With(
+                      {
+                          problem: If(
+                              !IsBlank(lcsTextField.ErrorMessage), lcsTextField.ErrorMessage,
+                              !locTouched, "",
+                              lcsTextField.Required && IsBlank(Trim(txtInput.Text)), "This field is required.",
+                              !IsBlank(formatProblem), formatProblem,
+                              lcsTextField.Validate(txtInput.Text)
+                          )
+                      },
+                      If(IsBlank(problem), "", "⚠ " & problem)
+                  )
               )
             Size: =12
             Color: =If(lcsTextField.Theme = "Dark", RGBA(241, 112, 123, 1), RGBA(196, 49, 75, 1))

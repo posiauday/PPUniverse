@@ -5286,3 +5286,15 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not changed:** Next.js's own polyfills, the DOM size, the unattributed reflow and the main chunk's long task; reasons in `planning/tech-debt/TD-032.md`.
 
 **Next:** re-run PageSpeed Insights on production after the release, mobile and desktop.
+
+## 2026-10-08 — Component library: Text field 0.3.0, built-in formats (MVP-049, In Progress)
+
+**Asked:** "continue": the last wave 1 item in the approved build order (Text field input formats; docs/research/2026-10-08-component-roadmap-and-differentiators.md).
+
+**Built:** a `Format` input on `lcsTextField` with built-in checks and clear messages: `Email` (Power Fx `Match.Email`), `Phone` (7 to 20 digits, spaces and `+ ( ) -`), `Number`, `Url` (https), `PostalCodeCA` and `ZipCodeUS`. The check runs after Required and before your own `Validate`, only once the user has left the box, and `IsValid` includes it. An empty box passes; Required asks for one. It checks, it doesn't reformat as people type: a Power Apps text input can't. Guide, variations (Email now uses it; Phone number and Postal code added), live preview and paste-test rows updated.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests, including each format's good and bad text.
+
+**Not yet:** the product owner's paste-test; Power Fx accepts only part of regular expression syntax, so the patterns are kept simple.
+
+**Next:** wave 2, starting with the Date and time picker.

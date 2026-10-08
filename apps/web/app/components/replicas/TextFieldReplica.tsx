@@ -7,7 +7,7 @@ import { cssColor, fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./re
 /**
  * A web replica of lcsTextField (MVP-049; docs/final-decisions.md, 2026-10-08,
  * "One live view"): label, modern text input, hint or error, and count, 340
- * wide, as its YAML lays them out. As in Power Apps, the count and Value change
+ * wide, as its YAML lays them out, with its built-in Format checks. As in Power Apps, the count and Value change
  * on every key, but OnChange runs only when you leave the box after changing
  * it, and that's also when a required or invalid value first shows its error.
  */
@@ -20,6 +20,7 @@ interface Inputs {
   Required: boolean;
   MaxLength: number;
   Multiline: boolean;
+  Format: string;
   ErrorMessage: string;
   Look: string;
   AccentColor: string;
@@ -35,6 +36,7 @@ const DEFAULTS: Inputs = {
   Required: false,
   MaxLength: 100,
   Multiline: false,
+  Format: "None",
   ErrorMessage: "",
   Look: "Outline",
   AccentColor: "#0f6cbd",
@@ -51,11 +53,49 @@ function read(settings: Record<string, string>): Inputs {
 }
 
 /** The component's error rule: ErrorMessage first, then required, once the box has changed. */
+/**
+ * The component's Format check (its Switch of IsMatch rules, each matching the
+ * whole text): an error message, or empty text when it's fine. An empty box
+ * passes; Required asks for one.
+ */
+const FORMATS: Record<string, { pattern: RegExp; message: string }> = {
+  Email: {
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    message: "Enter an email address like name@example.com.",
+  },
+  Phone: {
+    pattern: /^\+?[0-9 ()-]{7,20}$/,
+    message: "Enter a phone number with digits, spaces and + ( ) -.",
+  },
+  Number: { pattern: /^-?[0-9]+([.,][0-9]+)?$/, message: "Enter a number, such as 42 or 3.5." },
+  Url: {
+    pattern: /^https?:\/\/[^ ]+\.[^ ]+$/,
+    message: "Enter a web address that starts with https://.",
+  },
+  PostalCodeCA: {
+    pattern: /^[A-Z][0-9][A-Z] ?[0-9][A-Z][0-9]$/,
+    message: "Enter a postal code like K1A 0B1.",
+  },
+  ZipCodeUS: {
+    pattern: /^[0-9]{5}(-[0-9]{4})?$/,
+    message: "Enter a ZIP code like 12345 or 12345-6789.",
+  },
+};
+
+export function formatProblem(format: string, text: string): string {
+  const value = text.trim();
+  const rule = FORMATS[format];
+  if (!rule || value === "") return "";
+  const checked = format === "PostalCodeCA" ? value.toUpperCase() : value;
+  return rule.pattern.test(checked) ? "" : rule.message;
+}
+
+/** The component's error rule: ErrorMessage, then (once the box has changed) required, then Format. */
 function problemFor(inputs: Inputs, value: string, touched: boolean): string {
   if (inputs.ErrorMessage) return inputs.ErrorMessage;
   if (!touched) return "";
   if (inputs.Required && value.trim() === "") return "This field is required.";
-  return "";
+  return formatProblem(inputs.Format, value);
 }
 
 export function useTextFieldReplica(): ReplicaApi {
@@ -68,7 +108,10 @@ export function useTextFieldReplica(): ReplicaApi {
 
   const dark = inputs.Theme === "Dark";
   const problem = problemFor(inputs, value, touched);
-  const isValid = !inputs.ErrorMessage && !(inputs.Required && value.trim() === "");
+  const isValid =
+    !inputs.ErrorMessage &&
+    !(inputs.Required && value.trim() === "") &&
+    formatProblem(inputs.Format, value) === "";
   const fill = dark
     ? inputs.Look === "Outline"
       ? "bg-[#292929]"
