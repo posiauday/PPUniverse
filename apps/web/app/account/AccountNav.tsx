@@ -12,7 +12,8 @@ export interface AccountNavLink {
  * The account menu beside every /account page (2026-10-08): the overview,
  * profile, sessions and privacy, plus Admin for admins. The current page is
  * marked for screen readers (aria-current) and visually, like the admin
- * sidebar. Below the md width it sits above the page as a row of pills.
+ * sidebar. Below the md width it sits above the page as pills that wrap, so
+ * the page never scrolls sideways on a phone.
  */
 export function AccountNav({
   links,
@@ -42,7 +43,7 @@ export function AccountNav({
   };
   return (
     <nav aria-label="Account">
-      <ul className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible md:pb-0">
+      <ul className="flex flex-wrap gap-1 md:flex-col">
         {links.map((link) => item(link.href, link.name))}
         {adminLink ? item("/admin", "Admin") : null}
       </ul>

@@ -24,9 +24,9 @@ export default async function AccountLayout({ children }: { children: ReactNode 
     { href: "/account/privacy", name: "Privacy and your data" },
   ];
   return (
-    <div className="mx-auto grid max-w-[66rem] gap-6 px-4 py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-10 md:px-6">
+    <div className="mx-auto grid max-w-[66rem] grid-cols-[minmax(0,1fr)] gap-6 px-4 py-8 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-10 md:px-6">
       {session ? (
-        <div className="md:sticky md:top-28 md:self-start">
+        <div className="min-w-0 md:sticky md:top-28 md:self-start">
           <AccountNav links={links} adminLink={viewer?.isAdmin ?? false} />
         </div>
       ) : (
