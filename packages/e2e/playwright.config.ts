@@ -106,6 +106,8 @@ export default defineConfig({
       FEATURE_COMMENTS: "on",
       // MVP-048: the Learn pages are off in production until the first topic is published.
       FEATURE_LEARN: "on",
+      // MVP-049: the component library pages are off in production until the first component is published.
+      FEATURE_COMPONENTS: "on",
     },
   },
 });

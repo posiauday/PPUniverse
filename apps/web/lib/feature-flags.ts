@@ -5,7 +5,10 @@
  *
  * FEATURE_COMPONENTS: the component catalog's navigation links. Off until the
  * first product is published, so the top bar never leads to an empty catalog
- * (docs/final-decisions.md, "Navigation restructure", decision 1).
+ * (docs/final-decisions.md, "Navigation restructure", decision 1). Since
+ * MVP-049 it also switches on the Power Apps component library pages
+ * (/components); while it's off they are a 404. Publishing and testing in
+ * /admin/components work either way.
  */
 export function componentsEnabled(): boolean {
   return process.env["FEATURE_COMPONENTS"] === "on";

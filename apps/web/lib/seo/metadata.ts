@@ -2,6 +2,8 @@ import { normalizeDisplayText } from "@ppu/domain-catalog";
 import type { Metadata } from "next";
 import type { SiteUrlResult } from "../site-url";
 import {
+  componentUrl,
+  componentsIndexUrl,
   categoryUrl,
   homeUrl,
   infoPageUrl,
@@ -236,6 +238,40 @@ export function buildTechnologySectionMetadata(input: {
     description: toMetaDescription(description, `${title} on ${SITE_NAME}.`),
     url: site.ok ? technologySectionUrl(site.origin, path) : undefined,
     robots: hasContent ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
+}
+
+/** MVP-049: the component library. Indexable once it lists a component. */
+export function buildComponentsIndexMetadata(input: {
+  site: SiteUrlResult;
+  hasComponents: boolean;
+}): Metadata {
+  const { site, hasComponents } = input;
+  return composeMetadata({
+    title: `Free Power Apps components to copy and paste | ${SITE_NAME}`,
+    socialTitle: "Free Power Apps components to copy and paste",
+    description:
+      "Modern canvas app components with every kind of custom property. Try each one live, then copy its YAML and paste it into Power Apps Studio.",
+    url: site.ok ? componentsIndexUrl(site.origin) : undefined,
+    robots: hasComponents ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
+    image: site.ok ? siteShareImageUrl(site.origin) : undefined,
+  });
+}
+
+/** MVP-049: a published library component. */
+export function buildComponentMetadata(input: {
+  site: SiteUrlResult;
+  component: { slug: string; title: string; summary: string };
+}): Metadata {
+  const { site, component } = input;
+  const title = normalizeDisplayText(component.title) ?? SITE_NAME;
+  return composeMetadata({
+    title: `${title}: a Power Apps component | ${SITE_NAME}`,
+    socialTitle: `${title}: a Power Apps component`,
+    description: toMetaDescription(component.summary, `${title}, a free Power Apps component.`),
+    url: site.ok ? componentUrl(site.origin, component.slug) : undefined,
+    robots: INDEXABLE_ROBOTS,
     image: site.ok ? siteShareImageUrl(site.origin) : undefined,
   });
 }

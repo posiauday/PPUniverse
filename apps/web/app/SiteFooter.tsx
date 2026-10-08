@@ -69,7 +69,7 @@ export function SiteFooter() {
         <div className="grid grid-cols-2 gap-6 md:contents">
           {COLUMNS.map((column) =>
             column.id === "footer-learn" && componentsEnabled()
-              ? { ...column, links: [...column.links, { name: "Components", href: "/search" }] }
+              ? { ...column, links: [...column.links, { name: "Components", href: "/components" }] }
               : column,
           ).map((column) => (
             <nav key={column.id} aria-labelledby={column.id}>

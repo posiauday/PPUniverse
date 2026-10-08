@@ -13,7 +13,8 @@
 //   is cleared: the new YAML has to be tested again before it can be published.
 // - A PUBLISHED component is never touched here.
 import { prisma } from "@ppu/db";
-import { PrismaComponentRepository, readComponentFolders } from "../dist/index.js";
+import { readComponentFolders } from "../dist/component-files.js";
+import { PrismaComponentRepository } from "../dist/index.js";
 
 const authorEmail = process.env.ARTICLE_AUTHOR_EMAIL;
 

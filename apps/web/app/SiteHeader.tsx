@@ -28,7 +28,7 @@ function mainLinks(): Array<{ name: string; href: string }> {
   return [
     { name: "Fixes", href: "/learn#tutorials" },
     { name: "Patterns", href: "/learn#patterns" },
-    ...(componentsEnabled() ? [{ name: "Components", href: "/search" }] : []),
+    ...(componentsEnabled() ? [{ name: "Components", href: "/components" }] : []),
   ];
 }
 
