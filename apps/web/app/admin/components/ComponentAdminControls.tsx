@@ -126,26 +126,23 @@ export function SettingsForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <fieldset className="flex flex-col gap-2">
-        <legend className="font-semibold">Who can copy the YAML</legend>
-        {(
-          [
-            ["OPEN", "Anyone"],
-            ["MEMBERS", "Signed-in readers only (free account)"],
-          ] as const
-        ).map(([value, label]) => (
-          <label key={value} className="flex min-h-11 items-center gap-2">
-            <input
-              type="radio"
-              name={`${baseId}-access`}
-              value={value}
-              checked={values.access === value}
-              onChange={() => setValues((current) => ({ ...current, access: value }))}
-            />
-            {label}
-          </label>
-        ))}
-      </fieldset>
+      {/* A select, not radios: every option is reachable with the keyboard alone. */}
+      <div className="flex flex-col gap-2">
+        <label htmlFor={`${baseId}-access`} className="font-semibold">
+          Who can copy the YAML
+        </label>
+        <select
+          id={`${baseId}-access`}
+          value={values.access}
+          onChange={(event) =>
+            setValues((current) => ({ ...current, access: event.target.value as ComponentAccess }))
+          }
+          className="min-h-11 max-w-sm rounded-xl border border-border bg-card px-3"
+        >
+          <option value="OPEN">Anyone</option>
+          <option value="MEMBERS">Signed-in readers only (free account)</option>
+        </select>
+      </div>
       <label className="flex min-h-11 items-center gap-2">
         <input
           type="checkbox"

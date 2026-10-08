@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type ReactNode } from "react";
+import { FIELD, Formula, Group } from "./parts";
 import { fromPowerFx, type ReplicaApi } from "./replica";
 
 /**
@@ -150,8 +151,8 @@ export function ButtonFace({
 }) {
   const look = busy
     ? dark
-      ? "border-[#424242] bg-[#141414] text-[#5c5c5c] cursor-not-allowed"
-      : "border-[#e0e0e0] bg-[#f0f0f0] text-[#707070] cursor-not-allowed"
+      ? "border-[#424242] bg-[#141414] text-[#8a8a8a] cursor-not-allowed"
+      : "border-[#e0e0e0] bg-[#f0f0f0] text-[#616161] cursor-not-allowed"
     : APPEARANCE_CLASS[appearance][dark ? "dark" : "light"];
   const className = `inline-flex h-10 min-w-24 items-center justify-center gap-1.5 rounded border border-transparent px-3.5 text-sm font-semibold [font-family:"Segoe_UI",system-ui,sans-serif] motion-safe:transition-colors ${look}`;
   const content = (
@@ -178,49 +179,6 @@ export function ButtonFace({
     </button>
   );
 }
-
-const KIND_CHIP: Record<string, string> = {
-  Input: "bg-tech-automate text-tech-automate-ink",
-  Output: "bg-tech-dataverse text-tech-dataverse-ink",
-  InputFunction: "bg-tech-bi text-tech-bi-ink",
-  OutputFunction: "bg-tech-bi text-tech-bi-ink",
-  Event: "bg-tech-pages text-tech-pages-ink",
-  Action: "bg-tech-apps text-tech-apps-ink",
-};
-
-export function KindChip({ kind }: { kind: string }) {
-  return (
-    <span
-      className={`rounded-md px-1.5 py-1 font-mono text-[0.6875rem] leading-none font-semibold tracking-wider uppercase ${KIND_CHIP[kind] ?? "bg-muted"}`}
-    >
-      {kind}
-    </span>
-  );
-}
-
-function Group({ kind, title, children }: { kind: string; title: string; children: ReactNode }) {
-  return (
-    <fieldset className="min-w-0 rounded-2xl border border-border bg-card p-4">
-      <legend className="sr-only">
-        {kind}: {title}
-      </legend>
-      <p aria-hidden="true" className="flex items-center gap-2 font-display font-bold">
-        <KindChip kind={kind} /> {title}
-      </p>
-      <div className="mt-2 flex flex-col gap-2 text-[0.9375rem]">{children}</div>
-    </fieldset>
-  );
-}
-
-function Formula({ name, value }: { name: string; value: string }) {
-  return (
-    <code className="block overflow-x-auto rounded-xl bg-code px-3 py-2 font-mono text-[0.8125rem] whitespace-pre text-code-foreground">
-      {name} = {value}
-    </code>
-  );
-}
-
-const FIELD = "min-h-11 w-full rounded-xl border-[1.5px] border-border bg-background px-3";
 
 export function useButtonReplica(): ReplicaApi {
   const id = useId();
