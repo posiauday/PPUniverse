@@ -67,7 +67,11 @@ export function commentParts(body: string): CommentPart[] {
 
 // ---- Display names and avatars ------------------------------------------
 
-/** Words for generated names: everyday Power Platform terms, no product names. */
+/**
+ * Words for generated names: everyday low-code terms, never product names
+ * (MVP-040; widened 2026-10-08 so names repeat less and feel more of the
+ * niche). 32 adjectives x 48 nouns x 900 numbers.
+ */
 const NAME_ADJECTIVES = [
   "Swift",
   "Tidy",
@@ -85,6 +89,22 @@ const NAME_ADJECTIVES = [
   "Gentle",
   "Rapid",
   "Patient",
+  "Curious",
+  "Cosmic",
+  "Witty",
+  "Mighty",
+  "Plucky",
+  "Breezy",
+  "Zesty",
+  "Jolly",
+  "Snappy",
+  "Cheery",
+  "Dapper",
+  "Fearless",
+  "Spry",
+  "Daring",
+  "Merry",
+  "Agile",
 ] as const;
 const NAME_NOUNS = [
   "Trigger",
@@ -103,6 +123,38 @@ const NAME_NOUNS = [
   "Scope",
   "Record",
   "Filter",
+  "Slicer",
+  "Webhook",
+  "Pipeline",
+  "Dataflow",
+  "Container",
+  "Component",
+  "Variable",
+  "Collection",
+  "Table",
+  "Portal",
+  "Approval",
+  "Sandbox",
+  "Dashboard",
+  "Visual",
+  "Prompt",
+  "Matrix",
+  "Ribbon",
+  "Patch",
+  "Delegate",
+  "Expression",
+  "Parameter",
+  "Template",
+  "Widget",
+  "Toggle",
+  "Timer",
+  "Badge",
+  "Branch",
+  "Loop",
+  "Query",
+  "Report",
+  "Builder",
+  "Maker",
 ] as const;
 
 /** A random name such as "Tidy Trigger 418". `random` returns a number in [0, 1). */
@@ -154,8 +206,16 @@ export function cleanDisplayName(
   return { ok: true, name };
 }
 
-/** The avatar a seed draws: one of our area tints and one of our own shapes. */
-export const AVATAR_TINTS = [
+/**
+ * Generated avatars ("maker critters", 2026-10-08; MVP-040's plain tint and
+ * glyph before): a small character drawn from the reader's avatar seed, made
+ * of a background colour and pattern, a head shape, eyes, a mouth, optional
+ * blush, a slight tilt and one low-code accessory. All our own drawings, no
+ * product logos. 8 x 4 x 4 x 5 x 5 x 8 x 2 = 51,200 combinations; the same
+ * seed always draws the same critter, so "Draw a new avatar" only changes the
+ * seed.
+ */
+export const AVATAR_PALETTES = [
   "apps",
   "automate",
   "bi",
@@ -163,24 +223,61 @@ export const AVATAR_TINTS = [
   "dataverse",
   "pages",
   "gov",
+  "coral",
 ] as const;
-export const AVATAR_SHAPES = ["stack", "spark", "loop", "grid", "wave", "node"] as const;
+export const AVATAR_PATTERNS = ["dots", "rings", "stripes", "grid"] as const;
+export const AVATAR_HEADS = ["squircle", "round", "hex", "blob"] as const;
+export const AVATAR_EYES = ["dots", "ovals", "happy", "wink", "visor"] as const;
+export const AVATAR_MOUTHS = ["smile", "open", "grin", "line", "cat"] as const;
+/** Each nods to a part of the platform: connector, flow, report, agent, admin, data, AI, support. */
+export const AVATAR_ACCESSORIES = [
+  "antenna",
+  "bolt",
+  "bars",
+  "bubble",
+  "gear",
+  "cylinder",
+  "spark",
+  "headset",
+] as const;
 
 export interface AvatarSpec {
-  tint: (typeof AVATAR_TINTS)[number];
-  shape: (typeof AVATAR_SHAPES)[number];
+  palette: (typeof AVATAR_PALETTES)[number];
+  pattern: (typeof AVATAR_PATTERNS)[number];
+  head: (typeof AVATAR_HEADS)[number];
+  eyes: (typeof AVATAR_EYES)[number];
+  mouth: (typeof AVATAR_MOUTHS)[number];
+  accessory: (typeof AVATAR_ACCESSORIES)[number];
+  blush: boolean;
+  /** Head tilt in degrees, -6 to 6. */
+  tilt: number;
 }
 
-/** Deterministic: the same seed always draws the same avatar (FNV-1a hash). */
+/** Deterministic: the same seed always draws the same avatar (FNV-1a hash into mulberry32). */
 export function avatarFromSeed(seed: string): AvatarSpec {
   let hash = 2166136261;
   for (const char of seed) {
     hash ^= char.codePointAt(0)!;
     hash = Math.imul(hash, 16777619) >>> 0;
   }
+  let state = hash;
+  const next = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const pick = <T>(list: readonly T[]): T => list[Math.floor(next() * list.length)]!;
   return {
-    tint: AVATAR_TINTS[hash % AVATAR_TINTS.length]!,
-    shape: AVATAR_SHAPES[Math.floor(hash / AVATAR_TINTS.length) % AVATAR_SHAPES.length]!,
+    palette: pick(AVATAR_PALETTES),
+    pattern: pick(AVATAR_PATTERNS),
+    head: pick(AVATAR_HEADS),
+    eyes: pick(AVATAR_EYES),
+    mouth: pick(AVATAR_MOUTHS),
+    accessory: pick(AVATAR_ACCESSORIES),
+    blush: next() < 0.5,
+    tilt: Math.round(next() * 12) - 6,
   };
 }
 

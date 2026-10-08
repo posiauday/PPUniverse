@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  AVATAR_SHAPES,
-  AVATAR_TINTS,
+  AVATAR_ACCESSORIES,
+  AVATAR_EYES,
+  AVATAR_HEADS,
+  AVATAR_MOUTHS,
+  AVATAR_PALETTES,
+  AVATAR_PATTERNS,
   avatarFromSeed,
   cleanCommentBody,
   cleanDisplayName,
@@ -12,7 +16,9 @@ import {
 
 describe("cleanCommentBody (MVP-040)", () => {
   it("tidies line endings and outer blank lines, keeping code indentation", () => {
-    const result = cleanCommentBody("\r\n\r\nUse a scope:\r\n\r\n\r\n\r\n```\r\n  Try\r\n```\r\n\r\n");
+    const result = cleanCommentBody(
+      "\r\n\r\nUse a scope:\r\n\r\n\r\n\r\n```\r\n  Try\r\n```\r\n\r\n",
+    );
     expect(result).toEqual({ ok: true, body: "Use a scope:\n\n```\n  Try\n```" });
   });
 
@@ -33,12 +39,14 @@ describe("cleanCommentBody (MVP-040)", () => {
 
 describe("commentParts", () => {
   it("splits paragraphs and fenced code; an unclosed fence stays text", () => {
-    expect(commentParts("First.\n\nSecond line\nwraps.\n\n```js\nlet a = 1;\n```\nAfter.")).toEqual([
-      { kind: "text", text: "First." },
-      { kind: "text", text: "Second line\nwraps." },
-      { kind: "code", text: "let a = 1;" },
-      { kind: "text", text: "After." },
-    ]);
+    expect(commentParts("First.\n\nSecond line\nwraps.\n\n```js\nlet a = 1;\n```\nAfter.")).toEqual(
+      [
+        { kind: "text", text: "First." },
+        { kind: "text", text: "Second line\nwraps." },
+        { kind: "code", text: "let a = 1;" },
+        { kind: "text", text: "After." },
+      ],
+    );
     expect(commentParts("Before\n```\nnever closed")).toEqual([
       { kind: "text", text: "Before" },
       { kind: "text", text: "never closed" },
@@ -52,7 +60,7 @@ describe("display names", () => {
     let call = 0;
     const name = generateDisplayName(() => values[call++ % values.length]!);
     expect(name).toMatch(/^[A-Z][a-z]+ [A-Z][a-z]+ \d{3}$/);
-    expect(name).toBe("Swift Filter 550");
+    expect(name).toBe("Swift Maker 550");
   });
 
   it("accepts letters in any language, digits, spaces and . _ -", () => {
@@ -65,7 +73,13 @@ describe("display names", () => {
     expect(cleanDisplayName("a".repeat(31))).toEqual({ ok: false, problem: "too-long" });
     expect(cleanDisplayName("<script>")).toEqual({ ok: false, problem: "characters" });
     expect(cleanDisplayName("12345")).toEqual({ ok: false, problem: "characters" });
-    for (const name of ["Admin", "Site Moderator", "Maker Desk", "LowCode Stacks team", "Microsoft MVP"]) {
+    for (const name of [
+      "Admin",
+      "Site Moderator",
+      "Maker Desk",
+      "LowCode Stacks team",
+      "Microsoft MVP",
+    ]) {
       expect(cleanDisplayName(name)).toEqual({ ok: false, problem: "reserved" });
     }
   });
@@ -76,16 +90,34 @@ describe("display names", () => {
 });
 
 describe("avatarFromSeed", () => {
-  it("is deterministic and uses only our tints and shapes", () => {
-    const seen = new Set<string>();
+  it("is deterministic and uses only our own parts", () => {
     for (let i = 0; i < 200; i += 1) {
       const spec = avatarFromSeed(`seed-${i}`);
       expect(avatarFromSeed(`seed-${i}`)).toEqual(spec);
-      expect(AVATAR_TINTS).toContain(spec.tint);
-      expect(AVATAR_SHAPES).toContain(spec.shape);
-      seen.add(`${spec.tint}/${spec.shape}`);
+      expect(AVATAR_PALETTES).toContain(spec.palette);
+      expect(AVATAR_PATTERNS).toContain(spec.pattern);
+      expect(AVATAR_HEADS).toContain(spec.head);
+      expect(AVATAR_EYES).toContain(spec.eyes);
+      expect(AVATAR_MOUTHS).toContain(spec.mouth);
+      expect(AVATAR_ACCESSORIES).toContain(spec.accessory);
+      expect(spec.tilt).toBeGreaterThanOrEqual(-6);
+      expect(spec.tilt).toBeLessThanOrEqual(6);
     }
-    // Spread across most combinations, not stuck on a few.
-    expect(seen.size).toBeGreaterThan(30);
+  });
+
+  it("spreads seeds across many different critters", () => {
+    const seen = new Set<string>();
+    const parts = new Map<string, Set<string>>();
+    for (let i = 0; i < 400; i += 1) {
+      const spec = avatarFromSeed(`reader-${i}`);
+      seen.add(JSON.stringify(spec));
+      for (const [key, value] of Object.entries(spec)) {
+        if (!parts.has(key)) parts.set(key, new Set());
+        parts.get(key)!.add(String(value));
+      }
+    }
+    expect(seen.size).toBeGreaterThan(380);
+    expect(parts.get("accessory")!.size).toBe(AVATAR_ACCESSORIES.length);
+    expect(parts.get("palette")!.size).toBe(AVATAR_PALETTES.length);
   });
 });
