@@ -11,11 +11,16 @@ import { feedbackKey, feedbackRepository } from "../../../../lib/feedback";
 import { commentsEnabled } from "../../../../lib/feature-flags";
 import { withObservability } from "../../../../lib/observability";
 import { noStore, readJson } from "../../../../lib/request-guards";
+import { checkAvatarChoice } from "../../../../lib/avatar-seeds";
+import { loadViewerSummary } from "../../../../lib/viewer";
 
 /**
  * Changes the signed-in reader's public profile (MVP-040): `{ "displayName":
- * "…" }` sets a new name (unique in any case), and `{ "avatar": "new" }`
- * draws a new avatar. The name is never logged.
+ * "…" }` sets a new name (unique in any case), `{ "avatar": "new" }` draws a
+ * new avatar, and `{ "avatar": "<seed>" }` sets the one chosen from the
+ * gallery; the crown only for an admin, by the role in the database
+ * (docs/final-decisions.md, 2026-10-08, "Avatars: choose from a gallery; the
+ * crown is for admins"). The name is never logged.
  */
 export const POST = withObservability("POST /api/account/profile", async (request: Request) => {
   if (!commentsEnabled())
@@ -42,6 +47,17 @@ export const POST = withObservability("POST /api/account/profile", async (reques
       Math.floor(secureRandom() * 2 ** 48).toString(36),
     );
     logger.info("profile.avatar_changed", {});
+    return noStore(NextResponse.json({ ok: true }));
+  }
+  if (typeof body["avatar"] === "string") {
+    const { isAdmin } = await loadViewerSummary(userId);
+    const choice = checkAvatarChoice(body["avatar"], isAdmin);
+    if (!choice.ok) {
+      const status = choice.problem === "admins-only" ? 403 : 400;
+      return noStore(NextResponse.json({ error: choice.problem }, { status }));
+    }
+    await commentRepository.setAvatarSeed(userId, choice.seed);
+    logger.info("profile.avatar_chosen", {});
     return noStore(NextResponse.json({ ok: true }));
   }
   if (typeof body["displayName"] !== "string") {

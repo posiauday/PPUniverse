@@ -756,7 +756,62 @@ export const GATED_PAGES: readonly GatedPage[] = [
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile");
       await expect(page.getByRole("textbox", { name: "Display name" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Draw a new avatar" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Choose your avatar" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Save avatar" })).toBeVisible();
+    },
+  },
+  {
+    id: "account-profile-avatar-picked",
+    route: "/account/profile",
+    description: "the reader's profile with a new avatar picked from the gallery, not yet saved",
+    auth: "member",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      const pick = page.getByRole("button", { name: "Avatar 3" });
+      await (await whenHydrated(pick)).click();
+      await expect(pick).toHaveAttribute("aria-pressed", "true");
+    },
+  },
+  {
+    id: "account-profile-admin",
+    route: "/account/profile",
+    description: "an admin's profile: the gallery offers the crowned avatar",
+    auth: "admin",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      await expect(page.getByRole("button", { name: "The crown, for admins" })).toBeVisible();
+    },
+  },
+  {
+    id: "account-welcome",
+    route: "/account/welcome",
+    description: "a new account's welcome page: agree to the Terms of use and the Privacy notice",
+    auth: "member",
+    status: 200,
+    path: () => "/account/welcome?callbackUrl=%2Faccount",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Welcome");
+      await expect(
+        page.getByLabel("I agree to the Terms of use and the Privacy notice"),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "account-welcome-missing",
+    route: "/account/welcome",
+    description: "the welcome page after Continue without ticking the box",
+    auth: "member",
+    status: 200,
+    path: () => "/account/welcome?callbackUrl=%2Faccount",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByRole("button", { name: "Continue" }))).click();
+      await expect(page.getByText(/Tick the box to agree/)).toBeVisible();
+      // Focus moves to the box after the message renders (BUG-028, BUG-031).
+      await expect(
+        page.getByLabel("I agree to the Terms of use and the Privacy notice"),
+      ).toBeFocused();
     },
   },
   {
@@ -947,6 +1002,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       });
       await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
       await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill("short");
+      await (
+        await whenHydrated(page.getByLabel("I agree to the Terms of use and the Privacy notice"))
+      ).check();
       await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
       await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
         "aria-invalid",
@@ -965,8 +1023,29 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await answerPasswordApi(page, "signup", 200, { ok: true });
       await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
       await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill(E2E_PASSWORD);
+      await (
+        await whenHydrated(page.getByLabel("I agree to the Terms of use and the Privacy notice"))
+      ).check();
       await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
       await expect(page.getByRole("status")).toContainText(/check your email/i);
+    },
+  },
+  {
+    id: "signup-terms-missing",
+    route: "/signup",
+    description: "create-account form after Create account without agreeing to the Terms",
+    auth: "guest",
+    status: 200,
+    path: () => "/signup",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill(E2E_PASSWORD);
+      await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
+      await expect(page.getByText(/Tick the box to agree/)).toBeVisible();
+      // Focus moves to the box after the message renders (BUG-028, BUG-031).
+      await expect(
+        page.getByLabel("I agree to the Terms of use and the Privacy notice"),
+      ).toBeFocused();
     },
   },
   {

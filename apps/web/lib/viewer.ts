@@ -7,6 +7,8 @@ export interface ViewerSummary {
   displayName: string | null;
   /** Draws their avatar; falls back to the user id until a profile exists. */
   avatarSeed: string;
+  /** True until they accept the Terms of use (lib/terms-acceptance.ts). */
+  needsTerms: boolean;
 }
 
 /**
@@ -18,11 +20,22 @@ export interface ViewerSummary {
 export async function loadViewerSummary(userId: string): Promise<ViewerSummary> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { role: true, displayName: true, avatarSeed: true },
+    select: {
+      role: true,
+      displayName: true,
+      avatarSeed: true,
+      consentRecords: {
+        where: { category: "TERMS_OF_SERVICE" },
+        orderBy: { recordedAt: "desc" },
+        take: 1,
+        select: { granted: true },
+      },
+    },
   });
   return {
     isAdmin: user?.role === "ADMIN",
     displayName: user?.displayName ?? null,
     avatarSeed: user?.avatarSeed ?? userId,
+    needsTerms: user?.consentRecords[0]?.granted !== true,
   };
 }
