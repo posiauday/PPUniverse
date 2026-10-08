@@ -13,6 +13,21 @@ import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 
 describe("SiteHeader", () => {
+  it("sends the Learn button to /topics only when the Learn module is on (MVP-048)", () => {
+    const learnButton = /href="([^"]*)"[^>]*>Learn</g;
+    const targets = (html: string) => [...html.matchAll(learnButton)].map((match) => match[1]);
+    expect(
+      targets(renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />)),
+    ).not.toContain("/topics");
+    process.env["FEATURE_LEARN"] = "on";
+    try {
+      const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
+      expect(targets(html)).toContain("/topics");
+    } finally {
+      delete process.env["FEATURE_LEARN"];
+    }
+  });
+
   it("links the brand home and the main sections, with no heading of its own", () => {
     const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
     expect(html).toContain('href="/"');

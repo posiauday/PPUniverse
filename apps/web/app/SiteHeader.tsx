@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { componentsEnabled } from "../lib/feature-flags";
+import { componentsEnabled, learnEnabled } from "../lib/feature-flags";
 import { buildTechnologyMenu, type TechnologyMenuArea } from "../lib/technology-menu";
 import type { Theme } from "../lib/theme";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
@@ -60,6 +60,9 @@ export function SiteHeader({
   /** Newest published update times, for the Updates badge (lib/update-times.ts). */
   updateTimes?: readonly string[];
 }) {
+  // MVP-048: the Learn button opens the Learn module once it is switched on;
+  // until then it keeps opening the guides.
+  const learnHref = learnEnabled() ? "/topics" : "/learn";
   const account = signedIn
     ? { name: "Account", href: "/account/sessions" }
     : { name: "Sign in", href: "/signin" };
@@ -98,7 +101,7 @@ export function SiteHeader({
             <ThemeToggle initialTheme={theme} />
           </span>
           <Link
-            href="/learn"
+            href={learnHref}
             className="motion-press hidden min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline lg:inline-flex"
           >
             Learn
@@ -111,6 +114,7 @@ export function SiteHeader({
           account={account}
           themeToggle={<ThemeToggle initialTheme={theme} />}
           updateTimes={updateTimes}
+          learnHref={learnHref}
         />
       </div>
     </header>

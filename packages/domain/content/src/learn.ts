@@ -109,6 +109,8 @@ export interface PublishedLessonSummary {
   title: string;
   minutes: number;
   publishedAt: Date;
+  /** Last edited: the sitemap's lastModified. */
+  updatedAt: Date;
 }
 
 /** A PUBLISHED topic with its PUBLISHED lessons, in order. */
@@ -277,7 +279,9 @@ export function parseKnowledgeChecks(body: string): KnowledgeQuestion[] {
     const explanation = line.match(EXPLANATION);
     const last = current.options[current.options.length - 1];
     if (explanation && last) {
-      last.why = last.why ? `${last.why} ${(explanation[1] as string).trim()}` : (explanation[1] as string).trim();
+      last.why = last.why
+        ? `${last.why} ${(explanation[1] as string).trim()}`
+        : (explanation[1] as string).trim();
     }
   }
   return questions;

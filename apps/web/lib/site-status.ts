@@ -1,4 +1,4 @@
-import { commentsEnabled, componentsEnabled } from "./feature-flags";
+import { commentsEnabled, componentsEnabled, learnEnabled } from "./feature-flags";
 import { googleCredentials } from "./google-auth";
 import { indexNowKey } from "./indexnow";
 import { getSiteUrl } from "./site-url";
@@ -37,6 +37,14 @@ export function siteSwitches(env: Record<string, string | undefined> = process.e
         ? "The Components link shows in the top bar."
         : "Hidden until the first product is published.",
       setting: "FEATURE_COMPONENTS (on / off)",
+    },
+    {
+      name: "Learn topics",
+      on: learnEnabled(),
+      detail: learnEnabled()
+        ? "/topics is public and the Learn button opens it."
+        : "/topics is hidden and the Learn button opens the guides. Publish a topic first.",
+      setting: "FEATURE_LEARN (on / off)",
     },
     {
       name: "Google sign-in",

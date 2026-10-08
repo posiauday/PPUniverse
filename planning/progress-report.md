@@ -5147,3 +5147,25 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not done here:** IndexNow on publish waits for the public pages (slice 2). A sidebar count for Learn drafts was left out to keep this slice small.
 
 **Remaining:** 2 public pages (`/topics`, topic, lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS, IndexNow on publish); 3 progress for signed-in readers; 4 the first six topics as drafts.
+
+## 2026-10-08 — Learn module, slice 2: the public pages (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014, FR-017). The public Learn pages in the Workspace design (`docs/final-decisions.md`, "Learn module design: Workspace"), behind a new switch, `FEATURE_LEARN` (CLAUDE.md: "Use feature flags for incomplete or risky modules"). Off, `/topics` and its pages answer 404, stay out of the sitemap, and the Learn button keeps opening the guides.
+
+**Built:**
+- **`/topics`:** published topics with a published lesson, grouped by area, with lesson count and total minutes; noindex until it lists a topic.
+- **`/topics/[topic]`:** summary, area, "Start lesson 1", and the lessons in order; BreadcrumbList.
+- **`/topics/[topic]/[lesson]`:** three columns. The topic's lessons, with the current one's ring filling as it's read (`LessonChrome.tsx`). The lesson: outcomes, then the six sections (`lib/lesson-view.ts`), with "The important things" highlighted and "Check yourself" drawn as `KnowledgeCheck.tsx`, whose answers reveal every explanation, a small shake for a wrong answer (off with reduced motion) and a score, with nothing stored. "On this page" marks the section being read with a sliding marker and % read (xl and up). Below lg the lessons fold into a menu above the lesson. TechArticle with dates and BreadcrumbList. Next-lesson card, previous link.
+- **Top bar:** the Learn button opens `/topics` while the switch is on (`SiteHeader`, `MobileMenu`).
+- **Sitemap:** `/topics`, each topic and each lesson, with `lastModified`, in 1,000 reserved slots (`MAX_LEARN_URLS`), only while the switch is on.
+- **IndexNow:** publishing a lesson whose topic is published, or a topic with a published lesson, notifies IndexNow, only while the switch is on.
+- **Admin Settings:** the switch is listed with what it does.
+- **Gate:** three new routes; states `topics-index`, `topic-published`, `topic-draft` (404), `lesson-published`, `lesson-answered` (a wrong answer with explanations shown), `lesson-unknown` (404); a seeded published topic with three published lessons; `FEATURE_LEARN=on` for the gate server.
+
+**Checked locally on a real database:** Prisma's local Postgres (`prisma dev`, PGlite) with every migration applied. `topics:import` created the sample topic and three lessons as drafts, then skipped all four on a second run. The repository's database tests (3) pass. The pages render at 1440 and 375 px with no console errors. The knowledge check, ring and page marker work. The gate's Learn and admin states pass every axe, overflow and title check in Chromium; the only keyboard-check failures came from the Next.js dev-tools button, which exists only in dev mode (CI runs the production server).
+
+**Commands:** `vitest run` (web: 795 passed), `tsc --noEmit`, `eslint`, `prettier`, `prisma migrate deploy` and the integration tests against the local database, `playwright test tests/a11y --project=chromium --grep "topics|lesson"` (dev server).
+
+**Not done:** RSS for lessons (the plan lists it; `/learn/feed.xml` stays guides only for now); View Transitions between lessons (the lesson slides in with `motion-rise` instead).
+
+**Remaining:** 3 progress for signed-in readers (lessons ticked done, rings filled across lessons); 4 the first six topics as drafts; then the product owner publishes and sets `FEATURE_LEARN=on`.

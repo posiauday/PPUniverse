@@ -1138,3 +1138,19 @@ samp {
     display: none;
   }
 }
+
+/* MVP-048: a wrong answer in a lesson's knowledge check gives a small shake.
+   The reduced-motion rule above removes it. */
+@keyframes lcs-shake {
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+.motion-shake {
+  animation: lcs-shake 0.4s ease-in-out;
+}

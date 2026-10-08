@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-07 (latest) — **MVP-048 slice 1b: topics and lessons can be written and published in the admin.**
+Last updated: 2026-10-08 (latest) — **MVP-048 slice 2: the public Learn pages, in the Workspace design, behind FEATURE_LEARN.**
+- **Built:** `/topics` (topics by area), a topic page (its lessons, "Start lesson 1"), and the lesson page in three columns: the topic's lessons with the current one's ring filling as you read, the lesson in its fixed shape, and "On this page" with a sliding marker and % read. "Check yourself" is a real knowledge check: answer, see why every option is right or wrong; nothing stored. Next-lesson card. Phones: the lessons fold into a menu above the lesson.
+- **Search:** lessons are TechArticles with dates and breadcrumbs; Learn pages join the sitemap and IndexNow, only while the switch is on.
+- **Checked locally on a real database** (Prisma's local Postgres): all migrations apply, the importer creates and then skips the drafts, the repository's database tests pass, the pages render at 1440 and 375 px with no console errors, and the gate's page checks pass in Chromium.
+- **For the product owner:** `FEATURE_LEARN=on` in Netlify once the first topic is published.
+
+Last updated (previous): 2026-10-07 — **MVP-048 slice 1b: topics and lessons can be written and published in the admin.**
 - **Built:** `/admin/topics` (every topic with its lessons and publish buttons), new and edit forms for topics and lessons with a "Start from the lesson outline" button, and "Learn topics" in the sidebar. Publishing writes the audit log.
 - **Rules on the server:** admins only; a lesson must follow the fixed shape and the knowledge-check rules to save or publish; a topic needs 3 lessons before it can be published; slug and lesson number unique within a topic.
 - **Release #100 is live** (2026-10-08): comments on, IndexNow key served, RSS feed, migrations applied.
@@ -231,7 +237,7 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 7 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-043 |
 | Ready | 0 | — |
-| In Progress | 9 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built), MVP-048 (slices 1a and 1b: data and admin) |
+| In Progress | 9 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built), MVP-048 (slices 1a, 1b, 2: data, admin, public pages behind a switch) |
 | QA | 11 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044, MVP-047 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |

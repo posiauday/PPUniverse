@@ -1436,6 +1436,62 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
   },
   {
+    // MVP-048 slice 2: the Learn home, listing the seeded published topic.
+    id: "topics-index",
+    route: "/topics",
+    description: "Learn home, with a published topic",
+    auth: "guest",
+    status: 200,
+    path: () => "/topics",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("main").getByText(seed.publishedTopic.title)).toBeVisible();
+    },
+  },
+  {
+    id: "topic-published",
+    route: "/topics/[topic]",
+    description: "a published Learn topic with its three lessons",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}`,
+  },
+  {
+    id: "topic-draft",
+    route: null,
+    description: "a draft Learn topic is a 404",
+    auth: "guest",
+    status: 404,
+    path: (seed) => `/topics/${seed.draftTopic.slug}`,
+  },
+  {
+    id: "lesson-published",
+    route: "/topics/[topic]/[lesson]",
+    description: "a lesson in the Workspace layout: lessons, the lesson, On this page",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[1]!.slug}`,
+  },
+  {
+    id: "lesson-answered",
+    route: null,
+    description: "a lesson with a knowledge-check question answered wrongly, explanations shown",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/${seed.publishedTopic.lessons[0]!.slug}`,
+    prepare: async (page) => {
+      await page.getByRole("button", { name: "Yes" }).first().click();
+      await expect(page.getByText("No: it is a test fixture.")).toBeVisible();
+    },
+  },
+  {
+    id: "lesson-unknown",
+    route: null,
+    description: "an unknown lesson in a published topic is a 404",
+    auth: "guest",
+    status: 404,
+    path: (seed) => `/topics/${seed.publishedTopic.slug}/no-such-lesson`,
+  },
+  {
     // MVP-048 slice 1b: the admin Learn topics list, with a draft topic and its draft lesson.
     id: "admin-topics-populated",
     route: "/admin/topics",
