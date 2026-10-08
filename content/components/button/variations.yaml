@@ -27,3 +27,21 @@
   settings:
     Label: ="Submit"
     IsBusy: =true
+- name: Confirm before deleting
+  description: For actions that can't be undone. The first select asks; OnClick runs only on the second.
+  settings:
+    Label: ="Delete all"
+    IconName: ="Delete"
+    RequireConfirm: =true
+- name: Your brand colour
+  description: One input sets the colour; hover and pressed colours follow it.
+  settings:
+    Label: ="Get started"
+    AccentColor: =RGBA(124, 58, 237, 1)
+- name: Dark
+  description: On a dark screen, an outline button with light text.
+  settings:
+    Label: ="Export"
+    Appearance: ="Outline"
+    IconName: ="ArrowDownload"
+    Theme: ="Dark"

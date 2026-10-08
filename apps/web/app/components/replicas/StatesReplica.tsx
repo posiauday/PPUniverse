@@ -1,13 +1,19 @@
 "use client";
 
-import { useId, useState } from "react";
-import { EventLog, FIELD, Formula, Group, OutputValue, pushLog } from "./parts";
+import { useState } from "react";
 import { ButtonFace } from "./ButtonReplica";
-import { fromPowerFx, type ReplicaApi } from "./replica";
+import { useNotify } from "./notify";
+import { cssColor, fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
-/** A web replica of lcsStates (MVP-049): Empty, Loading and Error, StateFor and OnAction. */
+/**
+ * A web replica of lcsStates 0.2.0 (MVP-049; docs/final-decisions.md, 2026-10-08,
+ * "One live view"): the Empty, Loading, Skeleton and Error panels, 360 by 240,
+ * with the component's own default texts when Title or Message is empty, its
+ * brand colour and dark theme. Its button runs OnAction(State), which the
+ * preview screen wires to Notify.
+ */
 
-const STATES = ["Empty", "Loading", "Error", ""] as const;
+const STATES = ["Empty", "Loading", "Skeleton", "Error", ""] as const;
 type State = (typeof STATES)[number];
 
 interface Inputs {
@@ -15,16 +21,24 @@ interface Inputs {
   Title: string;
   Message: string;
   ActionText: string;
+  SkeletonRows: number;
+  AccentColor: string;
+  Theme: string;
 }
 
-const START: Inputs = {
+/** The inputs' defaults in the component's YAML. */
+const DEFAULTS: Inputs = {
   State: "Empty",
-  Title: "No requests yet",
-  Message: "Requests you create appear here.",
+  Title: "",
+  Message: "",
   ActionText: "New request",
+  SkeletonRows: 4,
+  AccentColor: "#0f6cbd",
+  Theme: "Light",
 };
 
-const DEFAULT_TEXT: Record<Exclude<State, "">, { title: string; message: string }> = {
+/** The component's texts when Title or Message is left empty. */
+const DEFAULT_TEXT: Record<"Empty" | "Loading" | "Error", { title: string; message: string }> = {
   Empty: { title: "Nothing here yet", message: "When there's something to show, it appears here." },
   Loading: { title: "Loading…", message: "This only takes a moment." },
   Error: { title: "Something went wrong", message: "Check your connection, then try again." },
@@ -37,191 +51,128 @@ export function stateFor(isLoading: boolean, hasError: boolean, rowCount: number
   return rowCount === 0 ? "Empty" : "";
 }
 
-function StatePanel({
-  inputs,
-  dark,
-  onAction,
-  interactive = true,
-}: {
-  inputs: Inputs;
-  dark: boolean;
-  onAction?: () => void;
-  interactive?: boolean;
-}) {
-  if (inputs.State === "") {
-    return (
-      <span className={`block text-sm ${dark ? "text-[#adadad]" : "text-[#616161]"}`}>
-        State is empty text: nothing shows, and your gallery does.
-      </span>
-    );
-  }
-  const text = DEFAULT_TEXT[inputs.State];
-  const ink = dark ? "text-white" : "text-[#242424]";
-  const sub = dark ? "text-[#d6d6d6]" : "text-[#616161]";
-  const isError = inputs.State === "Error";
+/** As many rows as the 240-pixel panel fits below the title, as the component's gallery does. */
+export function skeletonRows(requested: number): number {
+  return Math.max(1, Math.min(requested, Math.floor((240 - 36) / 48)));
+}
+
+function Skeleton({ inputs }: { inputs: Inputs }) {
+  const dark = inputs.Theme === "Dark";
+  const bar = dark ? "bg-[#333333]" : "bg-[#ebebeb]";
+  const subBar = dark ? "bg-[#292929]" : "bg-[#f3f3f3]";
+  const title = inputs.Title || "Loading…";
   return (
-    <span
-      className={`flex w-72 max-w-full flex-col items-center gap-2 text-center [font-family:"Segoe_UI",system-ui,sans-serif] ${ink}`}
+    <div
+      role="progressbar"
+      aria-label={title}
+      className={`h-60 w-[360px] max-w-full px-4 pt-2 text-left ${SEGOE}`}
+    >
+      <p className={`h-5 text-[13px] ${dark ? "text-[#adadad]" : "text-[#616161]"}`}>{title}</p>
+      <div aria-hidden="true" className="mt-2">
+        {Array.from({ length: skeletonRows(inputs.SkeletonRows) }, (_, index) => (
+          <div key={index} className="relative h-12">
+            <span className={`absolute top-2 left-0 size-8 rounded-full ${bar}`} />
+            <span
+              className={`absolute top-[11px] left-11 h-2.5 rounded-[5px] ${bar}`}
+              style={{ width: `calc((100% - 44px) * ${(index + 1) % 2 === 0 ? 0.6 : 0.85})` }}
+            />
+            <span
+              className={`absolute top-7 left-11 h-2 w-[calc((100%-44px)*0.4)] rounded ${subBar}`}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatePanel({ inputs, onAction }: { inputs: Inputs; onAction: () => void }) {
+  if (inputs.State === "") return <div className="h-60 w-[360px] max-w-full" />;
+  if (inputs.State === "Skeleton") return <Skeleton inputs={inputs} />;
+  const dark = inputs.Theme === "Dark";
+  const text = DEFAULT_TEXT[inputs.State];
+  const isError = inputs.State === "Error";
+  const title = inputs.Title || text.title;
+  return (
+    <div
+      className={`flex h-60 w-[360px] max-w-full flex-col items-center px-4 pt-6 text-center ${SEGOE} ${
+        dark ? "text-white" : "text-[#242424]"
+      }`}
     >
       {inputs.State === "Loading" ? (
-        <span
-          aria-hidden="true"
-          className={`size-10 rounded-full border-4 motion-safe:animate-spin ${dark ? "border-[#444] border-t-[#479ef5]" : "border-[#e0e0e0] border-t-[#0f6cbd]"}`}
-        />
+        <span role="progressbar" aria-label={title} className="grid h-12 place-items-center">
+          <span
+            style={{ borderTopColor: inputs.AccentColor }}
+            className={`size-8 rounded-full border-[3px] motion-safe:animate-spin ${dark ? "border-[#444]" : "border-[#e0e0e0]"}`}
+          />
+        </span>
       ) : (
         <span
           aria-hidden="true"
-          className={`grid size-12 place-items-center rounded-full text-xl font-bold ${
+          className={`grid size-12 place-items-center rounded-full text-[22px] font-bold ${
             isError
-              ? "bg-[#fde7e9] text-[#a6152e]"
+              ? dark
+                ? "bg-[#3f1011] text-[#f1707b]"
+                : "bg-[#fde7e9] text-[#a6152e]"
               : dark
-                ? "bg-[#333] text-[#d6d6d6]"
+                ? "bg-[#333333] text-[#d6d6d6]"
                 : "bg-[#f0f0f0] text-[#424242]"
           }`}
         >
           {isError ? "!" : "○"}
         </span>
       )}
-      <span className="text-base font-semibold">{inputs.Title || text.title}</span>
-      <span className={`text-sm ${sub}`}>{inputs.Message || text.message}</span>
+      <p className="mt-3 text-base font-semibold">{title}</p>
+      <p className={`mt-1 text-[13px] ${dark ? "text-[#adadad]" : "text-[#616161]"}`}>
+        {inputs.Message || text.message}
+      </p>
       {inputs.State !== "Loading" && inputs.ActionText ? (
-        <ButtonFace
-          as={interactive ? "button" : "span"}
-          label={inputs.ActionText}
-          appearance={isError ? "Outline" : "Primary"}
-          icon=""
-          busy={false}
-          dark={dark}
-          onClick={onAction}
-        />
+        <span className="mt-3">
+          <ButtonFace
+            label={inputs.ActionText}
+            appearance={isError ? "Outline" : "Primary"}
+            icon=""
+            busy={false}
+            dark={dark}
+            accent={inputs.AccentColor}
+            size="h-9 min-w-[120px] px-4"
+            onClick={onAction}
+          />
+        </span>
       ) : null}
-    </span>
+    </div>
   );
 }
 
 function read(settings: Record<string, string>): Inputs {
-  const next: Inputs = { State: "Empty", Title: "", Message: "", ActionText: "" };
+  const next = { ...DEFAULTS };
   for (const [key, formula] of Object.entries(settings)) {
-    if (key in next)
-      (next as unknown as Record<string, string>)[key] = String(fromPowerFx(formula));
+    if (key === "AccentColor") next.AccentColor = cssColor(formula, DEFAULTS.AccentColor);
+    else if (key in next) (next as unknown as Record<string, unknown>)[key] = fromPowerFx(formula);
   }
   if (!(STATES as readonly string[]).includes(next.State)) next.State = "";
   return next;
 }
 
 export function useStatesReplica(): ReplicaApi {
-  const id = useId();
-  const [inputs, setInputs] = useState<Inputs>(START);
-  const [logs, setLogs] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [rows, setRows] = useState(0);
-  const set = <K extends keyof Inputs>(key: K, next: Inputs[K]) =>
-    setInputs((current) => ({ ...current, [key]: next }));
-  const computed = stateFor(loading, failed, rows);
+  const notify = useNotify();
+  const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
 
   return {
-    stage: (dark) => (
+    screen: (
       <StatePanel
         inputs={inputs}
-        dark={dark}
-        onAction={() =>
-          setLogs((current) => pushLog(current, `OnAction(State: "${inputs.State}")`))
-        }
+        onAction={() => notify(`${inputs.ActionText} selected (${inputs.State})`)}
       />
     ),
-    controls: (
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Group kind="Input" title="Data in">
-          <label htmlFor={`${id}-state`}>State</label>
-          <select
-            id={`${id}-state`}
-            className={FIELD}
-            value={inputs.State}
-            onChange={(e) => set("State", e.target.value as State)}
-          >
-            {STATES.map((value) => (
-              <option key={value} value={value}>
-                {value || "(empty text)"}
-              </option>
-            ))}
-          </select>
-          <label htmlFor={`${id}-title`}>Title (empty for the default)</label>
-          <input
-            id={`${id}-title`}
-            className={FIELD}
-            value={inputs.Title}
-            onChange={(e) => set("Title", e.target.value)}
-          />
-          <label htmlFor={`${id}-msg`}>Message (empty for the default)</label>
-          <input
-            id={`${id}-msg`}
-            className={FIELD}
-            value={inputs.Message}
-            onChange={(e) => set("Message", e.target.value)}
-          />
-          <label htmlFor={`${id}-act`}>ActionText (empty for no button)</label>
-          <input
-            id={`${id}-act`}
-            className={FIELD}
-            value={inputs.ActionText}
-            onChange={(e) => set("ActionText", e.target.value)}
-          />
-        </Group>
-        <div className="flex flex-col gap-3">
-          <Group kind="Output" title="State out">
-            <p className="flex flex-wrap items-center gap-2">
-              <code className="font-mono text-sm">stsRequests.IsShowing</code>
-              <OutputValue>{String(inputs.State !== "")}</OutputValue>
-            </p>
-          </Group>
-          <Group kind="OutputFunction" title="StateFor(IsLoading, HasError, RowCount)">
-            <label className="flex min-h-11 items-center gap-2">
-              <input
-                type="checkbox"
-                checked={loading}
-                onChange={(e) => setLoading(e.target.checked)}
-              />{" "}
-              IsLoading
-            </label>
-            <label className="flex min-h-11 items-center gap-2">
-              <input
-                type="checkbox"
-                checked={failed}
-                onChange={(e) => setFailed(e.target.checked)}
-              />{" "}
-              HasError
-            </label>
-            <label htmlFor={`${id}-rows`}>RowCount</label>
-            <input
-              id={`${id}-rows`}
-              type="number"
-              min={0}
-              className={FIELD}
-              value={rows}
-              onChange={(e) => setRows(Math.max(0, Number(e.target.value) || 0))}
-            />
-            <Formula
-              name={`stsRequests.StateFor(${loading}, ${failed}, ${rows})`}
-              value={JSON.stringify(computed)}
-            />
-            <button
-              type="button"
-              className="inline-flex min-h-11 w-max items-center rounded-full border-[1.5px] border-foreground px-4 font-semibold"
-              onClick={() => set("State", computed)}
-            >
-              Use it as State
-            </button>
-          </Group>
-        </div>
-        <Group kind="Event" title="OnAction(State)">
-          <EventLog entries={logs} empty="Select the panel's button." />
-        </Group>
-      </div>
-    ),
     apply: (settings) => setInputs(read(settings)),
-    thumbnail: (settings, dark) => (
-      <StatePanel inputs={read(settings)} dark={dark} interactive={false} />
-    ),
+    dark: inputs.Theme === "Dark",
+    wiring: [
+      {
+        control: "lcsStates_1",
+        property: "OnAction",
+        formula: 'Notify(lcsStates_1.ActionText & " selected (" & State & ")")',
+      },
+    ],
   };
 }

@@ -10,8 +10,9 @@ vi.mock("next/link", async () => {
 });
 
 import { ComponentWorkbench, hasReplica } from "./ComponentWorkbench";
-import { stateFor } from "./replicas/StatesReplica";
-import { itemsFromText } from "./replicas/TabsReplica";
+import { readButtons, visibleButtons } from "./replicas/DialogReplica";
+import { skeletonRows, stateFor } from "./replicas/StatesReplica";
+import { itemsFromText, tabText } from "./replicas/TabsReplica";
 
 const render = (componentName: string, yaml: string | null = "ComponentDefinitions: {}") =>
   renderToStaticMarkup(
@@ -25,8 +26,8 @@ const render = (componentName: string, yaml: string | null = "ComponentDefinitio
   );
 
 describe("ComponentWorkbench", () => {
-  it.each(["lcsButton", "lcsTextField", "lcsDialog", "lcsToast", "lcsTabs", "lcsStates"])(
-    "renders a live replica and a variation for %s",
+  it.each(["lcsButton", "lcsTextField", "lcsDialog", "lcsToast", "lcsTabs", "lcsStates", "lcsFab"])(
+    "renders a live replica and its variations for %s",
     (name) => {
       expect(hasReplica(name)).toBe(true);
       const html = render(name);
@@ -51,6 +52,18 @@ describe("ComponentWorkbench", () => {
 });
 
 describe("replica helpers match the components' own formulas", () => {
+  it("a tab's text carries its count only when above zero", () => {
+    expect(tabText("Open", { Open: 12, Waiting: 0 })).toBe("Open (12)");
+    expect(tabText("Waiting", { Open: 12, Waiting: 0 })).toBe("Waiting");
+    expect(tabText("Done", {})).toBe("Done");
+  });
+
+  it("Skeleton draws as many rows as fit in the panel, at least one", () => {
+    expect(skeletonRows(3)).toBe(3);
+    expect(skeletonRows(12)).toBe(4);
+    expect(skeletonRows(0)).toBe(1);
+  });
+
   it("ItemsFromText splits on commas and trims", () => {
     expect(itemsFromText("Open, Waiting ,Done,")).toEqual(["Open", "Waiting", "Done"]);
   });
@@ -60,5 +73,34 @@ describe("replica helpers match the components' own formulas", () => {
     expect(stateFor(false, true, 5)).toBe("Error");
     expect(stateFor(false, false, 0)).toBe("Empty");
     expect(stateFor(false, false, 3)).toBe("");
+  });
+});
+
+describe("the Dialog replica follows lcsDialog's button rules", () => {
+  const buttons = readButtons(
+    'Table({Key: "cancel", Label: "Cancel", Style: "Secondary"}, {Key: "confirm", Label: "Don""t", Style: "Primary"})',
+  );
+
+  it("reads the Buttons table", () => {
+    expect(buttons).toEqual([
+      { Key: "cancel", Label: "Cancel", Style: "Secondary" },
+      { Key: "confirm", Label: 'Don"t', Style: "Primary" },
+    ]);
+  });
+
+  it("hides cancel for an Alert and turns confirm red for Danger", () => {
+    expect(visibleButtons({ Kind: "Alert", Buttons: buttons }).map((b) => b.Key)).toEqual([
+      "confirm",
+    ]);
+    expect(visibleButtons({ Kind: "Danger", Buttons: buttons })[1]?.Style).toBe("Danger");
+  });
+
+  it("shows at most three buttons, the last three", () => {
+    const four = readButtons('Table({Key: "a"}, {Key: "b"}, {Key: "c"}, {Key: "d"})');
+    expect(visibleButtons({ Kind: "Confirm", Buttons: four }).map((b) => b.Key)).toEqual([
+      "b",
+      "c",
+      "d",
+    ]);
   });
 });

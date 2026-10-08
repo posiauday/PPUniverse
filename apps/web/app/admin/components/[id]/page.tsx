@@ -1,9 +1,4 @@
-import {
-  PROPERTY_KINDS,
-  PROPERTY_KIND_LABEL,
-  canPublishComponent,
-  categoryName,
-} from "@ppu/domain-content";
+import { canPublishComponent, categoryName, propertyCounts } from "@ppu/domain-content";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,11 +22,6 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
   const component = await componentRepository.findById((await params).id);
   if (!component) notFound();
 
-  const counts = PROPERTY_KINDS.map((kind) => ({
-    kind,
-    count: component.properties.filter((property) => property.kind === kind).length,
-  })).filter((entry) => entry.count > 0);
-
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-8 px-4 py-8">
       <div>
@@ -46,9 +36,7 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
         </p>
         <p className="mt-3">{component.summary}</p>
         <p className="mt-2 text-sm">
-          {counts
-            .map((entry) => `${entry.count} ${PROPERTY_KIND_LABEL[entry.kind].toLowerCase()}`)
-            .join(" · ")}
+          {propertyCounts(component.properties)}
           {" · "}
           {component.variations.length}{" "}
           {component.variations.length === 1 ? "variation" : "variations"}

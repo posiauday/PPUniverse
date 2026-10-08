@@ -175,6 +175,7 @@ export {
   isValidComponentVersion,
   isValidStudioVersion,
   parseComponentSource,
+  propertyCounts,
   variationProblems,
   type ComponentAccess,
   type ComponentAdminUpdate,

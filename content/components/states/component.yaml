@@ -1,0 +1,263 @@
+ComponentDefinitions:
+  lcsStates:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks states: one panel for empty, loading (spinner or skeleton rows) and error, with a title, a message and an optional button, a helper that picks the state for you, your brand colour, and a dark theme."
+    CustomProperties:
+      State:
+        PropertyKind: Input
+        DisplayName: State
+        DataType: Text
+        Description: "Empty, Loading, Skeleton or Error. Any other value, such as empty text, shows nothing."
+        Default: ="Empty"
+      Title:
+        PropertyKind: Input
+        DisplayName: Title
+        DataType: Text
+        Description: "A short headline, such as No requests yet. Leave empty to use the default for the state."
+        Default: =""
+      Message:
+        PropertyKind: Input
+        DisplayName: Message
+        DataType: Text
+        Description: "One sentence that says what to do next. Leave empty to use the default for the state."
+        Default: =""
+      ActionText:
+        PropertyKind: Input
+        DisplayName: ActionText
+        DataType: Text
+        Description: "Text for the button, such as New request or Try again. Leave empty for no button."
+        Default: ="New request"
+      SkeletonRows:
+        PropertyKind: Input
+        DisplayName: SkeletonRows
+        DataType: Number
+        Description: "How many placeholder rows the Skeleton state draws, as many as fit."
+        Default: =4
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "Your brand colour, for the spinner and the Empty state's button."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light, or Dark for a dark screen."
+        Default: ="Light"
+      IsShowing:
+        PropertyKind: Output
+        DisplayName: IsShowing
+        DataType: Boolean
+        Description: "True when a state is showing. Hide your gallery or form while it is."
+      StateFor:
+        PropertyKind: OutputFunction
+        DisplayName: StateFor
+        DataType: Text
+        Description: "Picks the state from what your app knows: Loading first, then Error, then Empty when there are no rows, otherwise empty text."
+        Parameters:
+          - IsLoading:
+              DataType: Boolean
+              Description: "True while the data is loading."
+              Default: =false
+          - HasError:
+              DataType: Boolean
+              Description: "True when loading failed."
+              Default: =false
+          - RowCount:
+              DataType: Number
+              Description: "How many rows there are to show."
+              Default: =0
+      OnAction:
+        PropertyKind: Event
+        DisplayName: OnAction
+        ReturnType: None
+        Description: "Runs in the app when the user selects the button. Receives the state it was showing."
+        Parameters:
+          - State:
+              DataType: Text
+              Description: "Empty or Error."
+              Default: =""
+        Default: =false
+    Properties:
+      Width: =360
+      Height: =240
+      Fill: =RGBA(0, 0, 0, 0)
+      IsShowing: =lcsStates.State in ["Empty", "Loading", "Skeleton", "Error"]
+      StateFor: =If(IsLoading, "Loading", HasError, "Error", RowCount = 0, "Empty", "")
+    Children:
+      - spnLoading:
+          Control: ModernSpinner@1.1.0
+          Properties:
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =24
+            Width: =Min(240, Parent.Width)
+            Height: =48
+            Visible: =lcsStates.State = "Loading"
+            BasePaletteColor: =lcsStates.AccentColor
+            Label: =""
+            AccessibleLabel: =lblTitle.Text
+      - lblSymbol:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =24
+            Width: =48
+            Height: =48
+            Visible: =lcsStates.State in ["Empty", "Error"]
+            Text: =If(lcsStates.State = "Error", "!", "○")
+            Align: =Align.Center
+            Size: =22
+            FontWeight: =FontWeight.Bold
+            Color: |-
+              =If(
+                  lcsStates.Theme = "Dark",
+                  If(lcsStates.State = "Error", RGBA(241, 112, 123, 1), RGBA(214, 214, 214, 1)),
+                  If(lcsStates.State = "Error", RGBA(166, 21, 46, 1), RGBA(66, 66, 66, 1))
+              )
+            Fill: |-
+              =If(
+                  lcsStates.Theme = "Dark",
+                  If(lcsStates.State = "Error", RGBA(63, 16, 17, 1), RGBA(51, 51, 51, 1)),
+                  If(lcsStates.State = "Error", RGBA(253, 231, 233, 1), RGBA(240, 240, 240, 1))
+              )
+            RadiusTopLeft: =24
+            RadiusTopRight: =24
+            RadiusBottomLeft: =24
+            RadiusBottomRight: =24
+      - lblTitle:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =16
+            Y: =84
+            Width: =Parent.Width - 32
+            Height: =28
+            Visible: =lcsStates.State in ["Empty", "Loading", "Error"]
+            Text: |-
+              =If(
+                  !IsBlank(lcsStates.Title), lcsStates.Title,
+                  lcsStates.State = "Loading", "Loading…",
+                  lcsStates.State = "Error", "Something went wrong",
+                  "Nothing here yet"
+              )
+            Align: =Align.Center
+            Size: =16
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsStates.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+      - lblMessage:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =16
+            Y: =lblTitle.Y + lblTitle.Height + 4
+            Width: =Parent.Width - 32
+            Height: =44
+            Visible: =lcsStates.State in ["Empty", "Loading", "Error"]
+            Text: |-
+              =If(
+                  !IsBlank(lcsStates.Message), lcsStates.Message,
+                  lcsStates.State = "Loading", "This only takes a moment.",
+                  lcsStates.State = "Error", "Check your connection, then try again.",
+                  "When there's something to show, it appears here."
+              )
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Top
+            Wrap: =true
+            Size: =13
+            Color: =If(lcsStates.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+      - lblSkeleton:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =16
+            Y: =8
+            Width: =Parent.Width - 32
+            Height: =20
+            Visible: =lcsStates.State = "Skeleton"
+            Text: =Coalesce(lcsStates.Title, "Loading…")
+            Size: =13
+            Color: =If(lcsStates.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - galSkeleton:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            X: =16
+            Y: =36
+            Width: =Parent.Width - 32
+            Height: =CountRows(Self.AllItems) * 48
+            Visible: =lcsStates.State = "Skeleton"
+            Items: =Sequence(Max(1, Min(lcsStates.SkeletonRows, RoundDown((Parent.Height - 36) / 48, 0))))
+            TemplateSize: =48
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            BorderStyle: =BorderStyle.None
+          Children:
+            - shpAvatar:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =0
+                  Y: =8
+                  Width: =32
+                  Height: =32
+                  Fill: =If(lcsStates.Theme = "Dark", RGBA(51, 51, 51, 1), RGBA(235, 235, 235, 1))
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+            - shpLine:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =44
+                  Y: =11
+                  Width: =(Parent.TemplateWidth - 44) * If(Mod(ThisItem.Value, 2) = 0, 0.6, 0.85)
+                  Height: =10
+                  Fill: =If(lcsStates.Theme = "Dark", RGBA(51, 51, 51, 1), RGBA(235, 235, 235, 1))
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  RadiusTopLeft: =5
+                  RadiusTopRight: =5
+                  RadiusBottomLeft: =5
+                  RadiusBottomRight: =5
+            - shpSubline:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =44
+                  Y: =28
+                  Width: =(Parent.TemplateWidth - 44) * 0.4
+                  Height: =8
+                  Fill: =If(lcsStates.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(243, 243, 243, 1))
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+      - btnAction:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =Max(120, Len(lcsStates.ActionText) * 9 + 32)
+            Height: =36
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =lblMessage.Y + lblMessage.Height + 12
+            Visible: =lcsStates.State in ["Empty", "Error"] && !IsBlank(lcsStates.ActionText)
+            Text: =lcsStates.ActionText
+            Appearance: =If(lcsStates.State = "Error", ButtonAppearance.Outline, ButtonAppearance.Primary)
+            BasePaletteColor: =lcsStates.AccentColor
+            Color: |-
+              =If(
+                  lcsStates.State <> "Error", RGBA(255, 255, 255, 1),
+                  lcsStates.Theme = "Dark", RGBA(255, 255, 255, 1),
+                  RGBA(36, 36, 36, 1)
+              )
+            BorderColor: |-
+              =If(
+                  lcsStates.State <> "Error", RGBA(0, 0, 0, 0),
+                  lcsStates.Theme = "Dark", RGBA(102, 102, 102, 1),
+                  RGBA(209, 209, 209, 1)
+              )
+            AccessibleLabel: =lcsStates.ActionText
+            OnSelect: =lcsStates.OnAction(lcsStates.State)

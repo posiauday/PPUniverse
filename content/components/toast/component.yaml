@@ -1,0 +1,245 @@
+ComponentDefinitions:
+  lcsToast:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks toast: a coloured message bar for success, info, warning and error, shown with one action. It closes itself after Duration seconds, queues messages that arrive while one shows, and has an optional button, a close button, and a dark theme."
+    CustomProperties:
+      ActionText:
+        PropertyKind: Input
+        DisplayName: ActionText
+        DataType: Text
+        Description: "Text for an optional button on the toast, such as Undo or View. Leave empty for none."
+        Default: =""
+      ToastWidth:
+        PropertyKind: Input
+        DisplayName: ToastWidth
+        DataType: Number
+        Description: "The toast's width in pixels. It never gets wider than the component."
+        Default: =420
+      Duration:
+        PropertyKind: Input
+        DisplayName: Duration
+        DataType: Number
+        Description: "Seconds before the toast closes itself. 0 keeps it until the user closes it. With an action button, give people at least 10."
+        Default: =6
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "Your brand colour, used for the border and tint of Info messages."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light, or Dark for a dark screen."
+        Default: ="Light"
+      QueueCount:
+        PropertyKind: Output
+        DisplayName: QueueCount
+        DataType: Number
+        Description: "How many messages are waiting behind the one showing."
+      IsOpen:
+        PropertyKind: Output
+        DisplayName: IsOpen
+        DataType: Boolean
+        Description: "True while the toast is showing."
+      CurrentKind:
+        PropertyKind: Output
+        DisplayName: CurrentKind
+        DataType: Text
+        Description: "The kind of the toast showing now: Success, Info, Warning or Error."
+      FormatMessage:
+        PropertyKind: InputFunction
+        DisplayName: FormatMessage
+        DataType: Text
+        Description: "Lets your app change how messages read, such as adding a prefix. Receives the message and its kind."
+        Parameters:
+          - Message:
+              DataType: Text
+              Description: "The message passed to Show."
+              Default: =""
+          - Kind:
+              DataType: Text
+              Description: "Success, Info, Warning or Error."
+              Default: =""
+        Default: =Message
+      OnAction:
+        PropertyKind: Event
+        DisplayName: OnAction
+        ReturnType: None
+        Description: "Runs in the app when the user selects the toast's button. Then the next queued message shows, or the toast closes."
+        Default: =false
+      OnDismiss:
+        PropertyKind: Event
+        DisplayName: OnDismiss
+        ReturnType: None
+        Description: "Runs in the app when the user closes the toast. Then the next queued message shows, if there is one."
+        Default: =false
+      Show:
+        PropertyKind: Action
+        DisplayName: Show
+        ReturnType: None
+        Description: "Shows a message. Kind is Success, Info, Warning or Error; anything else shows as Info."
+        Parameters:
+          - Message:
+              DataType: Text
+              Description: "The message, in one short sentence."
+              Default: =""
+          - Kind:
+              DataType: Text
+              Description: "Success, Info, Warning or Error."
+              Default: =""
+      Hide:
+        PropertyKind: Action
+        DisplayName: Hide
+        ReturnType: None
+        Description: "Closes the toast and drops any queued messages, without running OnDismiss."
+    Properties:
+      Width: =460
+      Height: =64
+      Fill: =RGBA(0, 0, 0, 0)
+      OnReset: |-
+        =Clear(colToastQueue);
+        Set(locOpen, false)
+      IsOpen: =locOpen
+      CurrentKind: =locKind
+      QueueCount: =CountRows(colToastQueue)
+      Show: |-
+        =If(
+            locOpen,
+            Collect(colToastQueue, {Message: Message, Kind: If(Kind in ["Success", "Info", "Warning", "Error"], Kind, "Info")}),
+            Set(locMessage, Message);
+            Set(locKind, If(Kind in ["Success", "Info", "Warning", "Error"], Kind, "Info"));
+            Set(locExpires, DateAdd(Now(), lcsToast.Duration, TimeUnit.Seconds));
+            Set(locOpen, true)
+        )
+      Hide: |-
+        =Clear(colToastQueue);
+        Set(locOpen, false)
+    Children:
+      - tmrToast:
+          Control: Timer@2.1.0
+          Properties:
+            Visible: =false
+            Duration: =500
+            Repeat: =true
+            AutoStart: =false
+            Start: =locOpen && lcsToast.Duration > 0
+            OnTimerEnd: |-
+              =If(
+                  Now() >= locExpires,
+                  If(
+                      CountRows(colToastQueue) > 0,
+                      Set(locMessage, First(colToastQueue).Message);
+                      Set(locKind, First(colToastQueue).Kind);
+                      Set(locExpires, DateAdd(Now(), lcsToast.Duration, TimeUnit.Seconds));
+                      Remove(colToastQueue, First(colToastQueue)),
+                      Set(locOpen, false)
+                  )
+              )
+      - lblToast:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Min(lcsToast.ToastWidth, Parent.Width)
+            Height: =Parent.Height
+            Visible: =locOpen
+            Text: |-
+              =Switch(locKind, "Success", "✓ ", "Warning", "! ", "Error", "✕ ", "i ") &
+              lcsToast.FormatMessage(locMessage, locKind) &
+              If(CountRows(colToastQueue) > 0, "  (" & CountRows(colToastQueue) & " more)", "")
+            Wrap: =true
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            PaddingLeft: =16
+            PaddingRight: =If(IsBlank(lcsToast.ActionText), 52, 140)
+            Color: |-
+              =If(
+                  lcsToast.Theme = "Dark",
+                  Switch(
+                      locKind,
+                      "Success", RGBA(159, 216, 159, 1),
+                      "Warning", RGBA(250, 160, 107, 1),
+                      "Error", RGBA(241, 112, 123, 1),
+                      RGBA(255, 255, 255, 1)
+                  ),
+                  Switch(
+                      locKind,
+                      "Success", RGBA(14, 112, 14, 1),
+                      "Warning", RGBA(131, 75, 0, 1),
+                      "Error", RGBA(166, 21, 46, 1),
+                      RGBA(36, 36, 36, 1)
+                  )
+              )
+            Fill: |-
+              =If(
+                  lcsToast.Theme = "Dark",
+                  Switch(
+                      locKind,
+                      "Success", RGBA(5, 37, 5, 1),
+                      "Warning", RGBA(74, 30, 4, 1),
+                      "Error", RGBA(63, 16, 17, 1),
+                      ColorFade(lcsToast.AccentColor, -0.75)
+                  ),
+                  Switch(
+                      locKind,
+                      "Success", RGBA(223, 246, 221, 1),
+                      "Warning", RGBA(255, 244, 206, 1),
+                      "Error", RGBA(253, 231, 233, 1),
+                      ColorFade(lcsToast.AccentColor, 0.9)
+                  )
+              )
+            BorderColor: =If(locKind in ["Success", "Warning", "Error"], Self.Color, lcsToast.AccentColor)
+            BorderThickness: =1
+            RadiusTopLeft: =6
+            RadiusTopRight: =6
+            RadiusBottomLeft: =6
+            RadiusBottomRight: =6
+      - btnAction:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =84
+            Height: =32
+            X: =lblToast.X + lblToast.Width - 48 - Self.Width
+            Y: =(Parent.Height - Self.Height) / 2
+            Visible: =locOpen && !IsBlank(lcsToast.ActionText)
+            Text: =lcsToast.ActionText
+            Appearance: =ButtonAppearance.Outline
+            AccessibleLabel: =lcsToast.ActionText
+            Color: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            BorderColor: =If(lcsToast.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            OnSelect: |-
+              =lcsToast.OnAction();
+              If(
+                  CountRows(colToastQueue) > 0,
+                  Set(locMessage, First(colToastQueue).Message);
+                  Set(locKind, First(colToastQueue).Kind);
+                  Set(locExpires, DateAdd(Now(), lcsToast.Duration, TimeUnit.Seconds));
+                  Remove(colToastQueue, First(colToastQueue)),
+                  Set(locOpen, false)
+              )
+      - btnClose:
+          Control: ModernButton@1.0.0
+          Properties:
+            Width: =32
+            Height: =32
+            X: =lblToast.X + lblToast.Width - 8 - Self.Width
+            Y: =(Parent.Height - Self.Height) / 2
+            Visible: =locOpen
+            Text: ="Close"
+            Icon: ="Dismiss"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            AccessibleLabel: ="Close message"
+            Color: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            OnSelect: |-
+              =lcsToast.OnDismiss();
+              If(
+                  CountRows(colToastQueue) > 0,
+                  Set(locMessage, First(colToastQueue).Message);
+                  Set(locKind, First(colToastQueue).Kind);
+                  Set(locExpires, DateAdd(Now(), lcsToast.Duration, TimeUnit.Seconds));
+                  Remove(colToastQueue, First(colToastQueue)),
+                  Set(locOpen, false)
+              )
