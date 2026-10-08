@@ -32,12 +32,15 @@ Every component must meet all of these before it's published. CI checks what it 
    - **Functions:** an InputFunction where the app should shape output (formatting, labels), and an OutputFunction for pure helpers.
 4. **Fully dynamic design:** a `Theme` input (a Record: colours, radius, font, spacing) with light and dark defaults, plus a short list of direct overrides. Nothing hard-coded that a maker could want to change.
 5. **Responsive:** sizes come from `Parent` and inputs, never fixed screen positions; it works from 320 px wide.
-6. **Accessible:** `AccessibleLabel` on every interactive control, a sensible `TabIndex` order, a visible focus state, text contrast at least 4.5:1 in both themes, live text announced where content changes, nothing that only works on hover.
+6. **Accessible:** `AccessibleLabel` on every interactive control (a classic button is named by its `Text` instead, which Studio requires), a sensible `TabIndex` order, a visible focus state, text contrast at least 4.5:1 in both themes, live text announced where content changes, nothing that only works on hover.
 7. **Delegation-safe:** components that take data never filter or sort it themselves in a way that hides rows. Paging, sorting and filtering are done by the app through events, or the component documents its limit.
 8. **Naming:** component `lcs<Name>`; controls named by type and role (`btnPrimary`, `lblTitle`, `cntHeader`); properties in PascalCase; no abbreviations a maker can't guess.
-9. **Performance:** few controls, no timers unless the feature needs one, no `AccessAppScope` unless documented.
-10. **No premium surprise:** standard controls only, no connectors inside the component, so using it never makes an app premium. Every page states this.
-11. **Documented:** every property with type, default and description (from the YAML itself), usage examples, variations, an architecture tree, known limits, and a change log.
+9. **Blank-safe:** every input the component reads survives a blank value (`Coalesce`, `IsBlank`), so it never errors while the app's data is still loading. Component variables used by the component's own properties are set in `OnReset`.
+10. **Colours derived, not fixed:** hover and pressed states come from the maker's colours (`ColorFade(AccentColor, …)`), so any brand colour looks right.
+11. **Works in a component library:** no `AccessAppScope`, no `App.` references; everything comes in through inputs and goes out through outputs.
+12. **Performance:** few controls, no timers unless the feature needs one.
+13. **No premium surprise:** standard controls only, no connectors inside the component, so using it never makes an app premium. Every page states this.
+14. **Documented:** every property with type, default and description (from the YAML itself), usage examples, variations, an architecture tree, known limits, and a change log.
 
 ## Testing (the product owner)
 
