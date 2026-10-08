@@ -11,6 +11,11 @@ When an action in a cloud flow fails, the flow stops and the run is marked faile
 
 The **try-catch-finally** pattern fixes this. It uses three **Scope** actions and the **Configure run after** setting, and it takes about ten minutes to add to an existing flow.
 
+> [!ANSWER] Quick answer
+> 1. [Wrap the flow's work in a **Try** scope](#step-1-wrap-the-work-in-try).
+> 2. [Add a **Catch** scope](#step-2-add-catch) that runs when **Try** has failed or timed out, finds the error with `result()` and tells someone.
+> 3. [End **Catch** with **Terminate** set to **Failed**](#step-4-make-the-runs-final-status-honest), so handled failures still show as failures.
+
 ## The pattern
 
 | Scope | What goes in it | Runs when |

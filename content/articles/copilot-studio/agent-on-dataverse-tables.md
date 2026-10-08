@@ -9,6 +9,11 @@ searchPhrase: "ground copilot studio agent on dataverse tables"
 ---
 Most business answers live in **Dataverse**: cases, orders, assets, contacts. Adding tables as **knowledge** lets an agent answer questions like "which high-priority cases opened this week are still unresolved?" straight from those rows. Since September 2026 it can also reason over **notes and attached files** in those rows, in preview.
 
+> [!ANSWER] Quick answer
+> 1. [Turn on **Dataverse search** and use **Authenticate with Microsoft**](#before-you-start): without them, Dataverse knowledge isn't available.
+> 2. [Give columns clear display names and descriptions](#make-the-data-easy-to-find): the agent finds data through table and column metadata.
+> 3. [Test with a low-permission account](#before-you-start) before you launch.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

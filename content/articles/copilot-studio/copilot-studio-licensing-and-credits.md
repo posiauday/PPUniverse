@@ -9,6 +9,11 @@ searchPhrase: "copilot studio licensing credits"
 ---
 Two questions come up again and again: **"Does everyone who uses my agent need a licence?"** and **"Why did we run out of credits?"** The short answers are *usually not*, and *because credits pay for activity, not people*. Here are the details.
 
+> [!ANSWER] Quick answer
+> 1. [People who chat with a published agent need no special licence](#who-needs-what): their use is paid for with your tenant's **Copilot Credits**.
+> 2. [Builders need a Copilot Studio user licence, the authors role or Microsoft 365 Copilot](#who-needs-what); trial users can't publish.
+> 3. [Credits reset on the 1st and don't carry over](#how-to-get-credits). [Set monthly limits per agent](#when-credits-run-out) to avoid running out.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Microsoft's Copilot Studio Licensing Guide is the final word on prices and terms.
 

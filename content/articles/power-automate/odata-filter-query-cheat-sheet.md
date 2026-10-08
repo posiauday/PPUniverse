@@ -9,6 +9,11 @@ searchPhrase: "odata filter query sharepoint"
 ---
 A **Filter Query** makes the data source do the filtering, so the flow fetches only the rows it needs instead of everything followed by a **Filter array**. It's faster, uses fewer requests, and is often the only way to work with large lists. But each connector speaks its own dialect, and a filter that works on Dataverse fails on SharePoint. This page lists what each one accepts.
 
+> [!ANSWER] Quick answer
+> 1. [Use the column's internal name](#errors-that-mean-fix-your-filter), not its display name.
+> 2. [Put text values in single quotes](#the-basics-that-apply-everywhere), and double a quote inside a value: `'O''Brien'`.
+> 3. [Check what your connector accepts](#sharepoint-get-items-and-get-files): a filter that works on Dataverse can fail on SharePoint.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026. Every example uses a column's **internal (logical) name**, not its display name.
 

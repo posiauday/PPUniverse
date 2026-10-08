@@ -8,7 +8,7 @@ import {
   CONTACT_EMAIL,
   HOW_WE_WRITE_PAGE,
   INFO_PAGES,
-  OPERATOR_NAME,
+  BYLINE_NAME,
   PRIVACY_PAGE,
   TERMS_PAGE,
 } from "./pages";
@@ -19,22 +19,35 @@ import {
  * compliance with anything.
  */
 describe("About, Privacy and Terms", () => {
-  it("name the operator on About, Privacy and Terms, and the contact address on every page", () => {
-    for (const page of [ABOUT_PAGE, PRIVACY_PAGE, TERMS_PAGE]) {
-      expect(page.markdown).toContain(OPERATOR_NAME);
-    }
+  it("give the contact address on every page, and name no person and no home province", () => {
     for (const page of INFO_PAGES) {
       expect(page.markdown).toContain(`mailto:${CONTACT_EMAIL}`);
+      // docs/final-decisions.md, 2026-10-07, "No personal details on the site":
+      // no "run by <a name>", and no province or city.
+      for (const text of [page.markdown, page.description]) {
+        expect(text).not.toMatch(/\brun by [A-Z]/);
+        expect(text).not.toMatch(/\bProvince of\b|, in [A-Z][a-z]+, Canada/);
+      }
     }
+    // Privacy still says who is responsible, by role, and how to reach them.
+    expect(PRIVACY_PAGE.markdown).toContain("run independently by its owner, who is responsible");
+    expect(ABOUT_PAGE.markdown).toContain(`posted by ${BYLINE_NAME}`);
   });
 
-  it("How we write (MVP-042) keeps the approved AI sentence and promises nothing unbuilt", () => {
+  it("How we write (MVP-042) keeps the approved AI sentence and the report sentence", () => {
     expect(HOW_WE_WRITE_PAGE.markdown).toContain(
       "Drafts are written with the help of AI, then fact-checked line by line.",
     );
-    // Interim until the report button ships (guide redesign slice 4).
-    expect(HOW_WE_WRITE_PAGE.markdown).not.toContain("Something here changed?");
+    // Slice 4 shipped the report button, so the approved sentence is back.
+    expect(HOW_WE_WRITE_PAGE.markdown).toContain('Use "Something here changed?" on any guide');
     expect(HOW_WE_WRITE_PAGE.markdown).toMatch(/never copy anyone's text/);
+  });
+
+  it("carry the comments wording the product owner approved (MVP-040)", () => {
+    expect(TERMS_PAGE.markdown).toContain("## Comments");
+    expect(TERMS_PAGE.markdown).toContain("**What you post stays yours.**");
+    expect(PRIVACY_PAGE.markdown).toContain("## Comments and your profile");
+    expect(PRIVACY_PAGE.markdown).toContain("**never your email address**");
   });
 
   it("make no compliance claim", () => {
@@ -74,7 +87,7 @@ describe("About, Privacy and Terms", () => {
     expect(outlineOf(TERMS_PAGE.markdown).map((item) => item.id)).toContain("mit-license");
     expect(TERMS_PAGE.markdown).toMatch(/Permission is hereby granted, free of charge/);
     expect(TERMS_PAGE.markdown).toMatch(/Please don't republish whole guides/);
-    expect(TERMS_PAGE.markdown).toMatch(/laws of the Province of Saskatchewan/);
+    expect(TERMS_PAGE.markdown).toMatch(/governed by the laws of Canada/);
   });
 
   it("keeps the non-affiliation statement on About and Terms", () => {

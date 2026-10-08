@@ -11,6 +11,11 @@ When a report shows the wrong number or an agent gives a wrong answer, the cause
 
 This guide sets out four KPIs for the quality of data in Dataverse, how to measure each, and which Dataverse features prevent the problems rather than just reporting them.
 
+> [!ANSWER] Quick answer
+> 1. [Measure completeness, duplicates, freshness and validity](#the-four-kpis) per table, for the columns that matter, on active rows only.
+> 2. [Find duplicates with detection rules](#finding-duplicates) and a scheduled job.
+> 3. [Stop problems at entry](#stopping-problems-at-the-source) with required columns, alternate keys and business rules, and [give each KPI an owner](#setting-targets-and-owners).
+
 ## The four KPIs
 
 | KPI | Question it answers | Formula |

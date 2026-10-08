@@ -23,7 +23,7 @@ describe("importPlan (automatic draft import on release)", () => {
   });
 
   it("runs the two draft importers and never prints the connection string", () => {
-    expect(IMPORTERS).toEqual(["content:import", "updates:import"]);
+    expect(IMPORTERS).toEqual(["content:import", "updates:import", "topics:import"]);
     for (const env of [READY, { ...READY, ARTICLE_AUTHOR_EMAIL: undefined }]) {
       expect(importPlan(env).message).not.toContain("secret");
     }

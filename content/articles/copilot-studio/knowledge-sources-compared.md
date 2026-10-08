@@ -16,6 +16,11 @@ Adding knowledge to a Copilot Studio agent looks like one decision, "point it at
 - **Freshness:** when the content changes, when does the agent know?
 - **Effort:** what do you have to maintain?
 
+> [!ANSWER] Quick answer
+> 1. [Content that changes weekly or more, with access that varies by person](#sharepoint): connect **SharePoint**.
+> 2. [Records and structured data](#dataverse-tables): use **Dataverse**.
+> 3. [A handful of stable, non-sensitive documents](#uploaded-files): upload them. Public information you already publish: [public websites](#public-websites).
+
 ## Side by side
 
 | Source | Who can get answers from it | How fresh | Good for |

@@ -9,6 +9,11 @@ searchPhrase: "power pages portal kpis"
 ---
 A Power Pages site usually exists to move work from a person to a page: customers check their own status instead of phoning, applicants submit complete forms instead of emailing attachments. Visitor counts don't tell you whether that's happening. These five KPIs do.
 
+> [!ANSWER] Quick answer
+> 1. [Track five KPIs](#the-five-kpis): active users, sign-up conversion, form completion, self-service rate and contact reduction.
+> 2. [Record requests by channel, with a baseline from before launch](#measuring-self-service-honestly), so the self-service rate is a count, not a guess.
+> 3. [Take traffic from the admin center's analytics, and budgets from the capacity reports](#where-the-numbers-come-from).
+
 ## The five KPIs
 
 | KPI | Question it answers | Formula |

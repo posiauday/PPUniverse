@@ -62,6 +62,13 @@ Platform updates for `/updates` and the header badge, mirroring Article and Arti
 
 Authorization: content-publishing authority (create/edit/publish an `Article`) reuses the existing `ADMIN` role — no `EDITOR` role exists or is introduced (`docs/final-decisions.md`, "MVP-017 implementation: content-publishing authorization reuses ADMIN").
 
+### LearnTopic, LearnLesson and LearnPublishEvent (MVP-048)
+The Learn module (`docs/plans/learn-module.md`): topics made of 3 to 6 lessons at `/topics/<topic>/<lesson>`. Same lifecycle as `Article`: created `DRAFT`, `publishedAt` set once on publish and never rewritten, `Restrict` FKs, row-level security on with no policies.
+- `LearnTopic` (`learn_topics`): `slug` (unique; the address and the importer's key), `title`, `summary` (plain text), `technology` (required `Technology`, including `GOVERNANCE_ADMIN`), `sortOrder` (order among the area's topics), `status`, `publishedAt`, `authorUserId`.
+- `LearnLesson` (`learn_lessons`): `topicId`, `slug` and `position` (each unique within the topic), `title`, `minutes`, `outcomes` (`TEXT[]`, 2 or 3), `body` (Markdown in the fixed lesson shape, never rendered as raw HTML), `checkedOn` (`DATE`, nullable), `status`, `publishedAt`, `authorUserId`. A lesson is public only when it and its topic are both `PUBLISHED`.
+- `LearnPublishEvent` (`learn_publish_events`): append-only, one row per publish: `topicId`, `lessonId` (null when the topic itself was published), `actorUserId`, `action`.
+- The lesson shape and the knowledge-check rules are checked in `@ppu/domain-content` (`learn.ts`) by the importer, the content gate and the admin editor.
+
 ## Operations
 SupportCase, FeatureFlag, JobRecord, WebhookReceipt, AnalyticsEvent.
 

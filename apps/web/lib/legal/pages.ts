@@ -11,21 +11,27 @@
  * the same type, headings and contents list as a guide.
  */
 
-export const OPERATOR_NAME = "Uday Posia";
 export const CONTACT_EMAIL = "contact@lowcodestacks.com";
 
-/** The date the Terms took effect. Also the PolicyVersion `version` recorded
- * when someone accepts the Terms (migration
- * 20261002000000_add_policy_versions_2026_10_02). */
-export const POLICY_EFFECTIVE_DATE = "2026-10-02";
-export const POLICY_EFFECTIVE_LABEL = "October 2, 2026";
+/** The name guides are posted under (docs/final-decisions.md, 2026-10-07,
+ * "No personal details on the site"): the site names no person and no place
+ * where its owner lives. */
+export const BYLINE_NAME = "the Maker Desk";
+
+/** The date the current Terms took effect. Also the PolicyVersion `version`
+ * recorded when someone accepts the Terms: they last changed when the
+ * "Comments" section was added (MVP-040; before that, the owner's name and
+ * location came off the site). Migration
+ * 20261011000000_add_policy_versions_2026_10_10. */
+export const POLICY_EFFECTIVE_DATE = "2026-10-10";
+export const POLICY_EFFECTIVE_LABEL = "October 10, 2026";
 
 /** The date the current Privacy notice took effect: it last changed when
- * email and password sign-in was added (MVP-036), after Google sign-in
- * (MVP-035). Its PolicyVersion row is migration
- * 20261007000100_add_privacy_policy_version_2026_10_07. */
-export const PRIVACY_EFFECTIVE_DATE = "2026-10-07";
-export const PRIVACY_EFFECTIVE_LABEL = "October 7, 2026";
+ * "Comments and your profile" was added (MVP-040; before that, the owner's
+ * name and location came off the site). Its PolicyVersion row is migration
+ * 20261011000000_add_policy_versions_2026_10_10. */
+export const PRIVACY_EFFECTIVE_DATE = "2026-10-10";
+export const PRIVACY_EFFECTIVE_LABEL = "October 10, 2026";
 
 export interface InfoPage {
   path: "/about" | "/privacy" | "/terms" | "/how-we-write";
@@ -45,8 +51,8 @@ export const ABOUT_PAGE: InfoPage = {
   accent: "who's behind it",
   eyebrow: "About",
   description:
-    "LowCodeStacks is an independent site of free Power Platform guides, run by Uday Posia in Saskatchewan, Canada. Here's what it covers and how guides are written.",
-  markdown: `LowCodeStacks is an independent site of free, practical guides for Microsoft Power Platform: Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages. It is run by ${OPERATOR_NAME}, in Saskatchewan, Canada.
+    "LowCodeStacks is an independent site of free Power Platform guides. Here's what it covers and how guides are written.",
+  markdown: `LowCodeStacks is an independent site of free, practical guides for Microsoft Power Platform: Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages. Guides are posted by ${BYLINE_NAME}, the name LowCodeStacks publishes under.
 
 ## Why it exists
 
@@ -92,7 +98,7 @@ export const PRIVACY_PAGE: InfoPage = {
     "What LowCodeStacks collects, why, who processes it, and how to see, correct or delete your information. No ads, no analytics, no tracking cookies.",
   markdown: `This notice explains what personal information LowCodeStacks collects, why, and what you can do about it. It applies to lowcodestacks.com.
 
-LowCodeStacks is run by ${OPERATOR_NAME}, in Saskatchewan, Canada, who is responsible for the personal information described here. For anything about your privacy, email ${contact}.
+LowCodeStacks is run independently by its owner, who is responsible for the personal information described here. For anything about your privacy, email ${contact}.
 
 ## The short version
 
@@ -126,6 +132,22 @@ You can sign in with a password, with a link sent to your email, or with your Go
 ## Emails
 
 We send email only when you ask for it: a sign-in link, a link to confirm your email or set a password, or confirmation of a request you made. We don't currently send newsletters or marketing email. If we ever do, it will be only to people who opt in, every message will have an unsubscribe link, and you can switch it off on your account page at any time.
+
+## Feedback on guides
+
+You don't need an account to tell us whether a guide helped.
+
+- **"Did this fix it?"** We store only your answer, which guide it was about, and when. Nothing about you.
+- **"Something here changed?"** We store your note, which guide it was about, and when. Please don't put personal details in a note: we can't reply to it, and we delete each note once we've checked it.
+- **Limits:** to stop votes and notes being sent in bulk, we count recent ones for each network (IP) address. Addresses are stored only as hashes, and each count is deleted a day after it was last used.
+
+## Comments and your profile
+
+If you're signed in, we give you a **display name** and an **avatar** at random, which you can change on your profile page. When you comment, we store the comment, the guide it's on, when you posted it, and your account. Your comment is public, shown with your display name and avatar, **never your email address**.
+
+- You can delete your comments at any time; they're gone straight away.
+- If we remove a comment that breaks the Terms, we keep it, hidden, so a mistake can be undone. It's deleted with your account.
+- Anyone can report a comment. We keep only that it was reported and when, nothing about who reported it. To limit abuse we keep a scrambled (hashed) counter for each address for a day.
 
 ## Cookies
 
@@ -167,7 +189,9 @@ We don't sell, rent or trade personal information. We would disclose it only if 
 
 - Account information is kept while your account exists.
 - Sign-in sessions expire after 30 days, sign-in links after 24 hours, and password links after 1 hour.
-- Counts of failed sign-in attempts are deleted a day after they were last used.
+- Counts of failed sign-in attempts, votes and notes are deleted a day after they were last used.
+- Notes sent with "Something here changed?" are deleted once we've checked them. Vote answers are kept with the guide; they say nothing about who voted.
+- Comments are kept until you delete them, or until your account is deleted. That includes comments we've removed and kept hidden.
 - Records of your choices and of deletion requests are kept as proof of what you asked for, even after the rest of your account information is removed.
 - Logs are kept only as long as needed to run and protect the site.
 
@@ -202,7 +226,7 @@ export const TERMS_PAGE: InfoPage = {
   eyebrow: `Terms · Effective ${POLICY_EFFECTIVE_LABEL}`,
   description:
     "The terms for using LowCodeStacks: how you may use the guides and code samples (code is MIT-licensed), accounts, disclaimers and governing law.",
-  markdown: `These terms apply when you use lowcodestacks.com. By using the site you agree to them. LowCodeStacks is run by ${OPERATOR_NAME} ("we", "us"), in Saskatchewan, Canada. Questions: ${contact}.
+  markdown: `These terms apply when you use lowcodestacks.com. By using the site you agree to them. LowCodeStacks ("we", "us") is an independent site run by its owner. Questions: ${contact}.
 
 ## Using the site
 
@@ -214,15 +238,23 @@ You're welcome to read, bookmark and share everything here. Please don't:
 
 ## Your account
 
-You don't need an account to read the guides. If you create one, it's tied to your email address, and you sign in with links sent there. Keep access to that email secure, because anyone who can read it can sign in as you. You can end your sessions or ask for your account to be deleted at any time.
+You don't need an account to read the guides. If you create one, it's tied to your email address. You sign in with a link sent there, with Google, or with a password if you set one. Keep your password and access to that email secure, because anyone who has them can sign in as you. You can end your sessions or ask for your account to be deleted at any time.
 
 We may suspend an account that's being used to harm the site or other people.
+
+## Comments
+
+If you're signed in, you can comment on guides. Comments are public, under your display name and avatar, and appear straight away.
+
+- **Be useful and kind.** No spam or advertising, nothing unlawful, hateful or harassing, and no one else's personal details. Don't pretend to be someone else, or to speak for LowCodeStacks or Microsoft.
+- **What you post stays yours.** You give us a non-exclusive, worldwide, royalty-free licence to show, store and format it on lowcodestacks.com, for as long as it's there. Code you share in a comment may be reused by others under the [MIT License](#mit-license), like ours.
+- **We may remove comments** that break these rules, or that readers report and we agree with, and suspend accounts used to break them. You can delete your own comments at any time.
 
 ## What you can reuse
 
 **Code samples are free to use.** You may copy, change and use the code in our guides in your own projects, including commercial ones, under the [MIT License](#mit-license) below. You don't need to ask.
 
-**Text and images are ours.** The writing, diagrams and images on LowCodeStacks are © ${OPERATOR_NAME} (LowCodeStacks). You may quote short excerpts with a link back to the page. Please don't republish whole guides or large parts of them.
+**Text and images are ours.** The writing, diagrams and images on LowCodeStacks are © LowCodeStacks. You may quote short excerpts with a link back to the page. Please don't republish whole guides or large parts of them.
 
 **Components and templates**, when available, each come with their own licence, shown on their page. That licence is what applies to them.
 
@@ -230,7 +262,7 @@ We may suspend an account that's being used to harm the site or other people.
 
 The code samples published on lowcodestacks.com are made available under the MIT License:
 
-> Copyright (c) ${POLICY_EFFECTIVE_DATE.slice(0, 4)} ${OPERATOR_NAME} (LowCodeStacks)
+> Copyright (c) ${POLICY_EFFECTIVE_DATE.slice(0, 4)} LowCodeStacks
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 >
@@ -270,7 +302,7 @@ We may update these terms. When we do, we'll change the effective date below. Co
 
 ## Governing law
 
-These terms are governed by the laws of the Province of Saskatchewan and the federal laws of Canada that apply there. Any dispute will be handled by the courts of Saskatchewan, unless the law where you live gives you the right to bring it elsewhere.
+These terms are governed by the laws of Canada that apply to them. Nothing here takes away a right the law where you live gives you, including to bring a dispute there.
 
 These terms took effect on ${POLICY_EFFECTIVE_LABEL}.
 `,
@@ -278,11 +310,11 @@ These terms took effect on ${POLICY_EFFECTIVE_LABEL}.
 
 /**
  * How we write and check guides (MVP-042; wording approved on the design
- * board, docs/final-decisions.md, "Approvals for the redesign"). Interim
- * wording until two features exist, recorded in final-decisions ("How we
- * write: interim wording"): readers report changes by email until the
- * "Something here changed?" button ships (slice 4), and only guides
- * checked since launch show a checked-on date.
+ * board, docs/final-decisions.md, "Approvals for the redesign"). The report
+ * sentences are back to the approved wording now "Something here changed?"
+ * exists (slice 4). Still interim, recorded in final-decisions ("How we
+ * write: interim wording"): only guides checked since launch show a
+ * checked-on date.
  */
 export const HOW_WE_WRITE_PAGE: InfoPage = {
   path: "/how-we-write",
@@ -311,7 +343,7 @@ Nothing is published automatically. Every guide is reviewed and published by the
 
 ## 5. Keep it current
 
-When Microsoft changes something, we re-check the guides it affects and update the date. If you spot something that changed, email ${contact} and we'll check it.
+When Microsoft changes something, we re-check the guides it affects and update the date. If you spot something that changed, tell us from the guide and we'll check it.
 
 ## What we never do
 
@@ -320,7 +352,7 @@ When Microsoft changes something, we re-check the guides it affects and update t
 - Use Microsoft's product logos.
 - Publish a guide without its sources.
 
-Found a mistake? Email ${contact} and we'll re-check it.
+Found a mistake? Use "Something here changed?" on any guide, and we'll re-check it. You can also email ${contact}.
 `,
 };
 

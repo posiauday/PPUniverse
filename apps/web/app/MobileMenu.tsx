@@ -92,7 +92,7 @@ export function MobileMenu({
             id={`${panelId}-tech`}
             className="mt-3 px-3 font-mono text-xs tracking-widest text-muted-foreground uppercase"
           >
-            Technologies
+            Power Platform
           </p>
           <ul aria-labelledby={`${panelId}-tech`} className="mt-2 grid grid-cols-2 gap-2 px-1">
             {technologies.map((link) => (
@@ -118,7 +118,7 @@ export function MobileMenu({
             onClick={close}
             className="motion-press inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline"
           >
-            Start learning
+            Learn
           </Link>
         </div>
       </div>

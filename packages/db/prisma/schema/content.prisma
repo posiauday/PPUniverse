@@ -88,8 +88,11 @@ model Article {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  author User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
-  events ArticlePublishEvent[]
+  author   User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events   ArticlePublishEvent[]
+  votes    ArticleVote[]
+  reports  ArticleReport[]
+  comments ArticleComment[]
 
   @@index([status])
   @@index([type])
@@ -168,4 +171,153 @@ model UpdatePublishEvent {
 
   @@index([updateId, createdAt])
   @@map("update_publish_events")
+}
+
+/// "Did this fix it?" (MVP-039; docs/final-decisions.md, 2026-10-07, "Votes
+/// and reports"). One row per vote, holding nothing about the voter: no user,
+/// no IP address, no cookie. Repeat votes are limited by a hashed counter in
+/// auth_throttle, deleted after a day.
+model ArticleVote {
+  id        String   @id @default(cuid())
+  articleId String
+  helpful   Boolean
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, helpful])
+  @@map("article_votes")
+}
+
+/// "Something here changed?" (MVP-038): an anonymous note of at most 500
+/// characters, with no contact details. It waits in /admin/feedback and is
+/// deleted when the admin closes it (the Privacy notice says so).
+model ArticleReport {
+  id        String   @id @default(cuid())
+  articleId String
+  message   String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("article_reports")
+}
+
+/// A signed-in reader's comment on a guide (MVP-040; docs/final-decisions.md,
+/// 2026-10-07, "Top bar names, AI search readiness, and comments"). It shows
+/// at once; an admin removes it after reports (removedAt), or marks one as
+/// the accepted fix (acceptedAt). Shown under the author's display name only.
+model ArticleComment {
+  id         String    @id @default(cuid())
+  articleId  String
+  userId     String
+  body       String    @db.VarChar(2000)
+  createdAt  DateTime  @default(now())
+  removedAt  DateTime?
+  acceptedAt DateTime?
+
+  article Article         @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  reports CommentReport[]
+
+  @@index([articleId, createdAt])
+  @@index([userId, createdAt])
+  @@map("article_comments")
+}
+
+/// Someone reported a comment (MVP-040). Nothing about the reporter is kept;
+/// a hashed per-address counter limits reports. Deleted with the comment.
+model CommentReport {
+  id        String   @id @default(cuid())
+  commentId String
+  createdAt DateTime @default(now())
+
+  comment ArticleComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
+  @@map("comment_reports")
+}
+
+/// The Learn module (MVP-048; docs/final-decisions.md, 2026-10-07, "Learn
+/// module design: Workspace"; docs/plans/learn-module.md): a topic is a short
+/// series of 3 to 6 lessons at /topics/<topic>/<lesson>. Drafted in
+/// content/topics and imported as drafts, or written in the admin; published
+/// by the product owner. Same lifecycle and audit rules as Article: publishedAt
+/// is set once and never rewritten, and every publish appends a
+/// LearnPublishEvent. A lesson is public only when it and its topic are both
+/// PUBLISHED. Lesson bodies are Markdown, never rendered as raw HTML.
+model LearnTopic {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  /// One or two sentences: what the topic explains and for whom.
+  summary      String
+  /// The area it belongs to: one of the six technologies or Governance & admin.
+  technology   Technology
+  /// Order among the area's topics, lowest first.
+  sortOrder    Int           @default(0)
+  status       ArticleStatus @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten.
+  publishedAt  DateTime?
+  authorUserId String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  author  User                @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  lessons LearnLesson[]
+  events  LearnPublishEvent[]
+
+  @@index([technology, status, sortOrder])
+  @@map("learn_topics")
+}
+
+model LearnLesson {
+  id           String        @id @default(cuid())
+  topicId      String
+  /// Unique within its topic.
+  slug         String
+  /// 1-based place in the topic, unique within it.
+  position     Int
+  title        String
+  /// Reading time in minutes.
+  minutes      Int
+  /// "What you'll understand": 2 or 3 short outcomes.
+  outcomes     String[]
+  /// Markdown in the fixed lesson shape (@ppu/domain-content LESSON_SECTIONS).
+  body         String        @db.Text
+  /// When it was last checked against its sources; null if never.
+  checkedOn    DateTime?     @db.Date
+  status       ArticleStatus @default(DRAFT)
+  /// Null means draft. Set once, on publish, and never rewritten.
+  publishedAt  DateTime?
+  authorUserId String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  topic  LearnTopic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  author User                @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events LearnPublishEvent[]
+
+  @@unique([topicId, slug])
+  @@unique([topicId, position])
+  @@map("learn_lessons")
+}
+
+/// Append-only audit trail for publishing topics and lessons: lessonId is
+/// null when the topic itself was published.
+model LearnPublishEvent {
+  id          String               @id @default(cuid())
+  topicId     String
+  lessonId    String?
+  actorUserId String
+  action      ArticlePublishAction
+  createdAt   DateTime             @default(now())
+
+  topic  LearnTopic   @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  lesson LearnLesson? @relation(fields: [lessonId], references: [id], onDelete: Restrict)
+  actor  User         @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([topicId, createdAt])
+  @@map("learn_publish_events")
 }

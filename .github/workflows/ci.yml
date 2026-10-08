@@ -9,6 +9,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: every job only reads the repository (CodeQL actions/missing-workflow-permissions).
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: Format, lint, typecheck, test, build
@@ -116,7 +120,8 @@ jobs:
 
   accessibility:
     name: "Accessibility shard ${{ matrix.shard }}/${{ strategy.job-total }}"
-    # Sharded across 4 parallel jobs (docs/final-decisions.md, "Accessibility suite
+    # Sharded across 6 parallel jobs (4 until 2026-10-07: docs/final-decisions.md,
+    # "Accessibility shards: 6", TD-030; first sharded under "Accessibility suite
     # mitigation", 2026-09-23 — the standing mitigation trigger from MVP-023's Q39 fired
     # when MVP-017 was about to add page states). Every engine, every width and the full
     # rule set are preserved unchanged; only how the SAME test list is distributed across
@@ -133,7 +138,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -182,7 +187,21 @@ jobs:
 
       - name: Read the pinned Playwright version
         id: playwright
-        run: echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+          echo "image=${ImageOS}-${ImageVersion}" >> "$GITHUB_OUTPUT"
+
+      # The browsers' Linux libraries (about 126 MB of .deb packages for Firefox and
+      # WebKit) are cached too (TD-030 follow-up, 2026-10-07): Ubuntu's mirror sometimes
+      # serves them at ~166 kB/s, which took 8 to 13 minutes and pushed shards past the
+      # 20-minute limit with no failing test. Keyed on the runner image and the Playwright
+      # version, so a new image or Playwright release downloads fresh packages; apt still
+      # installs them normally and fetches anything the cache doesn't hold.
+      - name: Cache the browsers' system packages
+        uses: actions/cache@v4
+        with:
+          path: ~/apt-archives
+          key: playwright-apt-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
 
       # The browsers are Playwright's bundled builds, fixed by the exact pinned version, so
       # keying the cache on that version cannot let a browser drift. Shared cache key across
@@ -197,7 +216,11 @@ jobs:
       - name: Install browsers and system dependencies
         run: |
           start=$(date +%s)
+          echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-keep-downloads > /dev/null
+          if compgen -G "$HOME/apt-archives/*.deb" > /dev/null; then sudo cp "$HOME"/apt-archives/*.deb /var/cache/apt/archives/; fi
           pnpm --filter @ppu/e2e exec playwright install --with-deps chromium firefox webkit
+          mkdir -p "$HOME/apt-archives"
+          if compgen -G "/var/cache/apt/archives/*.deb" > /dev/null; then cp /var/cache/apt/archives/*.deb "$HOME/apt-archives/"; fi
           echo "PPU_SECONDS_BROWSERS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
           echo "PPU_BROWSER_CACHE=${{ steps.browser-cache.outputs.cache-hit == 'true' && 'hit' || 'miss' }}" >> "$GITHUB_ENV"
 
@@ -274,7 +297,7 @@ jobs:
           main_secs="${PPU_SECONDS_TESTS_MAIN:-0}"
           self_secs="${PPU_SECONDS_SELFCHECK:-0}"
           {
-            echo "## Accessibility gate — shard ${{ matrix.shard }}/4"
+            echo "## Accessibility gate — shard ${{ matrix.shard }}/${{ strategy.job-total }}"
             echo
             echo "### Timing, measured in this job"
             echo
@@ -328,8 +351,92 @@ jobs:
           fi
           echo "All accessibility shards passed."
 
+  page-speed:
+    name: Page speed (report only)
+    # MVP-042 (docs/final-decisions.md, 2026-10-07, "Comments wording, admin panel,
+    # speed check and the Learn module", decision 3): Core Web Vitals on a throttled
+    # phone profile, measured with Playwright in Chromium (packages/e2e/tests/perf).
+    # Report only for now: today's pages are over the blocking-time budget, so the
+    # step can't fail the job until they're fixed (planning/tech-debt/TD-032.md).
+    # The numbers go into the job summary.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ppuniverse
+          POSTGRES_PASSWORD: ppuniverse
+          POSTGRES_DB: ppuniverse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ppuniverse"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ppuniverse:ppuniverse@localhost:5432/ppuniverse?schema=public
+      E2E_ALLOW_DATABASE_WRITES: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Read the pinned Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./packages/e2e/package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: pnpm --filter @ppu/e2e exec playwright install --with-deps chromium
+
+      - name: Apply migrations
+        run: pnpm --filter @ppu/db exec prisma migrate deploy
+
+      - name: Build the application
+        run: pnpm build
+
+      - name: Measure page speed
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm --filter @ppu/e2e test:speed 2>&1 | tee speed.log
+
+      - name: Report the numbers
+        if: always()
+        run: |
+          {
+            echo "## Page speed (phone profile, median of 3)"
+            echo
+            echo "Budget: LCP 2500 ms, CLS 0.1, TBT 200 ms. Report only (TD-032)."
+            echo
+            grep -a "\[speed\]" speed.log | sed 's/^/- /' || echo "- No measurements were recorded."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   secret-scan:
     name: Secret scan
+    # gitleaks-action lists a pull request's commits with the token.
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

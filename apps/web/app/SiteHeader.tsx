@@ -19,12 +19,15 @@ const TECHNOLOGY_LINKS = ALL_AREAS.map((area) => ({
   tint: area.tint,
 }));
 
-/** The main links (docs/final-decisions.md, "Navigation restructure"): Guides,
- * and Components only once the catalog has products (feature flag). "KPI
- * guides" is no longer a top link; KPI guides live under Guides. */
+/** The main links (docs/final-decisions.md, "Top bar names", MVP-045): the
+ * two kinds of guide people come for, each opening its section of /learn,
+ * and Components only once the catalog has products (feature flag). The
+ * other kinds stay one click away: each technology page, and the Power
+ * Platform menu's "every guide by goal" link. */
 function mainLinks(): Array<{ name: string; href: string }> {
   return [
-    { name: "Guides", href: "/learn" },
+    { name: "Fixes", href: "/learn#tutorials" },
+    { name: "Patterns", href: "/learn#patterns" },
     ...(componentsEnabled() ? [{ name: "Components", href: "/search" }] : []),
   ];
 }
@@ -35,7 +38,7 @@ const NAV_LINK =
 /**
  * Site-wide header (MVP-027; Daylight look, MVP-031): a floating pill with
  * the brand, the main sections, search, sign-in, the theme toggle and the
- * "Start learning" call to action. No headings here, so every page's own h1
+ * "Learn" call to action. No headings here, so every page's own h1
  * stays its first heading. Links keep a 44px row height (WCAG 2.5.8 target
  * size) and wrap on narrow screens rather than scrolling sideways (1.4.10).
  *
@@ -52,7 +55,7 @@ export function SiteHeader({
 }: {
   theme: Theme;
   signedIn: boolean;
-  /** The Technologies menu (lib/technology-menu.ts); without it, areas and sections only. */
+  /** The Power Platform menu (lib/technology-menu.ts); without it, areas and sections only. */
   menu?: readonly TechnologyMenuArea[];
   /** Newest published update times, for the Updates badge (lib/update-times.ts). */
   updateTimes?: readonly string[];
@@ -98,7 +101,7 @@ export function SiteHeader({
             href="/learn"
             className="motion-press hidden min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline lg:inline-flex"
           >
-            Start learning
+            Learn
           </Link>
         </div>
         {/* Below lg: the menu button, and its panel as the header's last row. */}

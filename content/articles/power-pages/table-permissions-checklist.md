@@ -9,6 +9,11 @@ searchPhrase: "power pages table permissions"
 ---
 A Power Pages site is the one Power Platform product that faces the open internet, so its mistakes are public. Almost every data leak or "users can't see their records" ticket comes down to table permissions and web roles. Use this checklist before go-live and whenever access looks wrong.
 
+> [!ANSWER] Quick answer
+> 1. [Data shows only through table permissions given to web roles](#how-access-works-in-four-lines); page permissions separately control who can open a page.
+> 2. [For every Anonymous Users permission, ask whether the whole internet may read it](#pre-launch-checklist).
+> 3. [Turn on **Enable table permissions** on every list and form](#pre-launch-checklist), including each step of a multistep form.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

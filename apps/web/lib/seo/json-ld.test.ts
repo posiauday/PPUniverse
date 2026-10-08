@@ -5,10 +5,11 @@ import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
   buildProductJsonLd,
+  buildOrganizationJsonLd,
   buildWebSiteJsonLd,
   type ProductJsonLdInput,
 } from "./json-ld.js";
-import { SITE_NAME } from "./site.js";
+import { SITE_DESCRIPTION, SITE_NAME } from "./site.js";
 
 const PRODUCT: ProductJsonLdInput = {
   url: "https://example.com/products/sample-component",
@@ -182,6 +183,19 @@ describe("buildWebSiteJsonLd", () => {
     for (const key of ["potentialAction", "publisher", "brand", "author", "creator", "sameAs"]) {
       expect(keys).not.toContain(key);
     }
+  });
+});
+
+describe("buildOrganizationJsonLd (MVP-046)", () => {
+  it("names the brand with its home page, logo and description", () => {
+    expect(buildOrganizationJsonLd("https://example.com")).toEqual({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: "https://example.com/",
+      logo: "https://example.com/brand/logo-512.png",
+      description: SITE_DESCRIPTION,
+    });
   });
 });
 

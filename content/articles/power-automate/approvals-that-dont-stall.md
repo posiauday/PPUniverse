@@ -18,6 +18,11 @@ This tutorial builds an approval that can't stall. It has four parts:
 
 The example is a purchase request in a SharePoint list, but the pattern works for any trigger.
 
+> [!ANSWER] Quick answer
+> 1. [Give every approval a deadline](#step-1-give-the-approval-a-deadline), well inside the 28-day limit.
+> 2. [Escalate to a second approver](#step-2-escalate-when-the-deadline-passes) when it passes, with its own timeout.
+> 3. [Remind before the deadline](#step-3-remind-the-approver-before-the-deadline), and [write the decision back](#step-4-keep-an-audit-trail) to the request.
+
 ## Why approvals stall
 
 A flow run can't wait forever. Microsoft's limits page gives a maximum run duration of **30 days**, including time spent waiting for an approval; after that, pending steps time out. Its approvals known-issues page describes a flow waiting **28 days** before it fails. Design for the shorter figure.

@@ -4895,3 +4895,236 @@ The guidelines say the G must "appear on a white background" and don't say wheth
 
 **Remaining in the redesign:** slice 2 (fix and pattern blocks), slice 4 (votes and "Something here changed?"), slice 5 (IndexNow and the speed budget).
 
+## 2026-10-07 — TD-031: fonts served from our own files, no download at build time
+
+**Why:** a CI build on the release PR #87 failed when Google Fonts didn't return one font file during the build. Netlify deploys download the same files, so the same thing could fail a deploy.
+
+**Fix:**
+- With the product owner's approval, the five Latin WOFF2 fonts (about 170 KB) and their OFL licences were downloaded from Google Fonts and `google/fonts`, into `apps/web/assets/fonts/`.
+- `apps/web/app/fonts.ts` now uses `next/font/local`, with the same variables, weights, swap and fallbacks.
+- The test font mock in `pages.test.tsx` now mocks `next/font/local`.
+
+**Checks:**
+- Web lint, typecheck and 665 tests pass.
+- A production build ran with no font download.
+- Served with `next start`, the home page loads Bricolage, Instrument Serif, Geist and Geist Mono, and the sign-in page loads Google Sans, from local files. Screenshots match.
+
+## 2026-10-07 — Votes and reports (MVP-039 to QA; MVP-038 part)
+
+**Story:** redesign slice 4, with the product owner's choices recorded in `docs/final-decisions.md`, "Votes and reports".
+
+**Built:**
+- **Data:** migration `20261007000200_add_article_votes_and_reports`: `article_votes` and `article_reports`, with RLS, cascading with the guide. Neither stores anything about the visitor.
+- **Rules:** `packages/domain/content/src/feedback.ts`: `isAcceptedFix` (at least 10 votes, at least 80% Yes) and `cleanReportMessage` (10–500 characters).
+- **Storage:** `packages/adapters/content/src/feedback-repository.ts`:
+  - votes, reports and counts;
+  - closing a report deletes it;
+  - hashed allowances in `auth_throttle`, pruned after a day.
+- **Routes:** `POST /api/guides/[slug]/vote` and `/report` check the origin and the published guide, apply the limits, return `no-store`, and never log the note. `POST /api/admin/reports/[id]/close` is admin only.
+- **The guide page:** `GuideFeedback` asks "Did this fix it?" (fix guides) or "Was this helpful?". "Not yet" opens the note, and focus moves sensibly after each step. The header shows the "Accepted fix" chip.
+- **Admin:** `/admin/feedback` shows open reports (as plain text) and the vote counts per guide, and is linked from the admin home.
+- **Privacy notice:** version 2026-10-08 (migration `20261007000300`).
+- **How we write:** the approved report sentences are back.
+- **Refactor:** `apps/web/lib/request-guards.ts` holds the shared origin, address, body-reading and no-store helpers, still re-exported from the password modules.
+
+**Checks:**
+- The tests pass:
+  - domain: 3;
+  - adapter integration on Postgres: 4;
+  - routes: 10;
+  - web: 673 in total.
+- **Real run against a local database:**
+  - "Not yet" moves focus to the note box;
+  - the note was stored exactly as typed;
+  - a second vote on the same guide was answered 200 and not counted.
+- **Accessibility gate:** see the PR.
+
+
+## 2026-10-07 — Top bar names (MVP-045, built; in review)
+
+**Story:** the product owner said "Technologies" and "Guides" looked weird and asked for research and a recommendation. Research: Nielsen Norman Group's guidance against format-based navigation labels and generic category names, and how Microsoft Learn and two community sites name their sections. Three concepts were drawn with the site's own styles; the product owner chose A with two changes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments").
+
+**Built:**
+- `apps/web/app/SiteHeader.tsx`: the main links are Fixes (`/learn#tutorials`) and Patterns (`/learn#patterns`); the button reads Learn.
+- `apps/web/app/TechnologiesMenu.tsx`: the menu button reads Power Platform.
+- `apps/web/app/MobileMenu.tsx`: the phone menu's group label reads Power Platform; the button reads Learn.
+- `apps/web/app/HeaderSearch.tsx`: the placeholder reads "Search an error or topic", and the box is 17rem wide so it isn't cut off.
+- Tests: `SiteHeader.test.tsx` checks the new names and targets; `TechnologiesMenu.test.tsx` and the gate's `pages.ts` find the menu by its new name.
+
+**Checks:**
+- Web tests: 676 passed. Typecheck, lint and format clean.
+- Local render at 1280 and 1440 px (desktop, menu open) and 375 px (phone menu): nothing cut off, no sideways scroll; Fixes opens `/learn` at the fix guides.
+- Accessibility gate: see the PR.
+
+**Not changed:** the footer's group labels and the hub breadcrumb still say "Technologies"; the decision covers the top bar only.
+
+**Remaining:** product owner review and merge.
+
+## 2026-10-07 — Fix and pattern blocks (MVP-041 In Progress; redesign slice 2)
+
+**Story:** slice 2 of `docs/plans/guide-and-hub-redesign.md`: Markdown conventions that the guide renderer turns into blocks.
+
+**Built:**
+- `apps/web/lib/article-outline.ts` (the remark plugin):
+  - `> [!SYMPTOMS] Question` then a list: symptom cards, each "`code` [title](#step): note". The ": " joining title and note is dropped, because the card puts the title on its own line.
+  - `> [!DIAGRAM] Caption` then `A -> B -> C`: 2 to 8 stops. With fewer than 2 it stays a quote.
+  - `> [!DO]` next to `> [!DONT]`: a pair, side by side from the `sm` width.
+  - `### ` steps under a "Work through it" heading: tick-off steps (2 or more), with a count after them.
+- `apps/web/app/learn/GuideBlocks.tsx`: the components. Each step's box is named "Done: step title". The count ("1 of 4 ticked") is a CSS counter: no script, nothing stored. The diagram's stops light up in turn; a real "Pause animation" checkbox stops them (WCAG 2.2.2), and they don't move under reduced motion.
+- `apps/web/app/globals.css`: the block styles, with dark-theme colours for the Do / Don't cards (contrast 12.7:1 and 13.7:1). From the `lg` width, a diagram's stops put the number above the text; more than 5 stops go in rows of 4.
+- Content: the 502 guide gets symptom cards and its steps under "Work through it"; the child flows guide gets a diagram and two Do / Don't pairs. Every block repeats only what the guide already says.
+- Gate: the fixture guide has one of each block; a new state `learn-step-ticked` ticks a step and pauses the diagram from the keyboard, and checks the motion is paused.
+
+**Found and fixed during the slice** (not bugs: not yet delivered):
+- Pairing a Do with a Don't recursed into its own pair forever.
+- A step box's name read "Done : title", with a stray space, from the hidden text; it is now an `aria-label`.
+- The diagram's stops were too narrow at 1280 px with 5 stops.
+
+**Found in delivered work:** BUG-028 (focus after a vote), fixed in PR #91; the same change is in this branch.
+
+**Checks:**
+- Web tests: 448 in the guide and outline suites, all passing; typecheck, lint and format clean.
+- Local render (1280 px light, 375 px dark) of both guides: no sideways scroll. Ticking two of the 502 guide's four steps shows "2 of 4 ticked".
+- Accessibility gate, local, every guide state in Chromium, Firefox and WebKit: 146 of 147 passed. The one failure was the new pause check under reduced motion (the gate's default), which removes the animation instead of pausing it; the check now accepts either. `learn-step-ticked` then passed 42 of 42 over two runs.
+
+**Open:** guides already published don't change when their files change (the importer never overwrites). Asked of the product owner.
+
+**Remaining in MVP-041:** our own dated screenshots and safe image support.
+
+## 2026-10-07 — AI search readiness, part 1 (MVP-046 In Progress; MVP-042's IndexNow)
+
+**Story:** the product owner asked for an audit of how the site appears in AI tools (Claude, Gemini, ChatGPT and others) and approved the fixes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments"). Research: Google's "AI features and your website" (no special files or markup; a page must be indexed with a snippet), Anthropic's and OpenAI's crawler pages, reports that Claude's web search uses Brave's index, and indexnow.org's protocol.
+
+**Audit findings (live site, 2026-10-07):** every AI and search crawler receives the full server-rendered page; `robots.txt` allows them; canonical URLs, descriptions, `TechArticle` and breadcrumbs are in place. Gaps: not yet in any search index; the Safe Browsing flag; guides shared as "website"; no organisation data; no guides feed (correction: the audit said "no RSS feed", but `/updates/feed.xml` already existed); no IndexNow.
+
+**Built:**
+- `apps/web/lib/seo/metadata.ts`: a published guide's Open Graph type is `article`, with `article:published_time` and `article:modified_time`.
+- `apps/web/lib/seo/json-ld.ts`: `buildOrganizationJsonLd`, on the home page: name, URL, description and `apps/web/public/brand/logo-512.png` (the header's mark at 512 px; Google asks for at least 112 px). No `sameAs` until official profiles exist.
+- `apps/web/lib/guides-feed.ts` and `app/learn/feed.xml/route.ts`: RSS 2.0 of the 50 newest guides, linked from the home page and `/learn`. The XML escaping is shared with the updates feed (`lib/xml.ts`).
+- `apps/web/lib/indexnow.ts`, `app/indexnow-key.txt/route.ts`: with `INDEXNOW_KEY` set, publishing a guide (its URL and `/learn`) or an update (`/updates`) notifies `api.indexnow.org`. It never fails or delays a publish by more than 3 seconds, sends only URLs on our host, and does nothing for localhost, http or without a key.
+- `docs/15-deployment.md`: Bing Webmaster Tools, Brave's submit page, `INDEXNOW_KEY`, the feeds. `apps/web/.env.example`: `INDEXNOW_KEY`.
+
+**Checks:**
+- Web tests: 692 passed (new: metadata, Organization, feed, feed links, IndexNow). Typecheck, lint and format clean.
+- A local production build against the local guide database: `/indexnow-key.txt` returns the key as text; `/learn/feed.xml` has 50 items and is well-formed XML; the home page and `/learn` link the feed; the home page carries the Organization data; a guide's `og:type` is `article`.
+
+**Housekeeping:** deleted a stale gitignored `apps/web/.env.local` from an earlier local preview. Its `NEXT_PUBLIC_SITE_URL` was baked into a local build. Production sets the variable in Netlify at build time, so it is unaffected.
+
+**Remaining in MVP-046:** quick answers on the other 54 guides and the named author, both waiting on the product owner. **Remaining in MVP-042:** the Lighthouse speed budget.
+
+## 2026-10-07 — No personal details on the site (MVP-046 part; MVP-047 added)
+
+**Story:** the product owner chose brand-only credit with a niche byline, and asked for their name, location and any personal details to come off the site (`docs/final-decisions.md`, "No personal details on the site; guide text and the admin panel").
+
+**Built:**
+- `apps/web/lib/legal/pages.ts`:
+  - About: no name or place; "Guides are posted by the Maker Desk, the name LowCodeStacks publishes under".
+  - Privacy: "run independently by its owner, who is responsible ...", with the contact email.
+  - Terms: "an independent site run by its owner"; copyright and the MIT notice say LowCodeStacks; governing law "the laws of Canada that apply", with no province; the sign-in sentence now covers the email link, Google and passwords (it predated both).
+  - New effective dates 2026-10-09 for both; migration `20261009000000_add_policy_versions_2026_10_09` adds the two `policy_versions` rows (additive; rollback in the file).
+- `apps/web/app/learn/TrustStrip.tsx`: "Posted by the Maker Desk" on every guide (`BYLINE_NAME`).
+- Tests: no info page (or its description) says "run by" a name or names a province or city; Privacy still states responsibility by role; the trust strip shows the byline.
+
+**Found:** the repository is public. Its history carries the owner's two Gmail addresses (364 commits), and planning files mention the name and province. Rewriting history would be destructive, so it's reported to the product owner instead: making the repository private is their call.
+
+**Checks:** web tests 693, lint, typecheck and format pass; the new migration applies to the local database. Accessibility gate, local, About, Privacy, Terms, How we write and the guide pages in three engines: 293 of 294 passed; the one Firefox keyboard timeout (Privacy at 1280 px) passed on re-run.
+
+**Remaining:** the mailing-address question in the decision (not legal advice).
+
+## 2026-10-07 — Quick answers for every guide (MVP-046, drafts)
+
+**Story:** MVP-046's "quick answers on every guide", as drafts only (`docs/final-decisions.md`, "No personal details on the site; guide text and the admin panel": the agent researches and drafts; published guides are edited by an admin).
+
+**Done:**
+- A quick answer (`> [!ANSWER] Quick answer` and 2 to 4 numbered points) in each of the 54 guides that lacked one: 5 Power Apps, 17 Power Automate, 10 Power BI, 7 Copilot Studio, 5 Dataverse, 8 Power Pages, 2 Governance. All 57 launch guides now have one.
+- Each point is taken from the guide's own text (its summary table, checklist, decision rules or steps) and links to the heading that explains it. Nothing in a quick answer goes beyond what the guide says; no new research claims.
+- Placed after the introduction, before the "Checked against Microsoft Learn" note, like the first three.
+- `apps/web/lib/quick-answers.test.ts`: for every guide, the quick answer exists, has 2 to 4 points, and every link points at a heading in the same guide's outline. Proved by breaking one anchor on purpose: the test failed and named it.
+
+**Checks:** quick-answer tests 58, content-file tests 116, web tests 751, lint and format clean.
+
+**For the product owner:** published guides don't change from their files. To publish a quick answer, open the guide in `/admin/content` and paste the block from its file (right after the introduction).
+
+## 2026-10-07 — Comments on guides (MVP-040 In Progress: built behind a flag)
+
+**Story:** MVP-040 with the product owner's choices (`docs/final-decisions.md`, 2026-10-07): comments show at once and are removed after reports; every signed-in reader gets a random, Power Platform-flavoured display name and avatar they can change. Plan, defaults and proposed legal wording: `docs/plans/mvp-040-comments.md`; open questions 70 to 75.
+
+**Built:**
+- **Data:** migration `20261010000000_add_comments_and_profiles` (additive; rollback in the file): `users.displayName`, `displayNameKey` (unique, lowercased), `avatarSeed`; `article_comments` (cascade with the guide, restrict on the user) and `comment_reports` (nothing about the reporter); RLS on both. Checked: `prisma migrate diff` against the migrated local database shows no drift.
+- **Rules** (`packages/domain/content/src/comments.ts`): 10 to 2,000 characters, at most 2 links, paragraphs and ``` code; generated names ("Tidy Trigger 418") and typed names (3 to 30 characters, letters in any language, no official-looking names); a deterministic avatar from a seed.
+- **Storage** (`PrismaCommentRepository`): profiles created once with a unique name (retries on a clash); visible comments with the accepted one first, selecting only display name and avatar; one accepted comment per guide; removing un-accepts and hides; authors delete their own (reports go with it).
+- **Routes:** post (signed in; 5 an hour, 20 a day), report (anyone; 10 an hour per address), delete own, profile (name or new avatar; 10 changes a day), admin moderation (remove, restore, accept, unaccept). All answer 404 while `FEATURE_COMMENTS` is off. Comment text and names are never logged.
+- **Pages:** the guide's Comments section (guests get "Sign in to comment"), `/account/profile`, `/admin/comments` (linked from the admin home when on).
+- **Shared helpers:** `readJson` in `lib/request-guards.ts` (`readFields` now uses it and counts bytes, not characters); `lib/post-json.ts`, now also used by the guide feedback.
+- **Gate:** comments switched on for the gate's server; seed adds an accepted and a reported comment; states for the guest and member views, a too-short comment, the profile and its error, the admin page and its 404; `/account/profile` and `/admin/comments` added to the gated routes.
+
+**Checks:** domain 9, repository integration on Postgres 5, routes 18, component 5; web tests 766; typecheck and lint clean. Accessibility gate, local, every guide, profile and admin state in three engines (comments on): 269 of 315 passed first time. 42 failures were the two new error states: the gate's server refuses posts from `localhost` because its site address differs, so they now fake the route's answer like the feedback states. The other 4 were Firefox and WebKit timeouts. All 66 then passed.
+
+**Remaining:** the product owner approves the Terms and Privacy wording; then the legal pages get new versions and `FEATURE_COMMENTS` is switched on in Netlify.
+
+## 2026-10-07 — Comments wording on the legal pages (MVP-040)
+
+The product owner approved the Terms and Privacy wording as written (`docs/final-decisions.md`, "Comments wording, admin panel, speed check and the Learn module", decision 1).
+- `apps/web/lib/legal/pages.ts`: Terms "Comments"; Privacy "Comments and your profile", plus a retention line under "How long we keep it" restating the approved text. New effective dates 2026-10-10.
+- Migration `20261011000000_add_policy_versions_2026_10_10`: the two `policy_versions` rows (additive; rollback in the file), applied locally.
+- `pages.test.ts` pins the approved sections. Legal tests: 11 passed.
+- Open question 75 decided.
+
+**For the product owner:** after the release deploys, set `FEATURE_COMMENTS=on` in Netlify (Production).
+
+## 2026-10-07 — Page-speed check (MVP-042; report only, TD-032)
+
+**Story:** MVP-042's speed budget, measured with Playwright instead of Lighthouse CI (product owner, 2026-10-07: Lighthouse CI's dependencies carry 4 high-severity advisories).
+
+**Built:**
+- `packages/e2e/src/web-vitals.ts`: records FCP, LCP, layout shifts and long tasks in the page; Total Blocking Time; median of runs; the budget check. A phone profile (412 px, 4x CPU slowdown, 1.6 Mbps, 150 ms latency).
+- `packages/e2e/tests/perf/web-vitals.spec.ts`: the home page, the guides index, a guide and a hub, 3 cold loads each, Chromium only. Script `pnpm --filter @ppu/e2e test:speed`.
+- CI job "Page speed (report only)": builds, measures, and writes the numbers to the job summary. It can't fail the job yet (TD-032).
+- Unit tests for the maths (3).
+
+**Found and fixed:**
+- The four site fonts were all preloaded, competing with the first paint on a slow connection. The accent serif and the code font are no longer preloaded (they swap in with size-adjusted fallbacks).
+- The rise and word entrance animations started at opacity 0, which doesn't count as painted, delaying LCP. They now start at 25% opacity: guide LCP 3.8 s → 2.6 s, hub 3.0 s → 2.1 s.
+
+**Still over budget (TD-032):** TBT 377 to 492 ms on every page, from one hydration long task; home CLS 0.13, the headline re-wrapping when the display font arrives; guide LCP 2.6 s. Investigated, not guessed: the long task, the scripts loaded, and the shifting elements were each measured.
+
+**Checks:** web tests 767; e2e typecheck clean; the speed spec runs locally and reports the numbers above.
+
+**Needs the product owner:** whether the display font may use `font-display: optional` (removes the home shift; first-time visitors on slow connections see the fallback font on their first page).
+
+## 2026-10-07 — Admin panel, concept A (MVP-047 to QA)
+
+**Story:** the product owner asked for a more powerful, admin-friendly panel and a Contributor role, and chose concept A, "Command centre" (`docs/final-decisions.md`, 2026-10-07).
+
+**Built:**
+- **Shell** (`app/admin/layout.tsx`, `AdminNav.tsx`): every admin page sits beside a grouped sidebar (Content, Community, People, Site) with live counts (`lib/admin-overview.ts`). The current page is marked with `aria-current`, and counts carry screen-reader labels. Only an admin sees it; anyone else still gets the plain 404.
+- **Overview** (`app/admin/page.tsx`): how many things need you; cards for reported comments, guide reports and drafts; site health over the last 7 days (guides, "Did this fix it?" yes share, comments, updates); recent activity from the audit log; New guide and New update.
+- **Comments:** a "Keep it" action clears a reported comment's reports. The reported list now shows only comments still up with reports waiting.
+- **Users and roles** (`/admin/users`, `POST /api/admin/users/{id}/role`, `lib/roles.ts`): search by email or display name; change roles. A CONTRIBUTOR role with no extra rights yet. Rules: not your own role, never the last admin, no no-ops. The change and its record run in one serializable transaction. Migration `20261012000000_add_contributor_role` (enum value and `role_change_events`; rollback in the file). Role changes appear in the audit log by display name, never email.
+- **Settings and indexing** (`/admin/settings`, `lib/site-status.ts`): switches on or off with the setting that controls each, and the sitemap, feeds, IndexNow key file and the three search consoles. Read only; secret values are never shown.
+- **Docs:** `docs/07-api-contracts.md` (the new routes), `docs/15-deployment.md` (the comments switch, the settings page).
+- **Gate:** the admin-home state checks the overview and the sidebar; new states for `/admin/users`, `/admin/settings` and their 404s.
+
+**Checks:** web tests 778 (new: overview counts, the sidebar, role rules, the role route in a faked transaction, the switches never showing secrets); lint, typecheck and format clean; no schema drift. Accessibility gate: see the PR.
+
+**Open:** what a Contributor may do (product owner).
+
+## 2026-10-07 — Learn module, slice 1a: the data (MVP-048, In Progress)
+
+**Story:** MVP-048 (FR-014). Decision: `docs/final-decisions.md`, "Learn module design: Workspace" (direction 1 of five shown live; the earlier L3 choice is superseded). The admin (1b) and the public pages (slice 2) come next.
+
+**Built:**
+- **Rules** (`packages/domain/content/src/learn.ts`): topic and lesson validators; the fixed lesson shape (six `## ` sections in order, code blocks ignored); knowledge checks written as `> [!CHECK]` blocks, 2 or 3 per lesson, 2 to 4 answers, exactly one right, an explanation under every answer, never "all/none of the above" (Microsoft Learn's authoring rules); at least one learn.microsoft.com source.
+- **Files** (`learn-source.ts`, `content/topics/README.md`): `content/topics/<area>/<topic>/topic.md` plus `<position>-<slug>.md` lessons; `outcome` is the only repeatable key.
+- **Database** (migration `20261013000000_add_learn_topics_and_lessons`, additive; rollback in the file): `learn_topics`, `learn_lessons` (unique slug and position per topic), `learn_publish_events` (append-only; lesson null for a topic publish). Restrict FKs and row-level security, like every table. Generated with `prisma migrate diff` from the previous schema, so there is no drift.
+- **Repository** (`PrismaLearnRepository`): create, edit content only, publish once in a transaction with its audit event; public reads return a lesson only when it and its topic are both published.
+- **Importer** (`topics:import`): validates everything first and imports nothing if any file is invalid; skips existing slugs; adds new lessons to existing topics. Added to the release import (`import-drafts-on-deploy.mjs`), applying the 2026-10-06 rule "Drafts import automatically on release" to the new content type.
+- **Content gate** (`learn-files.test.ts`): every topic and lesson valid, in its area's folder, named after its slug, numbered 1, 2, 3 with no gaps, 3 to 6 lessons, unique slugs. Checked by hand with a throwaway topic: it passed, then caught a misnamed lesson and a question without a right answer.
+
+**Commands:** `vitest run` (domain-content: 20 new tests; adapter-content: 130 passed, 24 skipped without a database), `tsc --noEmit`, `eslint`, `prettier`, `prisma validate`, `prisma migrate diff`.
+
+**Security:** bodies stay Markdown and will be rendered without raw HTML (slice 2); only admins will write (slice 1b, enforced on the server); authors and publishers are kept on user deletion (Restrict).
+
+**Risks:** the repository's database tests ran only in CI (the local embedded Postgres wasn't available).
+
+**Remaining:** 1b admin (topic and lesson editors, publish controls, API with ADMIN checks, audit log entries); 2 public pages (`/topics`, topic, and lesson in the Workspace layout, TechArticle data, breadcrumbs, sitemap, RSS); 3 progress for signed-in readers; 4 the first six topics as drafts.

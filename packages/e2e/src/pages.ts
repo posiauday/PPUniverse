@@ -200,14 +200,14 @@ export const GATED_PAGES: readonly GatedPage[] = [
     // Menu button instead, whose panel lists the same technologies.
     id: "home-technologies-menu-open",
     route: "/",
-    description: "home page with the header's Technologies menu (or, below lg, its Menu) open",
+    description: "home page with the header's Power Platform menu (or, below lg, its Menu) open",
     auth: "guest",
     status: 200,
     path: () => "/",
     prepare: async (page) => {
       const menu = page.getByRole("button", { name: "Menu" });
       if (await menu.isVisible()) await menu.click();
-      else await page.getByRole("button", { name: "Technologies" }).click();
+      else await page.getByRole("button", { name: "Power Platform" }).click();
       await expect(
         page.getByRole("link", { name: "Power Automate" }).filter({ visible: true }).first(),
       ).toBeVisible();
@@ -637,6 +637,176 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // MVP-039 / MVP-038: open reports and vote counts, admin only.
+    id: "admin-feedback-populated",
+    route: "/admin/feedback",
+    description: "admin feedback page, signed in as ADMIN, with a report and votes",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/feedback",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Feedback");
+      await expect(
+        page.getByRole("link", { name: seed.publishedArticle.title }).first(),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Close and delete" }).first()).toBeVisible();
+    },
+  },
+  // MVP-040: comments (on in the gate; off in production until approved).
+  {
+    id: "admin-comments",
+    route: "/admin/comments",
+    description: "admin comments page, signed in as ADMIN, with a reported and an accepted comment",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/comments",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Comments");
+      await expect(page.getByRole("heading", { name: /^Reported \(\d+\)$/ })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: seed.publishedArticle.title }).first(),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Remove" }).first()).toBeVisible();
+    },
+  },
+  // MVP-047 slice 2: users and roles. Nothing is changed in the gate.
+  {
+    id: "admin-users",
+    route: "/admin/users",
+    description: "users and roles, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/users",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Users and roles");
+      await expect(page.getByRole("searchbox", { name: /Find someone/ })).toBeVisible();
+      await expect(page.getByText(seed.user.email)).toBeVisible();
+      await expect(page.getByRole("combobox", { name: /^Role for / }).first()).toBeVisible();
+    },
+  },
+  // MVP-047 slice 3: settings and indexing, read only.
+  {
+    id: "admin-settings",
+    route: "/admin/settings",
+    description: "settings and indexing, signed in as ADMIN",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/settings",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Settings");
+      await expect(page.getByRole("heading", { name: "Switches" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Bing Webmaster Tools" })).toBeVisible();
+    },
+  },
+  {
+    id: "admin-settings-denied",
+    route: null,
+    description: "settings, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/settings",
+  },
+  {
+    id: "admin-users-denied",
+    route: null,
+    description: "users and roles, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/users",
+  },
+  {
+    id: "admin-comments-denied",
+    route: null,
+    description: "admin comments page, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/comments",
+  },
+  {
+    id: "account-profile",
+    route: "/account/profile",
+    description: "the reader's profile: display name and avatar",
+    auth: "member",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile");
+      await expect(page.getByRole("textbox", { name: "Display name" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Draw a new avatar" })).toBeVisible();
+    },
+  },
+  {
+    id: "account-profile-invalid",
+    route: "/account/profile",
+    description: "the reader's profile after trying a name that is too short",
+    auth: "member",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      // The route's answer is faked, as for the guide feedback states: the
+      // gate's server checks requests against its public site address.
+      await page.route("**/api/account/profile", (route) =>
+        route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: '{"error":"too-short"}',
+        }),
+      );
+      const field = await whenHydrated(page.getByRole("textbox", { name: "Display name" }));
+      await field.fill("Al");
+      await page.getByRole("button", { name: "Save name" }).click();
+      await expect(page.getByRole("status").filter({ hasText: "at least 3" })).toBeVisible();
+    },
+  },
+  {
+    id: "learn-comments-member",
+    route: "/learn/[slug]",
+    description:
+      "guide page signed in as a member: the comment form, their own comment, others' to report",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { name: /^Comments \(\d+\)$/ })).toBeVisible();
+      await expect(page.getByRole("textbox", { name: "Add a comment" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Delete my comment" }).first()).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: /^Report the comment by Fixture Reader A/ }).first(),
+      ).toBeVisible();
+      await expect(page.getByText("Accepted fix", { exact: true }).first()).toBeVisible();
+    },
+  },
+  {
+    id: "learn-comment-too-short",
+    route: "/learn/[slug]",
+    description: "guide page after trying to post a comment that is too short",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      // Faked, like the feedback states: nothing is ever posted.
+      await page.route("**/api/guides/*/comments", (route) =>
+        route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: '{"error":"too-short"}',
+        }),
+      );
+      const field = await whenHydrated(page.getByRole("textbox", { name: "Add a comment" }));
+      await field.fill("Too short");
+      await page.getByRole("button", { name: "Post comment" }).click();
+      await expect(page.getByRole("status").filter({ hasText: "at least 10" })).toBeVisible();
+    },
+  },
+  {
+    id: "admin-feedback-denied",
+    route: null,
+    description: "admin feedback page, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/feedback",
+  },
+  {
     // MVP-034: the admin home lists every admin area.
     id: "admin-home",
     route: "/admin",
@@ -645,10 +815,15 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/admin",
     prepare: async (page) => {
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin");
+      // MVP-047, concept A: the overview, beside the admin sidebar.
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin overview");
+      await expect(page.getByRole("link", { name: "Read reports" })).toBeVisible();
       await expect(
-        page.getByRole("main").getByRole("link", { name: "Guides", exact: true }),
+        page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: /^Guides/ }),
       ).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: "Overview" }),
+      ).toHaveAttribute("aria-current", "page");
     },
   },
   {
@@ -1052,11 +1227,112 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByText("Checked against Microsoft Learn")).toBeVisible();
       await expect(page.getByRole("complementary", { name: "Quick answer" })).toBeVisible();
       await expect(page.getByRole("link", { name: "How we write guides" })).toBeVisible();
+      // MVP-040: a guest sees the comments and a way to sign in to add one.
+      await expect(page.getByRole("link", { name: "Sign in to comment" })).toBeVisible();
       // MVP-027 slice 3: the contents list, a code panel's Copy button and a
       // tip callout, all from the fixture's Markdown.
       await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Copy code" })).toBeVisible();
-      await expect(page.getByRole("note")).toContainText("A fixture tip callout.");
+      await expect(
+        page.getByRole("note").filter({ hasText: "A fixture tip callout." }),
+      ).toBeVisible();
+      // MVP-041 (redesign slice 2): symptom cards, tick-off steps with their
+      // count, the diagram's pause box and a Do / Don't pair.
+      await expect(page.getByRole("region", { name: "What are you seeing?" })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: "Done: A fixture step" })).toBeVisible();
+      await expect(page.getByRole("checkbox", { name: "Pause animation" })).toBeVisible();
+      await expect(page.getByRole("note").filter({ hasText: "A fixture do." })).toBeVisible();
+    },
+  },
+  // MVP-039 / MVP-038: the end of a guide. The API answers are faked in the
+  // test, so no vote or report is ever recorded.
+  // MVP-041: the checked look of a ticked step and the paused diagram. Both
+  // are plain checkboxes counted by CSS, so no script is needed.
+  {
+    id: "learn-step-ticked",
+    route: "/learn/[slug]",
+    description: "guide page with one step ticked and the diagram paused",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      // Ticked from the keyboard, as a keyboard user would.
+      for (const name of ["Done: A fixture step", "Pause animation"]) {
+        const box = page.getByRole("checkbox", { name });
+        await box.focus();
+        await page.keyboard.press("Space");
+        await expect(box).toBeChecked();
+      }
+      // The motion has stopped (WCAG 2.2.2): paused by the box, or no
+      // animation at all under reduced motion (the gate's default).
+      const stopped = await page
+        .locator(".guide-stop")
+        .first()
+        .evaluate((stop) => {
+          const style = getComputedStyle(stop);
+          return style.animationName === "none" || style.animationPlayState === "paused";
+        });
+      expect(stopped).toBe(true);
+    },
+  },
+  {
+    id: "learn-voted",
+    route: "/learn/[slug]",
+    description: "guide page after answering Did this fix it? with Yes",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await page.route("**/api/guides/*/vote", (route) =>
+        route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
+      );
+      await (await whenHydrated(page.getByRole("button", { name: "Yes, fixed" }))).click();
+      // Focus moves to the thanks one animation frame after it appears. Wait
+      // for it, or the keyboard walk can start first and have focus jump
+      // mid-walk (BUG-028).
+      await expect(page.getByRole("status").filter({ hasText: "Glad it helped" })).toBeFocused();
+    },
+  },
+  {
+    id: "learn-report-sent",
+    route: "/learn/[slug]",
+    description: "guide page after sending Something here changed?",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await page.route("**/api/guides/*/report", (route) =>
+        route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
+      );
+      await (
+        await whenHydrated(page.getByRole("button", { name: /Something here changed\?/ }))
+      ).click();
+      await page
+        .getByLabel(/What changed, or what.s wrong\?/)
+        .fill("A setting moved in the new designer.");
+      await page.getByRole("button", { name: "Send" }).click();
+      await expect(
+        page.getByRole("status").filter({ hasText: "re-check this guide" }),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "learn-report-too-short",
+    route: "/learn/[slug]",
+    description: "guide page with a report that is too short",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    prepare: async (page) => {
+      await (
+        await whenHydrated(page.getByRole("button", { name: /Something here changed\?/ }))
+      ).click();
+      await page.getByLabel(/What changed, or what.s wrong\?/).fill("bad");
+      await page.getByRole("button", { name: "Send" }).click();
+      await expect(page.getByLabel(/What changed, or what.s wrong\?/)).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
     },
   },
   {

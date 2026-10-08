@@ -102,6 +102,8 @@ export default defineConfig({
       NEXTAUTH_SECRET: process.env["NEXTAUTH_SECRET"] ?? randomBytes(32).toString("hex"),
       // Only used to build canonical URLs and structured data; nothing is fetched from it.
       NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://e2e.example.org",
+      // MVP-040: comments are off in production until approved; the gate checks them.
+      FEATURE_COMMENTS: "on",
     },
   },
 });

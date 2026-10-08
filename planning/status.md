@@ -2,7 +2,61 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-06 (latest) — **MVP-044 (branded emails) moves to QA, and the home page gets a fixes band and "What changed" (#83).**
+Last updated: 2026-10-07 (latest) — **MVP-048 (Learn module, Workspace design) In Progress: slice 1a, the data, is built.**
+- **Decision:** the product owner chose direction 1, "Workspace", from five live redesign directions (`docs/final-decisions.md`, "Learn module design: Workspace").
+- **Built:** topics and lessons in the database (migration `20261013000000`, additive, with a rollback); the fixed lesson shape and knowledge-check rules (2 or 3 questions, one right answer, an explanation for every answer, never "all of the above"); `content/topics` files imported as drafts on each release, with a content gate in CI.
+- **Next:** slice 1b, writing and publishing topics and lessons in the admin; then the public pages.
+
+Last updated (previous): 2026-10-07 — **MVP-047 (admin panel, concept A) is built and in review.**
+- **Slice 1:** a grouped sidebar with live counts on every admin page, and a new overview: what needs you (reported comments, guide reports, drafts), site health over 7 days, recent activity. Comments also get a "Keep it" action that clears reports.
+- **Slice 2:** `/admin/users`: everyone with an account, searchable, with their role. A new CONTRIBUTOR role (abilities still to be decided; for now a member's). Role changes are admin only, never your own or the last admin's, and go into the audit log.
+- **Slice 3:** `/admin/settings`: which switches are on, and the search and indexing links. Read only; no secret values shown.
+
+Last updated (previous): 2026-10-07 — **MVP-042: the page-speed check is built (report only) and found real problems.**
+- **Built:** a Playwright speed check on a throttled phone profile, as a report-only CI job "Page speed".
+- **Fixed on the way:** largest paint improved by up to 1.2 s (guide 3.8 s → 2.6 s) by not preloading the accent and code fonts, and by starting the rise animations at 25% opacity instead of invisible.
+- **Still over budget (TD-032):** blocking time 380 to 490 ms on every page (framework hydration); the home page shifts (CLS 0.13) when its display font loads, which needs a product-owner choice (`font-display: optional`).
+
+Last updated (previous): 2026-10-07 — **Comments wording approved and on the legal pages; four product-owner decisions recorded.**
+- **Decisions** (`docs/final-decisions.md`, "Comments wording, admin panel, speed check and the Learn module"): the comments wording as written; admin panel concept A; the speed check with Playwright instead of Lighthouse CI; the Learn module as planned.
+- **Legal pages:** Terms "Comments" and Privacy "Comments and your profile", versions 2026-10-10 (migration `20261011000000`). After the release, the product owner sets `FEATURE_COMMENTS=on`.
+- **Next:** the Playwright speed check (MVP-042), then admin panel A (MVP-047), then 3 Learn module concepts.
+
+Last updated (previous): 2026-10-07 — **MVP-040 (comments) is built behind a flag, off until the product owner approves the Terms and Privacy wording.**
+- **Built:** comments on guides (shown at once, plain text and code, at most 2 links with `rel="ugc nofollow"`), report and delete, a random display name and avatar for every signed-in reader with `/account/profile` to change them, and `/admin/comments` to remove, restore or accept.
+- **Waiting on the product owner:** the proposed Terms and Privacy wording in `docs/plans/mvp-040-comments.md`; then set `FEATURE_COMMENTS=on` in Netlify. Defaults applied: open questions 70 to 75.
+- **Not built:** a page-speed budget (MVP-042). Lighthouse CI brings 4 high-severity advisories through its dependencies, so the approach is a question for the product owner.
+
+Last updated (previous): 2026-10-07 — **Quick answers drafted for all 54 remaining guides (MVP-046).**
+- **Every launch guide** now has a quick answer in its file: 2 to 4 points, each linking to a heading in the same guide. A new test checks the links for every guide.
+- **Drafts only:** published guides don't change from files (product owner, 2026-10-07: drafts for now; admins edit guide text). To publish one, paste its quick answer into the guide in `/admin/content`.
+
+Last updated (previous): 2026-10-07 — **No personal details on the site; MVP-047 added.**
+- **Removed:** the owner's name, province and city from About, Privacy and Terms; copyright and the MIT notice now say LowCodeStacks. The Terms' governing law names no province. New Privacy and Terms versions, 2026-10-09.
+- **Byline:** guides show "Posted by the Maker Desk". Structured data stays brand only; the named author is withdrawn.
+- **New story:** MVP-047, a redesigned admin panel and a Contributor role (abilities to be decided), designed on the canvas first.
+- **For the product owner:** the GitHub repository is public. Its history carries the owner's Gmail addresses on 364 commits, and planning files mention the name and province. Making it private keeps them out of view.
+
+Last updated (previous): 2026-10-07 — **MVP-046 and MVP-042 In Progress: AI search code gaps and IndexNow are built and in review.**
+- **Built:** guides shared as articles with their dates; LowCodeStacks described as an organisation with a 512 px logo; an RSS feed of guides at `/learn/feed.xml`; IndexNow: the key at `/indexnow-key.txt` and a notice to search engines on every publish.
+- **Product owner, Netlify:** add `INDEXNOW_KEY` for Production (`docs/15-deployment.md`, "After launch", which now also lists Bing Webmaster Tools and Brave's submit page).
+- **Waiting on the product owner:** how improved guide text reaches published guides (blocks MVP-046's quick answers going live), and the named author (conflicts with an earlier decision that no person is named in structured data).
+- **Still in MVP-042:** the Lighthouse speed budget.
+
+Last updated (previous): 2026-10-07 — **MVP-041 In Progress: redesign slice 2 (fix and pattern blocks) is built and in review.**
+- **Blocks:** symptom cards, tick-off steps with a count, an animated diagram with a pause box, and Do / Don't cards, from Markdown conventions. Plain Markdown still reads correctly.
+- **In the guides:** the 502 guide has symptom cards and four tick-off steps; the child flows guide has a diagram and two Do / Don't pairs. Live guides only change when their text is updated in production (the importer never overwrites a guide): see the open question below.
+- **Still to build in MVP-041:** our own dated screenshots and safe image support.
+- **Open question for the product owner:** how improved guide text (these blocks, and MVP-046's quick answers) reaches guides already published.
+
+Last updated (previous): 2026-10-07 — **MVP-045 (top bar names) is built and in review; two new stories.**
+- **Top bar:** Power Platform ▾ · Fixes · Patterns · Updates, a Learn button, and "Search an error or topic". The product owner chose concept A with two changes (`docs/final-decisions.md`, "Top bar names, AI search readiness, and comments").
+- **New in the backlog:** MVP-045 (top bar names) and MVP-046 (AI search readiness: articles marked as such, organisation data, RSS, quick answers on every guide, a named author once the name is confirmed).
+- **Comments (MVP-040):** the product owner's choices are recorded: show at once and remove if reported; a random Power Platform-flavoured display name and avatar for every signed-in reader, which they can change.
+- **Production:** BUG-027 (a traffic burst filled the database pooler, about 11 minutes of 500s on 2026-10-07) is fixed in PR #91.
+- **Remaining, in the product owner's order ("finish all pending items first"):** MVP-041 (guide blocks, slice 2), MVP-046, IndexNow and the speed budget (MVP-042), MVP-040 (comments), a release to `main`; then planning the Learn module.
+
+Last updated (previous): 2026-10-06 (latest) — **MVP-044 (branded emails) moves to QA, and the home page gets a fixes band and "What changed" (#83).**
 - **Emails:** the product owner chose concept E1 and delegated the wording. All four emails now share one layout.
 - **New in the backlog:** MVP-043, the animated logo, kept for later at the product owner's request.
 - **Merge order:** #82 (hubs), then #83 (home), then the emails PR. Each builds on the one before.
@@ -169,14 +223,14 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 
 | Column | Count | Stories |
 |---|---|---|
-| Backlog | 12 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-038, MVP-039, MVP-040, MVP-041, MVP-042, MVP-043 |
+| Backlog | 7 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-043 |
 | Ready | 0 | — |
-| In Progress | 2 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2) |
-| QA | 9 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-037, MVP-034, MVP-035, MVP-036, MVP-044 |
+| In Progress | 9 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built), MVP-048 (slice 1a: the data) |
+| QA | 11 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044, MVP-047 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **44** | |
+| **Total** | **48** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 

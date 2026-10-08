@@ -15,6 +15,7 @@ const DOMAIN_LABELS: Record<AuditLogDomain, string> = {
   release_publish: "Release",
   deletion_request: "Deletion request",
   article_publish: "Content",
+  role_change: "Roles",
 };
 
 /**

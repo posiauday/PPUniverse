@@ -2072,3 +2072,98 @@ The guide's image is now in its `TechArticle` data, and the new page is `/how-we
 
 When slice 4 ships and the first-wave guides are re-checked, the approved sentences return.
 
+## 2026-10-07 — Votes and reports (MVP-039, MVP-038 part; redesign slice 4)
+
+**Source:** direct product-owner instruction in this session. Asked by multiple choice, the product owner chose:
+- **Votes ("Did this fix it?"):** the badge rule "at 10 votes, 80% Yes". Visitors see only a thank-you. A guide shows **Accepted fix** once at least 10 people voted and at least 80% said Yes. All counts are shown only in the admin.
+- **Reports ("Something here changed?"):** a short note with no contact details. It's anonymous, at most 500 characters, and waits in the admin until closed. We ask people not to include personal details, and the Privacy notice says how long notes are kept.
+
+**As built:**
+- **What's stored:**
+  - a vote: only yes or no, the guide and the time;
+  - a report: only the note, the guide and the time.
+
+  Nothing about the visitor, no account needed. Closing a report in `/admin/feedback` deletes it.
+- **Abuse limits,** as hashed per-address counters in the existing `auth_throttle` table, deleted a day after last use:
+  - one vote per guide per address per day (a repeat is thanked but not counted);
+  - 60 votes an hour per address;
+  - 5 reports an hour per address.
+- **Wording:**
+  - fix guides ask "Did this fix it?" (Yes, fixed / Not yet); other guides ask "Was this helpful?" (Yes / Not really);
+  - "Not yet" opens the report note;
+  - the Accepted fix badge shows only on fix guides.
+- **Privacy notice:** new version 2026-10-08, with a "Feedback on guides" section and the retention lines.
+- **How we write:** the two report sentences return to the approved wording. The checked-date sentences stay interim (see "How we write: interim wording").
+
+
+## 2026-10-07 — Top bar names, AI search readiness, and comments
+
+**Source:** direct product-owner instruction in this session. The product owner asked for the top bar to be reviewed ("Technologies, Guides look weird"), and for an audit of how the site appears in AI tools. The agent's research and three drawn concepts were shown; the product owner chose by multiple choice and added notes.
+
+**Top bar (MVP-045): concept A, with two changes from the product owner.**
+- **Power Platform ▾** replaces "Technologies" (the same menu). On phones the menu's group label reads "Power Platform" too.
+- **Fixes** (the fix guides on `/learn`) and **Patterns** (the pattern guides on `/learn`) replace "Guides".
+- **Updates** stays. The product owner offered "MS updates" or "Updates", the agent's choice; "Updates" was chosen because "MS updates" could read as official Microsoft content, which the site must not imply.
+- The button reads **Learn** and opens `/learn` (the product owner's change from "Find a fix").
+- The search box reads **"Search an error or topic"**.
+- Choose, Measure and Look it up guides stay one click away: each technology page, and the menu's "every guide by goal" link.
+- Supersedes the top-bar part of "Navigation restructure: by technology and by goal" (2026-10-02, decision 1).
+
+**AI search readiness.** The product owner approved all four proposals:
+1. **Code gaps:** guides are marked as articles for sharing (`og:type` article with their dates); the site describes itself as an organisation (name, logo and web address) in its structured data; an RSS feed of guides.
+2. **Quick answers on every guide,** written from each guide's own text, never adding claims the guide doesn't make.
+3. **IndexNow** (already part of MVP-042): the product owner creates the key and adds it in Netlify.
+4. **A named author** on every guide, with a profile page. **Open:** whose name, and the profile text, still to be confirmed by the product owner before anything is published.
+
+Not adopted, from the agent's research: `llms.txt` (Google says it doesn't use it; no evidence any AI search tool does), and blocking AI crawlers (the guides are free; training and search crawlers are separate, so this would not be needed for search either way).
+
+**Comments (MVP-040).** Asked by multiple choice earlier on 2026-10-07, the product owner chose:
+- **When:** after redesign slice 2 (MVP-041).
+- **Moderation:** comments show at once and are removed if reported (not a queue before publishing).
+- **Name:** a display name the reader chooses. Then, in this round, the product owner added: **every signed-in reader is given a random, Power Platform-flavoured display name and an avatar,** which they can change, and those show on their comments.
+
+## 2026-10-07 — No personal details on the site; guide text and the admin panel
+
+**Source:** direct product-owner instruction in this session, by multiple choice with notes, and two follow-up messages.
+
+**No personal details on the site.**
+- **Brand only.** Guides stay credited to LowCodeStacks in structured data. The "named author" in "AI search readiness" (decision 4 of that entry) is withdrawn; "Business model ..., decision 4" (no person named in public data) stands.
+- **A byline.** Guides show "Posted by **the Maker Desk**", the name LowCodeStacks publishes under. The product owner asked for "a nice name related to the niche" and delegated it; "maker" is what Power Platform calls the people who build apps and flows. It can be changed in one place (`BYLINE_NAME`, `apps/web/lib/legal/pages.ts`).
+- **No name, no place.** The owner's name, province and city come off the site: About, Privacy and Terms, the copyright lines and the MIT notice ("LowCodeStacks"). The product owner: *"remove city name too if not required"* and *"I have never seen any site put it"*. The Terms' governing-law clause now says "the laws of Canada that apply", with no province; a governing-law clause isn't required.
+- **Privacy still says who is responsible:** "run independently by its owner", with the contact email. Canada's privacy law (PIPEDA, Schedule 1, 4.8.2) asks for the *name or title* and the address of the person accountable, so a title meets the first part. **Open:** whether an email address is enough "address" or a mailing address is needed: not legal advice; worth checking with a lawyer before payments launch.
+- **Unchanged:** the Privacy notice still says data may be stored outside Canada and names Canada's Privacy Commissioner. Both are needed for the disclosures to be accurate.
+- New Privacy and Terms versions, 2026-10-09 (migration `20261009000000_add_policy_versions_2026_10_09`). The Terms' sign-in sentence is brought up to date at the same time: email link, Google or password.
+
+**Guide text.** For now the agent researches and drafts improved guide text as files only (drafts). Published guides are changed in the admin. In future, guide text is **editable by an admin only**.
+
+**Admin panel and a Contributor role (MVP-047).** The product owner asked for *"a more powerful, full of features, more admin-friendly admin panel ... with all required things there to manage the whole site"*, and to **create a Contributor role**, whose abilities are **to be decided**. Until then a Contributor can do nothing an ordinary signed-in reader can't. Designed on the canvas first, for approval.
+
+## 2026-10-07 — Comments wording, admin panel, speed check and the Learn module
+
+**Source:** direct product-owner answers in this session, by multiple choice.
+
+1. **Comments (MVP-040): the Terms and Privacy wording is approved as written** in `docs/plans/mvp-040-comments.md`. It goes into the Terms ("Comments") and the Privacy notice ("Comments and your profile") with new versions. The product owner then sets `FEATURE_COMMENTS=on` in Netlify.
+2. **Admin panel (MVP-047): concept A, "Command centre".** A sidebar with every area, grouped (Content, Community, People, Site), with live counts. The home shows what needs the admin now, then the site's health. The Contributor role's abilities are still to be decided (2026-10-07 entry above).
+3. **Page-speed check (MVP-042): measured with Playwright, not Lighthouse CI.** Lighthouse CI's dependencies carry 4 high-severity advisories (tmp, extract-zip, basic-ftp), which would fail the security audit. The check measures LCP and CLS, and long tasks as the lab stand-in for INP, in Chromium with the tools already in the repo. The budget is the one approved on 2026-10-06 (LCP ≤ 2.5 s, CLS < 0.1). This supersedes "a Lighthouse budget" in "SEO additions alongside the guide-page redesign", decision 4.
+4. **The Learn module: go ahead as planned** in `docs/plans/learn-module.md`. Topics made of short lessons at `/topics`, with the fixed lesson shape, optional progress for signed-in readers, and "check yourself" questions. First topics: one per technology. Next step: 3 design concepts for the topic and lesson pages, for sign-off before building.
+
+## 2026-10-07 — Display font and the Learn module design direction
+
+**Source:** direct product-owner answers in this session, by multiple choice with a note.
+
+1. **The display font (Bricolage Grotesque) uses `font-display: optional`** to remove the home page's layout shift (CLS 0.13; TD-032). On a slow first visit the headline keeps the fallback font for that page; the font is cached and used from the next page on.
+2. **The Learn module follows concept L3, "Story scroll"**: lessons drawn as a path, and each lesson a guided scroll through the fixed shape with a stepper. The product owner asked the agent to *"research more to take [the] L3 approach to peak and top class, add animation or what not; research what top learn modules use"*, and to show **variations of L3** for a final choice before building.
+
+## 2026-10-07 — Learn module design: "Workspace"
+
+**Source:** direct product-owner instruction in this session (*"I will go with workspace"*), after five redesign directions were shown live and as recorded demos (`.nav-mock/learn-redesign.html`, not committed).
+
+1. **The Learn module uses direction 1, "Workspace".** This supersedes concept L3 "Story scroll" (entry above). A lesson page has three columns: on the left, the topic's lessons, each with a ring that fills as it is read; in the middle, the lesson; on the right, an "On this page" tracker and a reading-progress bar. A knowledge check closes each lesson, with an explanation for every answer and no penalty, and the next lesson slides in. On a phone the side columns collapse.
+2. **The fixed lesson shape stays** (`docs/plans/learn-module.md`): what you'll understand, the idea, how it works, the important things, try it, check yourself (the knowledge check), and sources. Progress for signed-in readers and the addresses at `/topics` stay as approved on 2026-10-07.
+3. **Not chosen:** Explorable, Cards, Map and Simulator. The agent's recommendation (Map as the Learn home, plus a formula playground in key lessons) was not taken; the `/topics` home and topic pages follow the Workspace style.
+
+## 2026-10-07 — Accessibility shards: 6
+
+**Source:** direct product-owner answer in this session, by multiple choice (TD-030's options).
+
+The accessibility gate runs in **6 shards instead of 4**. The time limit stays at 20 minutes per job. Every engine, width, page state and rule stays, and the self-check still runs in every shard. Only the split of the same test list changes. This resolves TD-030: shards took 8 to 17 minutes and were cancelled at the limit on slower runners with no failing test. The reporting standard of "Accessibility suite mitigation" (2026-09-23) still applies: per-shard times and the total check count are reported on the first run.

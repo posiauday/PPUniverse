@@ -20,6 +20,11 @@ The real risk is different. An agent makes existing access **easy to use**:
 
 This pattern is about closing those gaps before you publish.
 
+> [!ANSWER] Quick answer
+> 1. [Know which sources check each user's permissions](#principle-1-know-which-sources-check-permissions): connect restricted content from SharePoint or Dataverse, never upload it.
+> 2. [Clean up oversharing before you connect a site](#principle-2-clean-up-oversharing-before-you-connect): loose permissions become loose answers.
+> 3. [Require sign-in](#principle-3-require-sign-in) for internal agents, and [resolve security scan findings before publishing](#principle-6-check-before-and-after-publishing).
+
 ## Principle 1: know which sources check permissions
 
 | Source | Permission-checked for each user? |

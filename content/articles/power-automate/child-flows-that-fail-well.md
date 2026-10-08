@@ -9,6 +9,11 @@ searchPhrase: "child flow error handling"
 ---
 A flow with a hundred actions is hard to read and harder to fix. **Child flows** let you split it into small flows that each do one job, such as "create the customer" or "file the document", and reuse them from many parent flows. The catch: when a child fails, the parent sees only a vague **ActionFailed**. This pattern makes the child report back clearly, so the parent can decide what to do.
 
+> [!ANSWER] Quick answer
+> 1. [Give the child its own connections](#step-1-give-the-child-its-own-connections) under **Run only users**, or the parent fails.
+> 2. [Make the child always answer](#step-2-make-the-child-always-answer) with `ok`, `message` and `result`, on success and on failure.
+> 3. [Let the parent check `ok`](#step-3-let-the-parent-decide) and decide what to do.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 
@@ -35,6 +40,9 @@ If you skip this, the parent fails with an error saying the flow *can't be used 
 
 The key idea: **the child should respond on the success path and on the failure path.** It always sends back the same small "report", and the parent reads it.
 
+> [!DIAGRAM] How the child reports back
+> The parent runs the child -> Try does the work -> Catch records any error -> Respond returns ok, message and result -> The parent checks ok
+
 The report has three outputs:
 
 | Output | Type | Example |
@@ -54,6 +62,12 @@ Build the child like this:
 
 Microsoft's guidance is to keep response actions **outside** scopes, which is why the response comes last instead of sitting inside Try and Catch. The full Try/Catch setup is in [Try, catch and finally](/learn/try-catch-finally-scopes).
 
+> [!DO]
+> Respond once, after the Try and Catch scopes, so the child answers on both paths.
+
+> [!DONT]
+> Put the response inside Try or Catch. Response actions belong outside scopes.
+
 > [!TIP]
 > Put a link to the child's own run in the failure message, so whoever reads the parent's log can jump straight to the detail. Microsoft's error-handling guidance shows how to build the run URL from the `workflow()` function.
 
@@ -70,6 +84,12 @@ Also catch the case where the child **couldn't answer at all**, for example beca
 
 - **Inside the child**, every action keeps its own **retry policy**, which retries temporary failures by default. Leave that on.
 - **Don't add your own retry loop around the child call** unless the child is safe to run twice. If it *creates* something, a second run creates it twice. Check whether the item exists first.
+
+> [!DO]
+> Leave each action's own retry policy on, inside the child.
+
+> [!DONT]
+> Wrap the child call in a retry loop of your own when the child creates something.
 
 ## Calling a child inside a loop
 

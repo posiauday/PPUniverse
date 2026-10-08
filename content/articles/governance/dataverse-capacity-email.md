@@ -9,6 +9,11 @@ searchPhrase: "dataverse storage capacity"
 ---
 Many admins, and even makers, get a weekly email saying Dataverse storage is **running low** or **over capacity**, sometimes in a tenant that "doesn't use Dataverse". Here's what triggers it, what really happens if you ignore it, and how to fix it.
 
+> [!ANSWER] Quick answer
+> 1. [The email means the tenant's database, file or log storage is low or over](#why-you-got-it): under 15% left, under 5% left, or over.
+> 2. [While you're over](#what-happens-when-youre-over), you can't create, copy or restore environments, and Dataverse-only tenants face added stages from the new storage validation.
+> 3. [Find the biggest tables and free up space](#how-to-get-back-under): for example old system jobs, attachments and audit logs.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

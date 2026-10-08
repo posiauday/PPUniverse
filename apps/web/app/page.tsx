@@ -5,7 +5,8 @@ import Link from "next/link";
 import { formatBuildLabel } from "../lib/build-info";
 import { catalogRepository } from "../lib/catalog";
 import { contentRepository } from "../lib/content";
-import { buildWebSiteJsonLd } from "../lib/seo/json-ld";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "../lib/seo/json-ld";
+import { withGuidesFeed } from "../lib/guides-feed";
 import { buildHomeMetadata } from "../lib/seo/metadata";
 import { getSiteUrl } from "../lib/site-url";
 import { updateRepository } from "../lib/updates";
@@ -45,7 +46,8 @@ const START_HERE_SLUGS = [
 export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Metadata {
-  return buildHomeMetadata(getSiteUrl());
+  const site = getSiteUrl();
+  return withGuidesFeed(buildHomeMetadata(site), site);
 }
 
 /**
@@ -212,6 +214,7 @@ export default async function HomePage() {
       </p>
 
       {site.ok ? <JsonLd data={buildWebSiteJsonLd(site.origin)} /> : null}
+      {site.ok ? <JsonLd data={buildOrganizationJsonLd(site.origin)} /> : null}
     </main>
   );
 }

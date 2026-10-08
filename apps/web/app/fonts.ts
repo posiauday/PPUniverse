@@ -1,51 +1,59 @@
-import {
-  Bricolage_Grotesque,
-  Geist,
-  Geist_Mono,
-  Google_Sans,
-  Instrument_Serif,
-} from "next/font/google";
+import localFont from "next/font/local";
 
 /**
  * The Daylight typefaces (MVP-031; docs/final-decisions.md, "Visual
  * redesign: Daylight"): Bricolage Grotesque for display headings, an
  * Instrument Serif italic for one accent word per heading, Geist for body
- * text, Geist Mono for code and labels. All four are SIL Open Font License.
+ * text, Geist Mono for code and labels. All SIL Open Font License; each
+ * font's licence sits beside it in assets/fonts.
  *
- * next/font downloads them at build time and serves them from this site, so
- * a visitor's browser never contacts Google (privacy), and the fallback
- * font is size-adjusted so swapping in the web font does not shift the
- * layout (Core Web Vitals, CLS). Each is exposed as a CSS variable that
- * globals.css maps onto the --font-* theme tokens.
+ * TD-031: the files are kept in the repository (the Latin subsets Google
+ * Fonts serves, as WOFF2) instead of being downloaded at build time, so a
+ * Google Fonts hiccup can no longer fail a build or a deploy. They are
+ * served from this site, so a visitor's browser never contacts Google
+ * (privacy), and the fallback font is size-adjusted so swapping in the web
+ * font does not shift the layout (Core Web Vitals, CLS). Each is exposed as
+ * a CSS variable that globals.css maps onto the --font-* theme tokens.
  */
-// Variable weight plus the optical-size axis, as the design canvas loads it:
-// browsers pick the optical size from the font size, so large headings get
-// Bricolage's tighter display cut instead of its wider text cut.
-export const displayFont = Bricolage_Grotesque({
-  subsets: ["latin"],
-  axes: ["opsz"],
-  display: "swap",
+
+// Variable weight plus the optical-size axis: browsers pick the optical
+// size from the font size, so large headings get Bricolage's tighter display
+// cut instead of its wider text cut.
+export const displayFont = localFont({
+  src: "../assets/fonts/bricolage-grotesque-latin.woff2",
+  weight: "200 800",
+  // MVP-042, TD-032 (product owner, 2026-10-07): "optional", not "swap". On a
+  // slow first visit the headline keeps the fallback font for that page
+  // instead of re-wrapping when Bricolage arrives (CLS 0.13 on the home
+  // page); the font is cached and used from the next page on.
+  display: "optional",
   variable: "--font-bricolage",
 });
 
-export const serifFont = Instrument_Serif({
-  subsets: ["latin"],
+export const serifFont = localFont({
+  src: "../assets/fonts/instrument-serif-italic-latin.woff2",
   weight: "400",
   style: "italic",
   display: "swap",
+  // MVP-042 speed budget: one accent word per heading, so not preloaded; it
+  // swaps in without shifting the layout (size-adjusted fallback).
+  preload: false,
   variable: "--font-instrument-serif",
 });
 
-export const bodyFont = Geist({
-  subsets: ["latin"],
+export const bodyFont = localFont({
+  src: "../assets/fonts/geist-latin.woff2",
+  weight: "100 900",
   display: "swap",
   variable: "--font-geist",
 });
 
-export const monoFont = Geist_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+export const monoFont = localFont({
+  src: "../assets/fonts/geist-mono-latin.woff2",
+  weight: "400 500",
   display: "swap",
+  // MVP-042 speed budget: code and labels only, so not preloaded.
+  preload: false,
   variable: "--font-geist-mono",
 });
 
@@ -53,16 +61,15 @@ export const fontVariables = `${displayFont.variable} ${serifFont.variable} ${bo
 
 /**
  * Google Sans Medium, only for the "Continue with Google" button: Google's
- * branding guidelines require it (14/20). SIL Open Font License, served from
- * this site like the others. Not in fontVariables: only the sign-in page's
- * GoogleButton uses it, so other pages don't load it.
+ * branding guidelines require it (14/20). Not in fontVariables: only the
+ * sign-in page's GoogleButton uses it, so other pages don't load it.
  */
-export const googleButtonFont = Google_Sans({
-  subsets: ["latin"],
+export const googleButtonFont = localFont({
+  src: "../assets/fonts/google-sans-500-latin.woff2",
   weight: "500",
   display: "swap",
   preload: false,
-  // next/font has no size-matched fallback for Google Sans; these are close.
+  // No size-matched fallback for Google Sans; these are close.
   adjustFontFallback: false,
   fallback: ["Roboto", "Arial", "sans-serif"],
 });

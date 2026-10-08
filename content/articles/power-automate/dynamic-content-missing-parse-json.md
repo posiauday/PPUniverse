@@ -9,6 +9,11 @@ searchPhrase: "dynamic content missing parse json"
 ---
 You know the value is there: you can see it in the run history. But it's missing from the dynamic content picker, or the picker shows "No dynamic content available", or picking it wraps your action in an **Apply to each** you didn't ask for. Here's what's going on, and how to get any value out with **Parse JSON** or an expression.
 
+> [!ANSWER] Quick answer
+> 1. [Check the box's type](#1-the-picker-is-filtering-by-type): the picker only lists values of the type the box expects.
+> 2. [The value is inside an array?](#4-the-value-is-inside-an-array) Picking it adds an **Apply to each**; [read one item with an expression](#skip-parse-json-read-values-with-expressions) instead.
+> 3. [Text that holds JSON](#5-the-content-is-plain-text-that-hasnt-been-parsed) has no fields until you [parse it](#parse-json-step-by-step) with **Parse JSON** or `json()`.
+
 > [!NOTE]
 > Checked against Microsoft Learn on 6 October 2026.
 

@@ -21,17 +21,27 @@
 // own admin routes explicitly check for.
 enum UserRole {
   MEMBER
+  /// MVP-047: a contributor. What a contributor may do is still to be decided
+  /// (docs/final-decisions.md, 2026-10-07); until then exactly what a MEMBER may.
+  CONTRIBUTOR
   ADMIN
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String?
-  role          UserRole  @default(MEMBER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  emailVerified  DateTime?
+  name           String?
+  role           UserRole  @default(MEMBER)
+  /// MVP-040: the public name shown on comments, never the email or `name`
+  /// (which can come from Google). Random until the reader changes it.
+  displayName    String?
+  /// Lowercased displayName, so two readers can't share a name in any case.
+  displayNameKey String?   @unique
+  /// Picks the reader's generated avatar (our own shapes and colours).
+  avatarSeed     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   accounts               Account[]
   sessions               Session[]
@@ -45,10 +55,16 @@ model User {
   articlePublishActions  ArticlePublishEvent[]
   updateItems            UpdateItem[]
   updatePublishActions   UpdatePublishEvent[]
+  learnTopics            LearnTopic[]
+  learnLessons           LearnLesson[]
+  learnPublishActions    LearnPublishEvent[]
   releasePublishActions  ReleasePublishEvent[]
   productStatusActions   ProductStatusEvent[]
   orders                 Order[]
   passwordCredential     PasswordCredential?
+  comments               ArticleComment[]
+  roleChangesMade        RoleChangeEvent[]      @relation("RoleChangeActor")
+  roleChangesReceived    RoleChangeEvent[]      @relation("RoleChangeTarget")
 
   @@map("users")
 }
@@ -147,4 +163,21 @@ model AuthThrottle {
   updatedAt   DateTime  @updatedAt
 
   @@map("auth_throttle")
+}
+
+/// MVP-047: an admin changed someone's role. Append-only, like every audit
+/// table; read by the admin audit log.
+model RoleChangeEvent {
+  id           String   @id @default(cuid())
+  targetUserId String
+  actorUserId  String
+  fromRole     UserRole
+  toRole       UserRole
+  createdAt    DateTime @default(now())
+
+  target User @relation("RoleChangeTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  actor  User @relation("RoleChangeActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@map("role_change_events")
 }

@@ -57,6 +57,33 @@ const FIXTURE_ARTICLE_MARKDOWN = [
   'Set(varFixture, LookUp(Accounts, Name = "A very long fixture value that is wider than a phone screen"))',
   "```",
   "",
+  // Guide blocks (MVP-041): symptom cards, tick-off steps, a diagram and a
+  // Do / Don't pair.
+  "> [!SYMPTOMS] What are you seeing?",
+  "> - `500` [A fixture symptom](#a-fixture-step): A fixture note.",
+  "> - `429` [Another fixture symptom](#another-fixture-step): Another fixture note.",
+  "",
+  "## Work through it",
+  "",
+  "### A fixture step",
+  "",
+  "Do the first fixture thing.",
+  "",
+  "### Another fixture step",
+  "",
+  "Do the second fixture thing.",
+  "",
+  "## How it fits together",
+  "",
+  "> [!DIAGRAM] A fixture diagram",
+  "> First stop -> Second stop -> Third stop",
+  "",
+  "> [!DO]",
+  "> A fixture do.",
+  "",
+  "> [!DONT]",
+  "> A fixture don't.",
+  "",
   "## Comparison",
   "",
   "| Option | When to use it |",
@@ -533,6 +560,48 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     await prisma.articlePublishEvent.create({
       data: { articleId: publishedArticle.id, actorUserId: admin.id, action: "PUBLISHED" },
     });
+    // MVP-039 / MVP-038: feedback for /admin/feedback to list. Removed with
+    // the article (the foreign keys cascade).
+    await prisma.articleVote.createMany({
+      data: [
+        { articleId: publishedArticle.id, helpful: true },
+        { articleId: publishedArticle.id, helpful: false },
+      ],
+    });
+    await prisma.articleReport.create({
+      data: {
+        articleId: publishedArticle.id,
+        message: `E2E fixture report ${prefix}(not real feedback): a setting moved.`,
+      },
+    });
+    // MVP-040: two comments on the published guide, under display names (the
+    // prefix keeps names unique across workers): the admin's, accepted, and
+    // the member's, reported once. Removed with the article (cascade).
+    for (const [who, name, seedValue] of [
+      [admin.id, `Fixture Reader A ${prefix}`, `${prefix}avatar-a`],
+      [user.id, `Fixture Reader B ${prefix}`, `${prefix}avatar-b`],
+    ] as const) {
+      await prisma.user.update({
+        where: { id: who },
+        data: { displayName: name, displayNameKey: name.toLowerCase(), avatarSeed: seedValue },
+      });
+    }
+    await prisma.articleComment.create({
+      data: {
+        articleId: publishedArticle.id,
+        userId: admin.id,
+        body: "Fixture comment: the accepted fix, with a link https://learn.microsoft.com/power-apps/ and code:\n\n```\nSet(varFixture, true)\n```",
+        acceptedAt: now,
+      },
+    });
+    const reportedComment = await prisma.articleComment.create({
+      data: {
+        articleId: publishedArticle.id,
+        userId: user.id,
+        body: "Fixture comment from the member, reported once.",
+      },
+    });
+    await prisma.commentReport.create({ data: { commentId: reportedComment.id } });
 
     // SEO story: a second PUBLISHED article of the same type, so the first
     // one's "Keep learning" section always has something to list.

@@ -11,6 +11,11 @@ Power Pages lets you build an external website on the same Dataverse data your a
 
 It follows Microsoft's documented steps, and adds the security decisions that are easy to skip when you're focused on getting the first page working.
 
+> [!ANSWER] Quick answer
+> 1. [Use a dedicated environment](#before-you-start), not the default one.
+> 2. [Grant access narrowly](#step-4-grant-access-narrowly): Contact, Account, Self or parent-child access, and **Global** only for truly public data.
+> 3. [Protect the pages too](#step-5-protect-the-pages-too), and [run the security scan](#step-6-check-before-going-public) before going public.
+
 ## Before you start
 
 - **Environment.** Create the site in a dedicated environment, not the default one. Microsoft advises against the default environment, which every user in the tenant shares, so data can leak between projects.

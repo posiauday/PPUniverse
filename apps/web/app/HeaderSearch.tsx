@@ -64,10 +64,10 @@ export function HeaderSearch() {
           id={INPUT_ID}
           type="search"
           name="q"
-          placeholder="Search guides"
+          placeholder="Search an error or topic"
           aria-keyshortcuts="Control+K Meta+K"
           // A text box's edge needs 3:1 against the page (WCAG 1.4.11, as BUG-004).
-          className="h-11 w-56 rounded-full border border-muted-foreground bg-muted pr-16 pl-10 text-sm text-foreground placeholder:text-muted-foreground"
+          className="h-11 w-[17rem] rounded-full border border-muted-foreground bg-muted pr-16 pl-10 text-sm text-foreground placeholder:text-muted-foreground"
         />
         <kbd
           aria-hidden="true"
