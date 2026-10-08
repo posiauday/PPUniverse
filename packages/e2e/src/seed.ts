@@ -1235,17 +1235,22 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
         await prisma.entitlement.deleteMany({ where: { userId: user.id, productId: product.id } });
       },
+      // BUG-030: both are atomic, so another worker's admin queue never sees
+      // a request without its events (other workers' requests show there too).
       resetPrivacyState: async (userId: string = user.id) => {
-        await prisma.deletionRequestEvent.deleteMany({
-          where: { deletionRequest: { userId } },
-        });
-        await prisma.deletionRequest.deleteMany({ where: { userId } });
-        await prisma.consentRecord.deleteMany({ where: { userId } });
+        await prisma.$transaction([
+          prisma.deletionRequestEvent.deleteMany({ where: { deletionRequest: { userId } } }),
+          prisma.deletionRequest.deleteMany({ where: { userId } }),
+          prisma.consentRecord.deleteMany({ where: { userId } }),
+        ]);
       },
       submitDeletionRequest: async (userId: string = user.id) => {
-        const request = await prisma.deletionRequest.create({ data: { userId } });
-        await prisma.deletionRequestEvent.create({
-          data: { deletionRequestId: request.id, toState: "SUBMITTED", actorUserId: userId },
+        const request = await prisma.$transaction(async (tx) => {
+          const created = await tx.deletionRequest.create({ data: { userId } });
+          await tx.deletionRequestEvent.create({
+            data: { deletionRequestId: created.id, toState: "SUBMITTED", actorUserId: userId },
+          });
+          return created;
         });
         return { id: request.id };
       },
