@@ -34,8 +34,8 @@ export function siteSwitches(env: Record<string, string | undefined> = process.e
       name: "Components catalog",
       on: componentsEnabled(),
       detail: componentsEnabled()
-        ? "The Components link shows in the top bar."
-        : "Hidden until the first product is published.",
+        ? "The component library (/components) is public, with a Components link in the top bar."
+        : "The component library pages are hidden. Test and publish components in the admin first.",
       setting: "FEATURE_COMPONENTS (on / off)",
     },
     {

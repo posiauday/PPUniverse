@@ -115,7 +115,10 @@ export class PrismaPrivacyRepository implements PrivacyRepository {
       orderBy: { createdAt: "asc" },
       include: { events: { orderBy: { occurredAt: "asc" } } },
     });
-    return rows.map(toDeletionRequestRecord);
+    // BUG-030: the two reads aren't one snapshot. A request deleted between
+    // them (its events go first) comes back with no events; it's no longer in
+    // the queue, so it's skipped instead of failing the whole admin page.
+    return rows.filter((row) => row.events.length > 0).map(toDeletionRequestRecord);
   }
 }
 

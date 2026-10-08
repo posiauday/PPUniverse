@@ -2,7 +2,8 @@ import { logger } from "@ppu/telemetry";
 import type { MetadataRoute } from "next";
 import { catalogRepository } from "../lib/catalog";
 import { contentRepository } from "../lib/content";
-import { learnEnabled } from "../lib/feature-flags";
+import { componentRepository } from "../lib/components";
+import { componentsEnabled, learnEnabled } from "../lib/feature-flags";
 import { learnRepository } from "../lib/learn";
 import { generateSitemap } from "../lib/seo/sitemap";
 import { getSiteUrl } from "../lib/site-url";
@@ -41,6 +42,21 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
         ...topics.map((topic) => ({
           path: `/topics/${encodeURIComponent(topic.slug)}`,
           lastModified: topic.updatedAt,
+        })),
+      ];
+    },
+    // MVP-049: /components and each public component, only while the library
+    // is on (FEATURE_COMPONENTS). Members-only components are listed too: their
+    // pages are public; only copying the YAML needs sign-in.
+    listComponentEntries: async () => {
+      if (!componentsEnabled()) return [];
+      const components = await componentRepository.listPublic();
+      if (components.length === 0) return [];
+      return [
+        { path: "/components" },
+        ...components.map((component) => ({
+          path: `/components/${encodeURIComponent(component.slug)}`,
+          lastModified: component.updatedAt,
         })),
       ];
     },

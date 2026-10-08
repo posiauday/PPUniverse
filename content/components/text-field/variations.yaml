@@ -1,0 +1,43 @@
+# Named presets of lcsTextField: each sets inputs with Power Fx formulas.
+- name: Required name
+  description: A required single-line field with a hint.
+  settings:
+    Label: ="Full name"
+    Hint: ="As it appears on your badge."
+    Required: =true
+    MaxLength: =60
+- name: Email
+  description: An email field. Add the email check in Validate (see the guide).
+  settings:
+    Label: ="Work email"
+    Placeholder: ="name@example.com"
+    Hint: ="We'll send the confirmation here."
+    Required: =true
+    MaxLength: =100
+- name: Comments
+  description: Several lines with a character count. Make the component about 160 tall.
+  settings:
+    Label: ="Comments"
+    Hint: ="Optional."
+    Multiline: =true
+    MaxLength: =500
+- name: Server error
+  description: How an error from your app looks, set through ErrorMessage.
+  settings:
+    Label: ="Username"
+    DefaultValue: ="maker01"
+    ErrorMessage: ="That username is taken. Try another."
+- name: Dark
+  description: On a dark screen, with a lighter accent for contrast.
+  settings:
+    Label: ="Project code"
+    Hint: ="Six letters or numbers."
+    MaxLength: =6
+    Theme: ="Dark"
+    AccentColor: =RGBA(71, 158, 245, 1)
+- name: Filled
+  description: A filled box, for dense forms where borders get busy.
+  settings:
+    Label: ="City"
+    Look: ="Filled"
+    Hint: =""

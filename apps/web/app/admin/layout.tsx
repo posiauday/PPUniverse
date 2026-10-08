@@ -31,7 +31,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           ...(counts ? { count: { value: counts.updatesPublished, label: "published" } } : {}),
         },
         { href: "/admin/topics", name: "Learn topics" },
-        { href: "/admin/products", name: "Components" },
+        { href: "/admin/components", name: "Component library" },
+        { href: "/admin/products", name: "Marketplace products" },
       ],
     },
     {

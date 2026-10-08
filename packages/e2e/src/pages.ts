@@ -1565,6 +1565,123 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/admin/topics/${seed.draftTopic.id}/edit`,
   },
   {
+    // MVP-049: the public component library, with the seeded published components.
+    id: "components-index",
+    route: "/components",
+    description: "component library index, as a guest",
+    auth: "guest",
+    status: 200,
+    path: () => "/components",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("link", { name: seed.publishedComponent.title })).toBeVisible();
+    },
+  },
+  {
+    id: "component-open-guest",
+    route: "/components/[slug]",
+    description: "a component anyone can copy, as a guest: live preview and Copy YAML",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/components/${seed.publishedComponent.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("button", { name: "Copy YAML" })).toBeVisible();
+    },
+  },
+  {
+    id: "component-live",
+    route: "/components/[slug]",
+    description:
+      "a component's live preview after a click: its OnClick runs Notify, whose banner shows on the screen",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/components/${seed.publishedComponent.slug}`,
+    prepare: async (page) => {
+      const panel = page.getByRole("tabpanel", { name: "Preview" });
+      await panel.getByRole("button", { name: "Save" }).click();
+      await expect(panel.getByRole("status").filter({ hasText: "Clicked 1 time" })).toBeVisible();
+    },
+  },
+  {
+    id: "component-members-guest",
+    route: "/components/[slug]",
+    description: "a sign-in-to-copy component as a guest: no YAML, a sign-in link instead",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/components/${seed.membersComponent.slug}`,
+    prepare: async (page) => {
+      await expect(
+        page.getByRole("link", { name: "Sign in to copy (free)" }).first(),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Copy YAML" })).toHaveCount(0);
+    },
+  },
+  {
+    id: "component-members-member",
+    route: "/components/[slug]",
+    description: "a sign-in-to-copy component, signed in: Copy YAML",
+    auth: "member",
+    status: 200,
+    path: (seed) => `/components/${seed.membersComponent.slug}`,
+    prepare: async (page) => {
+      await expect(page.getByRole("button", { name: "Copy YAML" }).first()).toBeVisible();
+    },
+  },
+  {
+    id: "component-draft-404",
+    route: null,
+    description: "a draft component is a 404 on the site",
+    auth: "guest",
+    status: 404,
+    path: () => "/components/zz-e2e-a11y-no-such-component",
+  },
+  {
+    // MVP-049: the admin component library list, with an untested draft.
+    id: "admin-components-populated",
+    route: "/admin/components",
+    description:
+      "admin component library list, signed in as ADMIN, with a draft and published components",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/components",
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("link", { name: seed.draftComponent.title })).toBeVisible();
+    },
+  },
+  {
+    id: "admin-components-denied",
+    route: null,
+    description: "admin component library list, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: () => "/admin/components",
+  },
+  {
+    id: "admin-component-untested",
+    route: "/admin/components/[id]",
+    description: "admin component page for an untested draft: test form, settings, publish blocked",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/components/${seed.draftComponent.id}`,
+    prepare: async (page) => {
+      await expect(page.getByText(/hasn't been tested yet/)).toBeVisible();
+      await expect(page.getByRole("button", { name: "Publish component" })).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
+    },
+  },
+  {
+    id: "admin-component-published",
+    route: "/admin/components/[id]",
+    description: "admin component page for a published, tested component",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/admin/components/${seed.publishedComponent.id}`,
+    prepare: async (page) => {
+      await expect(page.getByText(/was tested on/)).toBeVisible();
+    },
+  },
+  {
     id: "admin-lessons-new",
     route: "/admin/topics/[id]/lessons/new",
     description: "admin new-lesson form, signed in as ADMIN",

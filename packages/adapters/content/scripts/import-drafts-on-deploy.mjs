@@ -4,7 +4,7 @@
 // automatically on release".
 //
 // It runs the same importers a person would run by hand (content:import,
-// updates:import and, since MVP-048, topics:import), with the build's own
+// updates:import, topics:import (MVP-048) and components:import (MVP-049)), with the build's own
 // DATABASE_URL:
 // - they create DRAFTS only, and skip any slug that already exists, so edits
 //   made in the admin and anything already published are never touched;
@@ -16,7 +16,12 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-export const IMPORTERS = ["content:import", "updates:import", "topics:import"];
+export const IMPORTERS = [
+  "content:import",
+  "updates:import",
+  "topics:import",
+  "components:import",
+];
 
 /**
  * Decides whether to import, from the build environment. Pure, so it is
@@ -42,7 +47,7 @@ export function importPlan(env) {
   if (!env.DATABASE_URL) {
     return { run: false, message: "Skipping draft import: DATABASE_URL is not set." };
   }
-  return { run: true, message: "Importing new guide, update and Learn drafts (drafts only)..." };
+  return { run: true, message: "Importing new guide, update, Learn and component drafts (drafts only)..." };
 }
 
 function main() {

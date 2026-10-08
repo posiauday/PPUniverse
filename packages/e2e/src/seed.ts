@@ -5,6 +5,95 @@ import { assertSafeDatabaseTarget } from "./db-guard.js";
 import { RESERVED_PREFIX, assertReserved, newWorkerPrefix } from "./prefix.js";
 
 /** MVP-048: a lesson body in the fixed lesson shape (@ppu/domain-content LESSON_SECTIONS). */
+/** MVP-049: a short component guide with two sections, so the page has an outline. */
+const FIXTURE_COMPONENT_GUIDE = [
+  "## When to use it",
+  "",
+  "A test component for the accessibility gate.",
+  "",
+  "## Use it",
+  "",
+  "```powerfx",
+  "MyButton.ResetCount()",
+  "```",
+].join("\n");
+
+/** MVP-049: one property of each kind, shaped like the real lcsButton's. */
+const FIXTURE_COMPONENT_PROPERTIES = [
+  {
+    name: "Label",
+    kind: "Input",
+    dataType: "Text",
+    description: "The button's text.",
+    defaultValue: '"Save"',
+    parameters: [],
+  },
+  {
+    name: "Appearance",
+    kind: "Input",
+    dataType: "Text",
+    description: "Primary, Secondary, Outline or Subtle.",
+    defaultValue: '"Primary"',
+    parameters: [],
+  },
+  {
+    name: "IconName",
+    kind: "Input",
+    dataType: "Text",
+    description: "A Fluent icon name.",
+    defaultValue: '""',
+    parameters: [],
+  },
+  {
+    name: "IsBusy",
+    kind: "Input",
+    dataType: "Boolean",
+    description: "While true, the button is disabled.",
+    defaultValue: "false",
+    parameters: [],
+  },
+  {
+    name: "ClickCount",
+    kind: "Output",
+    dataType: "Number",
+    description: "How many times it was selected.",
+    defaultValue: null,
+    parameters: [],
+  },
+  {
+    name: "FormatLabel",
+    kind: "InputFunction",
+    dataType: "Text",
+    description: "Changes how the label is shown.",
+    defaultValue: "Text",
+    parameters: [{ name: "Text", dataType: "Text", description: "The label to format." }],
+  },
+  {
+    name: "IsValidLabel",
+    kind: "OutputFunction",
+    dataType: "Boolean",
+    description: "True for a usable label.",
+    defaultValue: null,
+    parameters: [{ name: "Text", dataType: "Text", description: "The label to check." }],
+  },
+  {
+    name: "OnClick",
+    kind: "Event",
+    dataType: "None",
+    description: "Runs when the button is selected.",
+    defaultValue: "false",
+    parameters: [{ name: "Count", dataType: "Number", description: "The click count." }],
+  },
+  {
+    name: "ResetCount",
+    kind: "Action",
+    dataType: "None",
+    description: "Sets ClickCount back to 0.",
+    defaultValue: null,
+    parameters: [],
+  },
+];
+
 const FIXTURE_LESSON_BODY = [
   "## The idea",
   "",
@@ -178,6 +267,11 @@ export interface FixtureSet {
   draftLesson: { id: string; title: string };
   /** MVP-048: a PUBLISHED Learn topic with three PUBLISHED lessons, at /topics/[topic]/[lesson]. */
   publishedTopic: { slug: string; title: string; lessons: { slug: string; title: string }[] };
+  /** MVP-049: library components: an untested draft (admin only), a published
+   * one anyone can copy, and a published one that needs sign-in to copy. */
+  draftComponent: { id: string; title: string };
+  publishedComponent: { id: string; slug: string; title: string };
+  membersComponent: { slug: string; title: string };
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
    * support/compatibility/release) — visible in the admin products list,
    * and exercises the "still missing mandatory fields" publish-readiness
@@ -287,6 +381,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     articleIds: [] as string[],
     updateIds: [] as string[],
     topicIds: [] as string[],
+    componentIds: [] as string[],
     fileScanIds: [] as string[],
   };
 
@@ -374,6 +469,18 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     await attempt(() =>
       prisma.learnTopic.deleteMany({
         where: { id: { in: created.topicIds }, slug: { startsWith: RESERVED_PREFIX } },
+      }),
+    );
+    // MVP-049: library components and their events use Restrict FKs on the
+    // admin user too, so they go before the user rows, events first.
+    if (created.componentIds.length > 0) {
+      await attempt(() =>
+        prisma.componentEvent.deleteMany({ where: { componentId: { in: created.componentIds } } }),
+      );
+    }
+    await attempt(() =>
+      prisma.libraryComponent.deleteMany({
+        where: { id: { in: created.componentIds }, slug: { startsWith: RESERVED_PREFIX } },
       }),
     );
     // MVP-012: must also run BEFORE user.deleteMany below, for a subtler
@@ -761,6 +868,67 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       },
     });
 
+    // MVP-049: library components, built like the real lcsButton so the
+    // public page's live preview renders. One untested draft, one published
+    // that anyone can copy, one published that needs sign-in to copy.
+    const componentBase = {
+      componentName: "lcsButton",
+      category: "buttons-and-actions",
+      summary: "A test component for the accessibility gate: a button with every kind of property.",
+      guide: FIXTURE_COMPONENT_GUIDE,
+      yaml: "ComponentDefinitions:\n  lcsButton:\n    DefinitionType: CanvasComponent\n",
+      properties: FIXTURE_COMPONENT_PROPERTIES,
+      variations: [
+        {
+          name: "Outline",
+          description: "A quieter action.",
+          settings: { Appearance: '"Outline"' },
+        },
+      ],
+      version: "1.0.0",
+      needsModernControls: true,
+      authorUserId: admin.id,
+    };
+    const componentSlug = (name: string) => {
+      const slug = `${prefix}${name}`;
+      assertReserved("component", slug);
+      return slug;
+    };
+    const draftComponent = await prisma.libraryComponent.create({
+      data: {
+        ...componentBase,
+        slug: componentSlug("draft-component"),
+        title: `E2E fixture: draft component ${prefix}`,
+      },
+    });
+    created.componentIds.push(draftComponent.id);
+    const componentPublishedAt = new Date();
+    const publishedComponent = await prisma.libraryComponent.create({
+      data: {
+        ...componentBase,
+        slug: componentSlug("open-component"),
+        title: `E2E fixture: open component ${prefix}`,
+        status: "PUBLISHED",
+        publishedAt: componentPublishedAt,
+        testedAt: componentPublishedAt,
+        testedStudioVersion: "3.26093.12",
+      },
+    });
+    created.componentIds.push(publishedComponent.id);
+    const membersComponent = await prisma.libraryComponent.create({
+      data: {
+        ...componentBase,
+        slug: componentSlug("members-component"),
+        title: `E2E fixture: members component ${prefix}`,
+        access: "MEMBERS",
+        status: "PUBLISHED",
+        publishedAt: componentPublishedAt,
+        testedAt: componentPublishedAt,
+        testedStudioVersion: "3.26093.12",
+      },
+    });
+    created.componentIds.push(membersComponent.id);
+
     // MVP-048: a published topic with three published lessons, for the public pages.
     const publishedTopicSlug = `${prefix}published-topic`;
     assertReserved("topic", publishedTopicSlug);
@@ -1016,6 +1184,13 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         title: publishedTopic.title,
         lessons: publishedLessons.map((lesson) => ({ slug: lesson.slug, title: lesson.title })),
       },
+      draftComponent: { id: draftComponent.id, title: draftComponent.title },
+      publishedComponent: {
+        id: publishedComponent.id,
+        slug: publishedComponent.slug,
+        title: publishedComponent.title,
+      },
+      membersComponent: { slug: membersComponent.slug, title: membersComponent.title },
       draftAdminProduct: {
         id: draftAdminProduct.id,
         slug: draftAdminProduct.slug,
@@ -1060,17 +1235,22 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         const product = await prisma.product.findUniqueOrThrow({ where: { slug: productSlug } });
         await prisma.entitlement.deleteMany({ where: { userId: user.id, productId: product.id } });
       },
+      // BUG-030: both are atomic, so another worker's admin queue never sees
+      // a request without its events (other workers' requests show there too).
       resetPrivacyState: async (userId: string = user.id) => {
-        await prisma.deletionRequestEvent.deleteMany({
-          where: { deletionRequest: { userId } },
-        });
-        await prisma.deletionRequest.deleteMany({ where: { userId } });
-        await prisma.consentRecord.deleteMany({ where: { userId } });
+        await prisma.$transaction([
+          prisma.deletionRequestEvent.deleteMany({ where: { deletionRequest: { userId } } }),
+          prisma.deletionRequest.deleteMany({ where: { userId } }),
+          prisma.consentRecord.deleteMany({ where: { userId } }),
+        ]);
       },
       submitDeletionRequest: async (userId: string = user.id) => {
-        const request = await prisma.deletionRequest.create({ data: { userId } });
-        await prisma.deletionRequestEvent.create({
-          data: { deletionRequestId: request.id, toState: "SUBMITTED", actorUserId: userId },
+        const request = await prisma.$transaction(async (tx) => {
+          const created = await tx.deletionRequest.create({ data: { userId } });
+          await tx.deletionRequestEvent.create({
+            data: { deletionRequestId: created.id, toState: "SUBMITTED", actorUserId: userId },
+          });
+          return created;
         });
         return { id: request.id };
       },

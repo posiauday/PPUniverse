@@ -135,6 +135,7 @@ function CompactPanels({ counts }: { counts: Readonly<Partial<Record<Technology,
   );
 }
 
+// The dot follows this path with the lcs-run-try keyframes in globals.css: change both together.
 const TRY_CATCH_PATH = "M52 34 C 150 34, 120 100, 165 100 S 230 166, 278 166";
 
 /** One illustration per technology. Fixed colours: they sit on white mock
@@ -175,10 +176,7 @@ export const TECHNOLOGY_VISUALS: Readonly<Record<ProductTechnology, ReactNode>> 
           strokeDasharray="3 10"
         />
       </svg>
-      <span
-        className="motion-run absolute top-0 left-0 h-4 w-4 rounded-full border-[3px] border-white bg-[#2563eb] [animation-duration:3s]"
-        style={{ offsetPath: `path("${TRY_CATCH_PATH}")`, offsetAnchor: "center" }}
-      />
+      <span className="motion-run-try absolute top-0 left-0 h-4 w-4 rounded-full border-[3px] border-white bg-[#2563eb]" />
       <svg viewBox="0 0 330 200" className="absolute inset-0 h-full w-full font-sans">
         <rect x="8" y="12" width="88" height="44" rx="14" fill="#fff" />
         <text x="52" y="39" fontSize="14" textAnchor="middle" fill="#1e3a8a" fontWeight="600">

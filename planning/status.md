@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-08 (latest) — **MVP-048 slice 3 built, and the Learn module is benched.**
+Last updated: 2026-10-08 (latest) — **MVP-049 (the Power Apps component library) In Progress: pipeline, admin and Docs pages built; six components drafted.**
+- **Decisions** (`docs/final-decisions.md`, 2026-10-08): design A · Docs; "Component library" and "Marketplace products" in the admin menu; more components may be drafted before the pilot paste-test; the component standard stays a proposal.
+- **Built (#116):** `content/components` checked in CI against Microsoft's pa.yaml schema and the standard; drafts imported on each release; `/admin/components` to record a paste-test, set sign-in-to-copy and hidden, and publish once tested (audit logged); `/components` and the component pages behind `FEATURE_COMPONENTS`, with one live view per component (the component on a Power Apps screen, behaving exactly as in Studio, with its variations and the screen's formulas); sitemap entries while it's on.
+- **Drafted (#117):** Button (the pilot), Text field, Dialog, Toast, Tabs, Empty/loading/error states, with paste-test checklists (`docs/component-paste-tests.md`). None is tested in Studio yet.
+- **Waiting on the product owner:** paste-tests; the Privacy wording for component ratings and "Worked in my app" (plan step 5); a blank gallery's YAML from Studio before the Navigation shell and Data table.
+
+Last updated (previous): 2026-10-08 — **MVP-048 slice 3 built, and the Learn module is benched.**
 - **Decisions** (`docs/final-decisions.md`, 2026-10-08): lessons need sign-in (topics stay public); progress is saved to the reader's account; the Privacy notice gains "Learn progress" in the approved wording (version 2026-10-12).
 - **Built:** a sign-in prompt for signed-out readers (title, outcomes, "Sign in to read"); "Mark as done" with done rings and a ✓ in the lesson list and topic page, "Continue: lesson N" on the topic; "Learn progress" on the profile with Clear; `POST/DELETE /api/learn/progress`; lessons noindex and out of the sitemap.
 - **Benched** at the product owner's request, to move to higher-priority work. Left to launch: write the content, publish it, then `FEATURE_LEARN=on` (`docs/plans/learn-module.md`).
@@ -242,12 +248,12 @@ MVP-023 (manual and automated accessibility gate) is **Done and merged**. PR #6 
 |---|---|---|
 | Backlog | 7 | MVP-008, MVP-009, MVP-015, MVP-016, MVP-024, MVP-025, MVP-043 |
 | Ready | 0 | — |
-| In Progress | 9 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built), MVP-048 (code done and benched: content not written; off behind FEATURE_LEARN) |
+| In Progress | 10 | MVP-007 (slices 1–2 of 3), MVP-030 (slice 1 of 2), MVP-038 (slices 1 and 4 built), MVP-040 (built behind a flag; waiting on Terms and Privacy wording), MVP-041 (redesign slice 2 built), MVP-042 (IndexNow built), MVP-045, MVP-046 (code gaps and quick answers built), MVP-048 (code done and benched: content not written; off behind FEATURE_LEARN), MVP-049 (pipeline, admin and pages built; six components drafted, none paste-tested) |
 | QA | 11 | MVP-029, MVP-031, MVP-032, MVP-033, MVP-034, MVP-035, MVP-036, MVP-037, MVP-039, MVP-044, MVP-047 |
 | Blocked | 0 | — |
 | Superseded | 2 | MVP-011, MVP-013 |
 | Done | 19 | MVP-001, MVP-002, MVP-003, MVP-004, MVP-005, MVP-006, MVP-010, MVP-012, MVP-014, MVP-017, MVP-018, MVP-019, MVP-020, MVP-021, MVP-022, MVP-023, MVP-026, MVP-027, MVP-028 |
-| **Total** | **48** | |
+| **Total** | **49** | |
 
 **2026-09-24 — MVP-011 and MVP-013 marked Superseded** (`docs/final-decisions.md`, "First-party-only publishing model"): the product owner reversed the earlier invited-third-party-creator decision to a first-party-only publishing model. MVP-011 (Creator application) implemented a third-party creator-onboarding flow no longer part of the approved business model — not renamed into a suggestion story; see PROP-009 in `planning/proposed-stories.md` for the separate, not-yet-approved successor concept. MVP-013 (Submission review queue) presupposed a submitter distinct from the reviewer, which first-party-only does not have; its quality requirements are redistributed to MVP-012, MVP-014, MVP-006/TD-006/TD-008, and MVP-019 (full detail in the decision entry). **MVP-012's dependency changes from `MVP-006;MVP-011` to `MVP-006` alone (already Done) — MVP-012 is now the next first-party authoring story, gated only by pricing (open question 7) for its pricing-related fields specifically, not by any creator story.**
 

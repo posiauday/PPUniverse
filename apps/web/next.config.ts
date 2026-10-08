@@ -43,6 +43,10 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The stylesheet goes into each page's HTML instead of a separate request,
+  // so the first paint doesn't wait for it (PageSpeed "render-blocking
+  // requests", TD-032). It is about 18 KB compressed.
+  experimental: { inlineCss: true },
   // pg (node-postgres) has native/optional bindings that don't bundle.
   // @prisma/client is already in Next's built-in external-packages list.
   serverExternalPackages: ["pg"],

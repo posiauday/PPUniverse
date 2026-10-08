@@ -1,0 +1,47 @@
+# Named presets of lcsButton, shown as variations on its page. Each sets
+# inputs with Power Fx formulas, exactly as a maker would type them.
+- name: Primary
+  description: The main action on a screen, such as Save or Submit. Use one per screen.
+  settings:
+    Label: ="Save"
+    Appearance: ="Primary"
+- name: Secondary
+  description: A second, less important action next to a primary one, such as Cancel.
+  settings:
+    Label: ="Cancel"
+    Appearance: ="Secondary"
+- name: Outline
+  description: A visible but quiet action, such as Export or Filter.
+  settings:
+    Label: ="Export"
+    Appearance: ="Outline"
+    IconName: ="ArrowDownload"
+- name: Subtle
+  description: A low-emphasis action inside a card or toolbar, such as Edit.
+  settings:
+    Label: ="Edit"
+    Appearance: ="Subtle"
+    IconName: ="Edit"
+- name: Busy
+  description: While a Patch or flow is running. The button is disabled and says it's working, so people can't click twice.
+  settings:
+    Label: ="Submit"
+    IsBusy: =true
+- name: Confirm before deleting
+  description: For actions that can't be undone. The first select asks; OnClick runs only on the second.
+  settings:
+    Label: ="Delete all"
+    IconName: ="Delete"
+    RequireConfirm: =true
+- name: Your brand colour
+  description: One input sets the colour; hover and pressed colours follow it.
+  settings:
+    Label: ="Get started"
+    AccentColor: =RGBA(124, 58, 237, 1)
+- name: Dark
+  description: On a dark screen, an outline button with light text.
+  settings:
+    Label: ="Export"
+    Appearance: ="Outline"
+    IconName: ="ArrowDownload"
+    Theme: ="Dark"

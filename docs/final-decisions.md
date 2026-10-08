@@ -2199,3 +2199,42 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **Every reader's avatar is a "maker critter"**: a small character drawn from their avatar seed (palette, pattern, head, eyes, mouth, blush, tilt) with one low-code accessory, our own drawing with no product logos. "Draw a new avatar" re-rolls it.
 2. **It wears a name tag with the reader's initials** (the first letters of the first two words of their display name), wherever a name is shown with it: comments, the comment form and the profile.
 3. **Generated names** use everyday low-code words, never product names (32 adjectives, 48 nouns, a number).
+
+## 2026-10-08 — Component library: page design, admin menu, and overnight drafts
+
+**Source:** direct product-owner instructions in this session (choices from the concepts in `.nav-mock/components-concepts.html`, and answers by multiple choice).
+
+1. **Component page design: A · Docs.** The library list on the left, the component in the middle with Preview, Playground and YAML tabs, and "On this page" on the right, like the best UI-library docs.
+2. **Admin menu:** "Component library" opens the new library admin (`/admin/components`); the old products page is renamed "Marketplace products".
+3. **More components before the pilot result:** the agent may write further component drafts (Text field, Dialog, Toast, Tabs, empty/loading/error states) before the product owner's `lcsButton` paste-test. Each must pass Microsoft's pa.yaml schema in CI; if the paste-test finds a format problem, all are fixed the same way. Nothing is published until each is paste-tested.
+4. **The component standard stays a proposal.** It is not yet approved; the product owner reviews it later (`docs/plans/power-apps-component-library.md`).
+5. **Release PR:** the agent prepares a release PR (develop to main) for the product owner to merge.
+
+## 2026-10-08 — Component library: learning from MIT-licensed samples
+
+**Source:** direct product-owner instruction in this session, after sharing a floating action button sample ("those are MIT license so we can reuse it; make it even better with the gaps it has").
+
+1. **MIT-licensed sample components may be used as references**, and their code may be reused, with the licence's copyright notice kept wherever code is reused.
+2. **How the agent applies it:** it learns from the samples the facts about Power Apps Studio (control names and versions, property names, structure that pastes cleanly) and writes LowCodeStacks components fresh, improving on the samples' gaps. Icons stay our own glyphs (the earlier "own glyphs only" rule); third-party icon sets are not copied.
+3. **Other free libraries (follow-up, same session):** the product owner asked the agent to check other sites that offer free YAML components and to improve on them. Only sources with an **explicit open licence** (for example an MIT LICENSE file in a public repository) are used; "free to use" without a licence, or terms that forbid copying or scraping, means reference only, nothing copied. Every reused piece keeps its source, licence and copyright notice in `content/components/NOTICES.md`.
+
+## 2026-10-08 — Component library: direction, differentiators and build order
+
+**Source:** direct product-owner approval in this session ("all approved, start building") of the recommendation in `docs/research/2026-10-08-component-roadmap-and-differentiators.md`.
+
+1. **Direction:** fewer components, each clearly better than the best free equivalent, plus the components that fill real gaps; full screen templates next; no race to the biggest catalogue.
+2. **The ten library-wide differentiators** (section 4 of the research) are part of the component standard: a live playground for every property; actions and events that pass what happened; paste-tested with the Studio version shown and no breaking renames; accessible by design; works in component libraries and on mobile; `AccentColor` and `Theme`; options hidden or disabled by key; every visible word an input; delegation-safe data components; a linked guide.
+3. **Build order:** Wave 1 upgrades first (Dialog, then theme and brand colour on Button, Toast, Tabs and States, then Toast auto-dismiss and queue, Tabs badges, States skeleton). Wave 2: Date and time picker, People picker, Pagination, Data table, Navigation shell, Tree view, Stepper. Wave 3: Kanban board, screen templates, charts last.
+4. **Sign-in to copy:** Data table, Navigation shell, Kanban board, screen templates, and the **People picker**.
+
+## 2026-10-08 — Component pages: one live view, exactly as in Power Apps
+
+**Source:** direct product-owner instructions in this session. Asked whether clicks and other events could be shown on the website, the product owner answered the agent's proposal (an Activity panel beside the preview) with: "only keep one that shows the component, and if you interact with it, it interacts exactly like what Power Apps would have shown if pasted and tried the same interaction"; then "use the best of the best UI, motion and all", and "make this the most premium site ever built for components and assets in our niche".
+
+1. **One live view.** A component page has two tabs: **Preview** and **YAML**. The Playground tab, its property controls, the per-component event logs and the proposed Activity panel are gone. This replaces "Preview, Playground and YAML tabs" in item 1 of "Component library: page design, admin menu, and overnight drafts" above, and "a live playground for every property" in item 2 of "Component library: direction, differentiators and build order", which becomes "a live preview that behaves exactly as the component does in Power Apps, with the formulas to try it the same way".
+2. **Exactly as in Power Apps.** The preview starts as the component is when pasted: every input at its YAML default, and anything hidden until it is opened (a dialog until `Open()`, a toast until `Show()`). It behaves as the component's YAML and Microsoft's controls do: no keyboard focus moved into a dialog and no Escape to close it, a text input's `OnChange` only when you leave the box after changing it, `Notify` as a banner across the top of the screen for 10 seconds. Anything only the website adds would mislead, so it isn't added.
+3. **Events are shown the way Power Apps shows them**: the preview's screen is wired with ordinary formulas (`lcsButton_1.OnClick = Notify(...)`, a button that calls `lcsDialog_1.Open()`, a text label showing an output). The page lists those formulas under the screen, so a maker can set the same ones in Studio and see the same thing.
+4. **Variations** are chips above the screen (a "Default" chip first, the component as pasted); choosing one loads its inputs.
+5. **Motion** is on the page around the component (the screen fading in, Notify's banner sliding down, chips, cards lifting), never added to the component itself beyond what Power Apps does. Reduced-motion settings switch all of it off, as everywhere on the site.
+6. **The library page** shows a still picture of each component on its card, drawn by us in the component's own colours.
+

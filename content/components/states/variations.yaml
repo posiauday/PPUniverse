@@ -1,0 +1,43 @@
+# Named presets of lcsStates: each sets inputs with Power Fx formulas.
+- name: Empty list
+  description: No rows yet, with a button to add the first one.
+  settings:
+    State: ="Empty"
+    Title: ="No requests yet"
+    Message: ="Requests you create appear here."
+    ActionText: ="New request"
+- name: Loading
+  description: While data loads. No button.
+  settings:
+    State: ="Loading"
+    Title: ="Loading requests…"
+    Message: =""
+- name: Error
+  description: Loading failed, with a retry button.
+  settings:
+    State: ="Error"
+    Title: ="Couldn't load requests"
+    Message: ="Check your connection, then try again."
+    ActionText: ="Try again"
+- name: No search results
+  description: A search or filter that matched nothing.
+  settings:
+    State: ="Empty"
+    Title: ="No matches"
+    Message: ="Try fewer words, or clear the filters."
+    ActionText: ="Clear filters"
+- name: Skeleton rows
+  description: Placeholder rows in the shape of the list while it loads.
+  settings:
+    State: ="Skeleton"
+    Title: ="Loading requests…"
+    SkeletonRows: =4
+- name: Dark, in your brand colour
+  description: An empty list on a dark screen, with the button in your brand colour.
+  settings:
+    State: ="Empty"
+    Title: ="No requests yet"
+    Message: ="Requests you create appear here."
+    ActionText: ="New request"
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)
