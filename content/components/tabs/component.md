@@ -2,9 +2,9 @@
 title: "Tabs and segmented control"
 slug: tabs
 category: navigation-and-layout
-summary: "Tabs or a segmented control on the modern tab list, with the selected tab as an output, a change event, a SelectTab action and four looks, from one setting."
+summary: "Tabs or a segmented control on the modern tab list, with counts on tabs, tabs hidden by name, the selected tab as an output, a change event, a SelectTab action and four looks."
 access: OPEN
-version: 0.1.0
+version: 0.2.0
 modernControls: yes
 ---
 ## When to use it
@@ -14,7 +14,9 @@ Use **lcsTabs** to split one screen into sections (Overview, Details, History), 
 - **SelectedTab**: the selected tab's text;
 - **ItemsFromText(List)**: turns `"Open, Waiting, Done"` into tabs;
 - **OnChange(Tab)**: runs when the user picks a different tab;
-- **SelectTab(Tab)**: selects a tab from your app.
+- **SelectTab(Tab)**: selects a tab from your app;
+- **Counts**: a number on any tab, such as "Open (3)", from a table your app keeps up to date. `SelectedTab` and `OnChange` still give the plain name;
+- **HiddenTabs**: leave tabs out by name, such as History for people who can't see it.
 
 ## Use it
 
@@ -74,12 +76,32 @@ tabsRequest.SelectTab("Overview")
 - The modern tab list supports the keyboard: Tab to it, then use the arrow keys.
 - Keep tab names to one or two words.
 
+Show how many requests wait in each status:
+
+```powerfx
+// tabsStatus.Counts
+Table(
+    {Tab: "Open", Count: CountRows(Filter(Requests, Status.Value = "Open"))},
+    {Tab: "Waiting", Count: CountRows(Filter(Requests, Status.Value = "Waiting"))}
+)
+```
+
+Hide a tab from people who can't use it:
+
+```powerfx
+// tabsRequest.HiddenTabs
+If(varIsManager, "", "Approvals")
+```
+
 ## Known limits
 
 - **ItemsFromText** is an output function, so it only uses its `List` parameter. That's how Power Apps function properties work.
 - `SelectTab` and `DefaultTab` must match one of `Items` exactly.
 - Two to seven tabs work best. The tab list doesn't scroll if there are more than fit.
+- Counts are part of the tab's text, read by screen readers as "Open, 3". The modern tab list can't draw a separate badge, disable one tab, or take a brand colour or dark text of its own: it follows your app's theme. Hide a tab instead of disabling it.
+- `CountRows` with `Filter` isn't delegable on large lists; for big data, keep the counts in variables your app refreshes.
 
 ## Change log
 
+- **0.2.0:** `Counts` and `HiddenTabs`.
 - **0.1.0:** first version, for testing in Power Apps Studio.

@@ -12,7 +12,7 @@ vi.mock("next/link", async () => {
 import { ComponentWorkbench, hasReplica } from "./ComponentWorkbench";
 import { readButtons, visibleButtons } from "./replicas/DialogReplica";
 import { stateFor } from "./replicas/StatesReplica";
-import { itemsFromText } from "./replicas/TabsReplica";
+import { itemsFromText, tabText } from "./replicas/TabsReplica";
 
 const render = (componentName: string, yaml: string | null = "ComponentDefinitions: {}") =>
   renderToStaticMarkup(
@@ -52,6 +52,12 @@ describe("ComponentWorkbench", () => {
 });
 
 describe("replica helpers match the components' own formulas", () => {
+  it("a tab's text carries its count only when above zero", () => {
+    expect(tabText("Open", { Open: 12, Waiting: 0 })).toBe("Open (12)");
+    expect(tabText("Waiting", { Open: 12, Waiting: 0 })).toBe("Waiting");
+    expect(tabText("Done", {})).toBe("Done");
+  });
+
   it("ItemsFromText splits on commas and trims", () => {
     expect(itemsFromText("Open, Waiting ,Done,")).toEqual(["Open", "Waiting", "Done"]);
   });

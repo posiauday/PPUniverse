@@ -67,6 +67,7 @@ From pastes that worked in the product owner's developer environment. Use these 
 | Classic button | `Classic/Button@2.2.0` | useful as a transparent hit area. **No `AccessibleLabel`** (PA2108): its accessible name is its `Text`, so set the label there with transparent `Color`, `HoverColor`, `PressedColor` and `DisabledColor`. CI checks this. |
 | Image | `Image@2.2.3` | an SVG data URI works as `Image` |
 | Rectangle | `Rectangle@2.3.0` | |
+| Timer | `Timer@2.1.0` | **Not yet paste-tested by us** (used in another MIT-licensed library's component). Button 0.2.0 and Toast 0.2.0 use it with `Visible: =false`. Studio runs timers only in preview (F5). |
 
 **Never size a component from a variable:** Studio reported `locOpen` as an error in the component's own Height and Width, even with an `OnReset` that sets it (lcsFab paste-test, 2026-10-08). Size the component from its inputs only. Outputs that read variables work (lcsButton's ClickCount). Also verified: `OnReset` as a component property; Color, Record and Table inputs with defaults. Not used here: `AccessAppScope` (it ties a component to one app, and component libraries can't use it).
 

@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { useNotify } from "./notify";
-import { fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./replica";
+import { cssColor, fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./replica";
 
 /**
  * A web replica of lcsTextField (MVP-049; docs/final-decisions.md, 2026-10-08,
@@ -41,16 +41,10 @@ const DEFAULTS: Inputs = {
   Theme: "Light",
 };
 
-/** RGBA(15, 108, 189, 1) as a CSS colour; anything else keeps the default. */
-function cssColor(formula: string): string {
-  const match = formula.match(/RGBA\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/i);
-  return match ? `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${match[4]})` : DEFAULTS.AccentColor;
-}
-
 function read(settings: Record<string, string>): Inputs {
   const next = { ...DEFAULTS };
   for (const [key, formula] of Object.entries(settings)) {
-    if (key === "AccentColor") next.AccentColor = cssColor(formula);
+    if (key === "AccentColor") next.AccentColor = cssColor(formula, DEFAULTS.AccentColor);
     else if (key in next) (next as unknown as Record<string, unknown>)[key] = fromPowerFx(formula);
   }
   return next;

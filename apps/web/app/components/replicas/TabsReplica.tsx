@@ -5,10 +5,12 @@ import { useNotify } from "./notify";
 import { fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
 /**
- * A web replica of lcsTabs (MVP-049; docs/final-decisions.md, 2026-10-08,
+ * A web replica of lcsTabs 0.2.0 (MVP-049; docs/final-decisions.md, 2026-10-08,
  * "One live view"): the modern tab list inside the component, 480 by 48, in its
- * four looks. Choosing a tab changes SelectedTab and runs OnChange(Tab); the
- * preview screen shows SelectedTab in a text label and wires OnChange to Notify.
+ * four looks, with Counts in the tabs' text ("Open (12)") and HiddenTabs left
+ * out. Choosing a tab changes SelectedTab (the plain name) and runs
+ * OnChange(Tab); the preview screen shows SelectedTab in a text label and
+ * wires OnChange to Notify.
  */
 
 const LOOKS = ["Underline", "Filled", "Subtle", "Transparent"] as const;
@@ -32,6 +34,25 @@ interface Inputs {
   DefaultTab: string;
   Look: Look;
   AccessibleName: string;
+  Counts: Record<string, number>;
+  HiddenTabs: string;
+}
+
+/** Reads Table({Tab: "Open", Count: 12}, …) into tab -> count. */
+function readCounts(formula: string): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const match of formula.matchAll(/\{([^}]*)\}/g)) {
+    const tab = match[1]!.match(/Tab\s*:\s*"((?:[^"]|"")*)"/)?.[1]?.replace(/""/g, '"');
+    const count = Number(match[1]!.match(/Count\s*:\s*(\d+)/)?.[1] ?? 0);
+    if (tab) counts[tab] = count;
+  }
+  return counts;
+}
+
+/** The tab's text as the component shows it: the name, and the count when above 0. */
+export function tabText(tab: string, counts: Record<string, number>): string {
+  const count = counts[tab] ?? 0;
+  return count > 0 ? `${tab} (${count})` : tab;
 }
 
 /** The inputs' defaults in the component's YAML. */
@@ -40,16 +61,20 @@ const DEFAULTS: Inputs = {
   DefaultTab: "Overview",
   Look: "Underline",
   AccessibleName: "Sections",
+  Counts: {},
+  HiddenTabs: "",
 };
 
 function TabStrip({
   items,
+  counts,
   selected,
   look,
   label,
   onSelect,
 }: {
   items: readonly string[];
+  counts: Record<string, number>;
   selected: string;
   look: Look;
   label: string;
@@ -97,7 +122,7 @@ function TabStrip({
           onKeyDown={(event) => onKey(event, index)}
           className={`${tabClass(item === selected)} motion-safe:transition-colors motion-safe:duration-100`}
         >
-          {item}
+          {tabText(item, counts)}
         </button>
       ))}
     </div>
@@ -108,13 +133,16 @@ export function useTabsReplica(): ReplicaApi {
   const notify = useNotify();
   const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
   const [selected, setSelected] = useState(DEFAULTS.DefaultTab);
-  const current = inputs.Items.includes(selected) ? selected : (inputs.Items[0] ?? "");
+  const hidden = itemsFromText(inputs.HiddenTabs);
+  const visible = inputs.Items.filter((item) => !hidden.includes(item));
+  const current = visible.includes(selected) ? selected : (visible[0] ?? "");
 
   return {
     screen: (
       <div className={`w-[480px] max-w-full ${SEGOE}`}>
         <TabStrip
-          items={inputs.Items}
+          items={visible}
+          counts={inputs.Counts}
           selected={current}
           look={inputs.Look}
           label={inputs.AccessibleName}
@@ -133,6 +161,8 @@ export function useTabsReplica(): ReplicaApi {
       if ("DefaultTab" in settings) next.DefaultTab = String(fromPowerFx(settings["DefaultTab"]!));
       if ("AccessibleName" in settings)
         next.AccessibleName = String(fromPowerFx(settings["AccessibleName"]!));
+      if ("Counts" in settings) next.Counts = readCounts(settings["Counts"]!);
+      if ("HiddenTabs" in settings) next.HiddenTabs = String(fromPowerFx(settings["HiddenTabs"]!));
       const look = String(fromPowerFx(settings["Look"] ?? '"Underline"'));
       // The component's Switch falls back to Underline for anything else.
       next.Look = (LOOKS as readonly string[]).includes(look) ? (look as Look) : "Underline";

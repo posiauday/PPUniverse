@@ -2,16 +2,18 @@
 title: "Toast"
 slug: toast
 category: dialogs-and-feedback
-summary: "A coloured message bar for success, info, warning and error, shown from anywhere with one Show action. Add an Undo or View button, and let your app shape the wording."
+summary: "A coloured message bar for success, info, warning and error, shown from anywhere with one Show action. It closes itself, queues messages so none are lost, takes an Undo or View button, and comes in light or dark."
 access: OPEN
-version: 0.1.0
+version: 0.2.0
 modernControls: yes
 ---
 ## When to use it
 
 Use **lcsToast** to confirm what just happened ("Request saved"), or to warn about something the user should know, without stopping them. Compared with `Notify`, it:
 
-- sits where you put it and looks like the rest of your app;
+- sits where you put it and looks like the rest of your app, light or dark, with your brand colour on Info messages;
+- **closes itself** after `Duration` seconds (6 by default; 0 keeps it until it's closed);
+- **queues** messages that arrive while one shows, so a quick second `Show` doesn't wipe out the first. The bar says how many more are waiting, and `QueueCount` tells your app;
 - can carry a button, such as **Undo** or **View**, with an **OnAction** event;
 - tells your app its state (`IsOpen`, `CurrentKind`);
 - lets one formula (`FormatMessage`) shape every message.
@@ -47,6 +49,13 @@ Offer Undo:
 Remove(Requests, locLastSaved)
 ```
 
+Keep a message until it's closed, such as one with an action people need time for:
+
+```powerfx
+// tstMain.Duration
+0
+```
+
 Show errors from IfError:
 
 ```powerfx
@@ -60,13 +69,16 @@ IfError(
 
 - Each kind has its own symbol (✓, i, !, ✕) as well as its colour, so it doesn't rely on colour alone. Text colours meet 4.5:1 contrast on their backgrounds.
 - The close button is labelled "Close message" for screen readers.
+- Messages with a button need time to reach it: set `Duration` to 10 or more, or 0, whenever `ActionText` is set (WCAG 2.2.1, timing adjustable). The variations do.
 
 ## Known limits
 
-- It stays until the user closes it, or your app calls `Hide()`. There's no timer inside, so the component stays light; add a Timer on the screen if you want it to close on its own.
+- It closes itself with a timer, and Power Apps Studio runs timers only in preview (F5). In the published app it always runs.
+- The queue lives inside the component, so each copy of it on a screen has its own. `Hide()` closes the toast and empties its queue.
 - Screen readers don't announce it automatically. For an important error, also move the user's attention to the field at fault.
 - Keep messages to one short sentence; long text wraps within the bar's height.
 
 ## Change log
 
+- **0.2.0:** `Duration` (closes itself), a queue with `QueueCount`, `AccentColor` for Info messages, and `Theme`.
 - **0.1.0:** first version, for testing in Power Apps Studio.

@@ -38,3 +38,11 @@ export function fromPowerFx(formula: string): string | number | boolean {
 
 /** Segoe UI, as Power Apps renders text. */
 export const SEGOE = '[font-family:"Segoe_UI",system-ui,sans-serif]';
+
+/** RGBA(15, 108, 189, 1) or ColorValue("#7C3AED") as a CSS colour; anything else gives the fallback. */
+export function cssColor(formula: string, fallback: string): string {
+  const rgba = formula.match(/RGBA\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/i);
+  if (rgba) return `rgba(${rgba[1]}, ${rgba[2]}, ${rgba[3]}, ${rgba[4]})`;
+  const hex = formula.match(/ColorValue\(\s*"(#[0-9a-f]{3,8})"\s*\)/i);
+  return hex ? hex[1]! : fallback;
+}

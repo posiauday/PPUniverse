@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useNotify } from "./notify";
-import { fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
+import { cssColor, fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
 /**
  * A web replica of lcsButton (MVP-049; docs/final-decisions.md, 2026-10-08,
@@ -66,6 +66,16 @@ const ICONS: Record<string, ReactNode> = {
       strokeLinejoin="round"
     />
   ),
+  Warning: (
+    <path
+      d="M12 3l10 18H2zM12 10v5M12 18v.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
   Delete: (
     <path
       d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"
@@ -76,10 +86,14 @@ const ICONS: Record<string, ReactNode> = {
   ),
 };
 
+/** Fluent works out hover and pressed from the brand colour (BasePaletteColor); this is close. */
+const PRIMARY =
+  "border-transparent bg-[var(--accent)] text-white hover:bg-[color-mix(in_srgb,var(--accent)_86%,black)] active:bg-[color-mix(in_srgb,var(--accent)_62%,black)]";
+
 const APPEARANCE_CLASS: Record<Appearance, { light: string; dark: string }> = {
   Primary: {
-    light: "border-transparent bg-[#0f6cbd] text-white hover:bg-[#115ea3] active:bg-[#0c3b5e]",
-    dark: "border-transparent bg-[#115ea3] text-white hover:bg-[#0f6cbd] active:bg-[#0c3b5e]",
+    light: PRIMARY,
+    dark: PRIMARY,
   },
   Secondary: {
     light: "border-[#d1d1d1] bg-white text-[#242424] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]",
@@ -93,7 +107,8 @@ const APPEARANCE_CLASS: Record<Appearance, { light: string; dark: string }> = {
   Subtle: {
     light:
       "border-transparent bg-transparent text-[#242424] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]",
-    dark: "border-transparent bg-transparent text-white hover:bg-[#3d3d3d] active:bg-[#1f1f1f]",
+    // On a dark screen the component draws Subtle as Transparent: no hover fill under light text.
+    dark: "border-transparent bg-transparent text-white",
   },
 };
 
@@ -109,6 +124,7 @@ export function ButtonFace({
   danger = false,
   disabled = false,
   size = "h-10 w-40",
+  accent = "#0f6cbd",
 }: {
   label: string;
   appearance: Appearance;
@@ -123,6 +139,8 @@ export function ButtonFace({
   disabled?: boolean;
   /** Size classes; the component's own button is 160 by 40. */
   size?: string;
+  /** The brand colour (BasePaletteColor) a Primary button is filled with. */
+  accent?: string;
 }) {
   const off = busy || disabled;
   const look = off
@@ -130,8 +148,9 @@ export function ButtonFace({
       ? "border-[#424242] bg-[#141414] text-[#8a8a8a] cursor-not-allowed"
       : "border-[#e0e0e0] bg-[#f0f0f0] text-[#616161] cursor-not-allowed"
     : danger
-      ? "border-transparent bg-[#c4314b] text-white hover:bg-[#a52a40]"
+      ? PRIMARY
       : APPEARANCE_CLASS[appearance][dark ? "dark" : "light"];
+  const style = { "--accent": danger ? "#c4314b" : accent } as CSSProperties;
   const className = `inline-flex max-w-full shrink-0 items-center justify-center gap-1.5 rounded border px-3 text-sm font-semibold ${SEGOE} motion-safe:transition-colors motion-safe:duration-100 ${size} ${look}`;
   const content = (
     <>
@@ -143,10 +162,16 @@ export function ButtonFace({
       <span className="truncate">{busy ? "Working…" : label}</span>
     </>
   );
-  if (as === "span") return <span className={className}>{content}</span>;
+  if (as === "span")
+    return (
+      <span className={className} style={style}>
+        {content}
+      </span>
+    );
   return (
     <button
       type="button"
+      style={style}
       className={className}
       aria-disabled={off || undefined}
       onClick={off ? undefined : onClick}
@@ -161,21 +186,34 @@ interface Inputs {
   Appearance: Appearance;
   IconName: string;
   IsBusy: boolean;
+  AccentColor: string;
+  Theme: string;
+  RequireConfirm: boolean;
+  ConfirmLabel: string;
+  ConfirmSeconds: number;
 }
 
 /** The inputs' defaults in the component's YAML. */
-const DEFAULTS: Inputs = { Label: "Save", Appearance: "Primary", IconName: "", IsBusy: false };
+const DEFAULTS: Inputs = {
+  Label: "Save",
+  Appearance: "Primary",
+  IconName: "",
+  IsBusy: false,
+  AccentColor: "#0f6cbd",
+  Theme: "Light",
+  RequireConfirm: false,
+  ConfirmLabel: "Select again to confirm",
+  ConfirmSeconds: 4,
+};
 
 function readInputs(settings: Record<string, string>): Inputs {
   const next = { ...DEFAULTS };
-  if ("Label" in settings) next.Label = String(fromPowerFx(settings["Label"]!));
-  const appearance = String(fromPowerFx(settings["Appearance"] ?? '"Primary"'));
+  for (const [key, formula] of Object.entries(settings)) {
+    if (key === "AccentColor") next.AccentColor = cssColor(formula, DEFAULTS.AccentColor);
+    else if (key in next) (next as unknown as Record<string, unknown>)[key] = fromPowerFx(formula);
+  }
   // The component's Switch falls back to Primary for anything else.
-  next.Appearance = (APPEARANCES as readonly string[]).includes(appearance)
-    ? (appearance as Appearance)
-    : "Primary";
-  if ("IconName" in settings) next.IconName = String(fromPowerFx(settings["IconName"]!));
-  if ("IsBusy" in settings) next.IsBusy = fromPowerFx(settings["IsBusy"]!) === true;
+  if (!(APPEARANCES as readonly string[]).includes(next.Appearance)) next.Appearance = "Primary";
   return next;
 }
 
@@ -183,16 +221,38 @@ export function useButtonReplica(): ReplicaApi {
   const notify = useNotify();
   const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
   const [clicks, setClicks] = useState(0);
+  const [armed, setArmed] = useState(false);
+  const dark = inputs.Theme === "Dark";
+
+  // The component's timer: back to normal if the confirming select doesn't come in time.
+  useEffect(() => {
+    if (!armed) return;
+    const timer = setTimeout(() => setArmed(false), Math.max(1, inputs.ConfirmSeconds) * 1000);
+    return () => clearTimeout(timer);
+  }, [armed, inputs.ConfirmSeconds]);
 
   return {
     screen: (
       <ButtonFace
-        label={inputs.Label}
-        appearance={inputs.Appearance}
-        icon={inputs.IconName}
+        label={armed ? inputs.ConfirmLabel : inputs.Label}
+        appearance={
+          armed
+            ? "Primary"
+            : dark && inputs.Appearance === "Secondary"
+              ? "Outline"
+              : inputs.Appearance
+        }
+        icon={armed ? "Warning" : inputs.IconName}
         busy={inputs.IsBusy}
-        dark={false}
+        dark={dark && !inputs.IsBusy}
+        danger={armed}
+        accent={inputs.AccentColor}
         onClick={() => {
+          if (inputs.RequireConfirm && !armed) {
+            setArmed(true);
+            return;
+          }
+          setArmed(false);
           const count = clicks + 1;
           setClicks(count);
           notify(`Clicked ${count} ${count === 1 ? "time" : "times"}`, "Success");
@@ -202,8 +262,9 @@ export function useButtonReplica(): ReplicaApi {
     apply: (settings) => {
       setInputs(readInputs(settings));
       setClicks(0);
+      setArmed(false);
     },
-    dark: false,
+    dark,
     wiring: [
       {
         control: "lcsButton_1",
