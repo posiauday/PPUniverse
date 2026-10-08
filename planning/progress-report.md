@@ -5217,3 +5217,16 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not yet:** ratings, "Worked in my app", comments and "Report a problem" on components (plan step 5); the product owner's paste-test of lcsButton; more components (next PR); components in the sitemap.
 
 **Risks:** the YAML format is unproven until the paste-test; the standard is still a proposal.
+
+## 2026-10-08 — Component library: first wave of components (MVP-049, In Progress)
+
+**Built:** five more components as drafts, each with a guide and variations, on top of #116 (which carries their live web replicas):
+- **Text field** (`lcsTextField`, open): label, hint, required marker, character count, error after the user leaves the box, `Validate` input function, `IsValid`/`Value` outputs, `OnChange`, `Reset()`.
+- **Dialog** (`lcsDialog`, sign-in to copy): confirm or alert over a dimmed screen; `Open()`/`Close()`, `OnConfirm`/`OnCancel`, `IsOpen`/`Result`.
+- **Toast** (`lcsToast`, open): `Show(Message, Kind)` and `Hide()`, four kinds with symbols and 4.5:1 text, optional action button, `FormatMessage` input function.
+- **Tabs and segmented control** (`lcsTabs`, open): on the modern tab list; `SelectedTab`, `OnChange(Tab)`, `SelectTab(Tab)`, `ItemsFromText(List)`, four looks.
+- **Empty, loading and error states** (`lcsStates`, open): one panel for the three states; `StateFor(IsLoading, HasError, RowCount)`, `IsShowing`, `OnAction(State)`.
+
+**Checked:** control names, versions, property names and enums against Microsoft Learn's current modern-control pages (ModernText@1.0.0, ModernTextInput@1.0.0, ModernButton@1.0.0, ModernSpinner@1.1.0, ModernTabList@1.0.0); function properties only use their parameters (Microsoft: they can't read variables or the component's controls), so `IsSelected` on Tabs was replaced by a pure helper. All six pass Microsoft's pa.yaml schema and the standard. The importer created all six as drafts on a local database, and every component page passed axe and overflow checks in each tab, at 375 and 1280 px, light and dark.
+
+**Not yet:** the product owner's paste-tests; nothing is tested in Studio.
