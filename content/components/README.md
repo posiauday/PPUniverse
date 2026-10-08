@@ -68,7 +68,7 @@ From pastes that worked in the product owner's developer environment. Use these 
 | Image | `Image@2.2.3` | an SVG data URI works as `Image` |
 | Rectangle | `Rectangle@2.3.0` | |
 
-Also verified: `OnReset` as a component property; Color, Record and Table inputs with defaults. Not used here: `AccessAppScope` (it ties a component to one app, and component libraries can't use it).
+**Component variables need an `OnReset`:** a component whose own properties (Width, Height, outputs) read a variable set with `Set()` must also set that variable in `OnReset`, or Studio reports the variable as unknown after the paste (lcsFab paste-test, 2026-10-08). Also verified: `OnReset` as a component property; Color, Record and Table inputs with defaults. Not used here: `AccessAppScope` (it ties a component to one app, and component libraries can't use it).
 
 ## variations.yaml
 

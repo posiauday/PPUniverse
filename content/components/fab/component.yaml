@@ -126,6 +126,9 @@ ComponentDefinitions:
         Description: "Opens the speed-dial menu if it's closed, and closes it if it's open."
     Properties:
       Fill: =RGBA(0, 0, 0, 0)
+      OnReset: |-
+        =Set(locOpen, false);
+        Set(locSelected, "")
       Width: |-
         =With(
             {
