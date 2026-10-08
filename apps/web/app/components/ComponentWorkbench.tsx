@@ -91,16 +91,28 @@ function CopyYaml({ yaml }: { yaml: string }) {
   );
 }
 
+/**
+ * The preview stage. Its dot pattern is a separate layer behind the replica,
+ * so the stage itself has a plain background colour that focus outlines are
+ * measured against. The stage sets its own focus ring colour, so the ring
+ * keeps its contrast whichever theme the page and the stage are in.
+ */
 function Stage({ dark, children }: { dark: boolean; children: ReactNode }) {
   return (
     <div
-      className={`grid min-h-48 place-items-center rounded-2xl p-3 pt-16 sm:p-6 sm:pt-16 [background-size:14px_14px] ${
-        dark
-          ? "bg-[#1f1f1f] [background-image:radial-gradient(#2c2c2c_1px,transparent_1px)]"
-          : "bg-white [background-image:radial-gradient(#e7e5ef_1px,transparent_1px)]"
+      className={`relative grid min-h-48 place-items-center rounded-2xl p-3 pt-16 sm:p-6 sm:pt-16 ${
+        dark ? "bg-[#1f1f1f] [--color-ring:#c4b5fd]" : "bg-white [--color-ring:#5b21b6]"
       }`}
     >
-      {children}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 rounded-2xl [background-size:14px_14px] ${
+          dark
+            ? "[background-image:radial-gradient(#2c2c2c_1px,transparent_1px)]"
+            : "[background-image:radial-gradient(#e7e5ef_1px,transparent_1px)]"
+        }`}
+      />
+      <div className="relative grid w-full place-items-center">{children}</div>
     </div>
   );
 }
