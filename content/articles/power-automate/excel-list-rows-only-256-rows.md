@@ -10,9 +10,9 @@ searchPhrase: "list rows present in a table only 256 rows"
 The Excel Online (Business) action **List rows present in a table** is the most common way flows read a spreadsheet, and it surprises almost everyone the same three ways: it only returns **256 rows**, dates come back as **numbers**, and filters that look right **fail**. Here's the fix for each, and the limits that cause the rest.
 
 > [!ANSWER] Quick answer
-> 1. **Only 256 rows:** open the action's **Settings**, turn on **Pagination** and set a **Threshold** above your row count.
-> 2. **Dates look like 45567:** set **DateTime Format** to **ISO 8601** in the action's advanced parameters.
-> 3. **Filter Query fails:** use only `eq`, `ne`, `contains`, `startswith` or `endswith`, on a column whose name is letters and numbers only.
+> 1. [Only 256 rows](#1-get-every-row-not-just-256): in the action's **Settings**, turn on **Pagination** and set a **Threshold** above your row count.
+> 2. [Dates look like 45567](#2-dates-come-back-as-numbers): set **DateTime Format** to **ISO 8601** in the action's advanced parameters.
+> 3. [Filter Query fails](#3-filters-that-work): use only `eq`, `ne`, `contains`, `startswith` or `endswith`, on a column whose name is letters and numbers only.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 8 October 2026.

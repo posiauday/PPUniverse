@@ -10,9 +10,9 @@ searchPhrase: "power automate send email from shared mailbox"
 Notifications from a flow look more trustworthy, and replies reach the whole team, when they come from a **shared mailbox** such as support@ instead of one person. Power Automate can send from a shared mailbox, but only when the right **permission** is in place, and the error when it isn't is confusing.
 
 > [!ANSWER] Quick answer
-> 1. Use the Office 365 Outlook action **Send an email from a shared mailbox (V2)** and type the shared mailbox's address in **Original Mailbox Address**.
-> 2. An Exchange admin gives the **connection's account** the **Send As** permission on that mailbox.
-> 3. Wait for the permission to apply (up to about an hour), then run the flow again.
+> 1. [Use the shared mailbox action](#1-pick-the-right-action): **Send an email from a shared mailbox (V2)**, with the mailbox's address typed in **Original Mailbox Address**.
+> 2. [Grant Send As](#2-get-the-permission-right): an Exchange admin gives the **connection's account** the **Send As** permission on that mailbox.
+> 3. [Still refused?](#3-fix-the-common-errors) Permissions take up to about an hour to apply. Wait, then run the flow again.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 8 October 2026.

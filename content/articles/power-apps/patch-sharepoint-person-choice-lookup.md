@@ -10,10 +10,10 @@ searchPhrase: "power apps patch sharepoint person column"
 A form saves fine with **SubmitForm**, but your own **Patch** fails, or seems to do nothing, as soon as it touches a SharePoint **Person**, **Choice** or **Lookup** column. The reason is the same every time: those are **complex** columns. Power Apps expects a **record** with the right fields, not the text you see on screen.
 
 > [!ANSWER] Quick answer
-> - **Choice:** `{ Status: { Value: "Approved" } }`
-> - **Lookup:** `{ Customer: { Id: 12, Value: "Contoso" } }`
-> - **Person:** `{ AssignedTo: { Claims: "i:0#.f|membership|" & Lower(email), DisplayName: name, Email: email, Department: "", JobTitle: "", Picture: "" } }`
-> - **Easiest of all:** bind a combo box to `Choices(List.Column)` and patch its `.Selected` (or `.SelectedItems` for multi-select).
+> 1. [Choice](#2-choice-columns): `{ Status: { Value: "Approved" } }`
+> 2. [Lookup](#3-lookup-columns): `{ Customer: { Id: 12, Value: "Contoso" } }`, with the ID from the other list.
+> 3. [Person](#4-person-columns): a record with `Claims: "i:0#.f|membership|" & Lower(email)`, plus DisplayName, Email, Department, JobTitle and Picture.
+> 4. [Still failing?](#1-see-the-real-error-first) Wrap Patch in `IfError` to see SharePoint's message. Easiest of all: a combo box on `Choices(List.Column)`, patching its `.Selected`.
 
 > [!NOTE]
 > Checked against Microsoft Learn on 8 October 2026. The examples use a list called `Requests`; use your own list and column names.
