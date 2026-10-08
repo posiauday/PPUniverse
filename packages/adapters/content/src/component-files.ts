@@ -46,6 +46,31 @@ const SCHEMA_FILE = fileURLToPath(new URL("../schema/pa.schema.v3.0.yaml", impor
 
 let validator: ReturnType<InstanceType<typeof Ajv>["compile"]> | null = null;
 
+/**
+ * Power Apps Studio doesn't accept the published schema for function
+ * properties: pasting an InputFunction or OutputFunction with `ReturnType`
+ * fails with "PA1011: The keyword 'DataType' is required" and "PA1003: The
+ * schema keyword 'ReturnType' is not known" (the product owner's paste-test of
+ * lcsButton, 2026-10-08). Studio wants `DataType` for the function's return
+ * type. Events and actions keep `ReturnType`. So the checker follows Studio:
+ * functions must use DataType, and ReturnType on them is an error.
+ */
+function acceptStudioFunctionTypes(schema: Record<string, unknown>): void {
+  const definitions = schema["definitions"] as Record<string, { allOf?: unknown[] }>;
+  for (const rule of definitions["ComponentDefinition-CustomProperty"]?.allOf ?? []) {
+    const branch = rule as {
+      if?: { properties?: { PropertyKind?: { const?: string } } };
+      then?: { required?: string[]; properties?: Record<string, unknown> };
+    };
+    const kind = branch.if?.properties?.PropertyKind?.const;
+    if ((kind !== "InputFunction" && kind !== "OutputFunction") || !branch.then?.properties)
+      continue;
+    branch.then.required = ["DataType"];
+    delete branch.then.properties["ReturnType"];
+    branch.then.properties["DataType"] = { $ref: "#/definitions/pfx-data-type" };
+  }
+}
+
 /** Microsoft's schema, compiled once. One upstream pattern has an unmatched ")"; it's fixed here. */
 function schemaValidator() {
   if (validator) return validator;
@@ -55,6 +80,7 @@ function schemaValidator() {
   );
   const schema = yaml.safeLoad(text) as Record<string, unknown>;
   delete schema["$schema"];
+  acceptStudioFunctionTypes(schema);
   validator = new Ajv({ allErrors: true, strict: false, unicodeRegExp: false }).compile(schema);
   return validator;
 }
@@ -98,7 +124,10 @@ export function readProperties(definition: Record<string, unknown>): ComponentPr
 }
 
 /** variations.yaml: a list of { name, description, settings: { Input: =formula } }. */
-export function readVariations(source: unknown): { variations: ComponentVariation[]; errors: string[] } {
+export function readVariations(source: unknown): {
+  variations: ComponentVariation[];
+  errors: string[];
+} {
   if (source === undefined || source === null) return { variations: [], errors: [] };
   if (!Array.isArray(source)) return { variations: [], errors: ["variations.yaml must be a list"] };
   const variations = source.map((entry) => {
@@ -143,15 +172,23 @@ export function readComponentFolder(path: string, folder: string): ComponentFold
   const validate = schemaValidator();
   if (!validate(document)) {
     for (const problem of (validate.errors ?? []).slice(0, 10))
-      errors.push(`component.yaml fails Microsoft's schema at ${problem.instancePath || "/"}: ${problem.message ?? ""}`);
+      errors.push(
+        `component.yaml fails Microsoft's schema at ${problem.instancePath || "/"}: ${problem.message ?? ""}`,
+      );
     return { ok: false, errors };
   }
-  const definitions = isRecord(document) && isRecord(document["ComponentDefinitions"])
-    ? document["ComponentDefinitions"]
-    : {};
+  const definitions =
+    isRecord(document) && isRecord(document["ComponentDefinitions"])
+      ? document["ComponentDefinitions"]
+      : {};
   const names = Object.keys(definitions);
   if (names.length !== 1 || (isRecord(document) && Object.keys(document).length !== 1))
-    return { ok: false, errors: ["component.yaml must hold exactly one entry under ComponentDefinitions, and nothing else"] };
+    return {
+      ok: false,
+      errors: [
+        "component.yaml must hold exactly one entry under ComponentDefinitions, and nothing else",
+      ],
+    };
   const componentName = names[0] as string;
   const definition = definitions[componentName];
   if (!isRecord(definition) || definition["DefinitionType"] !== "CanvasComponent")

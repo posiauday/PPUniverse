@@ -51,7 +51,7 @@ describe("readComponentFolder", () => {
     const result = folder({
       "component.md": MD,
       "component.yaml": YAML,
-      "variations.yaml": '- name: On\n  description: Starts on.\n  settings:\n    IsOn: =true\n',
+      "variations.yaml": "- name: On\n  description: Starts on.\n  settings:\n    IsOn: =true\n",
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -59,7 +59,14 @@ describe("readComponentFolder", () => {
     expect(result.component.access).toBe("MEMBERS");
     expect(result.component.needsModernControls).toBe(false);
     expect(result.component.properties).toEqual([
-      { name: "IsOn", kind: "Input", dataType: "Boolean", description: "Whether the toggle is on.", defaultValue: "false", parameters: [] },
+      {
+        name: "IsOn",
+        kind: "Input",
+        dataType: "Boolean",
+        description: "Whether the toggle is on.",
+        defaultValue: "false",
+        parameters: [],
+      },
       {
         name: "OnChange",
         kind: "Event",
@@ -81,7 +88,10 @@ describe("readComponentFolder", () => {
   });
 
   it("enforces the standard: lcs name, described properties, input defaults", () => {
-    const bad = YAML.replace("lcsToggle", "Toggle1").replace('Description: "Whether the toggle is on."', 'Description: "x"');
+    const bad = YAML.replace("lcsToggle", "Toggle1").replace(
+      'Description: "Whether the toggle is on."',
+      'Description: "x"',
+    );
     const result = folder({ "component.md": MD, "component.yaml": bad });
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -94,9 +104,27 @@ describe("readComponentFolder", () => {
     const result = folder({
       "component.md": MD,
       "component.yaml": YAML,
-      "variations.yaml": "- name: Odd\n  description: Sets an event.\n  settings:\n    OnChange: =true\n",
+      "variations.yaml":
+        "- name: Odd\n  description: Sets an event.\n  settings:\n    OnChange: =true\n",
     });
     expect(result.ok).toBe(false);
+  });
+
+  it("follows Studio for function properties: DataType, not ReturnType (the lcsButton pilot paste-test, 2026-10-08)", () => {
+    const fn = (typeKey: string) => `${YAML}      Format:
+        PropertyKind: InputFunction
+        ${typeKey}: Text
+        Description: "Formats the label for display."
+        Parameters:
+          - Text:
+              DataType: Text
+              Description: "The label."
+        Default: =Text
+`;
+    expect(folder({ "component.md": MD, "component.yaml": fn("DataType") }).ok).toBe(true);
+    const rejected = folder({ "component.md": MD, "component.yaml": fn("ReturnType") });
+    expect(rejected.ok).toBe(false);
+    if (!rejected.ok) expect(rejected.errors.join(" ")).toMatch(/required property 'DataType'/);
   });
 
   it("needs the folder to be named after the slug", () => {
