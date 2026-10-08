@@ -15,6 +15,14 @@ import { skeletonRows, stateFor } from "./replicas/StatesReplica";
 import { itemsFromText, tabText } from "./replicas/TabsReplica";
 import { formatProblem } from "./replicas/TextFieldReplica";
 import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
+import {
+  avatarColour,
+  fieldMessage,
+  initials,
+  listMessage,
+  searchStaff,
+  STAFF,
+} from "./replicas/PeoplePickerReplica";
 
 const render = (componentName: string, yaml: string | null = "ComponentDefinitions: {}") =>
   renderToStaticMarkup(
@@ -37,6 +45,7 @@ describe("ComponentWorkbench", () => {
     "lcsStates",
     "lcsFab",
     "lcsDatePicker",
+    "lcsPeoplePicker",
   ])("renders a live replica and its variations for %s", (name) => {
     expect(hasReplica(name)).toBe(true);
     const html = render(name);
@@ -119,6 +128,40 @@ describe("replica helpers match the components' own formulas", () => {
     expect(dateProblem(range, new Date(2026, 2, 6), new Date(2026, 2, 4))).toMatch(/on or after/);
     expect(dateProblem(range, new Date(2026, 2, 7), new Date(2026, 2, 9))).toMatch(/weekday/);
     expect(dateProblem(range, new Date(2026, 2, 4), new Date(2026, 2, 6))).toBe("");
+  });
+
+  it("the people picker searches, draws avatars and explains itself like the component", () => {
+    expect(searchStaff(STAFF, "PRI").map((person) => person.DisplayName)).toEqual(["Priya Nair"]);
+    expect(searchStaff(STAFF, "example.com")).toHaveLength(STAFF.length);
+    expect(searchStaff(STAFF, "zz")).toEqual([]);
+    expect(initials("  Avery   Brooks ")).toBe("AB");
+    expect(initials("Mateo de la Cruz")).toBe("MC");
+    expect(initials("Cher")).toBe("C");
+    // Mod(Len(name), 6): the same name always gets the same colour.
+    expect(avatarColour("Sam Rivera")).toBe(avatarColour("Sam Rivera"));
+    expect(avatarColour("Ab")).toBe("#0d8076");
+    const list = { full: false, minSearchLength: 2, lastSearch: "", shown: 0, found: 0 };
+    expect(listMessage({ ...list, typed: "p" })).toBe("Type at least 2 characters to search.");
+    expect(listMessage({ ...list, typed: "zz" })).toBe("");
+    expect(listMessage({ ...list, typed: "zz", lastSearch: "zz" })).toBe('No one found for "zz".');
+    expect(listMessage({ ...list, typed: "pri", lastSearch: "pri", found: 1 })).toMatch(
+      /already chosen/,
+    );
+    expect(listMessage({ ...list, full: true, typed: "p" })).toBe("");
+    const inputs = {
+      Label: "Approvers",
+      Hint: "Up to three.",
+      Placeholder: "",
+      MaxPeople: 3,
+      MinSearchLength: 2,
+      Required: true,
+      AccentColor: "#0f6cbd",
+      Theme: "Light",
+    };
+    expect(fieldMessage(inputs, 0, false)).toBe("Up to three.");
+    expect(fieldMessage(inputs, 0, true)).toBe("⚠ Choose at least one person.");
+    expect(fieldMessage(inputs, 3, true)).toMatch(/most this field allows \(3\)/);
+    expect(fieldMessage({ ...inputs, MaxPeople: 1 }, 1, true)).toBe("Up to three.");
   });
 
   it("ItemsFromText splits on commas and trims", () => {
