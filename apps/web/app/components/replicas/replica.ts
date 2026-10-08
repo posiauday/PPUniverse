@@ -1,19 +1,25 @@
 import type { ReactNode } from "react";
 
 /**
- * What a component's web replica gives the page (MVP-049): the live preview,
- * the playground's controls, a way to apply a variation's settings, and a
- * small static picture for the variations gallery.
+ * What a component's web replica gives its page (MVP-049; docs/final-decisions.md,
+ * 2026-10-08, "One live view"): the component on a screen, behaving exactly as it
+ * does in Power Apps after it's pasted, and a way to load a variation's inputs.
  */
 export interface ReplicaApi {
-  /** The working component on the preview stage. */
-  stage: (dark: boolean) => ReactNode;
-  /** The playground: a control for every kind of property. */
-  controls: ReactNode;
-  /** Applies a variation: input name -> Power Fx formula. */
+  /** The component, plus the few screen controls the preview wires to it (a button that opens a dialog). */
+  screen: ReactNode;
+  /** Back to the component's defaults, as if pasted again, then these inputs (input name -> Power Fx). */
   apply: (settings: Record<string, string>) => void;
-  /** A non-interactive picture of the component with these settings. */
-  thumbnail: (settings: Record<string, string>, dark: boolean) => ReactNode;
+  /** True when the component's Theme input is "Dark", so the screen's Fill is dark too. */
+  dark: boolean;
+  /** The screen's formulas beyond the inputs: what a maker writes in Studio to try it the same way. */
+  wiring: readonly Wiring[];
+}
+
+export interface Wiring {
+  control: string;
+  property: string;
+  formula: string;
 }
 
 /**
@@ -29,3 +35,6 @@ export function fromPowerFx(formula: string): string | number | boolean {
   if (text) return text[1]!.replace(/""/g, '"');
   return value;
 }
+
+/** Segoe UI, as Power Apps renders text. */
+export const SEGOE = '[font-family:"Segoe_UI",system-ui,sans-serif]';

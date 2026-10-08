@@ -4,6 +4,7 @@ import {
   componentStandardProblems,
   isValidStudioVersion,
   parseComponentSource,
+  propertyCounts,
   variationProblems,
   type ComponentProperty,
 } from "./components.js";
@@ -97,5 +98,23 @@ describe("publishing", () => {
   it("accepts a Studio version like the one Studio shows", () => {
     expect(isValidStudioVersion("3.26093.12")).toBe(true);
     expect(isValidStudioVersion("<script>")).toBe(false);
+  });
+});
+
+describe("propertyCounts", () => {
+  it("counts each kind in order, singular for one", () => {
+    expect(
+      propertyCounts([
+        { kind: "Event" },
+        { kind: "Input" },
+        { kind: "Input" },
+        { kind: "Output" },
+        { kind: "InputFunction" },
+      ]),
+    ).toBe("2 inputs · 1 output · 1 input function · 1 event");
+  });
+
+  it("is empty without properties", () => {
+    expect(propertyCounts([])).toBe("");
   });
 });

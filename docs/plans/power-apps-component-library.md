@@ -93,7 +93,7 @@ Competitors' lists (for coverage, not to copy) include charts, timelines, steppe
 ## Decided since (2026-10-08)
 
 - **Sign-in only, first set** (the product owner can change any of these in the admin, and show or hide any component): open to everyone: Button, Text field, Tabs and segmented control, Toast, Empty/loading/error states. Sign-in to copy: Dialog, Navigation shell, Data table, and screen templates later. The larger, more valuable pieces earn an account; the everyday ones bring people in.
-- **Previews are interactive web replicas** built for the site, with a **property playground**: change inputs, see outputs update live, fire events (shown in an event log), call actions, try functions, with the matching Power Fx formula shown for each. Each page says it is a web replica and Studio may look slightly different.
+- **Previews are interactive web replicas** built for the site, in **one live view** (docs/final-decisions.md, 2026-10-08, "Component pages: one live view, exactly as in Power Apps"): the component on a Power Apps screen, starting as it is when pasted and behaving exactly as it does in Studio, with its variations as chips and the screen's formulas listed underneath (events shown the way Power Apps shows them, through `Notify` or a label). Each page says it is a web replica and Studio may look slightly different.
 
 ## Open questions
 

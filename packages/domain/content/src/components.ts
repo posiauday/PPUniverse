@@ -53,6 +53,30 @@ export const PROPERTY_KIND_LABEL: Record<PropertyKind, string> = {
   Action: "Actions",
 };
 
+/** One of each kind, for "1 output" rather than "1 outputs". */
+const PROPERTY_KIND_SINGULAR: Record<PropertyKind, string> = {
+  Input: "input",
+  Output: "output",
+  InputFunction: "input function",
+  OutputFunction: "output function",
+  Event: "event",
+  Action: "action",
+};
+
+/** "4 inputs · 1 output · 1 event": how many properties of each kind, in PROPERTY_KINDS order. */
+export function propertyCounts(properties: readonly { kind: PropertyKind }[]): string {
+  return PROPERTY_KINDS.map((kind) => ({
+    kind,
+    count: properties.filter((property) => property.kind === kind).length,
+  }))
+    .filter((entry) => entry.count > 0)
+    .map(
+      (entry) =>
+        `${entry.count} ${entry.count === 1 ? PROPERTY_KIND_SINGULAR[entry.kind] : PROPERTY_KIND_LABEL[entry.kind].toLowerCase()}`,
+    )
+    .join(" · ");
+}
+
 export interface ComponentParameter {
   name: string;
   dataType: string;

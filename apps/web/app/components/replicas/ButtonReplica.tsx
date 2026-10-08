@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useId, useState, type ReactNode } from "react";
-import { FIELD, Formula, Group } from "./parts";
-import { fromPowerFx, type ReplicaApi } from "./replica";
+import { useState, type ReactNode } from "react";
+import { useNotify } from "./notify";
+import { fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
 /**
  * A web replica of lcsButton (MVP-049; docs/final-decisions.md, 2026-10-08,
- * "Previews are interactive web replicas"): it looks like the modern Power
- * Apps button and behaves like the component, property for property, so a
- * reader can try every kind before copying the YAML. The page says it is a
- * replica and that Studio may look slightly different.
+ * "One live view"): the modern Power Apps button inside the component, 160 by
+ * 40, as Studio shows it after the YAML is pasted. IsBusy shows "Working…" and
+ * disables it; each click adds to ClickCount and runs OnClick(Count), which
+ * the preview screen wires to Notify. The page says it is a replica and that
+ * Studio may look slightly different.
  */
 
 const APPEARANCES = ["Primary", "Secondary", "Outline", "Subtle"] as const;
@@ -75,61 +76,26 @@ const ICONS: Record<string, ReactNode> = {
   ),
 };
 
-const FORMATS: Record<string, (text: string) => string> = {
-  Text: (text) => text,
-  "Upper(Text)": (text) => text.toUpperCase(),
-  "Proper(Text)": (text) =>
-    text.replace(/\S+/g, (word) => word[0]!.toUpperCase() + word.slice(1).toLowerCase()),
-  'Text & " →"': (text) => `${text} →`,
-};
-
-const HANDLERS: Record<string, (count: number) => { toast?: string; log?: string }> = {
-  'Notify("Clicked " & Count & " times")': (count) => ({ toast: `Clicked ${count} times` }),
-  "Set(varSaved, true)": () => ({ log: "varSaved = true" }),
-  "false (do nothing)": () => ({}),
-};
-
 const APPEARANCE_CLASS: Record<Appearance, { light: string; dark: string }> = {
   Primary: {
-    light: "bg-[#0f6cbd] text-white hover:bg-[#115ea3] active:bg-[#0c3b5e]",
-    dark: "bg-[#115ea3] text-white hover:bg-[#0f6cbd] active:bg-[#0c3b5e]",
+    light: "border-transparent bg-[#0f6cbd] text-white hover:bg-[#115ea3] active:bg-[#0c3b5e]",
+    dark: "border-transparent bg-[#115ea3] text-white hover:bg-[#0f6cbd] active:bg-[#0c3b5e]",
   },
   Secondary: {
-    light: "border-[#d1d1d1] bg-white text-[#242424] hover:bg-[#f5f5f5]",
-    dark: "border-[#666] bg-[#292929] text-white hover:bg-[#3d3d3d]",
+    light: "border-[#d1d1d1] bg-white text-[#242424] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]",
+    dark: "border-[#666] bg-[#292929] text-white hover:bg-[#3d3d3d] active:bg-[#1f1f1f]",
   },
   Outline: {
-    light: "border-[#d1d1d1] bg-transparent text-[#242424] hover:border-[#9e9e9e]",
-    dark: "border-[#666] bg-transparent text-white hover:border-[#9e9e9e]",
+    light:
+      "border-[#d1d1d1] bg-transparent text-[#242424] hover:border-[#9e9e9e] active:border-[#757575]",
+    dark: "border-[#666] bg-transparent text-white hover:border-[#9e9e9e] active:border-[#adadad]",
   },
   Subtle: {
-    light: "bg-transparent text-[#242424] hover:bg-[#f5f5f5]",
-    dark: "bg-transparent text-white hover:bg-[#3d3d3d]",
+    light:
+      "border-transparent bg-transparent text-[#242424] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]",
+    dark: "border-transparent bg-transparent text-white hover:bg-[#3d3d3d] active:bg-[#1f1f1f]",
   },
 };
-
-function Spinner() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-[18px] motion-safe:animate-spin" aria-hidden="true">
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity=".3"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M21 12a9 9 0 0 0-9-9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 /** The button as it looks in Studio, for one set of inputs. */
 export function ButtonFace({
@@ -142,6 +108,7 @@ export function ButtonFace({
   as = "button",
   danger = false,
   disabled = false,
+  size = "h-10 w-40",
 }: {
   label: string;
   appearance: Appearance;
@@ -152,8 +119,10 @@ export function ButtonFace({
   as?: "button" | "span";
   /** A destructive action: red instead of the brand colour. */
   danger?: boolean;
-  /** Greyed and unselectable, without the busy spinner. */
+  /** Greyed and unselectable. */
   disabled?: boolean;
+  /** Size classes; the component's own button is 160 by 40. */
+  size?: string;
 }) {
   const off = busy || disabled;
   const look = off
@@ -161,19 +130,17 @@ export function ButtonFace({
       ? "border-[#424242] bg-[#141414] text-[#8a8a8a] cursor-not-allowed"
       : "border-[#e0e0e0] bg-[#f0f0f0] text-[#616161] cursor-not-allowed"
     : danger
-      ? "bg-[#c4314b] text-white hover:bg-[#a52a40]"
+      ? "border-transparent bg-[#c4314b] text-white hover:bg-[#a52a40]"
       : APPEARANCE_CLASS[appearance][dark ? "dark" : "light"];
-  const className = `inline-flex h-10 min-w-24 items-center justify-center gap-1.5 rounded border border-transparent px-3.5 text-sm font-semibold [font-family:"Segoe_UI",system-ui,sans-serif] motion-safe:transition-colors ${look}`;
+  const className = `inline-flex max-w-full shrink-0 items-center justify-center gap-1.5 rounded border px-3 text-sm font-semibold ${SEGOE} motion-safe:transition-colors motion-safe:duration-100 ${size} ${look}`;
   const content = (
     <>
-      {busy ? (
-        <Spinner />
-      ) : ICONS[icon] ? (
+      {ICONS[icon] ? (
         <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
           {ICONS[icon]}
         </svg>
       ) : null}
-      <span>{busy ? "Working…" : label}</span>
+      <span className="truncate">{busy ? "Working…" : label}</span>
     </>
   );
   if (as === "span") return <span className={className}>{content}</span>;
@@ -189,204 +156,61 @@ export function ButtonFace({
   );
 }
 
+interface Inputs {
+  Label: string;
+  Appearance: Appearance;
+  IconName: string;
+  IsBusy: boolean;
+}
+
+/** The inputs' defaults in the component's YAML. */
+const DEFAULTS: Inputs = { Label: "Save", Appearance: "Primary", IconName: "", IsBusy: false };
+
+function readInputs(settings: Record<string, string>): Inputs {
+  const next = { ...DEFAULTS };
+  if ("Label" in settings) next.Label = String(fromPowerFx(settings["Label"]!));
+  const appearance = String(fromPowerFx(settings["Appearance"] ?? '"Primary"'));
+  // The component's Switch falls back to Primary for anything else.
+  next.Appearance = (APPEARANCES as readonly string[]).includes(appearance)
+    ? (appearance as Appearance)
+    : "Primary";
+  if ("IconName" in settings) next.IconName = String(fromPowerFx(settings["IconName"]!));
+  if ("IsBusy" in settings) next.IsBusy = fromPowerFx(settings["IsBusy"]!) === true;
+  return next;
+}
+
 export function useButtonReplica(): ReplicaApi {
-  const id = useId();
-  const [label, setLabel] = useState("Save");
-  const [appearance, setAppearance] = useState<Appearance>("Primary");
-  const [icon, setIcon] = useState("Checkmark");
-  const [busy, setBusy] = useState(false);
+  const notify = useNotify();
+  const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
   const [clicks, setClicks] = useState(0);
-  const [format, setFormat] = useState("Text");
-  const [handler, setHandler] = useState(Object.keys(HANDLERS)[0]!);
-  const [test, setTest] = useState("Save");
-  const [logs, setLogs] = useState<string[]>([]);
-  const [toast, setToast] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2200);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  const log = (message: string) => setLogs((current) => [message, ...current].slice(0, 20));
-
-  function click() {
-    const count = clicks + 1;
-    setClicks(count);
-    log(`OnClick(Count: ${count})`);
-    const result = HANDLERS[handler]!(count);
-    if (result.log) log(result.log);
-    if (result.toast) setToast(result.toast);
-  }
-
-  const shownLabel = (FORMATS[format] ?? FORMATS["Text"]!)(label);
-  const validTest = test.trim() !== "" && test.length <= 40;
 
   return {
-    stage: (dark) => (
-      <div className="relative">
-        <ButtonFace
-          label={shownLabel}
-          appearance={appearance}
-          icon={icon}
-          busy={busy}
-          dark={dark}
-          onClick={click}
-        />
-        <p role="status" className="absolute -top-14 left-1/2 w-max max-w-[16rem] -translate-x-1/2">
-          {toast ? (
-            <span className="block rounded bg-[#dff6dd] px-3 py-2 text-[0.8125rem] font-semibold text-[#0e700e] shadow">
-              ✓ {toast}
-            </span>
-          ) : null}
-        </p>
-      </div>
-    ),
-    controls: (
-      <div className="grid gap-3 lg:grid-cols-2">
-        <Group kind="Input" title="Data in">
-          <label htmlFor={`${id}-label`}>Label</label>
-          <input
-            id={`${id}-label`}
-            className={FIELD}
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-          />
-          <label htmlFor={`${id}-appearance`}>Appearance</label>
-          <select
-            id={`${id}-appearance`}
-            className={FIELD}
-            value={appearance}
-            onChange={(e) => setAppearance(e.target.value as Appearance)}
-          >
-            {APPEARANCES.map((value) => (
-              <option key={value}>{value}</option>
-            ))}
-          </select>
-          <label htmlFor={`${id}-icon`}>IconName</label>
-          <select
-            id={`${id}-icon`}
-            className={FIELD}
-            value={icon}
-            onChange={(e) => setIcon(e.target.value)}
-          >
-            {Object.keys(ICONS).map((value) => (
-              <option key={value} value={value}>
-                {value || "(none)"}
-              </option>
-            ))}
-          </select>
-          <label className="flex min-h-11 items-center gap-2">
-            <input type="checkbox" checked={busy} onChange={(e) => setBusy(e.target.checked)} />{" "}
-            IsBusy
-          </label>
-          <Formula name="MyButton.Label" value={JSON.stringify(label)} />
-          <Formula name="MyButton.Appearance" value={JSON.stringify(appearance)} />
-          <Formula name="MyButton.IsBusy" value={String(busy)} />
-        </Group>
-        <div className="flex flex-col gap-3">
-          <Group kind="Output" title="State out">
-            <p className="flex flex-wrap items-center gap-2">
-              <code className="font-mono text-sm">MyButton.ClickCount</code>
-              <span className="rounded-lg bg-tech-dataverse px-2 py-0.5 font-mono font-semibold text-tech-dataverse-ink">
-                {clicks}
-              </span>
-              <span className="text-sm text-muted-foreground">Click the button to change it.</span>
-            </p>
-          </Group>
-          <Group kind="Event" title="OnClick(Count)">
-            <label htmlFor={`${id}-handler`}>Formula in your app</label>
-            <select
-              id={`${id}-handler`}
-              className={FIELD}
-              value={handler}
-              onChange={(e) => setHandler(e.target.value)}
-            >
-              {Object.keys(HANDLERS).map((value) => (
-                <option key={value}>{value}</option>
-              ))}
-            </select>
-            <div
-              role="log"
-              aria-label="Event log"
-              className="max-h-32 overflow-auto rounded-xl bg-muted px-3 py-2 font-mono text-[0.8125rem]"
-            >
-              {logs.length === 0 ? (
-                <p>Click the button: each OnClick appears here.</p>
-              ) : (
-                logs.map((entry, index) => <p key={`${index}-${entry}`}>{entry}</p>)
-              )}
-            </div>
-          </Group>
-          <Group kind="Action" title="ResetCount()">
-            <button
-              type="button"
-              className="inline-flex min-h-11 w-max items-center rounded-full border-[1.5px] border-foreground px-4 font-semibold"
-              onClick={() => {
-                setClicks(0);
-                log("ResetCount()");
-              }}
-            >
-              Call MyButton.ResetCount()
-            </button>
-          </Group>
-        </div>
-        <Group kind="InputFunction" title="FormatLabel(Text)">
-          <label htmlFor={`${id}-format`}>Formula in your app</label>
-          <select
-            id={`${id}-format`}
-            className={FIELD}
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-          >
-            {Object.keys(FORMATS).map((value) => (
-              <option key={value}>{value}</option>
-            ))}
-          </select>
-        </Group>
-        <Group kind="OutputFunction" title="IsValidLabel(Text)">
-          <label htmlFor={`${id}-test`}>Try a label</label>
-          <input
-            id={`${id}-test`}
-            className={FIELD}
-            value={test}
-            onChange={(e) => setTest(e.target.value)}
-          />
-          <p className="flex flex-wrap items-center gap-2">
-            <code className="font-mono text-sm break-all">
-              MyButton.IsValidLabel({JSON.stringify(test)})
-            </code>
-            <span className="rounded-lg bg-tech-dataverse px-2 py-0.5 font-mono font-semibold text-tech-dataverse-ink">
-              {String(validTest)}
-            </span>
-          </p>
-        </Group>
-      </div>
-    ),
-    apply: (settings) => {
-      if ("Label" in settings) setLabel(String(fromPowerFx(settings["Label"]!)));
-      if ("Appearance" in settings) {
-        const value = String(fromPowerFx(settings["Appearance"]!));
-        if ((APPEARANCES as readonly string[]).includes(value)) setAppearance(value as Appearance);
-      }
-      setIcon("IconName" in settings ? String(fromPowerFx(settings["IconName"]!)) : "");
-      setBusy("IsBusy" in settings ? fromPowerFx(settings["IsBusy"]!) === true : false);
-    },
-    thumbnail: (settings, dark) => (
+    screen: (
       <ButtonFace
-        as="span"
-        label={String(fromPowerFx(settings["Label"] ?? '"Save"'))}
-        appearance={
-          (APPEARANCES as readonly string[]).includes(
-            String(fromPowerFx(settings["Appearance"] ?? '"Primary"')),
-          )
-            ? (String(fromPowerFx(settings["Appearance"] ?? '"Primary"')) as Appearance)
-            : "Primary"
-        }
-        icon={String(fromPowerFx(settings["IconName"] ?? '""'))}
-        busy={fromPowerFx(settings["IsBusy"] ?? "false") === true}
-        dark={dark}
+        label={inputs.Label}
+        appearance={inputs.Appearance}
+        icon={inputs.IconName}
+        busy={inputs.IsBusy}
+        dark={false}
+        onClick={() => {
+          const count = clicks + 1;
+          setClicks(count);
+          notify(`Clicked ${count} ${count === 1 ? "time" : "times"}`, "Success");
+        }}
       />
     ),
+    apply: (settings) => {
+      setInputs(readInputs(settings));
+      setClicks(0);
+    },
+    dark: false,
+    wiring: [
+      {
+        control: "lcsButton_1",
+        property: "OnClick",
+        formula:
+          'Notify("Clicked " & Count & If(Count = 1, " time", " times"), NotificationType.Success)',
+      },
+    ],
   };
 }

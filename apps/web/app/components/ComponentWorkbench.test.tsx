@@ -26,8 +26,8 @@ const render = (componentName: string, yaml: string | null = "ComponentDefinitio
   );
 
 describe("ComponentWorkbench", () => {
-  it.each(["lcsButton", "lcsTextField", "lcsDialog", "lcsToast", "lcsTabs", "lcsStates"])(
-    "renders a live replica and a variation for %s",
+  it.each(["lcsButton", "lcsTextField", "lcsDialog", "lcsToast", "lcsTabs", "lcsStates", "lcsFab"])(
+    "renders a live replica and its variations for %s",
     (name) => {
       expect(hasReplica(name)).toBe(true);
       const html = render(name);

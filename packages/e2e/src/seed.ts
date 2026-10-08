@@ -869,7 +869,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
 
     // MVP-049: library components, built like the real lcsButton so the
-    // public page's playground renders. One untested draft, one published
+    // public page's live preview renders. One untested draft, one published
     // that anyone can copy, one published that needs sign-in to copy.
     const componentBase = {
       componentName: "lcsButton",
