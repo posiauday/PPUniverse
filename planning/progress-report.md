@@ -5218,6 +5218,17 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 
 **Risks:** the YAML format is unproven until the paste-test; the standard is still a proposal.
 
+## 2026-10-08 — Component library: the pilot paste-test passed (MVP-049, In Progress)
+
+**What happened:** the product owner paste-tested `lcsButton` in Power Apps Studio 3.26094.8.
+- First paste failed: "PA1011: The keyword 'DataType' is required" and "PA1003: 'ReturnType' is not known" on the two function properties. Microsoft's published schema says `ReturnType`; Studio wants `DataType` for functions.
+- Second paste failed with no details. Narrowed down with three small test components (inputs and outputs passed; events/actions and functions failed), then compared with the code Studio itself writes (View code): **every parameter needs a `Default`**.
+- With both fixes, both test components and the full `lcsButton` pasted and passed their checklist.
+
+**Changed:** the CI check follows Studio (functions use `DataType`; every parameter has a `Default`); all six components updated, with `DisplayName` on every property as Studio writes; `content/components/README.md` and the plan record the rules. These were caught during the story, before release, so they're in this report rather than bug records.
+
+**Next:** paste-test the other five; record each Studio version in `/admin/components` after the release.
+
 ## 2026-10-08 — Component library: first wave of components (MVP-049, In Progress)
 
 **Built:** five more components as drafts, each with a guide and variations, on top of #116 (which carries their live web replicas):
