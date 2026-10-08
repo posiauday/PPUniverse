@@ -2176,3 +2176,18 @@ The accessibility gate runs in **6 shards instead of 4**. The time limit stays a
 2. **So lessons aren't indexed.** Search engines can't read them, and showing them the content but not visitors would be cloaking. Lesson pages are `noindex`, left out of the sitemap, and IndexNow is told only about topic pages. This supersedes "Each lesson is a normal indexable page" in `docs/plans/learn-module.md` ("Search and AI tools"). The product owner chose this over search traffic to lessons when both were set out.
 3. **Progress is saved to the reader's account.** A signed-in reader can mark a lesson as done; it fills the lesson's ring across the topic, and their profile lists it, with a way to clear it. It is deleted with the account.
 4. **Privacy notice, approved wording**, as a new section, with a new version and effective date: *"Learn progress: if you're signed in and mark a lesson as done, we store which lessons you've finished and when. Only you see it. You can clear it on your profile page, and it's deleted with your account."*
+
+## 2026-10-08 — Power Apps component library: first, copy-paste YAML, free
+
+**Source:** direct product-owner instructions in this session, after the market research (`docs/research/2026-10-08-components-and-offers-by-technology.md`), and answers by multiple choice.
+
+1. **The Power Apps component library comes first.** The other technologies follow later, step by step.
+2. **Copy-paste YAML only**, for now: components that makers paste into Power Apps Studio's Components tab, complete with their design and custom properties.
+3. **Everything is free for now.** Some items can be **sign-in only** (free, but you need an account to copy them).
+4. **The bar:** modern UI and UX, top features, fully dynamic, following standards, working without errors, and exposing every type of custom property, so most makers can use them. Each component has a guide and variations.
+5. **Testing:** the product owner paste-tests every component in a free Power Apps Developer environment before it is published.
+6. **Reader feedback on each component:** comments, a 1 to 5 star rating, "Worked in my app", and "Report a problem".
+7. **Sign-in only and visibility (2026-10-08, follow-up):** the agent picks the first sign-in-only set; the product owner can then show, hide, or make any component sign-in only from the admin.
+8. **Previews are interactive web replicas** (follow-up): each component gets a working copy built for the site, which readers can use, not a screenshot. The pages say it is a web replica and that the look in Studio may differ slightly.
+
+The plan, with the proposed standard and pages (still to be signed off): `docs/plans/power-apps-component-library.md` (MVP-049).
