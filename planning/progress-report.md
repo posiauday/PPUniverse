@@ -5352,3 +5352,13 @@ The guide shows Office 365 Users search, Add me, the manager as a suggestion, em
 **Not yet:** the product owner's paste-test (docs/component-paste-tests.md). New to this library: the text input's `Search` type and `Delayed` output, and a gallery's `WrapCount` and `AccessibleLabel`.
 
 **Next:** Pagination.
+
+## 2026-10-09 — Fix: account pages wider than a 320px phone in Firefox (BUG-034)
+
+**Asked:** "Resolve conflicts", then "continue": after the merges, the accessibility gate failed in Firefox at 320 px on #125, #126 and #127, each time on a page from #124 (the welcome page and the profile).
+
+**Changed:** the base heading style (`main h1` without classes) is 36 px on phones and 44 px from 640 px up, and wraps a word too long for the line; the profile's display name can shrink and wrap anywhere. This also covers the sign-in and email confirmation pages, which use the same heading with "LowCodeStacks".
+
+**Checked:** web typecheck, lint and unit tests. Not in a local browser: the laptop's C: drive was full (0 GB free), so browsers couldn't start; the pull request's CI run is the check.
+
+**Next:** the product owner merges this fix, then #125, #126 and #127, which carry it already.
