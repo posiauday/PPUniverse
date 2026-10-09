@@ -2,10 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **MVP-050 (scheduled publishing and draft previews) built and in review (QA).**
+Last updated: 2026-10-09 (latest) — **BUG-038 fixed: row-level security on the component library and site switch tables.**
+- A migration turns it on for the four tables, and a new test fails CI for any table created without it. #134 and #135 are merged; MVP-050 is in review (#136).
+
+Last updated (previous): 2026-10-09 — **MVP-050 (scheduled publishing and draft previews) built and in review (QA).**
 - **Built:** schedule a draft guide or update from its edit page; it goes live on the first visit after the time, with IndexNow; admin-only previews at `/preview/guides/{id}` and `/preview/updates/{id}`; schedules and update publishes in the audit log.
 - **Found:** BUG-038, the component library and site switch tables were created without row-level security; fixed in its own PR.
-- **Auto-merge on (product owner's request):** #134 (BUG-037) and #135 (Data table, which now includes #134).
+- **Merged by auto-merge (product owner's request):** #134 (BUG-037) and #135 (Data table).
 - **Next:** release `develop` → `main`; then Navigation shell, Tree view, Stepper.
 
 Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Data table is drafted (eleven components).**

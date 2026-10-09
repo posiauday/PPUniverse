@@ -5480,3 +5480,17 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 **Not yet:** the product owner's review; CI.
 
 **Next:** release `develop` → `main` once #134, #135 and this are merged; then the remaining wave 2 components.
+
+## 2026-10-09 — Fix: row-level security on the component library and site switch tables (BUG-038)
+
+**Found** by the agent while adding MVP-050's tables. `library_components`, `component_events`, `site_switches` and `site_switch_events` were created without row-level security. Every other table has it, with no policies (docs/final-decisions.md, "RLS implementation note"). No exposure is known: reaching them needs the Supabase anon key, which the site never publishes.
+
+**Changed:**
+- Migration `20261016000100_enable_rls_component_and_switch_tables` turns it on for the four tables. It is additive and makes no difference to the app, which connects as the owner.
+- `packages/db/src/row-level-security.test.ts` fails CI for any table a migration creates without it. Without the fix, it names exactly these four.
+
+**Checked:**
+- The test passes with the migration and fails without it.
+- The migration applies to a local Postgres, and afterwards no public table there is without row-level security.
+
+**For the product owner:** after the release, Supabase's Security Advisor should show no "RLS disabled" warnings.
