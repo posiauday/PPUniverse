@@ -249,7 +249,9 @@ samp {
     font-size: 2.25rem;
     line-height: 1.05;
     font-weight: 700;
-    overflow-wrap: break-word;
+    /* "anywhere", not "break-word": only "anywhere" also lets the heading's box
+       shrink inside a flex or grid card, such as the sign-in frame. */
+    overflow-wrap: anywhere;
   }
   @media (min-width: 40rem) {
     main h1:not([class]) {
