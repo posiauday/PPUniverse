@@ -12,11 +12,12 @@ modernControls: yes
 Use **lcsTreeView** for anything nested: document folders, product categories, teams and their people, a site's pages. Power Apps has no tree control, and the usual workaround nests galleries inside galleries, which is slow and stops at two levels. This component:
 
 - **Draws the whole tree in one gallery,** from one flat table: each node names its `ParentKey`.
-- **Opens and closes nodes** with a chevron. An open folder shows an open-folder icon.
+- **Reads at a glance:** a card with a title, thin guide lines that join each level to its parent, folders in amber and files in your colour, and how many items each folder holds.
+- **Opens and closes nodes** with a chevron.
 - **Loads children only when needed:** mark a node `HasChildren: true` without giving its children, and load them in `OnExpand(NodeKey)`. The tree shows them as soon as they arrive.
 - **Marks the selected node** (a tint, a filled icon and bold text) and runs `OnNodeSelect(NodeKey)`.
 - **Remembers what's open** as `ExpandedKeys`, so you can save it and open the same nodes next time.
-- Goes up to five levels deep, with your `AccentColor` and a `Dark` theme.
+- Goes up to five levels deep, with your `AccentColor`, a `Dark` theme and two looks: `Standard` (a soft highlight for the selected node) and `Premium` (a solid pill in your colour and a soft shadow).
 
 ## Use it
 

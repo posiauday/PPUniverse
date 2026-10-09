@@ -241,7 +241,7 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 
 ## Navigation shell: `lcsNavShell` → name it `navMain`
 
-New for this library, so check the paste first: the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the Fluent icon names `Home`, `Cart`, `People`, `ChartMultiple`, `Settings` and `Navigation`. Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
+New for this library, so check the paste first: the modern Icon (`ModernIcon@1.1.0`) under a transparent classic button for every clickable part, the classic button's `FocusedBorderColor`, the modern Avatar (`ModernAvatar@1.0.0`), an `Image` input (`UserImage`), an animated SVG in an Image control (the sun and moon), the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the icon names `Home`, `Cart`, `People`, `Document`, `Settings` and `Navigation` (Home, Cart, People, Settings and Navigation show, from the first paste-test, 2026-10-09). Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
 
 Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y, Width and Height to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`.
 
@@ -257,15 +257,23 @@ Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y
 | Input | `ScreenWidth` `390` | A bottom bar along the bottom: five icons with labels, the current one in a pale pill |
 | Action | A button: `navMain.SetCollapsed(true)` | The side menu collapses |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text on dark grey, a purple bar and badge |
-| Keyboard | Tab through the menu | Each item and the ☰ button take focus; Enter selects |
+| Input | Nothing else, at the bottom of the side menu | A coloured circle with AB, "Avery Brooks" and "Admin", and a sun button at the right |
+| Event | `OnThemeChange` to `Notify(NewTheme)`; select the sun | "Dark"; the sun's rays turn away and it becomes a moon; the menu turns dark |
+| Event | `OnUserSelect` to `Notify("Profile")`; select the avatar | "Profile" |
+| Input | `UserName` `User().FullName`, `UserDetail` `User().Email`, `UserImage` `User().Image` | Your own picture (or initials), name and email |
+| Input | Collapse the menu | The avatar above the sun or moon, both in the 64-pixel menu, even if the component is still 240 wide |
+| Input | `Theme` `"Dark"`; hover over ☰, an item and the sun | A faint light shade behind each, the icon still white (not a white box) |
+| Input | `Look` `"Premium"` | A floating white card with rounded corners and a shadow, the app's letter on blue beside "My app", Home as a solid blue pill with white text, and the person on a pale card |
+| Keyboard | Tab through the menu | Each item, the ☰ button, the avatar and the theme button take focus with a blue ring; Enter selects |
 
 ## Tree view: `lcsTreeView` → name it `treeDocs`
 
-New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `FolderOpen`, `Document`, `Image`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
+New for this library, so check the paste first: each row's chevron and node are a modern Icon (and Text) under a transparent classic button, so hover follows the tree's own light or dark theme; the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `Document`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
-| Input | Nothing else | Documents open (open-folder icon) with Plans and Budget.xlsx under it, indented; Images and Archive closed |
+| Input | Nothing else | A white card titled "Files": Documents open with Plans and Budget.xlsx under it, joined by a thin guide line; folders amber, files blue; a small 2 beside Documents and Plans; Images and Archive closed |
+| Input | `Look` `"Premium"`, `CurrentKey` `"q3"`, `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx as a solid blue pill with white text; a soft shadow under the card |
 | Input | Select the chevron beside Plans | Plans opens: Q3 plan.docx and Q4 plan.docx, indented one more level |
 | Event | `OnNodeSelect` to `Notify("Open " & NodeKey)`; select Budget.xlsx | "Open budget"; Budget.xlsx is tinted, bold, with a filled icon |
 | Event | `OnExpand` to `Notify(NodeKey)`; open Archive | "archive"; Archive opens with nothing under it (its children aren't loaded) |
@@ -275,7 +283,7 @@ New for this library, so check the paste first: the rows come from one long form
 | Action | A button: `treeDocs.ExpandAll()`; another: `treeDocs.CollapseAll()` | Every folder with children opens; then all close |
 | Input | `CurrentKey` `"q3"` and `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx is selected inside its open folders |
 | Input | `ShowIcons` false, `IndentSize` 28 | Labels only, indented further |
-| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node; hovering a row or a chevron shows a faint light shade, never a white box |
 
 ## Stepper: `lcsStepper` → name it `stpRequest`
 
@@ -283,7 +291,8 @@ New for this library, so check the paste first: an `InputFunction` that returns 
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
-| Input | Nothing else | Four circles joined by lines: 1 ringed in blue and bold "Your details", 2 to 4 grey; "Step 1 of 4", Back greyed, a blue Next |
+| Input | Nothing else | A white card: four circles with a gap before each line, 1 solid blue with a pale halo and bold "Your details", 2 to 4 grey outlines; under a divider, "Step 1 of 4" with a short progress bar, Back greyed and a blue Next |
+| Input | `Look` `"Premium"` | The card sits a little in from the edges with a soft shadow; rounder corners, thicker lines, the current title in blue and a thicker bar |
 | Input | `CanLeaveStep` to `If(Step = 1, !IsBlank(TextInput1.Value), true)` with an empty TextInput1; select Next | It stays on step 1 and says "Complete this step to continue." in red |
 | Event | `OnStepChange` to `Notify("Step " & NewStep & " from " & OldStep)`; type a name, select Next | "Step 2 from 1"; step 1 shows a ✓ in blue and the line to step 2 turns blue |
 | Input | Select the ✓ of step 1 | Back on step 1 ("Step 1 from 2") |
@@ -293,3 +302,8 @@ New for this library, so check the paste first: an `InputFunction` that returns 
 | Input | `Orientation` `"Vertical"` | The steps in a column, each title beside its circle with its description under it |
 | Input | `ShowButtons` false; your own button with `stpRequest.Next()` | The footer is gone; your button moves on as Next does, and doesn't run OnStepChange |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, purple circles and Next |
+| Input | `Type` `"Project"`, `Health` `"Amber"`, `DefaultStep` 3, `ShowButtons` false | 1 and 2 blue with ✓, 3 amber with a dark 3 and a pale amber halo, 4 grey; the footer has "Step 3 of 4", an amber bar and an "Approver · At risk" pill, and no buttons |
+| Input | `DefaultStep` 2, still `"Project"`; then `Health` `"Green"` | The pill follows the stage: "What you need · At risk", then "What you need · On track" in green |
+| Input | `DefaultStep` 5 (one past the last), still `"Project"` | Every step blue with ✓; "Step 4 of 4", a full blue bar and a "Complete" pill |
+| Input | `Type` `"Approval"`, `DefaultStep` 3; then `Health` `"Red"` | 1 and 2 green with ✓, 3 amber and "Waiting on Approver"; with Red, 3 is red with ✕ and the pill says "Rejected at Approver" |
+| Output | A label: `stpRequest.Status`; `StatusText` `"Arriving today"` | The pill's words ("Rejected at Approver"), then "Arriving today" on both |

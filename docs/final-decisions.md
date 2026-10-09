@@ -2300,3 +2300,43 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 
 1. **Admins can change their display name and avatar as often as they like.** The daily limit (ten changes, `COMMENT_LIMITS.profileChangesPerDay`) stays for everyone else, against abuse.
 2. Whether someone is an admin is read from the database on each request, as for every admin rule.
+
+## 2026-10-09 — Navigation shell: who is signed in, and a light and dark switch
+
+**Source:** direct product-owner instruction in this session, after the first paste-test of the Navigation shell: "add dark and light theme icon at bottom, and who logged in using avatar or appropriate control, and beside that the icon to change to dark or light, making it animated if possible with SVG".
+
+1. **The side menu's footer shows who is signed in** with the modern Avatar control (their picture, or initials), their name and a detail line, all inputs (`UserName`, `UserDetail`, `UserImage`). Selecting it runs `OnUserSelect()`.
+2. **Beside it, a light and dark switch:** a sun that turns into a moon, animated in SVG (an Image control showing an animated SVG), still for people who ask for reduced motion. It switches the menu's theme at once and runs `OnThemeChange(NewTheme)` so the app can follow; `CurrentTheme` is an output.
+3. **Collapsed, the menu draws itself 64 pixels wide** even if the component's box is wider, after the paste-test showed icons centred in the full width.
+
+## 2026-10-09 — Navigation shell: a Premium look, and hover in dark mode
+
+**Source:** direct product-owner instructions in this session, after pasting the Navigation shell: "give a variable of more premium UI in this if possible", and, with a photo of a white hover box behind the white menu icon, "on hover need to be fixed too in dark mode".
+
+1. **A `Look` input:** `Standard` (the plain side panel) or `Premium`: a floating card with rounded corners and a soft shadow, the app's mark (its first letter on the accent colour), a solid pill in the accent colour with white text for the current item, and the signed-in person on their own tinted card. Presets "Premium" and "Premium dark".
+2. **Hover follows the menu's own theme.** Every clickable part is a modern Icon (and Text) under a transparent classic button whose hover, pressed and focus colours follow the component's light or dark theme, because the modern button's hover comes from the app's light theme and can't be changed.
+
+## 2026-10-09 — Tree view and Stepper: cleaner designs
+
+**Source:** direct product-owner reactions in this session after pasting them: the Tree view, "what is it used for and why is the UI so boring and not clean"; the Stepper, with a screenshot, "Stepper design looks ugly too".
+
+1. **Tree view:** a card with a title, thin guide lines joining each level to its parent, folders in amber and files in the accent colour, a count of each folder's children, a soft highlight for the selected node, and `Look` `"Premium"` (a solid accent pill and a soft shadow), as the Navigation shell has.
+2. **Stepper:** a padded card; 36-pixel circles with a gap before each connector, the current step solid with a soft halo; a footer under a divider with the progress as text and a bar; Back and Next as classic buttons with their own colours, so they look and hover right on a dark card; `Look` `"Premium"` adds a soft shadow.
+
+## 2026-10-09 — Stepper: Project and Approval types
+
+**Source:** direct product-owner instruction in this session: a step type for the stage a project is in (initiation, execution, closing), coloured by the standard colour code, with a short name for the type, and other uses found the same way.
+
+1. **`Type`:** `"Steps"` (the default; the form or wizard, unchanged), `"Project"` and `"Approval"`.
+2. **Colours:** no recognised standard assigns colours to project phases (PMI's process groups have none). The widely used standard is RAG status, with blue for complete (BRAG), so `"Project"` shows finished stages blue, the current stage green, amber or red from a `Health` input (on track, at risk, off track), and the rest grey. `"Approval"` shows approved steps green, the current one amber (waiting), or red with ✕ when rejected.
+3. **Phases** in the project preset: Initiation, Planning, Execution, Monitoring, Closure, the five commonly taught phases (after PMBOK's process groups).
+4. **Status in words:** a pill with the status (`StatusText` to change the words, the `Status` output to read them); one past the last step shows every step finished.
+5. **Other uses** as presets: an approval chain (and rejected), a sales pipeline, order tracking, a finished project, and Project in Premium dark.
+
+## 2026-10-09 — Stepper: the status pill names the stage
+
+**Source:** direct product-owner feedback after pasting the Project and Approval types: the pill's words stayed the same at every stage, and they expected them to change.
+
+- The pill names the current stage with its status: Project "Execution · At risk"; Approval "Waiting on Finance" or "Rejected at Finance". When finished, "Complete" or "Approved". `StatusText` still replaces the words, and the pill sizes itself to them.
+- Screen readers keep the status alone after the stage's title, which they already hear.
+
