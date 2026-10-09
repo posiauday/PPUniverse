@@ -5750,7 +5750,7 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Asked:** the product owner's Data table paste-test failed (PA2108, `Checked` on `ModernCheckbox@1.0.0`), and the component pages should say "MIT License" instead of "free" or "with an account" (docs/final-decisions.md, 2026-10-09, "Component library: MIT License").
 
 **Changed:**
-- `content/components/data-table/component.yaml`: `ModernCheckbox@1.0.2` (its generator too); a gate check against 1.0.0 and 1.0.1; the README's control table and the paste checklist updated (BUG-043).
+- `content/components/data-table/component.yaml`: first `ModernCheckbox@1.0.2`, which failed the second paste-test the same way; then `Classic/CheckBox@2.1.0` with `Default` and `OnSelect` (its generator too). The gate rejects `Checked` on `ModernCheckbox`; the README's control table and the paste checklist updated (BUG-043).
 - Cards and the component page show "MIT License" (the page links to `/terms#mit-license`); the copy button says "Sign in to copy"; the YAML tab says "Sign in to see and copy its YAML". Copy access is unchanged.
 
-**Checked:** the component gate (44), web component tests (42), typecheck and lint.
+**Checked:** the component gate (30, including the rejected-property check, which reports all four errors in the pasted YAML), web component tests (42), typecheck and lint.
