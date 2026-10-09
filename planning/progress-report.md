@@ -5424,3 +5424,13 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 **Checked:** web typecheck, lint and tests (853, including a new test for Learn coming soon and the rewritten header tests); the e2e package's tests (route coverage includes `/guides/feed.xml`); locally on a production build, `/learn/x` answers 308 to `/guides/x`; the gate's home, search, sign-in, guides hub, guide, comments, topics, account, admin and 404 states: 91 checks in Chromium, and home, a guide and topics in Firefox and WebKit: 56, all passing; the header, Guides menu and sun-to-moon toggle looked at in the browser.
 
 **Next:** the "On this page" highlight (BUG-037), then the Data table.
+
+## 2026-10-09 — Fix: "On this page" follows the section being read (BUG-037)
+
+**Asked:** "On this page doesn't work or move with scrolling on lots of pages, but on some it works; review all the pages."
+
+**Found:** the panel does stick (measured on the live site at 1,080 and 1,280 px). The highlight lagged: scrolling with the wheel to each section on all 64 live pages with "On this page", in Chromium and Firefox, every page marked the previous section and never the first. A heading counted as "being read" only within 140 px of the top, under the 100 px sticky header.
+
+**Changed:** the reading line is about a third of the way down the window, at least 160 px (`readingLine` in `apps/web/app/guides/TocSpy.tsx`), with unit tests.
+
+**Checked:** web typecheck and tests; locally on a production build with the 60 guides imported and published in the local database only, scrolling to each section in Chromium and Firefox: the section scrolled to is marked, or its sub-heading when one follows straight away. Firefox needed exact scroll positions in the check, because it scales wheel distances differently.
