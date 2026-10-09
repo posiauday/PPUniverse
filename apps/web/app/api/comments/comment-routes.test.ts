@@ -183,6 +183,18 @@ describe("POST /api/account/profile", () => {
     expect(await official.json()).toEqual({ error: "reserved" });
   });
 
+  it("limits a reader to ten changes a day, but never an admin", async () => {
+    feedback.consumeAllowance.mockResolvedValue(false);
+    const limited = await profile.POST(post("/api/account/profile", { avatar: "new" }));
+    expect(limited.status).toBe(429);
+    expect(await limited.json()).toEqual({ error: "too-many" });
+
+    session.admin = true;
+    feedback.consumeAllowance.mockClear();
+    expect((await profile.POST(post("/api/account/profile", { avatar: "new" }))).status).toBe(200);
+    expect(feedback.consumeAllowance).not.toHaveBeenCalled();
+  });
+
   it("draws a new avatar, and refuses guests", async () => {
     expect((await profile.POST(post("/api/account/profile", { avatar: "new" }))).status).toBe(200);
     expect(comments.setAvatarSeed).toHaveBeenCalledWith("user-1", expect.any(String));

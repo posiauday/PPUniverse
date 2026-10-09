@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@ppu/db";
+import { DUE_BATCH_SIZE } from "./content-repository.js";
 import {
   isValidArticleStatusTransition,
   type PublishedUpdate,
@@ -51,9 +52,10 @@ export class PrismaUpdateRepository implements UpdateRepository {
       if (!isValidArticleStatusTransition(current.status as UpdateStatus, "PUBLISHED")) {
         throw new Error(`Cannot publish an update in status ${current.status}`);
       }
+      // MVP-050: publishing by hand also clears any schedule.
       const updated = await tx.updateItem.update({
         where: { id },
-        data: { status: "PUBLISHED", publishedAt },
+        data: { status: "PUBLISHED", publishedAt, scheduledFor: null },
       });
       await tx.updatePublishEvent.create({
         data: { updateId: id, actorUserId, action: "PUBLISHED" },
@@ -61,6 +63,76 @@ export class PrismaUpdateRepository implements UpdateRepository {
       return updated;
     });
     return toUpdateRecord(row);
+  }
+
+  /** MVP-050: as PrismaContentRepository.scheduleArticle. */
+  async scheduleUpdate(id: string, at: Date, actorUserId: string): Promise<UpdateRecord> {
+    const row = await this.db.$transaction(async (tx) => {
+      const current = await tx.updateItem.findUnique({ where: { id } });
+      if (!current) throw new Error(`Update ${id} not found`);
+      if (current.status !== "DRAFT") {
+        throw new Error(`Cannot schedule an update in status ${current.status}`);
+      }
+      const updated = await tx.updateItem.update({ where: { id }, data: { scheduledFor: at } });
+      await tx.updateScheduleEvent.create({
+        data: { updateId: id, actorUserId, action: "SCHEDULED", scheduledFor: at },
+      });
+      return updated;
+    });
+    return toUpdateRecord(row);
+  }
+
+  /** MVP-050: as PrismaContentRepository.cancelArticleSchedule. */
+  async cancelUpdateSchedule(id: string, actorUserId: string): Promise<UpdateRecord> {
+    const row = await this.db.$transaction(async (tx) => {
+      const current = await tx.updateItem.findUnique({ where: { id } });
+      if (!current) throw new Error(`Update ${id} not found`);
+      if (current.status !== "DRAFT" || !current.scheduledFor) {
+        throw new Error(`Update ${id} has no schedule to cancel`);
+      }
+      const updated = await tx.updateItem.update({ where: { id }, data: { scheduledFor: null } });
+      await tx.updateScheduleEvent.create({
+        data: { updateId: id, actorUserId, action: "CANCELLED" },
+      });
+      return updated;
+    });
+    return toUpdateRecord(row);
+  }
+
+  /** MVP-050: as PrismaContentRepository.publishDueArticles, including the claim that stops a double publish. */
+  async publishDueUpdates(now: Date): Promise<UpdateRecord[]> {
+    const due = await this.db.updateItem.findMany({
+      where: { status: "DRAFT", scheduledFor: { lte: now } },
+      select: { id: true, scheduledFor: true, authorUserId: true },
+      orderBy: [{ scheduledFor: "asc" }, { id: "asc" }],
+      take: DUE_BATCH_SIZE,
+    });
+    const published: UpdateRecord[] = [];
+    for (const candidate of due) {
+      const scheduledFor = candidate.scheduledFor as Date;
+      const row = await this.db.$transaction(async (tx) => {
+        const claimed = await tx.updateItem.updateMany({
+          where: { id: candidate.id, status: "DRAFT", scheduledFor },
+          data: { status: "PUBLISHED", publishedAt: scheduledFor, scheduledFor: null },
+        });
+        if (claimed.count === 0) return null;
+        const scheduled = await tx.updateScheduleEvent.findFirst({
+          where: { updateId: candidate.id, action: "SCHEDULED" },
+          orderBy: { createdAt: "desc" },
+          select: { actorUserId: true },
+        });
+        await tx.updatePublishEvent.create({
+          data: {
+            updateId: candidate.id,
+            actorUserId: scheduled?.actorUserId ?? candidate.authorUserId,
+            action: "PUBLISHED",
+          },
+        });
+        return tx.updateItem.findUnique({ where: { id: candidate.id } });
+      });
+      if (row) published.push(toUpdateRecord(row));
+    }
+    return published;
   }
 
   async findUpdateById(id: string): Promise<UpdateRecord | null> {
@@ -134,6 +206,7 @@ function toUpdateRecord(row: {
   replacement: string | null;
   status: string;
   publishedAt: Date | null;
+  scheduledFor: Date | null;
   authorUserId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -151,6 +224,7 @@ function toUpdateRecord(row: {
     replacement: row.replacement,
     status: row.status as UpdateStatus,
     publishedAt: row.publishedAt,
+    scheduledFor: row.scheduledFor,
     authorUserId: row.authorUserId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

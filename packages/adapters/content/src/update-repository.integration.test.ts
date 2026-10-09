@@ -18,6 +18,7 @@ describe.skipIf(!hasDatabase)("PrismaUpdateRepository (integration, MVP-033)", (
 
   afterAll(async () => {
     await db.updatePublishEvent.deleteMany({ where: { updateId: { in: createdUpdateIds } } });
+    await db.updateScheduleEvent.deleteMany({ where: { updateId: { in: createdUpdateIds } } });
     await db.updateItem.deleteMany({ where: { id: { in: createdUpdateIds } } });
     await db.user.deleteMany({ where: { id: { in: createdUserIds } } });
     await db.$disconnect();
@@ -60,7 +61,10 @@ describe.skipIf(!hasDatabase)("PrismaUpdateRepository (integration, MVP-033)", (
     const user = await author("update-repo-publish@example.test");
     const draft = await repo.createUpdate({ ...input("update-repo-draft"), authorUserId: user.id });
     const first = await repo.createUpdate({ ...input("update-repo-first"), authorUserId: user.id });
-    const second = await repo.createUpdate({ ...input("update-repo-second"), authorUserId: user.id });
+    const second = await repo.createUpdate({
+      ...input("update-repo-second"),
+      authorUserId: user.id,
+    });
     createdUpdateIds.push(draft.id, first.id, second.id);
 
     await repo.publishUpdate(first.id, user.id);
@@ -76,11 +80,52 @@ describe.skipIf(!hasDatabase)("PrismaUpdateRepository (integration, MVP-033)", (
     // A hub's "What changed" (MVP-037) asks for one area's updates only.
     const ours = (u: { slug: string }) => u.slug.startsWith("update-repo-");
     const automate = await repo.listPublishedUpdates({ limit: 50, technology: "POWER_AUTOMATE" });
-    expect(automate.filter(ours).map((u) => u.slug)).toEqual(["update-repo-second", "update-repo-first"]);
+    expect(automate.filter(ours).map((u) => u.slug)).toEqual([
+      "update-repo-second",
+      "update-repo-first",
+    ]);
     const bi = await repo.listPublishedUpdates({ limit: 50, technology: "POWER_BI" });
     expect(bi.filter(ours)).toEqual([]);
     const times = await repo.listPublishedUpdateTimes(50);
     expect(times.length).toBeGreaterThanOrEqual(2);
     expect(times[0]?.getTime()).toBeGreaterThanOrEqual(times[1]?.getTime() ?? 0);
+  });
+  it("schedules, cancels and publishes when due, once, by the admin who scheduled it (MVP-050)", async () => {
+    const user = await author("update-repo-schedule@example.test");
+    const scheduler = await author("update-repo-scheduler@example.test");
+    const created = await repo.createUpdate({
+      ...input("update-repo-sched"),
+      authorUserId: user.id,
+    });
+    createdUpdateIds.push(created.id);
+    const dueAt = new Date("2026-02-01T10:00:00.000Z");
+
+    await repo.scheduleUpdate(created.id, new Date("2030-01-01T00:00:00.000Z"), user.id);
+    expect((await repo.cancelUpdateSchedule(created.id, user.id)).scheduledFor).toBeNull();
+    await expect(repo.cancelUpdateSchedule(created.id, user.id)).rejects.toThrow();
+    await repo.scheduleUpdate(created.id, dueAt, scheduler.id);
+
+    const now = new Date("2026-02-01T10:05:00.000Z");
+    const [a, b] = await Promise.all([repo.publishDueUpdates(now), repo.publishDueUpdates(now)]);
+    const published = [...a, ...b].filter((update) => update.id === created.id);
+    expect(published).toHaveLength(1);
+    expect(published[0]).toMatchObject({
+      status: "PUBLISHED",
+      publishedAt: dueAt,
+      scheduledFor: null,
+    });
+
+    const events = await db.updatePublishEvent.findMany({ where: { updateId: created.id } });
+    expect(events.map((event) => event.actorUserId)).toEqual([scheduler.id]);
+    const scheduleEvents = await db.updateScheduleEvent.findMany({
+      where: { updateId: created.id },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(scheduleEvents.map((event) => event.action)).toEqual([
+      "SCHEDULED",
+      "CANCELLED",
+      "SCHEDULED",
+    ]);
+    await expect(repo.scheduleUpdate(created.id, dueAt, user.id)).rejects.toThrow();
   });
 });
