@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **BUG-038 fixed: row-level security on the component library and site switch tables.**
+Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Navigation shell is drafted (twelve components).**
+- **Drafted:** Navigation shell 0.1.0 (sign-in to copy): a side menu that collapses to icons and a bottom bar on phones, from one items table, with badges, items hidden or disabled by key, the current screen from your app, and outputs that place it and your content.
+- **Merged:** #136 (MVP-050), #137 (BUG-038) and the release #138 (`develop` → `main`).
+- **Remaining wave 2:** Tree view, Stepper.
+
+Last updated (previous): 2026-10-09 — **BUG-038 fixed: row-level security on the component library and site switch tables.**
 - A migration turns it on for the four tables, and a new test fails CI for any table created without it. #134 and #135 are merged; MVP-050 is in review (#136).
 
 Last updated (previous): 2026-10-09 — **MVP-050 (scheduled publishing and draft previews) built and in review (QA).**

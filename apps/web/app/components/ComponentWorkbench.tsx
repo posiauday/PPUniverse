@@ -25,6 +25,7 @@ import {
   type Notification,
   type NotificationType,
 } from "./replicas/notify";
+import { useNavShellReplica } from "./replicas/NavShellReplica";
 import { usePaginationReplica } from "./replicas/PaginationReplica";
 import { usePeoplePickerReplica } from "./replicas/PeoplePickerReplica";
 import type { ReplicaApi } from "./replicas/replica";
@@ -65,6 +66,7 @@ const REPLICAS: Record<string, Host> = {
   lcsPeoplePicker: hostFor(usePeoplePickerReplica),
   lcsPagination: hostFor(usePaginationReplica),
   lcsDataTable: hostFor(useDataTableReplica),
+  lcsNavShell: hostFor(useNavShellReplica),
 };
 
 export function hasReplica(componentName: string): boolean {

@@ -254,6 +254,35 @@ const ART: Record<string, ReactNode> = {
       ))}
     </span>
   ),
+  lcsNavShell: (
+    <span className="flex h-24 w-52 overflow-hidden rounded-lg border border-[#e5e7eb] text-left text-[10px] text-[#242424]">
+      <span className="flex w-20 flex-col gap-0.5 border-r border-[#e5e7eb] bg-[#fafafa] p-1.5">
+        <span className="mb-1 px-1 text-[11px] font-semibold">My app</span>
+        {["Home", "Orders", "Customers", "Reports"].map((label) => (
+          <span
+            key={label}
+            className={`relative flex items-center justify-between rounded px-1.5 py-1 ${label === "Orders" ? "bg-[#dfeaf6] font-semibold text-[#0b5190]" : ""}`}
+          >
+            {label === "Orders" ? (
+              <span className="absolute top-1 bottom-1 left-0 w-0.5 bg-[#0f6cbd]" />
+            ) : null}
+            {label}
+            {label === "Orders" ? (
+              <span className="grid size-3.5 place-items-center rounded-full bg-[#0f6cbd] text-[8px] text-white">
+                3
+              </span>
+            ) : null}
+          </span>
+        ))}
+      </span>
+      <span className="flex flex-1 flex-col gap-1.5 p-2">
+        <span className="text-[11px] font-semibold">Orders</span>
+        <span className="h-1.5 w-[90%] rounded bg-[#ededed]" />
+        <span className="h-1.5 w-[70%] rounded bg-[#ededed]" />
+        <span className="h-1.5 w-[80%] rounded bg-[#ededed]" />
+      </span>
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">

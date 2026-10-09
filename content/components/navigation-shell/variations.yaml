@@ -1,0 +1,24 @@
+# Named presets of lcsNavShell: each sets inputs with Power Fx formulas.
+- name: Collapsed
+  description: The side menu collapsed to its icons, with the badge as a dot.
+  settings:
+    StartCollapsed: =true
+- name: Phone
+  description: A phone-width screen, where the menu is a bottom bar.
+  settings:
+    ScreenWidth: =390
+    ScreenHeight: =600
+- name: For a role
+  description: Reports hidden and Settings shown but not allowed, as for a user without those rights.
+  settings:
+    HiddenKeys: ="reports"
+    DisabledKeys: ="settings"
+- name: Current screen
+  description: The app marks the screen the user is on.
+  settings:
+    CurrentKey: ="customers"
+- name: Dark
+  description: In a dark app, in your brand colour.
+  settings:
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)
