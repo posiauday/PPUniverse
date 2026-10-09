@@ -5382,3 +5382,11 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 **Not yet:** the product owner's paste-test. New to this library: the button icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide modern buttons in a gallery seven to a row.
 
 **Next:** the Data table (sign-in to copy).
+
+## 2026-10-09 — Fix: the feedback box closes after a note is sent (BUG-036)
+
+**Asked:** the product owner's screenshot: after writing a note in "Did this fix it?" and sending it, the button changed to the thanks, but the box stayed open.
+
+**Changed:** once a note is sent, the form closes and the thanks takes its place, with focus on it; the note is cleared (`apps/web/app/learn/GuideFeedback.tsx`). The gate's `learn-report-sent` state now checks that the box is gone and focus is on the thanks.
+
+**Checked:** web typecheck and lint; the gate's guide feedback states (votes and notes) locally in Chromium and WebKit on a production build: 42 passed.
