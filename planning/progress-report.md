@@ -5495,3 +5495,21 @@ Parameters are named `NodeKey`, so a maker's `LookUp(colNodes, Key = NodeKey)` n
 **Not yet:** the product owner's paste-test (the long rows formula, the icon names and the `Record` output are new to us).
 
 **Next:** Stepper, the last of wave 2.
+
+## 2026-10-09 — Component library: Stepper (MVP-049, wave 2, In Progress)
+
+**Asked:** keep working overnight; the Stepper is the last of the approved wave 2. Open to everyone. Built to the approved research row: step validation through a `CanLeaveStep(Step)` hook so users can't skip required steps, progress and a summary, and a `GoToStep()` action.
+
+**Built** `lcsStepper` 0.1.0, our own design:
+- the steps from a table (Title, Description), **horizontal or vertical**: finished steps show a ✓ in your colour, the current one a thicker ring and a bold title, and the lines between fill as you go;
+- **`CanLeaveStep(Step)`**, an input function you write: Next stays on a step it doesn't allow and says so (`BlockedText`), and `GoToStep()` stops at the first step it doesn't allow, so none is skipped;
+- **Back and Next built in** (the last step's Next says `FinishText`, "Submit", and runs `OnFinish()`), or your own buttons with `Next()` and `Back()`; select an earlier step to go back (`AllowJumpBack`);
+- `OnStepChange(NewStep, OldStep)`; outputs `CurrentStep`, `StepCount`, `CurrentTitle`, `IsFirst`, `IsLast`, `Progress`; actions `GoToStep`, `Next`, `Back`, `Reset`; every word an input, including what screen readers hear (`StepText` "Step {n} of {total}", `DoneText`, `CurrentText`); `AccentColor`, `Theme`.
+
+The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so the blocked message and moving on can be tried.
+
+**Checked:** the component gate (16 folders); web typecheck, lint and component tests (38, new: `StepText` filling, and `GoToStep` stopping at the first step it can't leave, never checking going back, and keeping to the last step); a local axe, overflow and behaviour run (Next blocked without a name, moving on with one, going back to step 1, through to Submit, then Halfway, Vertical, Titles only, Dark) at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test (`CanLeaveStep` called inside the component and inside a `Filter`, the ✓ character, the circles' border).
+
+**Wave 2 is drafted:** Date and time picker, People picker, Pagination, Data table, Navigation shell, Tree view and Stepper. **Next:** wave 3 (Kanban board, screen templates, charts last), when the product owner has paste-tested wave 2.

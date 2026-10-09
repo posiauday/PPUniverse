@@ -276,3 +276,20 @@ New for this library, so check the paste first: the rows come from one long form
 | Input | `CurrentKey` `"q3"` and `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx is selected inside its open folders |
 | Input | `ShowIcons` false, `IndentSize` 28 | Labels only, indented further |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node |
+
+## Stepper: `lcsStepper` → name it `stpRequest`
+
+New for this library, so check the paste first: an `InputFunction` that returns true or false (`CanLeaveStep`) called inside the component, also inside a `Filter` (`GoToStep`); a ✓ character in a modern text; `BorderColor` and `BorderThickness` on a container (the step circles); and the modern button's `BasePaletteColor`. It pastes with four sample steps.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Four circles joined by lines: 1 ringed in blue and bold "Your details", 2 to 4 grey; "Step 1 of 4", Back greyed, a blue Next |
+| Input | `CanLeaveStep` to `If(Step = 1, !IsBlank(TextInput1.Value), true)` with an empty TextInput1; select Next | It stays on step 1 and says "Complete this step to continue." in red |
+| Event | `OnStepChange` to `Notify("Step " & NewStep & " from " & OldStep)`; type a name, select Next | "Step 2 from 1"; step 1 shows a ✓ in blue and the line to step 2 turns blue |
+| Input | Select the ✓ of step 1 | Back on step 1 ("Step 1 from 2") |
+| Event | `OnFinish` to `Notify("Submitted")`; go to step 4 and select Submit | "Submitted" |
+| Action | A button: `stpRequest.GoToStep(4)` with TextInput1 empty, from step 1 | It stops on step 1 and shows the message |
+| Output | A label: `stpRequest.CurrentTitle & " " & stpRequest.Progress` | "Approver 0.5" on step 3 |
+| Input | `Orientation` `"Vertical"` | The steps in a column, each title beside its circle with its description under it |
+| Input | `ShowButtons` false; your own button with `stpRequest.Next()` | The footer is gone; your button moves on as Next does, and doesn't run OnStepChange |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, purple circles and Next |

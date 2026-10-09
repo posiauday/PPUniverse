@@ -19,6 +19,7 @@ import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
 import { badgeColours, progressParts, rowsFor } from "./replicas/DataTableReplica";
 import { ITEMS, menuOf, shellLayout } from "./replicas/NavShellReplica";
 import { NODES, visibleRows } from "./replicas/TreeViewReplica";
+import { goToStep, stepLabel } from "./replicas/StepperReplica";
 import {
   avatarColour,
   fieldMessage,
@@ -54,6 +55,7 @@ describe("ComponentWorkbench", () => {
     "lcsDataTable",
     "lcsNavShell",
     "lcsTreeView",
+    "lcsStepper",
   ])("renders a live replica and its variations for %s", (name) => {
     expect(hasReplica(name)).toBe(true);
     const html = render(name);
@@ -268,6 +270,19 @@ describe("replica helpers match the components' own formulas", () => {
       HasChildren: true,
     }));
     expect(visibleRows(chain, new Set(chain.map((node) => node.Key)))).toHaveLength(5);
+  });
+
+  it("the stepper fills in StepText, and GoToStep stops at the first step it can't leave", () => {
+    expect(stepLabel("Step {n} of {total}", 2, 4)).toBe("Step 2 of 4");
+    expect(stepLabel("{n}/{total}", 3, 5)).toBe("3/5");
+    const all = () => true;
+    expect(goToStep(4, 1, 4, all)).toEqual({ step: 4, blockedAt: 0 });
+    // Step 2 isn't complete: going from 1 to 4 stops there.
+    expect(goToStep(4, 1, 4, (step) => step !== 2)).toEqual({ step: 2, blockedAt: 2 });
+    // Going back never checks.
+    expect(goToStep(1, 3, 4, () => false)).toEqual({ step: 1, blockedAt: 0 });
+    // Past the end is the last step.
+    expect(goToStep(9, 1, 4, all)).toEqual({ step: 4, blockedAt: 0 });
   });
 
   it("ItemsFromText splits on commas and trims", () => {
