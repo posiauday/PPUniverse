@@ -22,3 +22,8 @@
   settings:
     Theme: ="Dark"
     AccentColor: =RGBA(124, 58, 237, 1)
+- name: Menu only
+  description: No avatar and no theme button.
+  settings:
+    ShowUser: =false
+    ShowThemeToggle: =false

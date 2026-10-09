@@ -241,7 +241,7 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 
 ## Navigation shell: `lcsNavShell` → name it `navMain`
 
-New for this library, so check the paste first: the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the icon names `Home`, `Cart`, `People`, `Document`, `Settings` and `Navigation` (Home, Cart, People, Settings and Navigation show, from the first paste-test, 2026-10-09). Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
+New for this library, so check the paste first: the modern Avatar (`ModernAvatar@1.0.0`), an `Image` input (`UserImage`), an animated SVG in an Image control (the sun and moon), the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the icon names `Home`, `Cart`, `People`, `Document`, `Settings` and `Navigation` (Home, Cart, People, Settings and Navigation show, from the first paste-test, 2026-10-09). Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
 
 Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y, Width and Height to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`.
 
@@ -257,7 +257,12 @@ Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y
 | Input | `ScreenWidth` `390` | A bottom bar along the bottom: five icons with labels, the current one in a pale pill |
 | Action | A button: `navMain.SetCollapsed(true)` | The side menu collapses |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text on dark grey, a purple bar and badge |
-| Keyboard | Tab through the menu | Each item and the ☰ button take focus; Enter selects |
+| Input | Nothing else, at the bottom of the side menu | A coloured circle with AB, "Avery Brooks" and "Admin", and a sun button at the right |
+| Event | `OnThemeChange` to `Notify(NewTheme)`; select the sun | "Dark"; the sun's rays turn away and it becomes a moon; the menu turns dark |
+| Event | `OnUserSelect` to `Notify("Profile")`; select the avatar | "Profile" |
+| Input | `UserName` `User().FullName`, `UserDetail` `User().Email`, `UserImage` `User().Image` | Your own picture (or initials), name and email |
+| Input | Collapse the menu | The avatar above the sun or moon, both in the 64-pixel menu, even if the component is still 240 wide |
+| Keyboard | Tab through the menu | Each item, the ☰ button, the avatar and the theme button take focus; Enter selects |
 
 ## Tree view: `lcsTreeView` → name it `treeDocs`
 

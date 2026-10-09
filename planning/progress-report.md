@@ -5578,3 +5578,24 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - Web typecheck, lint and component tests (38).
 
 **Next:** the product owner pastes the new YAML again.
+
+## 2026-10-09 — Navigation shell: who is signed in, a light and dark switch, and the collapsed width
+
+**Asked:** after re-pasting, the product owner showed the collapsed menu (icons centred in the full 240-pixel box) and asked for the person signed in, with an avatar, and an animated light and dark switch beside it, at the bottom of the menu (docs/final-decisions.md, 2026-10-09, "Navigation shell: who is signed in, and a light and dark switch").
+
+**Changed** (`lcsNavShell`, still a draft 0.1.0):
+- **Collapsed width:** the side menu now draws itself at its own width (64 collapsed, `ExpandedWidth` open), not the component's box. It looks right even when the box stays 240 wide; the guide still says to set Width from `ShellWidth`.
+- **The footer:**
+  - who is signed in, with the modern Avatar control (picture or initials), name and detail (`UserName`, `UserDetail`, `UserImage`, an `Image` input); selecting it runs `OnUserSelect()`;
+  - beside it, a sun and moon button, drawn as an animated SVG in an Image control: going dark, the rays turn away and the disc becomes a crescent; going light, the reverse; half a second, and still for reduced motion.
+  - The button switches the menu's own theme and runs `OnThemeChange(NewTheme)`; `CurrentTheme` is an output.
+  - Collapsed, the avatar and the button stack. `ShowUser` and `ShowThemeToggle` turn them off; a "Menu only" preset.
+- **The live preview** draws the same SVG as the YAML (a test compares them), and its screen follows `CurrentTheme`, as the guide wires it.
+
+**Checked:**
+- The component gate (30 checks).
+- Web typecheck, lint and component tests (39; new: the preview's SVG equals the YAML's, and initials).
+- The SVG's end states rendered in Chromium (crescent moon and sun).
+- A local axe, overflow and layout run through selecting, the theme switch both ways, the avatar, collapsing and the six presets, at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test of the new footer (`ModernAvatar@1.0.0` and the animated SVG are new to us).

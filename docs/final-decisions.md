@@ -2300,3 +2300,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 
 1. **Admins can change their display name and avatar as often as they like.** The daily limit (ten changes, `COMMENT_LIMITS.profileChangesPerDay`) stays for everyone else, against abuse.
 2. Whether someone is an admin is read from the database on each request, as for every admin rule.
+
+## 2026-10-09 — Navigation shell: who is signed in, and a light and dark switch
+
+**Source:** direct product-owner instruction in this session, after the first paste-test of the Navigation shell: "add dark and light theme icon at bottom, and who logged in using avatar or appropriate control, and beside that the icon to change to dark or light, making it animated if possible with SVG".
+
+1. **The side menu's footer shows who is signed in** with the modern Avatar control (their picture, or initials), their name and a detail line, all inputs (`UserName`, `UserDetail`, `UserImage`). Selecting it runs `OnUserSelect()`.
+2. **Beside it, a light and dark switch:** a sun that turns into a moon, animated in SVG (an Image control showing an animated SVG), still for people who ask for reduced motion. It switches the menu's theme at once and runs `OnThemeChange(NewTheme)` so the app can follow; `CurrentTheme` is an output.
+3. **Collapsed, the menu draws itself 64 pixels wide** even if the component's box is wider, after the paste-test showed icons centred in the full width.

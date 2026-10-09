@@ -17,7 +17,7 @@ import { formatProblem } from "./replicas/TextFieldReplica";
 import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
 import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
 import { badgeColours, progressParts, rowsFor } from "./replicas/DataTableReplica";
-import { ITEMS, menuOf, shellLayout } from "./replicas/NavShellReplica";
+import { ITEMS, initialsOf, menuOf, shellLayout, themeSvg } from "./replicas/NavShellReplica";
 import { NODES, visibleRows } from "./replicas/TreeViewReplica";
 import { goToStep, stepLabel } from "./replicas/StepperReplica";
 import {
@@ -242,6 +242,22 @@ describe("replica helpers match the components' own formulas", () => {
     expect(hidden.currentKey).toBe("home");
     expect(menuOf(ITEMS, "home", null).currentKey).toBe("orders");
     expect(menuOf(ITEMS, "", "customers").currentKey).toBe("customers");
+  });
+
+  it("the navigation shell's theme picture is the YAML's own SVG, and initials are first and last", async () => {
+    const { readFileSync } = await import("node:fs");
+    const yaml = readFileSync(
+      new URL("../../../../content/components/navigation-shell/component.yaml", import.meta.url),
+      "utf8",
+    );
+    const [moon, sun] = [...yaml.matchAll(/"(<svg.*?<\/svg>)"/g)].map((match) =>
+      match[1]!.replaceAll('" & ink & "', "#242424"),
+    );
+    expect(themeSvg(true, "#242424")).toBe(moon);
+    expect(themeSvg(false, "#242424")).toBe(sun);
+    expect(initialsOf("Avery Brooks")).toBe("AB");
+    expect(initialsOf("  priya  van der nair ")).toBe("PN");
+    expect(initialsOf("Cher")).toBe("C");
   });
 
   it("the tree view lists open nodes' children under their parents, up to five levels", () => {
