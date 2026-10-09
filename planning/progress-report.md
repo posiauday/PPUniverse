@@ -5515,3 +5515,11 @@ The live preview measures its own frame as `Parent.Width`, so on a phone-width p
 **Not yet:** the product owner's paste-test. New and unverified in Studio: the modern button's `Align`, padding and `IconStyle`, the icon names, and above all setting the component's own size from its outputs (the checklist gives the fallback).
 
 **Next:** Tree view, then Stepper.
+
+## 2026-10-09 — Admins aren't limited in profile changes
+
+**Asked:** the product owner, choosing an avatar, got "You've changed your profile a few times today. Please try again tomorrow." and said an admin shouldn't (docs/final-decisions.md, 2026-10-09, "Admins aren't limited in profile changes").
+
+**Changed:** `POST /api/account/profile` skips the daily allowance for an admin, by the role in the database (`requireAdmin`). Everyone else keeps the limit of ten changes a day. A change of rule at the product owner's request, not a defect: the limit worked as decided for MVP-040.
+
+**Checked:** a new route test (a reader past the limit gets "too-many"; an admin isn't counted and saves); the comment and profile route tests; web typecheck and lint.
