@@ -239,7 +239,7 @@ export function useTreeViewReplica(): ReplicaApi {
         <div
           className={`flex h-[400px] flex-col overflow-hidden rounded-xl border ${
             dark ? "border-[#424242] bg-[#202020]" : "border-[#e5e7eb] bg-white"
-          } ${premium ? "shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)]" : ""}`}
+          } ${premium ? "m-2 shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)]" : ""}`}
         >
           {inputs.ShowTitle ? (
             <p className="shrink-0 px-4 pt-3.5 pb-3 text-[15px] leading-6 font-semibold">

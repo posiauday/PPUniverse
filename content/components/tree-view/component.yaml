@@ -222,10 +222,10 @@ ComponentDefinitions:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout
           Properties:
-            X: =0
-            Y: =0
-            Width: =Parent.Width
-            Height: =Parent.Height
+            X: =If((lcsTreeView.Look = "Premium"), 8, 0)
+            Y: =If((lcsTreeView.Look = "Premium"), 8, 0)
+            Width: =Max(0, Parent.Width - 2 * If((lcsTreeView.Look = "Premium"), 8, 0))
+            Height: =Max(0, Parent.Height - 2 * If((lcsTreeView.Look = "Premium"), 8, 0))
             Fill: =If(lcsTreeView.Theme = "Dark", RGBA(32, 32, 32, 1), RGBA(255, 255, 255, 1))
             BorderColor: =If(lcsTreeView.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
             BorderThickness: =1
@@ -237,9 +237,9 @@ ComponentDefinitions:
       - lblTreeTitle:
           Control: ModernText@1.0.0
           Properties:
-            X: =16
-            Y: =14
-            Width: =Max(0, Parent.Width - 32)
+            X: =16 + If((lcsTreeView.Look = "Premium"), 8, 0)
+            Y: =14 + If((lcsTreeView.Look = "Premium"), 8, 0)
+            Width: =Max(0, Parent.Width - 32 - 2 * If((lcsTreeView.Look = "Premium"), 8, 0))
             Height: =24
             Visible: =lcsTreeView.ShowTitle
             Text: =lcsTreeView.Title
@@ -256,10 +256,10 @@ ComponentDefinitions:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            X: =8
-            Y: =If(lcsTreeView.ShowTitle, 52, 8)
-            Width: =Max(0, Parent.Width - 16)
-            Height: =Max(0, Parent.Height - If(lcsTreeView.ShowTitle, 52, 8) - 8)
+            X: =8 + If((lcsTreeView.Look = "Premium"), 8, 0)
+            Y: =If(lcsTreeView.ShowTitle, 52, 8) + If((lcsTreeView.Look = "Premium"), 8, 0)
+            Width: =Max(0, Parent.Width - 16 - 2 * If((lcsTreeView.Look = "Premium"), 8, 0))
+            Height: =Max(0, Parent.Height - If(lcsTreeView.ShowTitle, 52, 8) - 8 - 2 * If((lcsTreeView.Look = "Premium"), 8, 0))
             Items: |-
               =With(
                   {l0: With(

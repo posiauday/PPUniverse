@@ -127,6 +127,10 @@ export function useStepperReplica(): ReplicaApi {
   // The classic buttons' HoverFill in the YAML: 8% white on dark, 5% black on light.
   const hover = dark ? "hover:bg-white/[0.08]" : "hover:bg-black/[0.05]";
   const cardLine = dark ? "border-[#424242]" : "border-[#e5e7eb]";
+  const premium = inputs.Look === "Premium";
+  const accentTitle = dark
+    ? "text-[color-mix(in_srgb,var(--accent)_55%,white)]"
+    : "text-[color-mix(in_srgb,var(--accent)_80%,black)]";
 
   const circle = (n: number) => {
     const done = n < step;
@@ -175,7 +179,7 @@ export function useStepperReplica(): ReplicaApi {
               n < count ? (
                 <span
                   aria-hidden="true"
-                  className={`absolute top-12 left-[23px] h-[calc(100%-52px)] w-0.5 rounded ${done ? "bg-[var(--accent)]" : line}`}
+                  className={`absolute top-12 h-[calc(100%-52px)] rounded ${premium ? "left-[22.5px] w-[3px]" : "left-[23px] w-0.5"} ${done ? "bg-[var(--accent)]" : line}`}
                 />
               ) : null
             ) : (
@@ -183,13 +187,13 @@ export function useStepperReplica(): ReplicaApi {
                 {n > 1 ? (
                   <span
                     aria-hidden="true"
-                    className={`absolute top-[23px] left-0 h-0.5 w-[calc(50%-28px)] rounded ${n <= step ? "bg-[var(--accent)]" : line}`}
+                    className={`absolute left-0 w-[calc(50%-28px)] rounded ${premium ? "top-[22.5px] h-[3px]" : "top-[23px] h-0.5"} ${n <= step ? "bg-[var(--accent)]" : line}`}
                   />
                 ) : null}
                 {n < count ? (
                   <span
                     aria-hidden="true"
-                    className={`absolute top-[23px] right-0 h-0.5 w-[calc(50%-28px)] rounded ${done ? "bg-[var(--accent)]" : line}`}
+                    className={`absolute right-0 w-[calc(50%-28px)] rounded ${premium ? "top-[22.5px] h-[3px]" : "top-[23px] h-0.5"} ${done ? "bg-[var(--accent)]" : line}`}
                   />
                 ) : null}
               </>
@@ -207,7 +211,7 @@ export function useStepperReplica(): ReplicaApi {
               {circle(n)}
               <span className={`min-w-0 ${vertical ? "" : "mt-2 w-full px-1 text-center"}`}>
                 <span
-                  className={`block truncate text-[13px] ${current ? "font-semibold" : ""} ${n > step ? sub : ink}`}
+                  className={`block truncate text-[13px] ${current ? "font-semibold" : ""} ${current && premium ? accentTitle : n > step ? sub : ink}`}
                 >
                   {item.Title}
                 </span>
@@ -245,8 +249,10 @@ export function useStepperReplica(): ReplicaApi {
         className={`w-[720px] max-w-full text-left ${SEGOE} ${ink}`}
       >
         <div
-          className={`rounded-2xl border p-5 ${cardLine} ${dark ? "bg-[#242424]" : "bg-white"} ${
-            inputs.Look === "Premium" ? "shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)]" : ""
+          className={`border p-5 ${cardLine} ${dark ? "bg-[#242424]" : "bg-white"} ${
+            premium
+              ? "m-2 rounded-[20px] shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)]"
+              : "rounded-2xl"
           }`}
         >
           <div className={vertical ? "max-w-[320px]" : ""}>{steps}</div>
@@ -266,7 +272,7 @@ export function useStepperReplica(): ReplicaApi {
                     </p>
                     <span
                       aria-hidden="true"
-                      className={`mt-1.5 block h-1 w-[140px] overflow-hidden rounded ${line}`}
+                      className={`mt-1.5 block w-[140px] overflow-hidden rounded ${premium ? "h-1.5" : "h-1"} ${line}`}
                     >
                       <span
                         className="block h-full rounded bg-[var(--accent)] motion-safe:transition-[width] motion-safe:duration-300"
