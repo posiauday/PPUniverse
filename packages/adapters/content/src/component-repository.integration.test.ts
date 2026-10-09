@@ -82,6 +82,30 @@ describe.skipIf(!hasDatabase)("PrismaComponentRepository (integration, MVP-049)"
     expect(events.map((event) => event.action)).toEqual(["TESTED", "PUBLISHED"]);
   });
 
+  it("moves a published component back to Coming soon, keeping its test record", async () => {
+    const user = await admin("component-repo-back@example.test");
+    const created = await create("component-repo-back", user.id);
+    await expect(repo.moveToComingSoon(created.id, user.id)).rejects.toThrow(/published/);
+    await repo.markTested(created.id, "3.2", user.id);
+    await repo.publish(created.id, user.id);
+
+    const back = await repo.moveToComingSoon(created.id, user.id);
+    expect(back.status).toBe("DRAFT");
+    expect(back.comingSoon).toBe(true);
+    expect(back.testedAt).not.toBeNull();
+    expect(await repo.findPublicBySlug("component-repo-back")).toBeNull();
+    expect((await repo.findComingSoonBySlug("component-repo-back"))?.title).toBeTruthy();
+
+    const last = await db.componentEvent.findFirst({
+      where: { componentId: created.id },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(last?.action).toBe("SETTINGS_CHANGED");
+    expect(last?.detail).toMatchObject({ status: { from: "PUBLISHED", to: "DRAFT" } });
+    // Published again in one step: the test record was kept.
+    expect((await repo.publish(created.id, user.id)).status).toBe("PUBLISHED");
+  });
+
   it("clears the test record when a draft's YAML changes, and keeps it when it doesn't", async () => {
     const user = await admin("component-repo-replace@example.test");
     const created = await create("component-repo-replace", user.id);

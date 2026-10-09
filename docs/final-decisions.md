@@ -2357,3 +2357,19 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 3. **Trademarks:** the path is `/azure` (never an `azure.` subdomain or a product name with Azure in it); the footer's trademark line now names Azure, and the teaser says the site is independent of Microsoft.
 4. **Room in the bar:** with Azure added, the one-row bar no longer fit at 1280 px with the full search box. Below 1536 px (2xl) the search is its icon button, as it already was below 1280; the full search box shows from 1536 px, where the bar may grow to 84rem (1,344 px) so it still fits on one row.
 
+## 2026-10-09 — Component library page: one grid, and a Navigation shell preview like an app
+
+**Source:** direct product-owner feedback in this session, with screenshots: the Navigation shell's preview "very ugly and not professional" next to how neat it is in Studio; "the component screens need redesign as well, not the individual but the one where it is listed all"; on the cards, "extra information that might not be needed at that point" and a cut-off Navigation shell picture; and "why does sign-in show in the side bar when I'm already signed in".
+
+1. **The library page** shows every component in one grid (three across on wide screens), with category filters (`?category=`) and counts, instead of one section per category. Each card: the picture, its category, the name, one line (the summary's first sentence, at most two lines), "Tested in Studio", "Sign in to copy" or "Free to copy", and "Try it". The property counts move to the component's own page.
+2. **Whole-screen components** (the Navigation shell) fill the preview's screen edge to edge, with a sample app page beside the menu (tiles and a list) instead of grey bars. A fixed-width variation (Phone) still floats like a device.
+3. **The Navigation shell's card picture** is redrawn to fit, with icons, the badge and the signed-in footer.
+4. **The library list beside each component** shows "sign-in" only to signed-out readers.
+
+## 2026-10-09 — Component library: back to Coming soon
+
+**Source:** direct product-owner report: "the check mark for coming soon, I turned it on too, saved and publish but still it was not showing as coming soon like we discussed before, and the check box is now not appearing once saved". The 2026-10-09 rule ("Publishing makes it a normal component") was working as written, but nothing on the admin page said so, and there was no way back.
+
+1. **A published component can go back to Coming soon** from `/admin/components`: "Back to Coming soon" makes it a draft with Coming soon on. Its paste-test record is kept, so it can be published again in one step; like any draft, the next import updates it from its files.
+2. **The admin page says what Coming soon does:** on a draft marked Coming soon, "It shows as Coming soon until you publish it. Publishing makes it a normal component"; on a published one, the way back.
+

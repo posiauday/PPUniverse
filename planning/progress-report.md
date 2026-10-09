@@ -5725,3 +5725,22 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Checked:** web tests (381) and the gate's unit tests (86), typecheck and lint; the bar still fits on one row at 1024 and 1280 px.
 
 **Open:** the columns and first guides (open question 76).
+
+## 2026-10-09 — Component library page, Navigation shell preview, and back to Coming soon
+
+**Asked:** the product owner's feedback on the live library (docs/final-decisions.md, 2026-10-09, "Component library page: one grid, and a Navigation shell preview like an app" and "Component library: back to Coming soon").
+
+**Changed:**
+- `apps/web/app/components/page.tsx`: one grid with category filters and counts; shorter cards (category, name, one line, two badges, "Try it"); no property counts on cards.
+- `ComponentWorkbench.tsx` and `replica.ts`: a `fill` option, so a whole-screen component fills the preview's screen; `NavShellReplica.tsx` uses it at full width, with a sample app page beside the menu; Phone still floats like a device.
+- `ComponentArt.tsx`: the Navigation shell's card picture redrawn so it fits (BUG-042).
+- `LibraryNav.tsx`: "sign-in" only for signed-out readers (BUG-041).
+- Back to Coming soon: `moveToComingSoon` in the component repository (domain interface, Prisma adapter, integration test), `POST /api/admin/components/[id]/coming-soon` (admins only, 409 unless published), the admin button, and wording on the admin page about what publishing does to Coming soon. Audited as a settings change with the status move in its detail (no migration).
+- Research for the product owner: `docs/research/2026-10-09-microsoft-icons-logos-screenshots.md` (official icons, logos and screenshots) and open question 77.
+
+**Checked:**
+- Web component tests (42) and the component repository's integration tests (6) against a local database. Typecheck and lint pass.
+- A local axe and overflow run over the library page (all and filtered), the Navigation shell page (Default, Phone, Premium dark, Collapsed) and /azure at 375 and 1280 px, light and dark: 28 states, clean.
+- Screenshots checked.
+
+**Security:** the new route is admins only (server check, as publish), and it changes only status and Coming soon, in a transaction with its audit event.
