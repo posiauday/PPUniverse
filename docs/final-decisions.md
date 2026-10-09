@@ -2270,3 +2270,19 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 4. **Learn (Soon)** is the Learn module (topics and lessons), teased as coming soon until it is switched on.
 5. **The theme button** is an icon only, just before the search box, with no round border; the sun turns into a moon, animated, and back (no animation with reduced motion).
 6. Supersedes the top-bar part of "Top bar names, AI search readiness, and comments" (2026-10-07): Fixes and Patterns as top-bar links, and the Learn button.
+
+## 2026-10-09 — Data table: our own, on a gallery
+
+**Source:** direct product-owner answer in this session. Asked how to handle the planned Data table now that Microsoft ships a modern Data Grid control (`ModernDataGrid@1.1.0`: sorting, search, row checkboxes, virtualised rows, button columns; Microsoft Learn, "Data Grid modern control in canvas apps"), the product owner chose "Build our own on a gallery" over building on the Data Grid or skipping the Data table, because "Data grid has design limitations but galleries can [be] designed like modern UI too and OnSelect works best to open [an] item".
+
+1. **lcsDataTable is built on a gallery**, as planned in the 2026-10-08 build order: columns from a table input, sorting and paging as events, row selection and bulk actions, row actions, a sticky header, density, empty and loading states.
+2. **Selecting a row opens it:** the row itself is the main action (`OnRowSelect`), with checkboxes and row actions beside it.
+3. **Sign-in to copy**, as already decided.
+4. **The look** (direct product-owner instruction, the same day, sharing a table component's YAML from elsewhere: "for data is this useful? I don't want grid but I want you to design the gallery to look like this"): **table, card and list views** with a view toggle; coloured **status and priority pills** from a style table; a **segmented progress bar**; row hover; a **row menu** (view, edit, delete); and a clear **empty state**. Built by us from scratch in that visual style: none of the shared YAML, its colour-string parsing, its sample rows or its names is reused, and its problems are not carried over (rows that can't be selected in table view, unnamed click areas, `AccessAppScope`, fixed columns).
+
+## 2026-10-09 — Admin: scheduled publishing and draft previews next
+
+**Source:** direct product-owner answer in this session, choosing from the agent's review of missing admin features (suspend a user, upload scan review, orders and refunds, an email log, scheduled publishing and draft previews, redirects): "scheduled publishing and draft previews".
+
+1. **Scheduled publishing** and **draft preview links** for articles and platform updates are the next admin feature (MVP-050), after the Data table.
+2. The other items in the review stay unscheduled until the product owner chooses them.

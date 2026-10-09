@@ -16,6 +16,7 @@ import { itemsFromText, tabText } from "./replicas/TabsReplica";
 import { formatProblem } from "./replicas/TextFieldReplica";
 import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
 import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
+import { badgeColours, progressParts, rowsFor } from "./replicas/DataTableReplica";
 import {
   avatarColour,
   fieldMessage,
@@ -48,6 +49,7 @@ describe("ComponentWorkbench", () => {
     "lcsDatePicker",
     "lcsPeoplePicker",
     "lcsPagination",
+    "lcsDataTable",
   ])("renders a live replica and its variations for %s", (name) => {
     expect(hasReplica(name)).toBe(true);
     const html = render(name);
@@ -188,6 +190,23 @@ describe("replica helpers match the components' own formulas", () => {
     expect(paging(0, 10, 1)).toMatchObject({ pageCount: 1, firstRow: 0, rowsOnPage: 0 });
     expect(summary(1312, 25, 2, "orders")).toBe("26–50 of 1,312 orders");
     expect(summary(0, 10, 1, "orders")).toBe("No orders");
+  });
+
+  it("the data table sorts as the screen's Rows formula does, and reads pills and progress", () => {
+    expect(
+      rowsFor(0, false)
+        .map((row) => row.C1)
+        .slice(0, 2),
+    ).toEqual(["#1001", "#1002"]);
+    expect(rowsFor(2, false)[0]!.C2).toBe("Amara Okafor");
+    expect(rowsFor(2, true)[0]!.C2).toBe("Sam Rivera");
+    expect(rowsFor(5, true)[0]!.C5).toBe("Mar 24");
+    expect(rowsFor(6, false)[0]!.C6).toBe("High");
+    expect(progressParts("2/4")).toEqual({ done: 2, total: 4 });
+    expect(progressParts("3/30")).toEqual({ done: 3, total: 10 });
+    expect(progressParts("nonsense")).toEqual({ done: 0, total: 1 });
+    expect(badgeColours(" in PROGRESS ", false)).toEqual(["#dbeafe", "#1e40af"]);
+    expect(badgeColours("Unknown", false)).toEqual(["#f3f4f6", "#4b5563"]);
   });
 
   it("ItemsFromText splits on commas and trims", () => {
