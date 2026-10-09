@@ -25,7 +25,7 @@ export const ITEMS: readonly NavItem[] = [
   { Key: "home", Label: "Home", Icon: "Home", Badge: "" },
   { Key: "orders", Label: "Orders", Icon: "Cart", Badge: "3" },
   { Key: "customers", Label: "Customers", Icon: "People", Badge: "" },
-  { Key: "reports", Label: "Reports", Icon: "ChartMultiple", Badge: "" },
+  { Key: "reports", Label: "Reports", Icon: "Document", Badge: "" },
   { Key: "settings", Label: "Settings", Icon: "Settings", Badge: "" },
 ];
 
@@ -130,7 +130,12 @@ const GLYPHS: Record<string, ReactNode> = {
       <path d="M15.5 14.4c2.5-.3 4.5 1.3 5 4.1" />
     </>
   ),
-  ChartMultiple: <path d="M4 20V10M10 20V5M16 20v-7M21 20H3" />,
+  Document: (
+    <>
+      <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+      <path d="M14 3v5h5" />
+    </>
+  ),
   Settings: (
     <>
       <circle cx="12" cy="12" r="3" />
@@ -146,7 +151,7 @@ function Glyph({ name, filled }: { name: string; filled: boolean }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
       className="size-5 shrink-0"
-      fill={filled && name !== "ChartMultiple" && name !== "Navigation" ? "currentColor" : "none"}
+      fill={filled && name !== "Navigation" ? "currentColor" : "none"}
       fillOpacity={filled ? 0.18 : 0}
       stroke="currentColor"
       strokeWidth={filled ? 2 : 1.7}

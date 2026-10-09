@@ -59,7 +59,7 @@ Table(
     { Key: "home", Label: "Home", Icon: "Home", Badge: "" },
     { Key: "orders", Label: "Orders", Icon: "Cart", Badge: Text(CountRows(Filter(Orders, Status = "New"))) },
     { Key: "customers", Label: "Customers", Icon: "People", Badge: "" },
-    { Key: "reports", Label: "Reports", Icon: "ChartMultiple", Badge: "" },
+    { Key: "reports", Label: "Reports", Icon: "Document", Badge: "" },
     { Key: "settings", Label: "Settings", Icon: "Settings", Badge: "" }
 )
 ```
@@ -113,7 +113,7 @@ gblMenuCollapsed
 
 - The menu is one level. Group related screens under one item and use **Tabs** on that screen.
 - The bottom bar shows the first `MaxBottomItems` items (5 by default). Put the ones people use most first.
-- Icons are Fluent icon names, as the modern button uses them. A name it doesn't know shows no icon.
+- Icons are names from Power Apps' own set of about 180 (the same set as the classic icons), as the modern button and Icon controls use them: `Home`, `People`, `Settings`, `Cart`, `Document`, `Folder`, `Mail`, `Calendar` and so on. A name outside the set shows no icon, so pick from the Icon list in Studio.
 - A canvas component can't place itself, so set its X, Y, Width and Height from the outputs, as shown above.
 - On each screen it's a separate copy. Keep the menu the same everywhere with a global table (`gblMenu`) in `App.Formulas`, and set `Items` to it.
 

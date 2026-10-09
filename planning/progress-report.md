@@ -5560,3 +5560,21 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Changed:** `POST /api/account/profile` skips the daily allowance for an admin, by the role in the database (`requireAdmin`). Everyone else keeps the limit of ten changes a day. A change of rule at the product owner's request, not a defect: the limit worked as decided for MVP-040.
 
 **Checked:** a new route test (a reader past the limit gets "too-many"; an admin isn't counted and saves); the comment and profile route tests; web typecheck and lint.
+
+## 2026-10-09 — Fix: the Navigation shell's badge and Reports icon (BUG-039)
+
+**Found** by the product owner's first paste-test of the draft `lcsNavShell`: an error on the badge's X (`Parent.TemplateMax`), the side menu's badge over the Orders icon, and no icon for Reports. "Looks ugly."
+
+**Changed:**
+- **Generator:** the badge's width placeholder can't collide with a formula any more, so the badge sits at the right of its row (beside the icon in the bottom bar).
+- **Icons:**
+  - Reports uses `Document`, because `ChartMultiple` isn't in Power Apps' set of about 180 icons, the same as the classic icons.
+  - The not-yet-tested Tree view drops `FolderOpen` and `Image` for the same reason.
+  - The guides say to pick icons from Studio's Icon list.
+- **CI:** a new check rejects any component formula that reads a `Parent.` property other than Width, Height, TemplateWidth and TemplateHeight.
+
+**Checked:**
+- The component gate (30 checks), including the new one. Against the old YAML, it names `TemplateMax` twice.
+- Web typecheck, lint and component tests (38).
+
+**Next:** the product owner pastes the new YAML again.

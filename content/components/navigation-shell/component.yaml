@@ -13,7 +13,7 @@ ComponentDefinitions:
               {Key: "home", Label: "Home", Icon: "Home", Badge: ""},
               {Key: "orders", Label: "Orders", Icon: "Cart", Badge: "3"},
               {Key: "customers", Label: "Customers", Icon: "People", Badge: ""},
-              {Key: "reports", Label: "Reports", Icon: "ChartMultiple", Badge: ""},
+              {Key: "reports", Label: "Reports", Icon: "Document", Badge: ""},
               {Key: "settings", Label: "Settings", Icon: "Settings", Badge: ""}
           )
       Title:
@@ -316,7 +316,7 @@ ComponentDefinitions:
             - lblBadge:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =Parent.TemplateMax(22, Len(ThisItem.Badge) * 8 + 14)idth - Max(22, Len(ThisItem.Badge) * 8 + 14) - 10
+                  X: =Parent.TemplateWidth - Max(22, Len(ThisItem.Badge) * 8 + 14) - 10
                   Y: =(Parent.TemplateHeight - 22) / 2
                   Width: =Max(22, Len(ThisItem.Badge) * 8 + 14)
                   Height: =22
@@ -454,7 +454,7 @@ ComponentDefinitions:
             - lblBottomBadge:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =Parent.TemplateMax(16, Len(ThisItem.Badge) * 7 + 8)idth / 2 + 6
+                  X: =Parent.TemplateWidth / 2 + 6
                   Y: =4
                   Width: =Max(16, Len(ThisItem.Badge) * 7 + 8)
                   Height: =16

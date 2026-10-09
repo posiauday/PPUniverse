@@ -16,7 +16,7 @@ ComponentDefinitions:
               {Key: "q4", ParentKey: "plans", Label: "Q4 plan.docx", Icon: "Document", HasChildren: false},
               {Key: "budget", ParentKey: "docs", Label: "Budget.xlsx", Icon: "Document", HasChildren: false},
               {Key: "images", ParentKey: "", Label: "Images", Icon: "Folder", HasChildren: true},
-              {Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Image", HasChildren: false},
+              {Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Document", HasChildren: false},
               {Key: "archive", ParentKey: "", Label: "Archive", Icon: "Folder", HasChildren: true}
           )
       DefaultExpandedKeys:
@@ -35,7 +35,7 @@ ComponentDefinitions:
         PropertyKind: Input
         DisplayName: ShowIcons
         DataType: Boolean
-        Description: "Shows each node's icon. An open Folder shows FolderOpen."
+        Description: "Shows each node's icon."
         Default: =true
       IndentSize:
         PropertyKind: Input
@@ -338,7 +338,7 @@ ComponentDefinitions:
                   Width: =Max(40, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 34) - 6)
                   Height: =Parent.TemplateHeight - 4
                   Text: =ThisItem.Label
-                  Icon: =If(lcsTreeView.ShowIcons, If(ThisItem.Icon = "Folder" && ((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), "FolderOpen", ThisItem.Icon), "")
+                  Icon: =If(lcsTreeView.ShowIcons, ThisItem.Icon, "")
                   IconStyle: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), IconStyle.Filled, IconStyle.Outline)
                   Layout: =ButtonLayout.IconBefore
                   Align: =Align.Left

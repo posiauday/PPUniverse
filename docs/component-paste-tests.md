@@ -241,7 +241,7 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 
 ## Navigation shell: `lcsNavShell` → name it `navMain`
 
-New for this library, so check the paste first: the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the Fluent icon names `Home`, `Cart`, `People`, `ChartMultiple`, `Settings` and `Navigation`. Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
+New for this library, so check the paste first: the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the icon names `Home`, `Cart`, `People`, `Document`, `Settings` and `Navigation` (Home, Cart, People, Settings and Navigation show, from the first paste-test, 2026-10-09). Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
 
 Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y, Width and Height to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`.
 
@@ -261,11 +261,11 @@ Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y
 
 ## Tree view: `lcsTreeView` → name it `treeDocs`
 
-New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `FolderOpen`, `Document`, `Image`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
+New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `Document`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
-| Input | Nothing else | Documents open (open-folder icon) with Plans and Budget.xlsx under it, indented; Images and Archive closed |
+| Input | Nothing else | Documents open with Plans and Budget.xlsx under it, indented; Images and Archive closed |
 | Input | Select the chevron beside Plans | Plans opens: Q3 plan.docx and Q4 plan.docx, indented one more level |
 | Event | `OnNodeSelect` to `Notify("Open " & NodeKey)`; select Budget.xlsx | "Open budget"; Budget.xlsx is tinted, bold, with a filled icon |
 | Event | `OnExpand` to `Notify(NodeKey)`; open Archive | "archive"; Archive opens with nothing under it (its children aren't loaded) |

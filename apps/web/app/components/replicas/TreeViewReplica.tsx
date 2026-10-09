@@ -27,7 +27,7 @@ export const NODES: readonly TreeNode[] = [
   { Key: "q4", ParentKey: "plans", Label: "Q4 plan.docx", Icon: "Document", HasChildren: false },
   { Key: "budget", ParentKey: "docs", Label: "Budget.xlsx", Icon: "Document", HasChildren: false },
   { Key: "images", ParentKey: "", Label: "Images", Icon: "Folder", HasChildren: true },
-  { Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Image", HasChildren: false },
+  { Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Document", HasChildren: false },
   { Key: "archive", ParentKey: "", Label: "Archive", Icon: "Folder", HasChildren: true },
 ];
 
@@ -81,20 +81,10 @@ export function visibleRows(nodes: readonly TreeNode[], open: ReadonlySet<string
 
 const GLYPHS: Record<string, ReactNode> = {
   Folder: <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
-  FolderOpen: (
-    <path d="M3 17V7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v1M3 17l2.6-6.2A1.5 1.5 0 0 1 7 10h13.2a1 1 0 0 1 .9 1.4L18.6 18a1.5 1.5 0 0 1-1.4 1H5a2 2 0 0 1-2-2z" />
-  ),
   Document: (
     <>
       <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
       <path d="M14 3v5h5" />
-    </>
-  ),
-  Image: (
-    <>
-      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
-      <circle cx="9" cy="10" r="1.6" />
-      <path d="M20 16l-5-5-8 8" />
     </>
   ),
   ChevronRight: <path d="M9 6l6 6-6 6" />,
@@ -235,7 +225,7 @@ export function useTreeViewReplica(): ReplicaApi {
                 const isCurrent = row.Key === current;
                 const indent = 4 + row.Depth * inputs.IndentSize;
                 const action = `${isOpen ? inputs.CollapseText : inputs.ExpandText} ${row.Label}`;
-                const icon = row.Icon === "Folder" && isOpen ? "FolderOpen" : row.Icon;
+                const icon = row.Icon;
                 return (
                   <li key={row.Key} className="relative h-10">
                     {isCurrent ? (

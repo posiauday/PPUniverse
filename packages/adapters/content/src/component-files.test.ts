@@ -23,6 +23,23 @@ describe("content/components", () => {
     },
   );
 
+  // A generator once turned Parent.TemplateWidth into "Parent.TemplateMax(...)"
+  // (first Navigation shell paste-test, 2026-10-09): valid YAML, an error in Studio.
+  it.each(folders.map((entry) => [entry.folder, entry.result] as const))(
+    "%s reads only Parent's real size properties",
+    (_folder, result) => {
+      if (!result.ok) return;
+      const used = [...result.component.yaml.matchAll(/\bParent\.([A-Za-z]+)/g)].map(
+        (match) => match[1],
+      );
+      expect(
+        used.filter(
+          (name) => !["Width", "Height", "TemplateWidth", "TemplateHeight"].includes(name!),
+        ),
+      ).toEqual([]);
+    },
+  );
+
   it("uses each slug and component name once", () => {
     const ok = folders.flatMap((entry) => (entry.result.ok ? [entry.result.component] : []));
     const names = ok.map((component) => component.componentName);
