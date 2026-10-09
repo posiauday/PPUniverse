@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ViewerSummary } from "../lib/viewer";
 import { Avatar } from "./Avatar";
-import { componentsEnabled, learnEnabled } from "../lib/feature-flags";
+import { learnEnabled } from "../lib/feature-flags";
 import { buildTechnologyMenu, type TechnologyMenuArea } from "../lib/technology-menu";
 import type { Theme } from "../lib/theme";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
@@ -26,11 +26,11 @@ const TECHNOLOGY_LINKS = ALL_AREAS.map((area) => ({
  * and Components only once the catalog has products (feature flag). The
  * other kinds stay one click away: each technology page, and the Power
  * Platform menu's "every guide by goal" link. */
-function mainLinks(): Array<{ name: string; href: string }> {
+function mainLinks(componentsOn: boolean): Array<{ name: string; href: string }> {
   return [
     { name: "Fixes", href: "/learn#tutorials" },
     { name: "Patterns", href: "/learn#patterns" },
-    ...(componentsEnabled() ? [{ name: "Components", href: "/components" }] : []),
+    ...(componentsOn ? [{ name: "Components", href: "/components" }] : []),
   ];
 }
 
@@ -56,6 +56,7 @@ export function SiteHeader({
   viewer = null,
   menu = buildTechnologyMenu(ALL_AREAS, null),
   updateTimes = [],
+  componentsOn = false,
 }: {
   theme: Theme;
   signedIn: boolean;
@@ -65,6 +66,8 @@ export function SiteHeader({
   menu?: readonly TechnologyMenuArea[];
   /** Newest published update times, for the Updates badge (lib/update-times.ts). */
   updateTimes?: readonly string[];
+  /** The component library's admin switch (lib/site-switches.ts): adds the Components link. */
+  componentsOn?: boolean;
 }) {
   // MVP-048: the Learn button opens the Learn module once it is switched on;
   // until then it keeps opening the guides.
@@ -72,7 +75,7 @@ export function SiteHeader({
   const account = signedIn
     ? { name: "Account", href: "/account" }
     : { name: "Sign in", href: "/signin" };
-  const links = mainLinks();
+  const links = mainLinks(componentsOn);
   return (
     <header className="z-30 bg-background px-3 pt-3 pb-2 md:sticky md:top-0 md:px-6 md:pt-3.5">
       <div className="relative mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-3 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">

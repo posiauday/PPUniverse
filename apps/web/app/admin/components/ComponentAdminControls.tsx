@@ -3,10 +3,12 @@
 import type { ComponentAccess } from "@ppu/domain-content";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
+import { copyBySelection } from "../../learn/CopyCodeButton";
 
 /**
  * The admin's controls for one library component (MVP-049): record a
- * paste-test, choose who can copy it and whether it's hidden, and publish.
+ * paste-test, copy its YAML, choose who can copy it, whether it's hidden and
+ * whether a draft shows as Coming soon, and publish.
  * They mirror the API's messages; the server decides.
  */
 
@@ -36,6 +38,39 @@ async function send(url: string, method: "POST" | "PATCH", body?: unknown): Prom
 
 const BUTTON =
   "inline-flex min-h-11 items-center rounded-full border-[1.5px] border-foreground px-4 font-semibold";
+
+/**
+ * Copies the YAML for a paste-test, so the product owner doesn't select it by
+ * hand. The result is announced in a polite live region; the name stays the
+ * same (WCAG 2.5.3, label in name).
+ */
+export function CopyYamlButton({ yaml }: { yaml: string }) {
+  const [status, setStatus] = useState("");
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(yaml);
+      setStatus("Copied. Paste it onto a screen in Power Apps Studio.");
+    } catch {
+      setStatus(
+        copyBySelection(yaml)
+          ? "Copied. Paste it onto a screen in Power Apps Studio."
+          : "Copy failed. Open the YAML below, select it and copy it instead.",
+      );
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <button type="button" onClick={copy} className={BUTTON}>
+        Copy YAML
+      </button>
+      <span role="status" className="text-sm">
+        {status}
+      </span>
+    </div>
+  );
+}
 
 export function TestRecordForm({ id, lastVersion }: { id: string; lastVersion: string | null }) {
   const router = useRouter();
@@ -100,14 +135,18 @@ export function SettingsForm({
   id,
   access,
   hidden,
+  comingSoon,
+  published,
 }: {
   id: string;
   access: ComponentAccess;
   hidden: boolean;
+  comingSoon: boolean;
+  published: boolean;
 }) {
   const router = useRouter();
   const baseId = useId();
-  const [values, setValues] = useState({ access, hidden });
+  const [values, setValues] = useState({ access, hidden, comingSoon });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -153,6 +192,18 @@ export function SettingsForm({
         />
         Hide from the site (it stays here, with its history)
       </label>
+      {published ? null : (
+        <label className="flex min-h-11 items-center gap-2">
+          <input
+            type="checkbox"
+            checked={values.comingSoon}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, comingSoon: event.target.checked }))
+            }
+          />
+          Show as Coming soon: its card and page with a blurred picture, nothing to copy
+        </label>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" className={BUTTON} aria-disabled={busy}>
           {busy ? "Saving…" : "Save settings"}

@@ -43,7 +43,7 @@ export function CopyCodeButton({ code }: { code: string }) {
 }
 
 /** Copies through a temporary off-screen textarea; true only if the browser says it copied. */
-function copyBySelection(text: string): boolean {
+export function copyBySelection(text: string): boolean {
   const area = document.createElement("textarea");
   area.value = text;
   area.setAttribute("readonly", "");

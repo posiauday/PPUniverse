@@ -260,6 +260,8 @@ export interface ComponentRecord extends Omit<ComponentSource, "guide"> {
   publishedAt: Date | null;
   /** Hidden components stay published but don't show on the site. */
   hidden: boolean;
+  /** A draft shown as "Coming soon": a card and page, nothing to copy. Ignored once published. */
+  comingSoon: boolean;
   /** When the product owner last paste-tested this YAML, and in which Studio version. */
   testedAt: Date | null;
   testedStudioVersion: string | null;
@@ -279,7 +281,18 @@ export interface ComponentCreateInput extends ComponentSource {
 export interface ComponentAdminUpdate {
   access?: ComponentAccess;
   hidden?: boolean;
+  comingSoon?: boolean;
 }
+
+/**
+ * What the site shows of a "Coming soon" component (docs/final-decisions.md,
+ * 2026-10-09): its card and page with a blurred picture. Never its YAML,
+ * guide or variations, which aren't tested yet.
+ */
+export type ComponentTeaser = Pick<
+  ComponentRecord,
+  "id" | "slug" | "title" | "summary" | "category" | "componentName" | "access"
+>;
 
 /** A component can be published once its current YAML has been paste-tested. */
 export function canPublishComponent(
@@ -302,6 +315,9 @@ export interface ComponentRepository {
   /** Published and not hidden, for the site. */
   listPublic(): Promise<ComponentRecord[]>;
   findPublicBySlug(slug: string): Promise<ComponentRecord | null>;
+  /** Drafts marked Coming soon and not hidden, for the site. */
+  listComingSoon(): Promise<ComponentTeaser[]>;
+  findComingSoonBySlug(slug: string): Promise<ComponentTeaser | null>;
   updateSettings(
     id: string,
     change: ComponentAdminUpdate,
