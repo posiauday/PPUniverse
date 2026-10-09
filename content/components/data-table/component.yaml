@@ -350,23 +350,29 @@ ComponentDefinitions:
             Visible: =shpHeader.Visible
             Fill: =If(lcsDataTable.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
       - chkAll:
-          Control: ModernCheckbox@1.0.0
+          Control: Classic/CheckBox@2.1.0
           Properties:
             X: =12
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0) + 6
             Width: =32
             Height: =32
             Visible: =shpHeader.Visible && lcsDataTable.Selectable
-            Label: =""
-            Checked: =CountRows(lcsDataTable.Rows) > 0 && CountRows(Filter(lcsDataTable.Rows, Id in colSelected.Id)) = CountRows(lcsDataTable.Rows)
-            BasePaletteColor: =lcsDataTable.AccentColor
-            AccessibleLabel: ="Select all rows"
-            OnCheck: |-
-              =ForAll(
-                  Filter(lcsDataTable.Rows, !(Id in colSelected.Id)),
-                  Collect(colSelected, {Id: ThisRecord.Id})
-              )
-            OnUncheck: =RemoveIf(colSelected, Id in lcsDataTable.Rows.Id)
+            Text: ="Select all rows"
+            Color: =RGBA(0, 0, 0, 0)
+            Size: =10
+            Default: =(CountRows(lcsDataTable.Rows) > 0 && CountRows(Filter(lcsDataTable.Rows, Id in colSelected.Id)) = CountRows(lcsDataTable.Rows))
+            CheckboxSize: =18
+            CheckmarkFill: =RGBA(255, 255, 255, 1)
+            CheckboxBackgroundFill: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1)))
+            CheckboxBorderColor: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+            Fill: =RGBA(0, 0, 0, 0)
+            HoverFill: =RGBA(0, 0, 0, 0)
+            PressedFill: =RGBA(0, 0, 0, 0)
+            BorderThickness: =0
+            FocusedBorderColor: =lcsDataTable.AccentColor
+            FocusedBorderThickness: =2
+            OnSelect: |-
+              =If((CountRows(lcsDataTable.Rows) > 0 && CountRows(Filter(lcsDataTable.Rows, Id in colSelected.Id)) = CountRows(lcsDataTable.Rows)), RemoveIf(colSelected, Id in lcsDataTable.Rows.Id), ForAll(Filter(lcsDataTable.Rows, !(Id in colSelected.Id)), Collect(colSelected, {Id: ThisRecord.Id})))
       - btnHeader1:
           Control: ModernButton@1.0.0
           Properties:
@@ -1212,20 +1218,29 @@ ComponentDefinitions:
                   RadiusBottomRight: =0
                   OnSelect: =lcsDataTable.OnRowSelect(ThisItem.Id)
             - chkRow:
-                Control: ModernCheckbox@1.0.0
+                Control: Classic/CheckBox@2.1.0
                 Properties:
                   X: =12
                   Y: =(Parent.TemplateHeight - 32) / 2
                   Width: =32
                   Height: =32
                   Visible: =lcsDataTable.Selectable
-                  Label: =""
-                  Checked: =ThisItem.Id in colSelected.Id
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  AccessibleLabel: ="Select " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
-                  OnCheck: |-
-                    =If(!(ThisItem.Id in colSelected.Id), Collect(colSelected, {Id: ThisItem.Id}))
-                  OnUncheck: =RemoveIf(colSelected, Id = ThisItem.Id)
+                  Text: ="Select " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Color: =RGBA(0, 0, 0, 0)
+                  Size: =10
+                  Default: =ThisItem.Id in colSelected.Id
+                  CheckboxSize: =18
+                  CheckmarkFill: =RGBA(255, 255, 255, 1)
+                  CheckboxBackgroundFill: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1)))
+                  CheckboxBorderColor: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  HoverFill: =RGBA(0, 0, 0, 0)
+                  PressedFill: =RGBA(0, 0, 0, 0)
+                  BorderThickness: =0
+                  FocusedBorderColor: =lcsDataTable.AccentColor
+                  FocusedBorderThickness: =2
+                  OnSelect: |-
+                    =If(ThisItem.Id in colSelected.Id, RemoveIf(colSelected, Id = ThisItem.Id), Collect(colSelected, {Id: ThisItem.Id}))
             - btnRowMenu:
                 Control: ModernButton@1.0.0
                 Properties:
@@ -1530,20 +1545,29 @@ ComponentDefinitions:
                   PaddingTop: =0
                   PaddingBottom: =0
             - chkCard:
-                Control: ModernCheckbox@1.0.0
+                Control: Classic/CheckBox@2.1.0
                 Properties:
                   X: =Parent.TemplateWidth - 16 - 32
                   Y: =16
                   Width: =32
                   Height: =32
                   Visible: =lcsDataTable.Selectable
-                  Label: =""
-                  Checked: =ThisItem.Id in colSelected.Id
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  AccessibleLabel: ="Select " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
-                  OnCheck: |-
-                    =If(!(ThisItem.Id in colSelected.Id), Collect(colSelected, {Id: ThisItem.Id}))
-                  OnUncheck: =RemoveIf(colSelected, Id = ThisItem.Id)
+                  Text: ="Select " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Color: =RGBA(0, 0, 0, 0)
+                  Size: =10
+                  Default: =ThisItem.Id in colSelected.Id
+                  CheckboxSize: =18
+                  CheckmarkFill: =RGBA(255, 255, 255, 1)
+                  CheckboxBackgroundFill: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1)))
+                  CheckboxBorderColor: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  HoverFill: =RGBA(0, 0, 0, 0)
+                  PressedFill: =RGBA(0, 0, 0, 0)
+                  BorderThickness: =0
+                  FocusedBorderColor: =lcsDataTable.AccentColor
+                  FocusedBorderThickness: =2
+                  OnSelect: |-
+                    =If(ThisItem.Id in colSelected.Id, RemoveIf(colSelected, Id = ThisItem.Id), Collect(colSelected, {Id: ThisItem.Id}))
             - btnCardAction1:
                 Control: ModernButton@1.0.0
                 Properties:
@@ -1754,20 +1778,29 @@ ComponentDefinitions:
                   RadiusBottomRight: =0
                   OnSelect: =lcsDataTable.OnRowSelect(ThisItem.Id)
             - chkListItem:
-                Control: ModernCheckbox@1.0.0
+                Control: Classic/CheckBox@2.1.0
                 Properties:
                   X: =12
                   Y: =22
                   Width: =32
                   Height: =32
                   Visible: =lcsDataTable.Selectable
-                  Label: =""
-                  Checked: =ThisItem.Id in colSelected.Id
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  AccessibleLabel: ="Select " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
-                  OnCheck: |-
-                    =If(!(ThisItem.Id in colSelected.Id), Collect(colSelected, {Id: ThisItem.Id}))
-                  OnUncheck: =RemoveIf(colSelected, Id = ThisItem.Id)
+                  Text: ="Select " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Color: =RGBA(0, 0, 0, 0)
+                  Size: =10
+                  Default: =ThisItem.Id in colSelected.Id
+                  CheckboxSize: =18
+                  CheckmarkFill: =RGBA(255, 255, 255, 1)
+                  CheckboxBackgroundFill: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1)))
+                  CheckboxBorderColor: =If(Self.Value, lcsDataTable.AccentColor, If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  HoverFill: =RGBA(0, 0, 0, 0)
+                  PressedFill: =RGBA(0, 0, 0, 0)
+                  BorderThickness: =0
+                  FocusedBorderColor: =lcsDataTable.AccentColor
+                  FocusedBorderThickness: =2
+                  OnSelect: |-
+                    =If(ThisItem.Id in colSelected.Id, RemoveIf(colSelected, Id = ThisItem.Id), Collect(colSelected, {Id: ThisItem.Id}))
             - icoListChevron:
                 Control: Image@2.2.3
                 Properties:

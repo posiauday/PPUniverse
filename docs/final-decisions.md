@@ -2373,3 +2373,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **A published component can go back to Coming soon** from `/admin/components`: "Back to Coming soon" makes it a draft with Coming soon on. Its paste-test record is kept, so it can be published again in one step; like any draft, the next import updates it from its files.
 2. **The admin page says what Coming soon does:** on a draft marked Coming soon, "It shows as Coming soon until you publish it. Publishing makes it a normal component"; on a published one, the way back.
 
+## 2026-10-09 — Component library: MIT License
+
+**Source:** direct product-owner instruction in this session: "On component page just say MIT license, don't say free or with account".
+
+1. The library's cards and each component's page show **MIT License** where they said "Free to copy", "Sign in to copy" or "Free with an account". On the component's page it links to the MIT License text already in the Terms (`/terms#mit-license`), which say components come with "their own licence, shown on their page".
+2. The copy button for a sign-in-to-copy component says "Sign in to copy" (no "(free)"), and the YAML tab says "Sign in to see and copy its YAML".
+3. Who can copy is unchanged: a component set to signed-in readers only still asks a signed-out reader to sign in.
+

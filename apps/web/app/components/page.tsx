@@ -179,9 +179,9 @@ export default async function ComponentsPage({
                       ✓ Tested in Studio
                     </span>
                   ) : null}
-                  <span className="rounded-full bg-muted px-2.5 py-1">
-                    {component.access === "MEMBERS" ? "Sign in to copy" : "Free to copy"}
-                  </span>
+                  {/* The licence, not the price (docs/final-decisions.md, 2026-10-09,
+                      "Component library: MIT License"). */}
+                  <span className="rounded-full bg-muted px-2.5 py-1">MIT License</span>
                   <span
                     aria-hidden="true"
                     className="ml-auto text-sm motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5"

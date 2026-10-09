@@ -1804,7 +1804,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: (seed) => `/components/${seed.membersComponent.slug}`,
     prepare: async (page) => {
       await expect(
-        page.getByRole("link", { name: "Sign in to copy (free)" }).first(),
+        page.getByRole("link", { name: "Sign in to copy", exact: true }).first(),
       ).toBeVisible();
       await expect(page.getByRole("button", { name: "Copy YAML" })).toHaveCount(0);
     },

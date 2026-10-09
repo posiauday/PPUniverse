@@ -248,7 +248,7 @@ export function ComponentWorkbench({
     <CopyYaml yaml={yaml} />
   ) : (
     <Link href={signInHref} className={PRIMARY_BUTTON}>
-      Sign in to copy (free)
+      Sign in to copy
     </Link>
   );
 
@@ -410,8 +410,7 @@ export function ComponentWorkbench({
               </pre>
             ) : (
               <p className="px-5 py-6">
-                This component is free with an account. <Link href={signInHref}>Sign in</Link> to
-                see and copy its YAML.
+                <Link href={signInHref}>Sign in</Link> to see and copy its YAML.
               </p>
             )}
           </div>

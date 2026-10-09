@@ -219,7 +219,7 @@ Set up first: `Screen1.OnVisible` to `ClearCollect(colOrders, ForAll(Sequence(31
 
 ## Data table: `lcsDataTable` → name it `dtOrders`
 
-New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML name is our best reading; if Studio rejects it, tell me, or set `Selectable` to false); `JSON()` of a colour inside the progress bar's picture; the button icon `MoreHorizontal`; and `BorderThickness` on a container. It pastes with four sample rows, so it shows something at once.
+New for this library, so check the paste first: `Classic/CheckBox@2.1.0` for selection (the modern checkbox failed twice with "Unknown property 'Checked'", BUG-043), whose box and tick are in your accent colour; `JSON()` of a colour inside the progress bar's picture; the button icon `MoreHorizontal`; and `BorderThickness` on a container. It pastes with four sample rows, so it shows something at once.
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
