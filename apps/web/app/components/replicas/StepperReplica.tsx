@@ -61,6 +61,7 @@ interface Inputs {
   StepText: string;
   DoneText: string;
   CurrentText: string;
+  Look: string;
   AccentColor: string;
   Theme: string;
 }
@@ -78,6 +79,7 @@ const DEFAULTS: Inputs = {
   StepText: "Step {n} of {total}",
   DoneText: "completed",
   CurrentText: "current step",
+  Look: "Standard",
   AccentColor: "#0f6cbd",
   Theme: "Light",
 };
@@ -102,9 +104,6 @@ export function useStepperReplica(): ReplicaApi {
   const sub = dark ? "text-[#adadad]" : "text-[#616161]";
   const line = dark ? "bg-[#525252]" : "bg-[#d1d5db]";
   const danger = dark ? "text-[#ff99a4]" : "text-[#c4314b]";
-  const accentInk = dark
-    ? "text-[color-mix(in_srgb,var(--accent)_55%,white)]"
-    : "text-[color-mix(in_srgb,var(--accent)_80%,black)]";
 
   const go = (to: number) => {
     const from = step;
@@ -125,21 +124,33 @@ export function useStepperReplica(): ReplicaApi {
     go(step + 1);
   };
 
+  // The classic buttons' HoverFill in the YAML: 8% white on dark, 5% black on light.
+  const hover = dark ? "hover:bg-white/[0.08]" : "hover:bg-black/[0.05]";
+  const cardLine = dark ? "border-[#424242]" : "border-[#e5e7eb]";
+
   const circle = (n: number) => {
     const done = n < step;
     const current = n === step;
     return (
-      <span
-        aria-hidden="true"
-        className={`grid size-8 shrink-0 place-items-center rounded-full text-[13px] font-semibold ${
-          done
-            ? "bg-[var(--accent)] text-white"
-            : current
-              ? `border-2 border-[var(--accent)] ${dark ? "bg-[#242424]" : "bg-white"} ${accentInk}`
-              : `border ${dark ? "border-[#525252] bg-[#242424]" : "border-[#d1d5db] bg-white"} ${sub}`
-        }`}
-      >
-        {done ? "✓" : n}
+      <span className="relative grid size-9 shrink-0 place-items-center" aria-hidden="true">
+        {current ? (
+          <span
+            className={`absolute -inset-[5px] rounded-full ${
+              dark
+                ? "bg-[color-mix(in_srgb,var(--accent)_40%,#242424)]"
+                : "bg-[color-mix(in_srgb,var(--accent)_18%,white)]"
+            }`}
+          />
+        ) : null}
+        <span
+          className={`relative grid size-9 place-items-center rounded-full text-sm font-semibold ${
+            done || current
+              ? "bg-[var(--accent)] text-white"
+              : `border-2 ${dark ? "border-[#525252] bg-[#242424]" : "border-[#d1d5db] bg-white"} ${sub}`
+          }`}
+        >
+          {done ? "✓" : n}
+        </span>
       </span>
     );
   };
@@ -159,12 +170,12 @@ export function useStepperReplica(): ReplicaApi {
         }`;
         const canGo = inputs.AllowJumpBack && done;
         return (
-          <li key={item.Title} className={`relative ${vertical ? "h-[72px]" : "h-[88px]"}`}>
+          <li key={item.Title} className={`relative ${vertical ? "h-[72px]" : "h-[92px]"}`}>
             {vertical ? (
               n < count ? (
                 <span
                   aria-hidden="true"
-                  className={`absolute top-[42px] left-[23px] h-[calc(100%-44px)] w-0.5 ${done ? "bg-[var(--accent)]" : line}`}
+                  className={`absolute top-12 left-[23px] h-[calc(100%-52px)] w-0.5 rounded ${done ? "bg-[var(--accent)]" : line}`}
                 />
               ) : null
             ) : (
@@ -172,13 +183,13 @@ export function useStepperReplica(): ReplicaApi {
                 {n > 1 ? (
                   <span
                     aria-hidden="true"
-                    className={`absolute top-[23px] left-0 h-0.5 w-[calc(50%-22px)] ${n <= step ? "bg-[var(--accent)]" : line}`}
+                    className={`absolute top-[23px] left-0 h-0.5 w-[calc(50%-28px)] rounded ${n <= step ? "bg-[var(--accent)]" : line}`}
                   />
                 ) : null}
                 {n < count ? (
                   <span
                     aria-hidden="true"
-                    className={`absolute top-[23px] right-0 h-0.5 w-[calc(50%-22px)] ${done ? "bg-[var(--accent)]" : line}`}
+                    className={`absolute top-[23px] right-0 h-0.5 w-[calc(50%-28px)] rounded ${done ? "bg-[var(--accent)]" : line}`}
                   />
                 ) : null}
               </>
@@ -189,12 +200,12 @@ export function useStepperReplica(): ReplicaApi {
               aria-current={current ? "step" : undefined}
               disabled={!canGo}
               onClick={() => go(n)}
-              className={`absolute inset-0 flex text-left ${
-                vertical ? "items-start gap-3 pt-1 pl-2" : "flex-col items-center pt-2"
-              } ${canGo ? "cursor-pointer" : "cursor-default"}`}
+              className={`absolute inset-0 flex rounded-[10px] text-left ${
+                vertical ? "items-start gap-3.5 pt-1 pl-1.5" : "flex-col items-center pt-1.5"
+              } ${canGo ? `cursor-pointer ${hover}` : "cursor-default"}`}
             >
               {circle(n)}
-              <span className={`min-w-0 ${vertical ? "" : "mt-1.5 w-full px-1 text-center"}`}>
+              <span className={`min-w-0 ${vertical ? "" : "mt-2 w-full px-1 text-center"}`}>
                 <span
                   className={`block truncate text-[13px] ${current ? "font-semibold" : ""} ${n > step ? sub : ink}`}
                 >
@@ -233,36 +244,60 @@ export function useStepperReplica(): ReplicaApi {
         style={{ "--accent": inputs.AccentColor } as CSSProperties}
         className={`w-[720px] max-w-full text-left ${SEGOE} ${ink}`}
       >
-        <div className={vertical ? "max-w-[320px]" : ""}>{steps}</div>
-        {inputs.ShowButtons ? (
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-            <p
-              role="status"
-              className={`mr-auto min-h-10 flex-1 basis-40 py-2.5 text-[13px] ${blockedAt === step ? `${danger} font-semibold` : sub}`}
+        <div
+          className={`rounded-2xl border p-5 ${cardLine} ${dark ? "bg-[#242424]" : "bg-white"} ${
+            inputs.Look === "Premium" ? "shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)]" : ""
+          }`}
+        >
+          <div className={vertical ? "max-w-[320px]" : ""}>{steps}</div>
+          {inputs.ShowButtons ? (
+            <div
+              className={`mt-3 flex flex-wrap items-center justify-end gap-3 border-t pt-4 ${cardLine}`}
             >
-              {blockedAt === step ? inputs.BlockedText : stepLabel(inputs.StepText, step, count)}
-            </p>
-            <button
-              type="button"
-              disabled={step <= 1}
-              onClick={() => go(Math.max(1, step - 1))}
-              className={`h-10 w-[104px] rounded border text-sm font-semibold ${
-                dark
-                  ? "border-[#666] bg-[#292929] text-white hover:bg-[#333] disabled:border-[#3d3d3d] disabled:text-[#5c5c5c]"
-                  : "border-[#d1d1d1] bg-white text-[#242424] hover:bg-[#f5f5f5] disabled:border-[#e0e0e0] disabled:text-[#bdbdbd]"
-              } disabled:cursor-not-allowed`}
-            >
-              {inputs.BackText}
-            </button>
-            <button
-              type="button"
-              onClick={next}
-              className="h-10 w-28 rounded bg-[var(--accent)] text-sm font-semibold text-white hover:bg-[color-mix(in_srgb,var(--accent)_86%,black)]"
-            >
-              {step >= count ? inputs.FinishText : inputs.NextText}
-            </button>
-          </div>
-        ) : null}
+              <div role="status" className="mr-auto min-h-10 flex-1 basis-40">
+                {blockedAt === step ? (
+                  <p className={`py-2.5 text-[13px] font-semibold ${danger}`}>
+                    {inputs.BlockedText}
+                  </p>
+                ) : (
+                  <>
+                    <p className={`text-[13px] leading-5 font-semibold ${sub}`}>
+                      {stepLabel(inputs.StepText, step, count)}
+                    </p>
+                    <span
+                      aria-hidden="true"
+                      className={`mt-1.5 block h-1 w-[140px] overflow-hidden rounded ${line}`}
+                    >
+                      <span
+                        className="block h-full rounded bg-[var(--accent)] motion-safe:transition-[width] motion-safe:duration-300"
+                        style={{ width: `${(140 * step) / count}px` }}
+                      />
+                    </span>
+                  </>
+                )}
+              </div>
+              <button
+                type="button"
+                disabled={step <= 1}
+                onClick={() => go(Math.max(1, step - 1))}
+                className={`h-10 w-[104px] rounded-lg border text-sm font-semibold ${
+                  dark
+                    ? `border-[#525252] text-white ${hover} disabled:border-[#424242] disabled:text-[#6e6e6e]`
+                    : `border-[#d1d5db] text-[#242424] ${hover} disabled:border-[#e5e7eb] disabled:text-[#aaaaaa]`
+                } disabled:cursor-not-allowed disabled:hover:bg-transparent`}
+              >
+                {inputs.BackText}
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                className="h-10 w-[116px] rounded-lg bg-[var(--accent)] text-sm font-semibold text-white hover:bg-[color-mix(in_srgb,var(--accent)_88%,black)] active:bg-[color-mix(in_srgb,var(--accent)_76%,black)]"
+              >
+                {step >= count ? inputs.FinishText : inputs.NextText}
+              </button>
+            </div>
+          ) : null}
+        </div>
         {/* The screen under the component: TextInput1 on step 1, Label1 with the step's title. */}
         <div
           className={`mt-5 rounded-md border p-4 ${dark ? "border-[#424242]" : "border-[#e0e0e0]"}`}

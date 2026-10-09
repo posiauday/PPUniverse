@@ -31,12 +31,42 @@ ComponentDefinitions:
         DataType: Text
         Description: "The Key of the node to mark as selected, from your app. Leave it blank and the tree marks the node last selected."
         Default: =""
+      Title:
+        PropertyKind: Input
+        DisplayName: Title
+        DataType: Text
+        Description: "The heading above the tree."
+        Default: ="Files"
+      ShowTitle:
+        PropertyKind: Input
+        DisplayName: ShowTitle
+        DataType: Boolean
+        Description: "Shows the heading."
+        Default: =true
       ShowIcons:
         PropertyKind: Input
         DisplayName: ShowIcons
         DataType: Boolean
-        Description: "Shows each node's icon."
+        Description: "Shows each node's icon: folders in amber, everything else in your colour."
         Default: =true
+      ShowCounts:
+        PropertyKind: Input
+        DisplayName: ShowCounts
+        DataType: Boolean
+        Description: "Shows how many children each open or closed folder has, once they're loaded."
+        Default: =true
+      ShowGuides:
+        PropertyKind: Input
+        DisplayName: ShowGuides
+        DataType: Boolean
+        Description: "Draws thin lines that join each level to its parent."
+        Default: =true
+      Look:
+        PropertyKind: Input
+        DisplayName: Look
+        DataType: Text
+        Description: "Standard, or Premium: a solid pill in your colour for the selected node and a soft shadow."
+        Default: ="Standard"
       IndentSize:
         PropertyKind: Input
         DisplayName: IndentSize
@@ -188,29 +218,55 @@ ComponentDefinitions:
         )
       CollapseAll: =Set(locExpanded, ";")
     Children:
-      - shpTree:
-          Control: Rectangle@2.3.0
+      - conCard:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
           Properties:
             X: =0
             Y: =0
             Width: =Parent.Width
             Height: =Parent.Height
-            Fill: =If(lcsTreeView.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1))
+            Fill: =If(lcsTreeView.Theme = "Dark", RGBA(32, 32, 32, 1), RGBA(255, 255, 255, 1))
+            BorderColor: =If(lcsTreeView.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            BorderThickness: =1
+            DropShadow: =If((lcsTreeView.Look = "Premium"), DropShadow.Regular, DropShadow.None)
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+      - lblTreeTitle:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =16
+            Y: =14
+            Width: =Max(0, Parent.Width - 32)
+            Height: =24
+            Visible: =lcsTreeView.ShowTitle
+            Text: =lcsTreeView.Title
+            Size: =15
+            Color: =If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            FontWeight: =FontWeight.Semibold
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
       - galTree:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            X: =0
-            Y: =4
-            Width: =Parent.Width
-            Height: =Parent.Height - 8
+            X: =8
+            Y: =If(lcsTreeView.ShowTitle, 52, 8)
+            Width: =Max(0, Parent.Width - 16)
+            Height: =Max(0, Parent.Height - If(lcsTreeView.ShowTitle, 52, 8) - 8)
             Items: |-
               =With(
                   {l0: With(
                       {roots: Filter(lcsTreeView.Nodes, IsBlank(ParentKey))},
                       ForAll(
                           Sequence(CountRows(roots)) As i,
-                          With({c: Last(FirstN(roots, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 0, Path: Text(i.Value, "000")})
+                          With({c: Last(FirstN(roots, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Kids: CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)), Depth: 0, Path: Text(i.Value, "000")})
                       )
                   )},
                   With(
@@ -222,7 +278,7 @@ ComponentDefinitions:
                                       {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
                                       ForAll(
                                           Sequence(CountRows(kids)) As i,
-                                          With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 1, Path: p.Path & Text(i.Value, "000")})
+                                          With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Kids: CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)), Depth: 1, Path: p.Path & Text(i.Value, "000")})
                                       )
                                   )
                               }
@@ -238,7 +294,7 @@ ComponentDefinitions:
                                           {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
                                           ForAll(
                                               Sequence(CountRows(kids)) As i,
-                                              With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 2, Path: p.Path & Text(i.Value, "000")})
+                                              With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Kids: CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)), Depth: 2, Path: p.Path & Text(i.Value, "000")})
                                           )
                                       )
                                   }
@@ -254,7 +310,7 @@ ComponentDefinitions:
                                               {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
                                               ForAll(
                                                   Sequence(CountRows(kids)) As i,
-                                                  With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 3, Path: p.Path & Text(i.Value, "000")})
+                                                  With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Kids: CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)), Depth: 3, Path: p.Path & Text(i.Value, "000")})
                                               )
                                           )
                                       }
@@ -270,7 +326,7 @@ ComponentDefinitions:
                                                   {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
                                                   ForAll(
                                                       Sequence(CountRows(kids)) As i,
-                                                      With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 4, Path: p.Path & Text(i.Value, "000")})
+                                                      With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Kids: CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)), Depth: 4, Path: p.Path & Text(i.Value, "000")})
                                                   )
                                               )
                                           }
@@ -283,31 +339,67 @@ ComponentDefinitions:
                       )
                   )
               )
-            TemplateSize: =40
+            TemplateSize: =36
             TemplatePadding: =0
             ShowScrollbar: =false
             BorderStyle: =BorderStyle.None
             AccessibleLabel: =lcsTreeView.TreeLabel
           Children:
+            - shpGuide0:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =4 + 0 * lcsTreeView.IndentSize + 13
+                  Y: =0
+                  Width: =1
+                  Height: =Parent.TemplateHeight
+                  Visible: =lcsTreeView.ShowGuides && ThisItem.Depth > 0
+                  Fill: =If(lcsTreeView.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(226, 232, 240, 1))
+            - shpGuide1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =4 + 1 * lcsTreeView.IndentSize + 13
+                  Y: =0
+                  Width: =1
+                  Height: =Parent.TemplateHeight
+                  Visible: =lcsTreeView.ShowGuides && ThisItem.Depth > 1
+                  Fill: =If(lcsTreeView.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(226, 232, 240, 1))
+            - shpGuide2:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =4 + 2 * lcsTreeView.IndentSize + 13
+                  Y: =0
+                  Width: =1
+                  Height: =Parent.TemplateHeight
+                  Visible: =lcsTreeView.ShowGuides && ThisItem.Depth > 2
+                  Fill: =If(lcsTreeView.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(226, 232, 240, 1))
+            - shpGuide3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =4 + 3 * lcsTreeView.IndentSize + 13
+                  Y: =0
+                  Width: =1
+                  Height: =Parent.TemplateHeight
+                  Visible: =lcsTreeView.ShowGuides && ThisItem.Depth > 3
+                  Fill: =If(lcsTreeView.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(226, 232, 240, 1))
             - shpSelected:
                 Control: GroupContainer@1.5.0
                 Variant: ManualLayout
                 Properties:
-                  X: =4
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 26
                   Y: =2
-                  Width: =Parent.TemplateWidth - 8
+                  Width: =Max(0, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 26) - 2)
                   Height: =Parent.TemplateHeight - 4
                   Visible: =ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected)
-                  Fill: =ColorFade(lcsTreeView.AccentColor, If(lcsTreeView.Theme = "Dark", -0.55, 0.86))
+                  Fill: =If((lcsTreeView.Look = "Premium"), lcsTreeView.AccentColor, ColorFade(lcsTreeView.AccentColor, If(lcsTreeView.Theme = "Dark", -0.55, 0.86)))
                   DropShadow: =DropShadow.None
-                  RadiusTopLeft: =6
-                  RadiusTopRight: =6
-                  RadiusBottomLeft: =6
-                  RadiusBottomRight: =6
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
             - icoChevron:
                 Control: ModernIcon@1.1.0
                 Properties:
-                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 8
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 6
                   Y: =(Parent.TemplateHeight - 16) / 2
                   Width: =16
                   Height: =16
@@ -319,9 +411,9 @@ ComponentDefinitions:
                 Control: Classic/Button@2.2.0
                 Properties:
                   X: =4 + ThisItem.Depth * lcsTreeView.IndentSize
-                  Y: =(Parent.TemplateHeight - 32) / 2
-                  Width: =32
-                  Height: =32
+                  Y: =(Parent.TemplateHeight - 28) / 2
+                  Width: =28
+                  Height: =28
                   Visible: =ThisItem.HasKids
                   Text: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
                   Fill: =RGBA(0, 0, 0, 0)
@@ -357,24 +449,24 @@ ComponentDefinitions:
             - icoNode:
                 Control: ModernIcon@1.1.0
                 Properties:
-                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 42
-                  Y: =(Parent.TemplateHeight - 20) / 2
-                  Width: =20
-                  Height: =20
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 32
+                  Y: =(Parent.TemplateHeight - 18) / 2
+                  Width: =18
+                  Height: =18
                   Visible: =lcsTreeView.ShowIcons
                   Icon: =ThisItem.Icon
-                  IconColor: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
-                  IconStyle: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), IconStyle.Filled, IconStyle.Outline)
+                  IconColor: =If((ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected) && (lcsTreeView.Look = "Premium")), RGBA(255, 255, 255, 1), ThisItem.Icon = "Folder", If(lcsTreeView.Theme = "Dark", RGBA(251, 191, 36, 1), RGBA(217, 119, 6, 1)), If(lcsTreeView.Theme = "Dark", ColorFade(lcsTreeView.AccentColor, 0.45), lcsTreeView.AccentColor))
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected) || ThisItem.Icon = "Folder", IconStyle.Filled, IconStyle.Outline)
             - lblNode:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 34 + If(lcsTreeView.ShowIcons, 36, 8)
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 30 + If(lcsTreeView.ShowIcons, 26, 2)
                   Y: =0
-                  Width: =Max(0, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 34 + If(lcsTreeView.ShowIcons, 36, 8)) - 8)
+                  Width: =Max(0, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 30 + If(lcsTreeView.ShowIcons, 26, 2)) - If(ThisItem.Kids > 0 && lcsTreeView.ShowCounts, 36, 8))
                   Height: =Parent.TemplateHeight
                   Text: =ThisItem.Label
-                  Size: =14
-                  Color: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  Size: =13
+                  Color: =If((ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected) && (lcsTreeView.Look = "Premium")), RGBA(255, 255, 255, 1), ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
                   VerticalAlign: =VerticalAlign.Middle
                   Wrap: =false
                   PaddingLeft: =0
@@ -382,14 +474,30 @@ ComponentDefinitions:
                   PaddingTop: =0
                   PaddingBottom: =0
                   FontWeight: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), FontWeight.Semibold, FontWeight.Normal)
+            - lblCount:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =Parent.TemplateWidth - 40
+                  Y: =0
+                  Width: =32
+                  Height: =Parent.TemplateHeight
+                  Text: =Text(ThisItem.Kids)
+                  Size: =11
+                  Color: =If((ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected) && (lcsTreeView.Look = "Premium")), RGBA(255, 255, 255, 1), If(lcsTreeView.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
             - btnNode:
                 Control: Classic/Button@2.2.0
                 Properties:
-                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 34
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 26
                   Y: =2
-                  Width: =Max(40, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 34) - 6)
+                  Width: =Max(40, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 26) - 2)
                   Height: =Parent.TemplateHeight - 4
-                  Text: =ThisItem.Label & ", " & lcsTreeView.LevelText & " " & (ThisItem.Depth + 1)
+                  Text: =ThisItem.Label & ", " & lcsTreeView.LevelText & " " & (ThisItem.Depth + 1) & If(ThisItem.Kids > 0, ", " & ThisItem.Kids, "")
                   Fill: =RGBA(0, 0, 0, 0)
                   Color: =RGBA(0, 0, 0, 0)
                   BorderColor: =RGBA(0, 0, 0, 0)
@@ -404,10 +512,10 @@ ComponentDefinitions:
                   DisabledBorderColor: =RGBA(0, 0, 0, 0)
                   FocusedBorderColor: =If(lcsTreeView.Theme = "Dark", ColorFade(lcsTreeView.AccentColor, 0.45), lcsTreeView.AccentColor)
                   FocusedBorderThickness: =2
-                  RadiusTopLeft: =6
-                  RadiusTopRight: =6
-                  RadiusBottomLeft: =6
-                  RadiusBottomRight: =6
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
                   OnSelect: |-
                     =Set(locSelected, ThisItem.Key);
                     lcsTreeView.OnNodeSelect(ThisItem.Key)
@@ -415,7 +523,7 @@ ComponentDefinitions:
           Control: ModernText@1.0.0
           Properties:
             X: =0
-            Y: =16
+            Y: =If(lcsTreeView.ShowTitle, 52, 8) + 24
             Width: =Parent.Width
             Height: =24
             Visible: =CountRows(lcsTreeView.Nodes) = 0

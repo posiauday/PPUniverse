@@ -272,7 +272,8 @@ New for this library, so check the paste first: each row's chevron and node are 
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
-| Input | Nothing else | Documents open with Plans and Budget.xlsx under it, indented; Images and Archive closed |
+| Input | Nothing else | A white card titled "Files": Documents open with Plans and Budget.xlsx under it, joined by a thin guide line; folders amber, files blue; a small 2 beside Documents and Plans; Images and Archive closed |
+| Input | `Look` `"Premium"`, `CurrentKey` `"q3"`, `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx as a solid blue pill with white text; a soft shadow under the card |
 | Input | Select the chevron beside Plans | Plans opens: Q3 plan.docx and Q4 plan.docx, indented one more level |
 | Event | `OnNodeSelect` to `Notify("Open " & NodeKey)`; select Budget.xlsx | "Open budget"; Budget.xlsx is tinted, bold, with a filled icon |
 | Event | `OnExpand` to `Notify(NodeKey)`; open Archive | "archive"; Archive opens with nothing under it (its children aren't loaded) |
@@ -290,7 +291,8 @@ New for this library, so check the paste first: an `InputFunction` that returns 
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
-| Input | Nothing else | Four circles joined by lines: 1 ringed in blue and bold "Your details", 2 to 4 grey; "Step 1 of 4", Back greyed, a blue Next |
+| Input | Nothing else | A white card: four circles with a gap before each line, 1 solid blue with a pale halo and bold "Your details", 2 to 4 grey outlines; under a divider, "Step 1 of 4" with a short progress bar, Back greyed and a blue Next |
+| Input | `Look` `"Premium"` | A soft shadow under the card |
 | Input | `CanLeaveStep` to `If(Step = 1, !IsBlank(TextInput1.Value), true)` with an empty TextInput1; select Next | It stays on step 1 and says "Complete this step to continue." in red |
 | Event | `OnStepChange` to `Notify("Step " & NewStep & " from " & OldStep)`; type a name, select Next | "Step 2 from 1"; step 1 shows a ✓ in blue and the line to step 2 turns blue |
 | Input | Select the ✓ of step 1 | Back on step 1 ("Step 1 from 2") |

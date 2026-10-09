@@ -11,7 +11,7 @@ modernControls: yes
 
 Use **lcsStepper** for a form split into steps: a request, an onboarding, a checklist. A plain row of labels shows where you are, but it doesn't stop anyone moving on with a step half done. This component:
 
-- **Shows the steps and progress:** finished steps get a ✓ in your colour, the current one a ring, and the line between them fills as you go. Horizontal, or vertical for a narrow screen or side panel.
+- **Shows the steps and progress** on a clean card: finished steps get a ✓ in your colour, the current one a solid circle with a soft halo, and the lines between them fill as you go. Under a divider, "Step 2 of 4" with a progress bar. Horizontal, or vertical for a narrow screen or side panel; `Look` `"Premium"` adds a soft shadow.
 - **Checks before moving on.** Write your own `CanLeaveStep(Step)` check: return false and Next stays on the step and says what's wrong ("Complete this step to continue."). `GoToStep()` stops at the first step that isn't complete, so no step is skipped.
 - **Has Back and Next built in,** with your own labels ("Submit" on the last step), or uses your buttons through `Back()` and `Next()`.
 - **Lets people go back** by selecting an earlier step.

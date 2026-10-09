@@ -17,3 +17,8 @@
   settings:
     Theme: ="Dark"
     AccentColor: =RGBA(124, 58, 237, 1)
+- name: Premium
+  description: A soft shadow under the card, on the third step.
+  settings:
+    Look: ="Premium"
+    DefaultStep: =3

@@ -2316,3 +2316,10 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **A `Look` input:** `Standard` (the plain side panel) or `Premium`: a floating card with rounded corners and a soft shadow, the app's mark (its first letter on the accent colour), a solid pill in the accent colour with white text for the current item, and the signed-in person on their own tinted card. Presets "Premium" and "Premium dark".
 2. **Hover follows the menu's own theme.** Every clickable part is a modern Icon (and Text) under a transparent classic button whose hover, pressed and focus colours follow the component's light or dark theme, because the modern button's hover comes from the app's light theme and can't be changed.
 
+## 2026-10-09 — Tree view and Stepper: cleaner designs
+
+**Source:** direct product-owner reactions in this session after pasting them: the Tree view, "what is it used for and why is the UI so boring and not clean"; the Stepper, with a screenshot, "Stepper design looks ugly too".
+
+1. **Tree view:** a card with a title, thin guide lines joining each level to its parent, folders in amber and files in the accent colour, a count of each folder's children, a soft highlight for the selected node, and `Look` `"Premium"` (a solid accent pill and a soft shadow), as the Navigation shell has.
+2. **Stepper:** a padded card; 36-pixel circles with a gap before each connector, the current step solid with a soft halo; a footer under a divider with the progress as text and a bar; Back and Next as classic buttons with their own colours, so they look and hover right on a dark card; `Look` `"Premium"` adds a soft shadow.
+

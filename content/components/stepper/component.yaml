@@ -98,6 +98,12 @@ ComponentDefinitions:
         DataType: Text
         Description: "What screen readers add to the step the user is on."
         Default: ="current step"
+      Look:
+        PropertyKind: Input
+        DisplayName: Look
+        DataType: Text
+        Description: "Standard, or Premium: a soft shadow under the card."
+        Default: ="Standard"
       AccentColor:
         PropertyKind: Input
         DisplayName: AccentColor
@@ -188,7 +194,7 @@ ComponentDefinitions:
         Description: "Goes back to DefaultStep and clears the blocked message."
     Properties:
       Width: =720
-      Height: =If((lcsStepper.Orientation = "Vertical"), Max(1, CountRows(lcsStepper.Steps)) * 72, 88) + If(lcsStepper.ShowButtons, 64, 0)
+      Height: =40 + If((lcsStepper.Orientation = "Vertical"), Max(1, CountRows(lcsStepper.Steps)) * 72, 92) + If(lcsStepper.ShowButtons, 74, 0)
       Fill: =RGBA(0, 0, 0, 0)
       CurrentStep: =Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))
       StepCount: =CountRows(lcsStepper.Steps)
@@ -215,21 +221,37 @@ ComponentDefinitions:
       Back: =Set(locStep, Max(1, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))) - 1)); Set(locBlockedAt, 0)
       Reset: =Set(locStep, Blank()); Set(locBlockedAt, 0)
     Children:
-      - galSteps:
-          Control: Gallery@2.15.0
-          Variant: Vertical
+      - conCard:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
           Properties:
             X: =0
             Y: =0
             Width: =Parent.Width
-            Height: =If((lcsStepper.Orientation = "Vertical"), Max(1, CountRows(lcsStepper.Steps)) * 72, 88)
+            Height: =Parent.Height
+            Fill: =If(lcsStepper.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1))
+            BorderColor: =If(lcsStepper.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            BorderThickness: =1
+            DropShadow: =If((lcsStepper.Look = "Premium"), DropShadow.Regular, DropShadow.None)
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+      - galSteps:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            X: =20
+            Y: =20
+            Width: =Max(0, Parent.Width - 40)
+            Height: =If((lcsStepper.Orientation = "Vertical"), Max(1, CountRows(lcsStepper.Steps)) * 72, 92)
             Items: |-
               =ForAll(
                   Sequence(CountRows(lcsStepper.Steps)) As i,
                   With({s: Last(FirstN(lcsStepper.Steps, i.Value))}, {N: i.Value, Title: s.Title, Description: s.Description})
               )
             WrapCount: =If((lcsStepper.Orientation = "Vertical"), 1, Max(1, CountRows(lcsStepper.Steps)))
-            TemplateSize: =If((lcsStepper.Orientation = "Vertical"), 72, 88)
+            TemplateSize: =If((lcsStepper.Orientation = "Vertical"), 72, 92)
             TemplatePadding: =0
             ShowScrollbar: =false
             BorderStyle: =BorderStyle.None
@@ -240,16 +262,16 @@ ComponentDefinitions:
                 Properties:
                   X: =0
                   Y: =23
-                  Width: =Max(0, (Parent.TemplateWidth - 32) / 2 - 6)
+                  Width: =Max(0, (Parent.TemplateWidth - 36) / 2 - 10)
                   Height: =2
                   Visible: =!(lcsStepper.Orientation = "Vertical") && ThisItem.N > 1
                   Fill: =If(ThisItem.N <= Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))), lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)))
             - shpLineAfter:
                 Control: Rectangle@2.3.0
                 Properties:
-                  X: =(Parent.TemplateWidth + 32) / 2 + 6
+                  X: =(Parent.TemplateWidth + 36) / 2 + 10
                   Y: =23
-                  Width: =Max(0, (Parent.TemplateWidth - 32) / 2 - 6)
+                  Width: =Max(0, (Parent.TemplateWidth - 36) / 2 - 10)
                   Height: =2
                   Visible: =!(lcsStepper.Orientation = "Vertical") && ThisItem.N < Max(1, CountRows(lcsStepper.Steps))
                   Fill: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)))
@@ -257,37 +279,52 @@ ComponentDefinitions:
                 Control: Rectangle@2.3.0
                 Properties:
                   X: =23
-                  Y: =42
+                  Y: =48
                   Width: =2
-                  Height: =Max(0, Parent.TemplateHeight - 44)
+                  Height: =Max(0, Parent.TemplateHeight - 52)
                   Visible: =(lcsStepper.Orientation = "Vertical") && ThisItem.N < Max(1, CountRows(lcsStepper.Steps))
                   Fill: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)))
+            - conHalo:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =If((lcsStepper.Orientation = "Vertical"), 6, (Parent.TemplateWidth - 36) / 2) - 5
+                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 6) - 5
+                  Width: =46
+                  Height: =46
+                  Visible: =(ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))))
+                  Fill: =ColorFade(lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", -0.6, 0.82))
+                  DropShadow: =DropShadow.None
+                  RadiusTopLeft: =23
+                  RadiusTopRight: =23
+                  RadiusBottomLeft: =23
+                  RadiusBottomRight: =23
             - conCircle:
                 Control: GroupContainer@1.5.0
                 Variant: ManualLayout
                 Properties:
-                  X: =If((lcsStepper.Orientation = "Vertical"), 8, (Parent.TemplateWidth - 32) / 2)
-                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 8)
-                  Width: =32
-                  Height: =32
-                  Fill: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1)))
+                  X: =If((lcsStepper.Orientation = "Vertical"), 6, (Parent.TemplateWidth - 36) / 2)
+                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 6)
+                  Width: =36
+                  Height: =36
+                  Fill: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))) || (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1)))
                   BorderColor: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))) || (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), lcsStepper.AccentColor, If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)))
-                  BorderThickness: =If((ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), 2, 1)
+                  BorderThickness: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))) || (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), 0, 2)
                   DropShadow: =DropShadow.None
-                  RadiusTopLeft: =16
-                  RadiusTopRight: =16
-                  RadiusBottomLeft: =16
-                  RadiusBottomRight: =16
+                  RadiusTopLeft: =18
+                  RadiusTopRight: =18
+                  RadiusBottomLeft: =18
+                  RadiusBottomRight: =18
             - lblNumber:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =If((lcsStepper.Orientation = "Vertical"), 8, (Parent.TemplateWidth - 32) / 2)
-                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 8)
-                  Width: =32
-                  Height: =32
+                  X: =If((lcsStepper.Orientation = "Vertical"), 6, (Parent.TemplateWidth - 36) / 2)
+                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 6)
+                  Width: =36
+                  Height: =36
                   Text: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), "✓", Text(ThisItem.N))
-                  Size: =13
-                  Color: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), RGBA(255, 255, 255, 1), (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), If(lcsStepper.Theme = "Dark", ColorFade(lcsStepper.AccentColor, 0.45), ColorFade(lcsStepper.AccentColor, -0.2)), If(lcsStepper.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+                  Size: =14
+                  Color: =If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))) || (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), RGBA(255, 255, 255, 1), If(lcsStepper.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
                   VerticalAlign: =VerticalAlign.Middle
                   Wrap: =false
                   PaddingLeft: =0
@@ -299,9 +336,9 @@ ComponentDefinitions:
             - lblStepTitle:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =If((lcsStepper.Orientation = "Vertical"), 52, 4)
-                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 46)
-                  Width: =If((lcsStepper.Orientation = "Vertical"), Parent.TemplateWidth - 60, Parent.TemplateWidth - 8)
+                  X: =If((lcsStepper.Orientation = "Vertical"), 58, 4)
+                  Y: =If((lcsStepper.Orientation = "Vertical"), 4, 50)
+                  Width: =If((lcsStepper.Orientation = "Vertical"), Parent.TemplateWidth - 62, Parent.TemplateWidth - 8)
                   Height: =20
                   Text: =ThisItem.Title
                   Size: =13
@@ -317,9 +354,9 @@ ComponentDefinitions:
             - lblStepDescription:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =If((lcsStepper.Orientation = "Vertical"), 52, 4)
-                  Y: =If((lcsStepper.Orientation = "Vertical"), 26, 66)
-                  Width: =If((lcsStepper.Orientation = "Vertical"), Parent.TemplateWidth - 60, Parent.TemplateWidth - 8)
+                  X: =If((lcsStepper.Orientation = "Vertical"), 58, 4)
+                  Y: =If((lcsStepper.Orientation = "Vertical"), 25, 70)
+                  Width: =If((lcsStepper.Orientation = "Vertical"), Parent.TemplateWidth - 62, Parent.TemplateWidth - 8)
                   Height: =If((lcsStepper.Orientation = "Vertical"), 36, 18)
                   Visible: =lcsStepper.ShowDescriptions
                   Text: =ThisItem.Description
@@ -343,10 +380,10 @@ ComponentDefinitions:
                   Fill: =RGBA(0, 0, 0, 0)
                   Color: =RGBA(0, 0, 0, 0)
                   BorderColor: =RGBA(0, 0, 0, 0)
-                  HoverFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.06), RGBA(0, 0, 0, 0.04))
+                  HoverFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
                   HoverColor: =RGBA(0, 0, 0, 0)
                   HoverBorderColor: =RGBA(0, 0, 0, 0)
-                  PressedFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.12), RGBA(0, 0, 0, 0.08))
+                  PressedFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
                   PressedColor: =RGBA(0, 0, 0, 0)
                   PressedBorderColor: =RGBA(0, 0, 0, 0)
                   DisabledFill: =RGBA(0, 0, 0, 0)
@@ -354,10 +391,10 @@ ComponentDefinitions:
                   DisabledBorderColor: =RGBA(0, 0, 0, 0)
                   FocusedBorderColor: =If(lcsStepper.Theme = "Dark", ColorFade(lcsStepper.AccentColor, 0.45), lcsStepper.AccentColor)
                   FocusedBorderThickness: =2
-                  RadiusTopLeft: =8
-                  RadiusTopRight: =8
-                  RadiusBottomLeft: =8
-                  RadiusBottomRight: =8
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
                   DisplayMode: =If(lcsStepper.AllowJumpBack && (ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), DisplayMode.Edit, DisplayMode.Disabled)
                   OnSelect: |-
                     =With(
@@ -366,14 +403,23 @@ ComponentDefinitions:
                         Set(locBlockedAt, 0);
                         lcsStepper.OnStepChange(to, from)
                     )
+      - shpDivider:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =20
+            Y: =galSteps.Y + galSteps.Height + 12
+            Width: =Max(0, Parent.Width - 40)
+            Height: =1
+            Visible: =lcsStepper.ShowButtons
+            Fill: =If(lcsStepper.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
       - lblProgress:
           Control: ModernText@1.0.0
           Properties:
-            X: =0
-            Y: =galSteps.Y + galSteps.Height + 12
-            Width: =Parent.Width - 236
-            Height: =40
-            Visible: =lcsStepper.ShowButtons && locBlockedAt <> Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))
+            X: =20
+            Y: =galSteps.Y + galSteps.Height + 12 + 17
+            Width: =Max(0, Parent.Width - 300)
+            Height: =20
+            Visible: =lcsStepper.ShowButtons && !(locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))))
             Text: =Substitute(Substitute(lcsStepper.StepText, "{n}", Text(Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))))), "{total}", Text(Max(1, CountRows(lcsStepper.Steps))))
             Size: =13
             Color: =If(lcsStepper.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
@@ -383,12 +429,43 @@ ComponentDefinitions:
             PaddingRight: =0
             PaddingTop: =0
             PaddingBottom: =0
+            FontWeight: =FontWeight.Semibold
+      - conTrack:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            X: =20
+            Y: =galSteps.Y + galSteps.Height + 12 + 17 + 26
+            Width: =140
+            Height: =4
+            Visible: =lcsStepper.ShowButtons && !(locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))))
+            Fill: =If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DropShadow: =DropShadow.None
+            RadiusTopLeft: =2
+            RadiusTopRight: =2
+            RadiusBottomLeft: =2
+            RadiusBottomRight: =2
+      - conTrackFill:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            X: =20
+            Y: =galSteps.Y + galSteps.Height + 12 + 17 + 26
+            Width: =140 * Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))) / Max(1, CountRows(lcsStepper.Steps))
+            Height: =4
+            Visible: =lcsStepper.ShowButtons && !(locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))))
+            Fill: =lcsStepper.AccentColor
+            DropShadow: =DropShadow.None
+            RadiusTopLeft: =2
+            RadiusTopRight: =2
+            RadiusBottomLeft: =2
+            RadiusBottomRight: =2
       - lblBlocked:
           Control: ModernText@1.0.0
           Properties:
-            X: =0
-            Y: =galSteps.Y + galSteps.Height + 12
-            Width: =Parent.Width - 236
+            X: =20
+            Y: =galSteps.Y + galSteps.Height + 12 + 17
+            Width: =Max(0, Parent.Width - 300)
             Height: =40
             Visible: =lcsStepper.ShowButtons && locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))
             Text: =lcsStepper.BlockedText
@@ -402,15 +479,35 @@ ComponentDefinitions:
             PaddingBottom: =0
             FontWeight: =FontWeight.Semibold
       - btnBack:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
-            X: =Parent.Width - 224
-            Y: =galSteps.Y + galSteps.Height + 12
+            X: =Parent.Width - 20 - 232
+            Y: =galSteps.Y + galSteps.Height + 12 + 17
             Width: =104
             Height: =40
             Visible: =lcsStepper.ShowButtons
             Text: =lcsStepper.BackText
-            Appearance: =ButtonAppearance.Secondary
+            Size: =11
+            FontWeight: =FontWeight.Semibold
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            BorderColor: =If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            HoverBorderColor: =If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            PressedFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            PressedBorderColor: =If(lcsStepper.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =If(lcsStepper.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1))
+            DisabledBorderColor: =If(lcsStepper.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsStepper.Theme = "Dark", ColorFade(lcsStepper.AccentColor, 0.45), lcsStepper.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
             DisplayMode: =If(Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
               =With(
@@ -420,16 +517,35 @@ ComponentDefinitions:
                   lcsStepper.OnStepChange(to, from)
               )
       - btnNext:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
-            X: =Parent.Width - 112
-            Y: =galSteps.Y + galSteps.Height + 12
-            Width: =112
+            X: =Parent.Width - 20 - 116
+            Y: =galSteps.Y + galSteps.Height + 12 + 17
+            Width: =116
             Height: =40
             Visible: =lcsStepper.ShowButtons
             Text: =If(Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps)))) >= Max(1, CountRows(lcsStepper.Steps)), lcsStepper.FinishText, lcsStepper.NextText)
-            Appearance: =ButtonAppearance.Primary
-            BasePaletteColor: =lcsStepper.AccentColor
+            Size: =11
+            FontWeight: =FontWeight.Semibold
+            Fill: =lcsStepper.AccentColor
+            Color: =RGBA(255, 255, 255, 1)
+            BorderColor: =lcsStepper.AccentColor
+            BorderThickness: =1
+            HoverFill: =ColorFade(lcsStepper.AccentColor, -0.12)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverBorderColor: =lcsStepper.AccentColor
+            PressedFill: =ColorFade(lcsStepper.AccentColor, -0.24)
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedBorderColor: =lcsStepper.AccentColor
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =If(lcsStepper.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1))
+            DisabledBorderColor: =If(lcsStepper.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsStepper.Theme = "Dark", ColorFade(lcsStepper.AccentColor, 0.45), lcsStepper.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
             OnSelect: |-
               =If(
                   lcsStepper.CanLeaveStep(Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))),

@@ -5635,3 +5635,24 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Still to do (after the product owner's light-mode paste-tests):** the same change in the Data table, Pagination, People picker, Dialog and Toast, which also use subtle or transparent modern buttons on a `Dark` theme.
 
 **Checked:** the component gate (30 checks); web component tests (39).
+
+## 2026-10-09 — Tree view and Stepper: cleaner designs
+
+**Asked:** after pasting them (both pasted with no errors), the product owner found the Tree view "boring and not clean" and the Stepper "ugly" (docs/final-decisions.md, 2026-10-09, "Tree view and Stepper: cleaner designs").
+
+**Changed** (drafts, 0.1.0):
+- **Tree view:**
+  - a card with a title (`Title`, `ShowTitle`), thin guide lines between levels (`ShowGuides`), folders in amber and files in the accent colour, and each folder's child count (`ShowCounts`; screen readers hear it too);
+  - 36-pixel rows and a soft highlight for the selected node; `Look` `"Premium"` gives a solid accent pill and a soft shadow;
+  - presets "Premium" and "Premium dark".
+- **Stepper:**
+  - a padded card with 36-pixel circles, a gap before each connector, and the current step solid with a soft halo;
+  - a footer under a divider with "Step 2 of 4" and a progress bar;
+  - Back and Next are classic buttons with their own colours and hover (the modern Secondary button stayed light on a dark card); `Look` `"Premium"` adds a soft shadow; a "Premium" preset.
+- **The previews** follow both. The Tree view preview's labels were centred (a button centres its text); they're left-aligned now.
+
+**Checked:**
+- The component gate (30 checks).
+- Web typecheck, lint and component tests (39).
+- A local axe and overflow run over both pages and their flows and presets at 375 and 1280 px, light and dark: 56 states, clean. A first run flagged a variation chip as obscured, which was the site's sticky top bar after the page had scrolled; with the page at the top, all clean.
+- Screenshots checked.
