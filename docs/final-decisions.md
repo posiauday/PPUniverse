@@ -2333,3 +2333,10 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 4. **Status in words:** a pill with the status (`StatusText` to change the words, the `Status` output to read them); one past the last step shows every step finished.
 5. **Other uses** as presets: an approval chain (and rejected), a sales pipeline, order tracking, a finished project, and Project in Premium dark.
 
+## 2026-10-09 — Stepper: the status pill names the stage
+
+**Source:** direct product-owner feedback after pasting the Project and Approval types: the pill's words stayed the same at every stage, and they expected them to change.
+
+- The pill names the current stage with its status: Project "Execution · At risk"; Approval "Waiting on Finance" or "Rejected at Finance". When finished, "Complete" or "Approved". `StatusText` still replaces the words, and the pill sizes itself to them.
+- Screen readers keep the status alone after the stage's title, which they already hear.
+

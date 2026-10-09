@@ -21,6 +21,7 @@ import { ITEMS, initialsOf, menuOf, shellLayout, themeSvg } from "./replicas/Nav
 import { NODES, visibleRows } from "./replicas/TreeViewReplica";
 import {
   goToStep,
+  healthWords,
   readSteps,
   stageColors,
   STATUS_COLORS,
@@ -337,11 +338,19 @@ describe("replica helpers match the components' own formulas", () => {
       now: "#7c3aed",
       darkInk: false,
     });
-    expect(statusWords("Project", "Amber", false, "")).toBe("At risk");
-    expect(statusWords("Project", "Red", true, "")).toBe("Complete");
-    expect(statusWords("Approval", "Red", false, "")).toBe("Rejected");
-    expect(statusWords("Approval", "Green", false, "")).toBe("Waiting for approval");
-    expect(statusWords("Project", "Green", false, "Arriving today")).toBe("Arriving today");
+    // The pill names the current stage, so it changes at each one.
+    expect(statusWords("Project", "Amber", false, "", "Execution")).toBe("Execution · At risk");
+    expect(statusWords("Project", "Green", false, "", "Planning")).toBe("Planning · On track");
+    expect(statusWords("Project", "Red", true, "", "")).toBe("Complete");
+    expect(statusWords("Approval", "Red", false, "", "Finance")).toBe("Rejected at Finance");
+    expect(statusWords("Approval", "Green", false, "", "Finance")).toBe("Waiting on Finance");
+    expect(statusWords("Approval", "Green", true, "", "")).toBe("Approved");
+    expect(statusWords("Project", "Green", false, "Arriving today", "Shipped")).toBe(
+      "Arriving today",
+    );
+    // Screen readers hear the health alone: they already hear the stage's title.
+    expect(healthWords("Project", "Amber", false, "")).toBe("At risk");
+    expect(healthWords("Approval", "Green", false, "")).toBe("Waiting for approval");
     // The YAML uses the same colours.
     const { readFileSync } = await import("node:fs");
     const yaml = readFileSync(

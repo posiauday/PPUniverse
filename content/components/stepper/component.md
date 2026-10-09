@@ -93,7 +93,7 @@ Set `Type` to show where something is rather than walk someone through a form. T
 | `"Project"` | Blue, with ✓ | From `Health`: `"Green"` on track, `"Amber"` at risk, `"Red"` off track | Grey |
 | `"Approval"` | Green, with ✓ | Amber, waiting; red with ✕ when `Health` is `"Red"` (rejected) | Grey |
 
-A pill beside the progress says the status in words. Change them with `StatusText`, and read them from the `Status` output. Set `DefaultStep` one past the last step to show every step finished ("Complete", or "Approved").
+A pill beside the progress names the current stage and its status, so it changes at each stage: "Execution · At risk", "Waiting on Finance", "Rejected at Finance". Put your own words in `StatusText`, and read the words from the `Status` output. Set `DefaultStep` one past the last step to show every step finished ("Complete", or "Approved").
 
 ```powerfx
 // stpProject.Type

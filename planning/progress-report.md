@@ -5682,3 +5682,11 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - Screenshots checked.
 
 **Research:** the five phases and the status colours were checked against PMBOK process-group summaries and RAG/BRAG guides; none of them gives a colour per phase.
+
+## 2026-10-09 — Stepper: the status pill names the stage
+
+**Asked:** after pasting both types (they worked), the product owner noticed the pill said the same at every stage (docs/final-decisions.md, 2026-10-09, "Stepper: the status pill names the stage").
+
+**Changed:** the pill reads "Approver · On track", "Waiting on Finance" or "Rejected at Finance", and sizes itself to its words. The `Status` output gives the same words; screen readers hear the status alone. The preview follows.
+
+**Checked:** the component gate (30), web component tests (34), typecheck and lint; a local axe run over the Stepper presets.

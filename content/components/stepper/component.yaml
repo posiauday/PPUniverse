@@ -225,7 +225,7 @@ ComponentDefinitions:
       IsFirst: =Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) = 1
       IsLast: =Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) >= Max(1, CountRows(lcsStepper.Steps))
       Progress: =(Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) - 1) / Max(1, CountRows(lcsStepper.Steps))
-      Status: =If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), Coalesce(lcsStepper.StatusText, If((lcsStepper.Type = "Approval"), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Approved", lcsStepper.Health = "Red", "Rejected", "Waiting for approval"), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Complete", lcsStepper.Health = "Red", "Off track", lcsStepper.Health = "Amber", "At risk", "On track"))), "")
+      Status: =If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), Coalesce(lcsStepper.StatusText, If((lcsStepper.Type = "Approval"), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Approved", lcsStepper.Health = "Red", "Rejected at " & Last(FirstN(lcsStepper.Steps, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))).Title, "Waiting on " & Last(FirstN(lcsStepper.Steps, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))).Title), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Complete", Last(FirstN(lcsStepper.Steps, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))).Title & " · " & If(lcsStepper.Health = "Red", "Off track", lcsStepper.Health = "Amber", "At risk", "On track")))), "")
       GoToStep: |-
         =With(
             {to: Max(1, Min(StepNumber, (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))), from: Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0))))},
@@ -441,7 +441,7 @@ ComponentDefinitions:
           Properties:
             X: =20 + If((lcsStepper.Look = "Premium"), 8, 0)
             Y: =galSteps.Y + galSteps.Height + 12 + 17
-            Width: =Max(0, Parent.Width - 40 - 2 * If((lcsStepper.Look = "Premium"), 8, 0) - If(lcsStepper.ShowButtons, 244, 0) - If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 168, 0))
+            Width: =Max(0, Parent.Width - 40 - 2 * If((lcsStepper.Look = "Premium"), 8, 0) - If(lcsStepper.ShowButtons, 244, 0) - If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), conPill.Width + 12, 0))
             Height: =20
             Visible: =(lcsStepper.ShowButtons || ((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval"))) && !(locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))
             Text: =Substitute(Substitute(lcsStepper.StepText, "{n}", Text(Min(Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))), Max(1, CountRows(lcsStepper.Steps))))), "{total}", Text(Max(1, CountRows(lcsStepper.Steps))))
@@ -488,9 +488,9 @@ ComponentDefinitions:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout
           Properties:
-            X: =Parent.Width - 20 - If((lcsStepper.Look = "Premium"), 8, 0) - 156 - If(lcsStepper.ShowButtons, 244, 0)
+            X: =Parent.Width - 20 - If((lcsStepper.Look = "Premium"), 8, 0) - Self.Width - If(lcsStepper.ShowButtons, 244, 0)
             Y: =galSteps.Y + galSteps.Height + 12 + 17 + 6
-            Width: =156
+            Width: =Min(Max(120, Parent.Width - 40 - 2 * If((lcsStepper.Look = "Premium"), 8, 0) - If(lcsStepper.ShowButtons, 244, 0) - 160), 46 + Len(lblStatus.Text) * 6.5)
             Height: =28
             Visible: =((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")) && !(locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))
             Fill: =ColorFade(If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), If((lcsStepper.Type = "Project"), RGBA(15, 108, 189, 1), (lcsStepper.Type = "Approval"), RGBA(16, 124, 16, 1), lcsStepper.AccentColor), If((lcsStepper.Type = "Project"), Switch(lcsStepper.Health, "Red", RGBA(196, 49, 75, 1), "Amber", RGBA(255, 185, 0, 1), RGBA(16, 124, 16, 1)), (lcsStepper.Type = "Approval"), If(lcsStepper.Health = "Red", RGBA(196, 49, 75, 1), RGBA(255, 185, 0, 1)), lcsStepper.AccentColor)), If(lcsStepper.Theme = "Dark", -0.7, 0.85))
@@ -503,7 +503,7 @@ ComponentDefinitions:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout
           Properties:
-            X: =Parent.Width - 20 - If((lcsStepper.Look = "Premium"), 8, 0) - 156 - If(lcsStepper.ShowButtons, 244, 0) + 12
+            X: =conPill.X + 12
             Y: =galSteps.Y + galSteps.Height + 12 + 17 + 16
             Width: =8
             Height: =8
@@ -517,12 +517,12 @@ ComponentDefinitions:
       - lblStatus:
           Control: ModernText@1.0.0
           Properties:
-            X: =Parent.Width - 20 - If((lcsStepper.Look = "Premium"), 8, 0) - 156 - If(lcsStepper.ShowButtons, 244, 0) + 26
+            X: =conPill.X + 26
             Y: =galSteps.Y + galSteps.Height + 12 + 17 + 6
-            Width: =122
+            Width: =Max(0, conPill.Width - 34)
             Height: =28
             Visible: =((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")) && !(locBlockedAt = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))
-            Text: =Coalesce(lcsStepper.StatusText, If((lcsStepper.Type = "Approval"), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Approved", lcsStepper.Health = "Red", "Rejected", "Waiting for approval"), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Complete", lcsStepper.Health = "Red", "Off track", lcsStepper.Health = "Amber", "At risk", "On track")))
+            Text: =Coalesce(lcsStepper.StatusText, If((lcsStepper.Type = "Approval"), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Approved", lcsStepper.Health = "Red", "Rejected at " & Last(FirstN(lcsStepper.Steps, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))).Title, "Waiting on " & Last(FirstN(lcsStepper.Steps, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))).Title), If((Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))) > Max(1, CountRows(lcsStepper.Steps))), "Complete", Last(FirstN(lcsStepper.Steps, Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), (Max(1, CountRows(lcsStepper.Steps)) + If(((lcsStepper.Type = "Project") || (lcsStepper.Type = "Approval")), 1, 0)))))).Title & " · " & If(lcsStepper.Health = "Red", "Off track", lcsStepper.Health = "Amber", "At risk", "On track"))))
             Size: =12
             Color: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
             VerticalAlign: =VerticalAlign.Middle

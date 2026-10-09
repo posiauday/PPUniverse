@@ -72,8 +72,8 @@ export function stageColors(
   return { done: accent, now: accent, darkInk: false };
 }
 
-/** The status pill's words, as STATUS_WORDS in the YAML: StatusText when it isn't empty. */
-export function statusWords(
+/** The health in words, as HEALTH_WORDS in the YAML: what screen readers add to the current step. */
+export function healthWords(
   type: string,
   health: string,
   complete: boolean,
@@ -84,6 +84,28 @@ export function statusWords(
     return complete ? "Approved" : health === "Red" ? "Rejected" : "Waiting for approval";
   if (complete) return "Complete";
   return health === "Red" ? "Off track" : health === "Amber" ? "At risk" : "On track";
+}
+
+/**
+ * The status pill's words, as STATUS_WORDS in the YAML: they name the current stage, so
+ * they change at each one ("Approver · On track", "Waiting on Finance"). StatusText wins.
+ */
+export function statusWords(
+  type: string,
+  health: string,
+  complete: boolean,
+  statusText: string,
+  title: string,
+): string {
+  if (statusText !== "") return statusText;
+  if (type === "Approval")
+    return complete
+      ? "Approved"
+      : health === "Red"
+        ? `Rejected at ${title}`
+        : `Waiting on ${title}`;
+  if (complete) return "Complete";
+  return `${title} · ${healthWords(type, health, false, "")}`;
 }
 
 /** StepText with {n} and {total} filled in, as the YAML's Substitute does. */
@@ -175,7 +197,14 @@ export function useStepperReplica(): ReplicaApi {
   const shown = Math.min(step, count);
   const colors = stageColors(inputs.Type, inputs.Health, inputs.AccentColor);
   const rejected = inputs.Type === "Approval" && inputs.Health === "Red";
-  const status = statusWords(inputs.Type, inputs.Health, complete, inputs.StatusText);
+  const status = statusWords(
+    inputs.Type,
+    inputs.Health,
+    complete,
+    inputs.StatusText,
+    steps[step - 1]?.Title ?? "",
+  );
+  const health = healthWords(inputs.Type, inputs.Health, complete, inputs.StatusText);
   const statusColor = complete ? colors.done : colors.now;
   const showFooter = inputs.ShowButtons || tracker;
   // The screen's CanLeaveStep: If(Step = 1, !IsBlank(TextInput1.Value), true).
@@ -256,7 +285,7 @@ export function useStepperReplica(): ReplicaApi {
           done
             ? `, ${inputs.DoneText}`
             : current
-              ? `, ${inputs.CurrentText}${tracker ? `, ${status}` : ""}`
+              ? `, ${inputs.CurrentText}${tracker ? `, ${health}` : ""}`
               : ""
         }`;
         const canGo = inputs.AllowJumpBack && done;
@@ -381,7 +410,7 @@ export function useStepperReplica(): ReplicaApi {
               </div>
               {tracker && blockedAt !== step ? (
                 <span
-                  className={`inline-flex h-7 w-[156px] items-center gap-2 rounded-full px-3 text-xs font-semibold ${
+                  className={`inline-flex h-7 max-w-[276px] min-w-[120px] items-center gap-2 rounded-full px-3 text-xs font-semibold ${
                     dark
                       ? "bg-[color-mix(in_srgb,var(--status)_30%,black)] text-white"
                       : "bg-[color-mix(in_srgb,var(--status)_15%,white)] text-[#242424]"

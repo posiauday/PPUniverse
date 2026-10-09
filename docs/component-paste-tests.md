@@ -302,7 +302,8 @@ New for this library, so check the paste first: an `InputFunction` that returns 
 | Input | `Orientation` `"Vertical"` | The steps in a column, each title beside its circle with its description under it |
 | Input | `ShowButtons` false; your own button with `stpRequest.Next()` | The footer is gone; your button moves on as Next does, and doesn't run OnStepChange |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, purple circles and Next |
-| Input | `Type` `"Project"`, `Health` `"Amber"`, `DefaultStep` 3, `ShowButtons` false | 1 and 2 blue with ✓, 3 amber with a dark 3 and a pale amber halo, 4 grey; the footer has "Step 3 of 4", an amber bar and an "At risk" pill, and no buttons |
+| Input | `Type` `"Project"`, `Health` `"Amber"`, `DefaultStep` 3, `ShowButtons` false | 1 and 2 blue with ✓, 3 amber with a dark 3 and a pale amber halo, 4 grey; the footer has "Step 3 of 4", an amber bar and an "Approver · At risk" pill, and no buttons |
+| Input | `DefaultStep` 2, still `"Project"`; then `Health` `"Green"` | The pill follows the stage: "What you need · At risk", then "What you need · On track" in green |
 | Input | `DefaultStep` 5 (one past the last), still `"Project"` | Every step blue with ✓; "Step 4 of 4", a full blue bar and a "Complete" pill |
-| Input | `Type` `"Approval"`, `DefaultStep` 3; then `Health` `"Red"` | 1 and 2 green with ✓, 3 amber and "Waiting for approval"; with Red, 3 is red with ✕ and the pill says "Rejected" |
-| Output | A label: `stpRequest.Status`; `StatusText` `"Arriving today"` | The pill's words ("Rejected"), then "Arriving today" on both |
+| Input | `Type` `"Approval"`, `DefaultStep` 3; then `Health` `"Red"` | 1 and 2 green with ✓, 3 amber and "Waiting on Approver"; with Red, 3 is red with ✕ and the pill says "Rejected at Approver" |
+| Output | A label: `stpRequest.Status`; `StatusText` `"Arriving today"` | The pill's words ("Rejected at Approver"), then "Arriving today" on both |
