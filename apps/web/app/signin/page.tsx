@@ -78,7 +78,7 @@ export default function SignInPage() {
       const result = await signIn("email", {
         email,
         redirect: false,
-        callbackUrl: continuePath(window.location.search),
+        callbackUrl: continuePath(window.location.search, window.location.origin),
       });
       setBusy(null);
       if (result?.error) fail("email", "Something went wrong sending the link. Please try again.");
@@ -89,7 +89,7 @@ export default function SignInPage() {
     const answer = await postPasswordApi("signin", { email, password });
     if (answer.status === 200) {
       // Back to the page that sent the reader here (BUG-040), or their account.
-      window.location.assign(continuePath(window.location.search));
+      window.location.assign(continuePath(window.location.search, window.location.origin));
       return;
     }
     setBusy(null);
@@ -114,7 +114,9 @@ export default function SignInPage() {
       {googleOn ? (
         <>
           <div className="mt-6">
-            <GoogleButton callbackUrl={() => continuePath(window.location.search)} />
+            <GoogleButton
+              callbackUrl={() => continuePath(window.location.search, window.location.origin)}
+            />
           </div>
           <p className="auth-divider">or sign in with email</p>
         </>

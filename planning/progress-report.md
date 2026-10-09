@@ -5712,4 +5712,16 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 
 **Checked:** new tests for `continuePath` (3), typecheck and lint.
 
-**Security:** the return path is checked in the browser before use and NextAuth checks `callbackUrl` against the site's own URL on the server, so it can't send a reader to another site.
+**Security:** the return path is resolved against the site's origin in the browser and kept only if it stays on it; NextAuth also checks `callbackUrl` against the site's own URL on the server. CodeQL flagged the first version on the PR: a slash, a tab and a slash (`/%09/host`) passed a text-only check and browsers read it as `//host`. Fixed and tested.
+## 2026-10-09 — Azure: research, and a coming-soon tab
+
+**Asked:** an Azure tab, teased as coming soon, and architect-level research on what Azure users need (docs/final-decisions.md, 2026-10-09, "Top bar: Azure, coming soon").
+
+**Changed:**
+- `docs/research/2026-10-09-azure-hub-research.md`: audiences, demand, the most common problems, a proposed eight-column menu, a first list of 20 guides, trademark care, competitors, risks and questions (79 sources).
+- The top bar has **Azure (Soon)** after Power Platform, and the phone menu has it first. `/azure` is a noindex teaser with the planned areas and an independence line. The footer's trademark line names Azure.
+- The accessibility gate covers `/azure`.
+
+**Checked:** web tests (381) and the gate's unit tests (86), typecheck and lint; the bar still fits on one row at 1024 and 1280 px.
+
+**Open:** the columns and first guides (open question 76).
