@@ -292,7 +292,7 @@ New for this library, so check the paste first: an `InputFunction` that returns 
 | Kind | Do this | Expect |
 | --- | --- | --- |
 | Input | Nothing else | A white card: four circles with a gap before each line, 1 solid blue with a pale halo and bold "Your details", 2 to 4 grey outlines; under a divider, "Step 1 of 4" with a short progress bar, Back greyed and a blue Next |
-| Input | `Look` `"Premium"` | A soft shadow under the card |
+| Input | `Look` `"Premium"` | The card sits a little in from the edges with a soft shadow; rounder corners, thicker lines, the current title in blue and a thicker bar |
 | Input | `CanLeaveStep` to `If(Step = 1, !IsBlank(TextInput1.Value), true)` with an empty TextInput1; select Next | It stays on step 1 and says "Complete this step to continue." in red |
 | Event | `OnStepChange` to `Notify("Step " & NewStep & " from " & OldStep)`; type a name, select Next | "Step 2 from 1"; step 1 shows a ✓ in blue and the line to step 2 turns blue |
 | Input | Select the ✓ of step 1 | Back on step 1 ("Step 1 from 2") |
@@ -302,3 +302,7 @@ New for this library, so check the paste first: an `InputFunction` that returns 
 | Input | `Orientation` `"Vertical"` | The steps in a column, each title beside its circle with its description under it |
 | Input | `ShowButtons` false; your own button with `stpRequest.Next()` | The footer is gone; your button moves on as Next does, and doesn't run OnStepChange |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, purple circles and Next |
+| Input | `Type` `"Project"`, `Health` `"Amber"`, `DefaultStep` 3, `ShowButtons` false | 1 and 2 blue with ✓, 3 amber with a dark 3 and a pale amber halo, 4 grey; the footer has "Step 3 of 4", an amber bar and an "At risk" pill, and no buttons |
+| Input | `DefaultStep` 5 (one past the last), still `"Project"` | Every step blue with ✓; "Step 4 of 4", a full blue bar and a "Complete" pill |
+| Input | `Type` `"Approval"`, `DefaultStep` 3; then `Health` `"Red"` | 1 and 2 green with ✓, 3 amber and "Waiting for approval"; with Red, 3 is red with ✕ and the pill says "Rejected" |
+| Output | A label: `stpRequest.Status`; `StatusText` `"Arriving today"` | The pill's words ("Rejected"), then "Arriving today" on both |

@@ -2323,3 +2323,13 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **Tree view:** a card with a title, thin guide lines joining each level to its parent, folders in amber and files in the accent colour, a count of each folder's children, a soft highlight for the selected node, and `Look` `"Premium"` (a solid accent pill and a soft shadow), as the Navigation shell has.
 2. **Stepper:** a padded card; 36-pixel circles with a gap before each connector, the current step solid with a soft halo; a footer under a divider with the progress as text and a bar; Back and Next as classic buttons with their own colours, so they look and hover right on a dark card; `Look` `"Premium"` adds a soft shadow.
 
+## 2026-10-09 — Stepper: Project and Approval types
+
+**Source:** direct product-owner instruction in this session: a step type for the stage a project is in (initiation, execution, closing), coloured by the standard colour code, with a short name for the type, and other uses found the same way.
+
+1. **`Type`:** `"Steps"` (the default; the form or wizard, unchanged), `"Project"` and `"Approval"`.
+2. **Colours:** no recognised standard assigns colours to project phases (PMI's process groups have none). The widely used standard is RAG status, with blue for complete (BRAG), so `"Project"` shows finished stages blue, the current stage green, amber or red from a `Health` input (on track, at risk, off track), and the rest grey. `"Approval"` shows approved steps green, the current one amber (waiting), or red with ✕ when rejected.
+3. **Phases** in the project preset: Initiation, Planning, Execution, Monitoring, Closure, the five commonly taught phases (after PMBOK's process groups).
+4. **Status in words:** a pill with the status (`StatusText` to change the words, the `Status` output to read them); one past the last step shows every step finished.
+5. **Other uses** as presets: an approval chain (and rejected), a sales pipeline, order tracking, a finished project, and Project in Premium dark.
+

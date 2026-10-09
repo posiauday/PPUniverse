@@ -24,6 +24,68 @@ export const STEPS: readonly Step[] = [
   { Title: "Review", Description: "Check and submit" },
 ];
 
+/** Reads a Steps formula such as Table({Title: "Initiation", Description: "Charter"}, …). */
+export function readSteps(formula: string): Step[] {
+  return [...formula.matchAll(/\{([^}]*)\}/g)].map((match) => {
+    const field = (name: string) =>
+      match[1]!.match(new RegExp(`${name}\\s*:\\s*"((?:[^"]|"")*)"`))?.[1]?.replace(/""/g, '"') ??
+      "";
+    return { Title: field("Title"), Description: field("Description") };
+  });
+}
+
+/** The YAML's status colours: BLUE complete; GREEN on track, AMBER at risk, RED off track. */
+export const STATUS_COLORS = {
+  blue: "#0f6cbd",
+  green: "#107c10",
+  amber: "#ffb900",
+  red: "#c4314b",
+} as const;
+
+/**
+ * Finished and current colours by Type, as DONE_COLOR and NOW_COLOR in the YAML: Project
+ * finishes in blue and shows the current stage's Health; Approval finishes in green, waits
+ * in amber and is red when rejected. Steps uses the accent colour for both.
+ */
+export function stageColors(
+  type: string,
+  health: string,
+  accent: string,
+): { done: string; now: string; darkInk: boolean } {
+  if (type === "Project") {
+    const now =
+      health === "Red"
+        ? STATUS_COLORS.red
+        : health === "Amber"
+          ? STATUS_COLORS.amber
+          : STATUS_COLORS.green;
+    return { done: STATUS_COLORS.blue, now, darkInk: health === "Amber" };
+  }
+  if (type === "Approval") {
+    const rejected = health === "Red";
+    return {
+      done: STATUS_COLORS.green,
+      now: rejected ? STATUS_COLORS.red : STATUS_COLORS.amber,
+      darkInk: !rejected,
+    };
+  }
+  return { done: accent, now: accent, darkInk: false };
+}
+
+/** The status pill's words, as STATUS_WORDS in the YAML: StatusText when it isn't empty. */
+export function statusWords(
+  type: string,
+  health: string,
+  complete: boolean,
+  statusText: string,
+): string {
+  if (statusText !== "") return statusText;
+  if (type === "Approval")
+    return complete ? "Approved" : health === "Red" ? "Rejected" : "Waiting for approval";
+  if (complete) return "Complete";
+  return health === "Red" ? "Off track" : health === "Amber" ? "At risk" : "On track";
+}
+
 /** StepText with {n} and {total} filled in, as the YAML's Substitute does. */
 export function stepLabel(format: string, n: number, total: number): string {
   return format.replaceAll("{n}", String(n)).replaceAll("{total}", String(total));
@@ -49,6 +111,10 @@ export function goToStep(
 }
 
 interface Inputs {
+  Steps: readonly Step[];
+  Type: string;
+  Health: string;
+  StatusText: string;
   DefaultStep: number;
   Orientation: string;
   ShowDescriptions: boolean;
@@ -67,6 +133,10 @@ interface Inputs {
 }
 
 const DEFAULTS: Inputs = {
+  Steps: STEPS,
+  Type: "Steps",
+  Health: "Green",
+  StatusText: "",
   DefaultStep: 1,
   Orientation: "Horizontal",
   ShowDescriptions: true,
@@ -95,8 +165,19 @@ export function useStepperReplica(): ReplicaApi {
 
   const dark = inputs.Theme === "Dark";
   const vertical = inputs.Orientation === "Vertical";
-  const count = Math.max(1, STEPS.length);
-  const step = Math.max(1, Math.min(chosen ?? inputs.DefaultStep, count));
+  const steps = inputs.Steps;
+  const count = Math.max(1, steps.length);
+  // Project and Approval can go one past the last step: all finished.
+  const tracker = inputs.Type === "Project" || inputs.Type === "Approval";
+  const maxStep = count + (tracker ? 1 : 0);
+  const step = Math.max(1, Math.min(chosen ?? inputs.DefaultStep, maxStep));
+  const complete = step > count;
+  const shown = Math.min(step, count);
+  const colors = stageColors(inputs.Type, inputs.Health, inputs.AccentColor);
+  const rejected = inputs.Type === "Approval" && inputs.Health === "Red";
+  const status = statusWords(inputs.Type, inputs.Health, complete, inputs.StatusText);
+  const statusColor = complete ? colors.done : colors.now;
+  const showFooter = inputs.ShowButtons || tracker;
   // The screen's CanLeaveStep: If(Step = 1, !IsBlank(TextInput1.Value), true).
   const canLeave = (from: number) => from !== 1 || name.trim() !== "";
 
@@ -141,45 +222,54 @@ export function useStepperReplica(): ReplicaApi {
           <span
             className={`absolute -inset-[5px] rounded-full ${
               dark
-                ? "bg-[color-mix(in_srgb,var(--accent)_40%,#242424)]"
-                : "bg-[color-mix(in_srgb,var(--accent)_18%,white)]"
+                ? "bg-[color-mix(in_srgb,var(--now)_40%,#242424)]"
+                : "bg-[color-mix(in_srgb,var(--now)_18%,white)]"
             }`}
           />
         ) : null}
         <span
           className={`relative grid size-9 place-items-center rounded-full text-sm font-semibold ${
-            done || current
-              ? "bg-[var(--accent)] text-white"
-              : `border-2 ${dark ? "border-[#525252] bg-[#242424]" : "border-[#d1d5db] bg-white"} ${sub}`
+            done
+              ? "bg-[var(--done)] text-white"
+              : current
+                ? `bg-[var(--now)] ${colors.darkInk ? "text-[#242424]" : "text-white"}`
+                : `border-2 ${dark ? "border-[#525252] bg-[#242424]" : "border-[#d1d5db] bg-white"} ${sub}`
           }`}
         >
-          {done ? "✓" : n}
+          {done ? "✓" : current && rejected ? "✕" : n}
         </span>
       </span>
     );
   };
 
-  const steps = (
+  const stepList = (
     <ol
-      aria-label={stepLabel(inputs.StepText, step, count)}
+      aria-label={stepLabel(inputs.StepText, shown, count)}
       className={vertical ? "flex flex-col" : "grid"}
       style={vertical ? undefined : { gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
     >
-      {STEPS.map((item, index) => {
+      {steps.map((item, index) => {
         const n = index + 1;
         const done = n < step;
         const current = n === step;
         const label = `${item.Title}, ${stepLabel(inputs.StepText, n, count)}${
-          done ? `, ${inputs.DoneText}` : current ? `, ${inputs.CurrentText}` : ""
+          done
+            ? `, ${inputs.DoneText}`
+            : current
+              ? `, ${inputs.CurrentText}${tracker ? `, ${status}` : ""}`
+              : ""
         }`;
         const canGo = inputs.AllowJumpBack && done;
         return (
-          <li key={item.Title} className={`relative ${vertical ? "h-[72px]" : "h-[92px]"}`}>
+          <li
+            key={`${n}-${item.Title}`}
+            className={`relative ${vertical ? "h-[72px]" : "h-[92px]"}`}
+          >
             {vertical ? (
               n < count ? (
                 <span
                   aria-hidden="true"
-                  className={`absolute top-12 h-[calc(100%-52px)] rounded ${premium ? "left-[22.5px] w-[3px]" : "left-[23px] w-0.5"} ${done ? "bg-[var(--accent)]" : line}`}
+                  className={`absolute top-12 h-[calc(100%-52px)] rounded ${premium ? "left-[22.5px] w-[3px]" : "left-[23px] w-0.5"} ${done ? "bg-[var(--done)]" : line}`}
                 />
               ) : null
             ) : (
@@ -187,13 +277,13 @@ export function useStepperReplica(): ReplicaApi {
                 {n > 1 ? (
                   <span
                     aria-hidden="true"
-                    className={`absolute left-0 w-[calc(50%-28px)] rounded ${premium ? "top-[22.5px] h-[3px]" : "top-[23px] h-0.5"} ${n <= step ? "bg-[var(--accent)]" : line}`}
+                    className={`absolute left-0 w-[calc(50%-28px)] rounded ${premium ? "top-[22.5px] h-[3px]" : "top-[23px] h-0.5"} ${n <= step ? "bg-[var(--done)]" : line}`}
                   />
                 ) : null}
                 {n < count ? (
                   <span
                     aria-hidden="true"
-                    className={`absolute right-0 w-[calc(50%-28px)] rounded ${premium ? "top-[22.5px] h-[3px]" : "top-[23px] h-0.5"} ${done ? "bg-[var(--accent)]" : line}`}
+                    className={`absolute right-0 w-[calc(50%-28px)] rounded ${premium ? "top-[22.5px] h-[3px]" : "top-[23px] h-0.5"} ${done ? "bg-[var(--done)]" : line}`}
                   />
                 ) : null}
               </>
@@ -211,7 +301,7 @@ export function useStepperReplica(): ReplicaApi {
               {circle(n)}
               <span className={`min-w-0 ${vertical ? "" : "mt-2 w-full px-1 text-center"}`}>
                 <span
-                  className={`block truncate text-[13px] ${current ? "font-semibold" : ""} ${current && premium ? accentTitle : n > step ? sub : ink}`}
+                  className={`block truncate text-[13px] ${current ? "font-semibold" : ""} ${current && premium && !tracker ? accentTitle : n > step ? sub : ink}`}
                 >
                   {item.Title}
                 </span>
@@ -245,7 +335,14 @@ export function useStepperReplica(): ReplicaApi {
   return {
     screen: (
       <div
-        style={{ "--accent": inputs.AccentColor } as CSSProperties}
+        style={
+          {
+            "--accent": inputs.AccentColor,
+            "--done": colors.done,
+            "--now": colors.now,
+            "--status": statusColor,
+          } as CSSProperties
+        }
         className={`w-[720px] max-w-full text-left ${SEGOE} ${ink}`}
       >
         <div
@@ -255,8 +352,8 @@ export function useStepperReplica(): ReplicaApi {
               : "rounded-2xl"
           }`}
         >
-          <div className={vertical ? "max-w-[320px]" : ""}>{steps}</div>
-          {inputs.ShowButtons ? (
+          <div className={vertical ? "max-w-[320px]" : ""}>{stepList}</div>
+          {showFooter ? (
             <div
               className={`mt-3 flex flex-wrap items-center justify-end gap-3 border-t pt-4 ${cardLine}`}
             >
@@ -268,39 +365,58 @@ export function useStepperReplica(): ReplicaApi {
                 ) : (
                   <>
                     <p className={`text-[13px] leading-5 font-semibold ${sub}`}>
-                      {stepLabel(inputs.StepText, step, count)}
+                      {stepLabel(inputs.StepText, shown, count)}
                     </p>
                     <span
                       aria-hidden="true"
                       className={`mt-1.5 block w-[140px] overflow-hidden rounded ${premium ? "h-1.5" : "h-1"} ${line}`}
                     >
                       <span
-                        className="block h-full rounded bg-[var(--accent)] motion-safe:transition-[width] motion-safe:duration-300"
-                        style={{ width: `${(140 * step) / count}px` }}
+                        className="block h-full rounded bg-[var(--status)] motion-safe:transition-[width] motion-safe:duration-300"
+                        style={{ width: `${(140 * shown) / count}px` }}
                       />
                     </span>
                   </>
                 )}
               </div>
-              <button
-                type="button"
-                disabled={step <= 1}
-                onClick={() => go(Math.max(1, step - 1))}
-                className={`h-10 w-[104px] rounded-lg border text-sm font-semibold ${
-                  dark
-                    ? `border-[#525252] text-white ${hover} disabled:border-[#424242] disabled:text-[#6e6e6e]`
-                    : `border-[#d1d5db] text-[#242424] ${hover} disabled:border-[#e5e7eb] disabled:text-[#aaaaaa]`
-                } disabled:cursor-not-allowed disabled:hover:bg-transparent`}
-              >
-                {inputs.BackText}
-              </button>
-              <button
-                type="button"
-                onClick={next}
-                className="h-10 w-[116px] rounded-lg bg-[var(--accent)] text-sm font-semibold text-white hover:bg-[color-mix(in_srgb,var(--accent)_88%,black)] active:bg-[color-mix(in_srgb,var(--accent)_76%,black)]"
-              >
-                {step >= count ? inputs.FinishText : inputs.NextText}
-              </button>
+              {tracker && blockedAt !== step ? (
+                <span
+                  className={`inline-flex h-7 w-[156px] items-center gap-2 rounded-full px-3 text-xs font-semibold ${
+                    dark
+                      ? "bg-[color-mix(in_srgb,var(--status)_30%,black)] text-white"
+                      : "bg-[color-mix(in_srgb,var(--status)_15%,white)] text-[#242424]"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-2 shrink-0 rounded-full bg-[var(--status)]"
+                  />
+                  <span className="truncate">{status}</span>
+                </span>
+              ) : null}
+              {inputs.ShowButtons ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={step <= 1}
+                    onClick={() => go(Math.max(1, step - 1))}
+                    className={`h-10 w-[104px] rounded-lg border text-sm font-semibold ${
+                      dark
+                        ? `border-[#525252] text-white ${hover} disabled:border-[#424242] disabled:text-[#6e6e6e]`
+                        : `border-[#d1d5db] text-[#242424] ${hover} disabled:border-[#e5e7eb] disabled:text-[#aaaaaa]`
+                    } disabled:cursor-not-allowed disabled:hover:bg-transparent`}
+                  >
+                    {inputs.BackText}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={next}
+                    className="h-10 w-[116px] rounded-lg bg-[var(--accent)] text-sm font-semibold text-white hover:bg-[color-mix(in_srgb,var(--accent)_88%,black)] active:bg-[color-mix(in_srgb,var(--accent)_76%,black)]"
+                  >
+                    {step >= count ? inputs.FinishText : inputs.NextText}
+                  </button>
+                </>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -308,7 +424,7 @@ export function useStepperReplica(): ReplicaApi {
         <div
           className={`mt-5 rounded-md border p-4 ${dark ? "border-[#424242]" : "border-[#e0e0e0]"}`}
         >
-          <p className="text-base font-semibold">{STEPS[step - 1]?.Title}</p>
+          <p className="text-base font-semibold">{complete ? status : steps[step - 1]?.Title}</p>
           {step === 1 ? (
             <div className="mt-3 flex flex-col gap-1">
               <label htmlFor={`${id}-name`} className="text-[13px]">
@@ -327,7 +443,7 @@ export function useStepperReplica(): ReplicaApi {
               />
             </div>
           ) : (
-            <p className={`mt-2 text-[13px] ${sub}`}>{STEPS[step - 1]?.Description}</p>
+            <p className={`mt-2 text-[13px] ${sub}`}>{steps[step - 1]?.Description}</p>
           )}
         </div>
       </div>
@@ -336,7 +452,10 @@ export function useStepperReplica(): ReplicaApi {
       const next = { ...DEFAULTS };
       for (const [key, formula] of Object.entries(settings)) {
         if (key === "AccentColor") next.AccentColor = cssColor(formula, DEFAULTS.AccentColor);
-        else if (key in next)
+        else if (key === "Steps") {
+          const parsed = readSteps(formula);
+          next.Steps = parsed.length > 0 ? parsed : STEPS;
+        } else if (key in next)
           (next as unknown as Record<string, unknown>)[key] = fromPowerFx(formula);
       }
       setInputs(next);

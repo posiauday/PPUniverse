@@ -5656,3 +5656,29 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - Web typecheck, lint and component tests (39).
 - A local axe and overflow run over both pages and their flows and presets at 375 and 1280 px, light and dark: 56 states, clean. A first run flagged a variation chip as obscured, which was the site's sticky top bar after the page had scrolled; with the page at the top, all clean.
 - Screenshots checked.
+
+## 2026-10-09 — Stepper and Tree view: Premium you can see
+
+**Asked:** the product owner set `Look` to `"Premium"` on the Stepper in Studio and saw no change, then only the shadow. A component clips everything outside its box, so a card that fills it loses its shadow.
+
+**Changed:** in Premium the card sits 8 px in, so the shadow shows (Stepper and Tree view). The Stepper's Premium also has rounder corners, thicker connectors, the current step's title in the accent colour and a thicker progress bar, and its height grows by 16. The previews follow.
+
+**Checked:** the component gate (30), web typecheck, lint and component tests.
+
+## 2026-10-09 — Stepper: Project and Approval types
+
+**Asked:** a step type for a project's stage, in the standard colours, and other uses (docs/final-decisions.md, 2026-10-09, "Stepper: Project and Approval types").
+
+**Changed** (draft, 0.1.0):
+- **lcsStepper:** inputs `Type` (`"Steps"`, `"Project"`, `"Approval"`), `Health` and `StatusText`; a `Status` output; finished and current colours by type (BRAG for Project; green, amber and red for Approval), ✕ for a rejected step, dark text on amber; a status pill and a bar in the status colour; the footer shows for the trackers without buttons; one past the last step shows them all finished.
+- **Presets:** Project stages, Project complete, Project Premium dark, Approval, Approval rejected, Sales pipeline, Order tracking.
+- **The preview** reads the presets' Steps tables and follows the colours, the pill and the finished state.
+- **The guide and the paste checklist** cover the types, the colours and the uses.
+
+**Checked:**
+- The component gate (30 checks) and web component tests (34), including that the YAML and the preview use the same status colours.
+- Web typecheck and lint.
+- A local axe and overflow run over all 13 presets at 375 and 1280 px, light and dark: 52 states, clean.
+- Screenshots checked.
+
+**Research:** the five phases and the status colours were checked against PMBOK process-group summaries and RAG/BRAG guides; none of them gives a colour per phase.
