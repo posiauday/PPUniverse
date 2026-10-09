@@ -10,8 +10,9 @@ import { notFoundForNonAdmin, requireAdmin } from "../../../../../lib/require-ad
 type Context = { params: Promise<{ id: string }> };
 
 /**
- * Changes a component's settings (MVP-049): who can copy it (OPEN or MEMBERS)
- * and whether it is hidden from the site. Never touches its content or status.
+ * Changes a component's settings (MVP-049): who can copy it (OPEN or MEMBERS),
+ * whether it is hidden from the site, and whether a draft shows as Coming soon
+ * (docs/final-decisions.md, 2026-10-09). Never touches its content or status.
  * Each real change is recorded in the audit log. Admins only.
  */
 export const PATCH = withObservability(
@@ -37,12 +38,21 @@ export const PATCH = withObservability(
       if (typeof body["hidden"] === "boolean") change.hidden = body["hidden"];
       else fieldErrors["hidden"] = ["Hidden must be true or false."];
     }
+    if ("comingSoon" in body) {
+      if (typeof body["comingSoon"] === "boolean") change.comingSoon = body["comingSoon"];
+      else fieldErrors["comingSoon"] = ["Coming soon must be true or false."];
+    }
     if (Object.keys(fieldErrors).length > 0) return invalidFields(correlationId, fieldErrors);
 
     const component = await componentRepository.updateSettings(id, change, admin.userId);
     logger.info("components.settings_changed", { componentId: id, actorUserId: admin.userId });
     return NextResponse.json({
-      component: { id: component.id, access: component.access, hidden: component.hidden },
+      component: {
+        id: component.id,
+        access: component.access,
+        hidden: component.hidden,
+        comingSoon: component.comingSoon,
+      },
     });
   },
 );

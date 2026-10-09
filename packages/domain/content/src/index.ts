@@ -187,6 +187,7 @@ export {
   type ComponentRepository,
   type ComponentSource,
   type ComponentSourceResult,
+  type ComponentTeaser,
   type ComponentVariation,
   type PropertyKind,
 } from "./components.js";

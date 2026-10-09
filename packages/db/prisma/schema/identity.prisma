@@ -61,6 +61,8 @@ model User {
   lessonProgress         LessonProgress[]
   libraryComponents      LibraryComponent[]
   componentActions       ComponentEvent[]
+  siteSwitchesUpdated    SiteSwitch[]
+  siteSwitchActions      SiteSwitchEvent[]
   releasePublishActions  ReleasePublishEvent[]
   productStatusActions   ProductStatusEvent[]
   orders                 Order[]

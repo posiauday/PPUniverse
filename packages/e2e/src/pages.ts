@@ -734,8 +734,24 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/admin/settings",
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Settings");
-      await expect(page.getByRole("heading", { name: "Switches" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Switch on or off here" })).toBeVisible();
+      await expect(page.getByRole("switch", { name: "Component library" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Set in Netlify" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Bing Webmaster Tools" })).toBeVisible();
+    },
+  },
+  {
+    id: "admin-settings-switch-confirm",
+    route: "/admin/settings",
+    description:
+      "settings with the component library switch asking to confirm (never confirmed: the switch is site-wide)",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/settings",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByRole("switch", { name: "Component library" }))).click();
+      // Focus moves to the confirmation, so a keyboard user lands on the choice.
+      await expect(page.getByRole("button", { name: /^Yes, turn it (on|off)$/ })).toBeFocused();
     },
   },
   {
@@ -1694,6 +1710,23 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/components",
     prepare: async (page, seed) => {
       await expect(page.getByRole("link", { name: seed.publishedComponent.title })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: `${seed.soonComponent.title} (coming soon)` }),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "component-coming-soon",
+    route: "/components/[slug]",
+    description:
+      "a draft marked Coming soon: its teaser page, a blurred picture and nothing to copy",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/components/${seed.soonComponent.slug}`,
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(seed.soonComponent.title);
+      await expect(page.getByRole("heading", { name: "Coming soon", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Copy YAML" })).toHaveCount(0);
     },
   },
   {

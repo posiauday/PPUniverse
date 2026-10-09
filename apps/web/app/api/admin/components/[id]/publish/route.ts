@@ -3,10 +3,10 @@ import { getCorrelationId, logger } from "@ppu/telemetry";
 import { NextResponse } from "next/server";
 import { componentNotFound } from "../../../../../../lib/component-routes";
 import { componentRepository } from "../../../../../../lib/components";
-import { componentsEnabled } from "../../../../../../lib/feature-flags";
 import { notifyIndexNow } from "../../../../../../lib/indexnow";
 import { invalidState } from "../../../../../../lib/learn-routes";
 import { withObservability } from "../../../../../../lib/observability";
+import { componentsLibraryOn } from "../../../../../../lib/site-switches";
 import { notFoundForNonAdmin, requireAdmin } from "../../../../../../lib/require-admin";
 import { getSiteUrl } from "../../../../../../lib/site-url";
 
@@ -38,7 +38,7 @@ export const POST = withObservability(
     logger.info("components.published", { componentId: id, actorUserId: admin.userId });
     // Tell IndexNow search engines once the library pages are public (never fails the publish).
     const site = getSiteUrl();
-    if (site.ok && componentsEnabled()) {
+    if (site.ok && (await componentsLibraryOn())) {
       await notifyIndexNow(
         [`${site.origin}/components`, `${site.origin}/components/${published.slug}`],
         { site },

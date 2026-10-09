@@ -1,6 +1,6 @@
 # Power Apps component library (MVP-049)
 
-Copy-paste canvas components, written here, reviewed in a pull request, checked in CI, and imported as **drafts**. The product owner paste-tests each one in a Power Apps developer environment, records the Studio version in `/admin/components`, and publishes it. See `docs/plans/power-apps-component-library.md`.
+Copy-paste canvas components, written here, reviewed in a pull request, checked in CI, and imported as **drafts**. The product owner paste-tests each one in a Power Apps developer environment, records the Studio version in `/admin/components` (its **Copy YAML** button copies the draft), and publishes it. Until then a draft can be marked **Coming soon**, which shows its card and a teaser page with a blurred picture and nothing to copy. The whole library is switched on and off in `/admin/settings`. See `docs/plans/power-apps-component-library.md`.
 
 ## Layout
 

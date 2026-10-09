@@ -3,16 +3,10 @@
  * modules"). Read on the server at request time, so a flag is switched in the
  * hosting environment without a code change.
  *
- * FEATURE_COMPONENTS: the component catalog's navigation links. Off until the
- * first product is published, so the top bar never leads to an empty catalog
- * (docs/final-decisions.md, "Navigation restructure", decision 1). Since
- * MVP-049 it also switches on the Power Apps component library pages
- * (/components); while it's off they are a 404. Publishing and testing in
- * /admin/components work either way.
+ * FEATURE_COMPONENTS is now only the starting value of the component
+ * library's admin switch (lib/site-switches.ts): it decides until the switch
+ * is first flipped in /admin/settings (docs/final-decisions.md, 2026-10-09).
  */
-export function componentsEnabled(): boolean {
-  return process.env["FEATURE_COMPONENTS"] === "on";
-}
 
 /**
  * FEATURE_COMMENTS: comments on guides and readers' profiles (MVP-040). Off
