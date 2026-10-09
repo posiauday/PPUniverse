@@ -59,11 +59,11 @@ From pastes that worked in the product owner's developer environment. Use these 
 
 | Control | YAML | Notes |
 | --- | --- | --- |
-| Modern button | `ModernButton@1.0.0` | `Appearance: =ButtonAppearance.Primary`, `Icon`, `Layout`, `DisplayMode` |
+| Modern button | `ModernButton@1.0.0` | `Appearance: =ButtonAppearance.Primary`, `Icon`, `Layout`, `DisplayMode`. Pagination also uses the icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide buttons, **not yet paste-tested by us** |
 | Modern text | `ModernText@1.0.0` | `Text@0.0.51` is upgraded to this by Studio |
 | Modern text input | `ModernTextInput@1.0.0` | The People picker also uses `Type: =TextInputType.Search` and `TriggerOutput: =TriggerOutput.Delayed` (Microsoft Learn's current page), **not yet paste-tested by us** |
 | Container | `GroupContainer@1.5.0` with `Variant: ManualLayout` | `Fill`, `DropShadow`, `RadiusTopLeft`… and its own `Children` |
-| Gallery | `Gallery@2.15.0` with `Variant: Vertical` | `Items`, `TemplateSize`, `TemplatePadding`, `ShowScrollbar`; `ThisItem` in its children. The People picker also uses `WrapCount` and `AccessibleLabel`, **not yet paste-tested by us** |
+| Gallery | `Gallery@2.15.0` with `Variant: Vertical` | `Items`, `TemplateSize`, `TemplatePadding`, `ShowScrollbar`; `ThisItem` in its children. The People picker and Pagination also use `WrapCount` and `AccessibleLabel` (Pagination: seven buttons in one row), **not yet paste-tested by us** |
 | Classic button | `Classic/Button@2.2.0` | useful as a transparent hit area. **No `AccessibleLabel`** (PA2108): its accessible name is its `Text`, so set the label there with transparent `Color`, `HoverColor`, `PressedColor` and `DisabledColor`. CI checks this. |
 | Image | `Image@2.2.3` | an SVG data URI works as `Image` |
 | Rectangle | `Rectangle@2.3.0` | |

@@ -1,0 +1,373 @@
+ComponentDefinitions:
+  lcsPagination:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks pagination: first, previous, next and last, page numbers with ellipses, rows per page, a summary such as 21-40 of 312 orders, and the rows a gallery should show."
+    CustomProperties:
+      TotalItems:
+        PropertyKind: Input
+        DisplayName: TotalItems
+        DataType: Number
+        Description: "How many items there are in all, such as CountRows(colOrders)."
+        Default: =0
+      DefaultPageSize:
+        PropertyKind: Input
+        DisplayName: DefaultPageSize
+        DataType: Number
+        Description: "How many items a page shows at first. Put the same number in PageSizes."
+        Default: =10
+      PageSizes:
+        PropertyKind: Input
+        DisplayName: PageSizes
+        DataType: Text
+        Description: "The page sizes to offer, separated by commas."
+        Default: ="10,25,50"
+      DefaultPage:
+        PropertyKind: Input
+        DisplayName: DefaultPage
+        DataType: Number
+        Description: "The page shown when the screen loads."
+        Default: =1
+      ItemLabel:
+        PropertyKind: Input
+        DisplayName: ItemLabel
+        DataType: Text
+        Description: "What the items are called in the summary, such as orders."
+        Default: ="items"
+      ShowFirstLast:
+        PropertyKind: Input
+        DisplayName: ShowFirstLast
+        DataType: Boolean
+        Description: "Shows the First page and Last page buttons."
+        Default: =true
+      ShowSummary:
+        PropertyKind: Input
+        DisplayName: ShowSummary
+        DataType: Boolean
+        Description: "Shows the summary, such as 21-40 of 312 orders."
+        Default: =true
+      ShowPageSize:
+        PropertyKind: Input
+        DisplayName: ShowPageSize
+        DataType: Boolean
+        Description: "Shows the Rows per page list."
+        Default: =true
+      Compact:
+        PropertyKind: Input
+        DisplayName: Compact
+        DataType: Boolean
+        Description: "Shows Page 3 of 32 instead of page numbers, for narrow screens."
+        Default: =false
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "Your brand colour, for the current page."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light, or Dark for a dark screen."
+        Default: ="Light"
+      Page:
+        PropertyKind: Output
+        DisplayName: Page
+        DataType: Number
+        Description: "The page shown now, from 1."
+      PageSize:
+        PropertyKind: Output
+        DisplayName: PageSize
+        DataType: Number
+        Description: "How many items a page shows now."
+      PageCount:
+        PropertyKind: Output
+        DisplayName: PageCount
+        DataType: Number
+        Description: "How many pages there are, at least 1."
+      FirstRow:
+        PropertyKind: Output
+        DisplayName: FirstRow
+        DataType: Number
+        Description: "The number of the first item on this page, from 1; 0 when there are none."
+      LastRow:
+        PropertyKind: Output
+        DisplayName: LastRow
+        DataType: Number
+        Description: "The number of the last item on this page."
+      RowsOnPage:
+        PropertyKind: Output
+        DisplayName: RowsOnPage
+        DataType: Number
+        Description: "How many items this page shows. With LastRow: LastN(FirstN(colOrders, LastRow), RowsOnPage)."
+      OnPageChange:
+        PropertyKind: Event
+        DisplayName: OnPageChange
+        ReturnType: None
+        Description: "Runs in your app when the user changes the page or the page size. Load the page here if you load one page at a time."
+        Parameters:
+          - NewPage:
+              DataType: Number
+              Description: "The page now shown."
+              Default: =1
+          - NewPageSize:
+              DataType: Number
+              Description: "How many items a page now shows."
+              Default: =10
+        Default: =false
+      GoTo:
+        PropertyKind: Action
+        DisplayName: GoTo
+        ReturnType: None
+        Description: "Shows a page, such as GoTo(1) after the user changes a filter. A page past the end shows the last page."
+        Parameters:
+          - PageNumber:
+              DataType: Number
+              Description: "The page to show."
+              Default: =1
+      Reset:
+        PropertyKind: Action
+        DisplayName: Reset
+        ReturnType: None
+        Description: "Goes back to DefaultPage and DefaultPageSize."
+    Properties:
+      Width: =560
+      Height: =If(lcsPagination.ShowSummary || lcsPagination.ShowPageSize, 88, 40)
+      Fill: =RGBA(0, 0, 0, 0)
+      Page: =Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0))))
+      PageSize: =Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))
+      PageCount: =Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0))
+      FirstRow: =If(lcsPagination.TotalItems <= 0, 0, (Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) - 1) * Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)) + 1)
+      LastRow: =Min(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) * Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), Max(0, lcsPagination.TotalItems))
+      RowsOnPage: =If(lcsPagination.TotalItems <= 0, 0, Min(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) * Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), lcsPagination.TotalItems) - (Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) - 1) * Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)))
+      GoTo: =Set(locPage, Max(1, Min(PageNumber, Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))))
+      Reset: |-
+        =Set(locPage, Blank());
+        Reset(ddSize)
+    Children:
+      - btnFirst:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =40
+            Height: =40
+            Visible: =lcsPagination.ShowFirstLast
+            Text: ="First page"
+            Icon: ="ArrowPrevious"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+            AccessibleLabel: ="First page"
+            Tooltip: ="First page"
+            OnSelect: |-
+              =With(
+                  {to: 1, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
+                  Set(locPage, to);
+                  lcsPagination.OnPageChange(to, size)
+              )
+      - btnPrevious:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =If(lcsPagination.ShowFirstLast, 44, 0)
+            Y: =0
+            Width: =40
+            Height: =40
+            Visible: =true
+            Text: ="Previous page"
+            Icon: ="ChevronLeft"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
+            AccessibleLabel: ="Previous page"
+            Tooltip: ="Previous page"
+            OnSelect: |-
+              =With(
+                  {to: Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) - 1, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
+                  Set(locPage, to);
+                  lcsPagination.OnPageChange(to, size)
+              )
+      - galPages:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            X: =If(lcsPagination.ShowFirstLast, 44, 0) + 44
+            Y: =0
+            Width: =280
+            Height: =40
+            Visible: =!lcsPagination.Compact
+            Items: |-
+              =With(
+                  {n: Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), p: Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0))))},
+                  Filter(
+                      ForAll(
+                          Sequence(7) As slot,
+                          {
+                              Page: If(
+                                  n <= 7, If(slot.Value <= n, slot.Value, -1),
+                                  p <= 4, Switch(slot.Value, 6, 0, 7, n, slot.Value),
+                                  p >= n - 3, Switch(slot.Value, 1, 1, 2, 0, n - 7 + slot.Value),
+                                  Switch(slot.Value, 1, 1, 2, 0, 3, p - 1, 4, p, 5, p + 1, 6, 0, n)
+                              )
+                          }
+                      ),
+                      Page >= 0
+                  )
+              )
+            WrapCount: =7
+            TemplateSize: =40
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            BorderStyle: =BorderStyle.None
+            AccessibleLabel: ="Pages"
+          Children:
+            - btnPage:
+                Control: ModernButton@1.0.0
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =40
+                  Height: =40
+                  Text: =If(ThisItem.Page = 0, "…", Text(ThisItem.Page))
+                  Appearance: =If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), ButtonAppearance.Primary, ButtonAppearance.Subtle)
+                  BasePaletteColor: =lcsPagination.AccentColor
+                  Color: =If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), RGBA(255, 255, 255, 1), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  DisplayMode: =If(ThisItem.Page = 0, DisplayMode.Disabled, DisplayMode.Edit)
+                  AccessibleLabel: |-
+                    =If(
+                        ThisItem.Page = 0,
+                        "More pages",
+                        "Page " & ThisItem.Page & If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), ", current page", "")
+                    )
+                  OnSelect: |-
+                    =With(
+                        {to: ThisItem.Page, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
+                        Set(locPage, to);
+                        lcsPagination.OnPageChange(to, size)
+                    )
+      - lblCompact:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =If(lcsPagination.ShowFirstLast, 44, 0) + 44
+            Y: =0
+            Width: =132
+            Height: =40
+            Visible: =lcsPagination.Compact
+            Text: ="Page " & Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) & " of " & Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Size: =14
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - btnNext:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =If(lcsPagination.ShowFirstLast, 44, 0) + 44 + If(lcsPagination.Compact, 132, CountRows(galPages.AllItems) * 40) + 4
+            Y: =0
+            Width: =40
+            Height: =40
+            Visible: =true
+            Text: ="Next page"
+            Icon: ="ChevronRight"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) >= Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), DisplayMode.Disabled, DisplayMode.Edit)
+            AccessibleLabel: ="Next page"
+            Tooltip: ="Next page"
+            OnSelect: |-
+              =With(
+                  {to: Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) + 1, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
+                  Set(locPage, to);
+                  lcsPagination.OnPageChange(to, size)
+              )
+      - btnLast:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =If(lcsPagination.ShowFirstLast, 44, 0) + 44 + If(lcsPagination.Compact, 132, CountRows(galPages.AllItems) * 40) + 4 + 44
+            Y: =0
+            Width: =40
+            Height: =40
+            Visible: =lcsPagination.ShowFirstLast
+            Text: ="Last page"
+            Icon: ="ArrowNext"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) >= Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), DisplayMode.Disabled, DisplayMode.Edit)
+            AccessibleLabel: ="Last page"
+            Tooltip: ="Last page"
+            OnSelect: |-
+              =With(
+                  {to: Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
+                  Set(locPage, to);
+                  lcsPagination.OnPageChange(to, size)
+              )
+      - lblSummary:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =48
+            Width: =Parent.Width - If(lcsPagination.ShowPageSize, 204, 0)
+            Height: =40
+            Visible: =lcsPagination.ShowSummary
+            Text: |-
+              =With(
+                  {p: Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
+                  If(
+                      lcsPagination.TotalItems <= 0,
+                      "No " & lcsPagination.ItemLabel,
+                      Text((p - 1) * size + 1, "#,##0") & "–" & Text(Min(p * size, lcsPagination.TotalItems), "#,##0") &
+                          " of " & Text(lcsPagination.TotalItems, "#,##0") & " " & lcsPagination.ItemLabel
+                  )
+              )
+            VerticalAlign: =VerticalAlign.Middle
+            Size: =13
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - lblRowsPerPage:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =Parent.Width - 204
+            Y: =48
+            Width: =108
+            Height: =40
+            Visible: =lcsPagination.ShowPageSize
+            Text: ="Rows per page"
+            Align: =Align.Right
+            VerticalAlign: =VerticalAlign.Middle
+            Size: =13
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =8
+            PaddingTop: =0
+            PaddingBottom: =0
+      - ddSize:
+          Control: ModernDropdown@1.0.0
+          Properties:
+            X: =Parent.Width - 92
+            Y: =48
+            Width: =92
+            Height: =40
+            Visible: =lcsPagination.ShowPageSize
+            Items: |-
+              =ForAll(Split(lcsPagination.PageSizes, ","), {Value: Trim(Value)})
+            Default: =Text(lcsPagination.DefaultPageSize)
+            Appearance: =Appearance.Outline
+            BasePaletteColor: =lcsPagination.AccentColor
+            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =If(lcsPagination.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            AccessibleLabel: ="Rows per page"
+            OnChange: |-
+              =Set(locPage, 1);
+              lcsPagination.OnPageChange(1, Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)))

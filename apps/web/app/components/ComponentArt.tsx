@@ -200,6 +200,23 @@ const ART: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  lcsPagination: (
+    <span className="flex flex-col items-center gap-2 text-[12px] font-semibold text-[#242424]">
+      <span className="flex items-center gap-0.5">
+        <Glyph d="M15 6l-6 6 6 6" className="size-3.5 text-[#616161]" />
+        {["1", "…", "4", "5", "6", "…", "32"].map((label, index) => (
+          <span
+            key={index}
+            className={`grid size-6 place-items-center rounded ${label === "5" ? "bg-[#0f6cbd] text-white" : ""}`}
+          >
+            {label}
+          </span>
+        ))}
+        <Glyph d="M9 6l6 6-6 6" className="size-3.5" />
+      </span>
+      <span className="text-[11px] font-normal text-[#616161]">41–50 of 312 orders</span>
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">

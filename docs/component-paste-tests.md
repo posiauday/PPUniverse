@@ -195,3 +195,24 @@ Set up a test table first, so no connection is needed: `Screen1.OnVisible` to `C
 | Action | A button: `pplApprovers.Clear()` | No chips, an empty box |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark chips, a purple focus line |
 | Connection | With Office 365 Users: `OnSearch` from the guide (`SearchUserV2` with `ShowColumns`) | Real people from your directory |
+
+## Pagination: `lcsPagination` → name it `pgOrders`
+
+New for this library: a gallery of buttons seven to a row (`WrapCount`), the button icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide modern buttons. Check the paste first, and that a page number fits its button.
+
+Set up first: `Screen1.OnVisible` to `ClearCollect(colOrders, ForAll(Sequence(312), {Title: "Order " & (1000 + Value)}))`, `pgOrders.TotalItems` to `CountRows(colOrders)`, and a gallery's `Items` to `LastN(FirstN(colOrders, pgOrders.LastRow), pgOrders.RowsOnPage)` with `ThisItem.Title` in a label.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Pages 1 2 3 4 5 … 32, page 1 filled; "1–10 of 312 items"; the gallery shows Order 1001 to 1010; First and Previous grey |
+| Event | `OnPageChange` to `Notify("Page " & NewPage & " of " & pgOrders.PageCount)`; select 5 | "Page 5 of 32"; 1 … 4 5 6 … 32; Order 1041 to 1050 |
+| Input | Select Last page | Page 32; "311–312 of 312 items"; two orders; Next and Last grey |
+| Input | Rows per page 50 | Back to page 1; 7 pages; 1–50 |
+| Input | `ItemLabel` `"orders"`, `DefaultPageSize` 25, `PageSizes` `"10,25,50,100"` | 13 pages, "1–25 of 312 orders" |
+| Input | `Compact` true | "Page 1 of 32" between the arrows, no page numbers |
+| Input | `ShowFirstLast`, `ShowSummary` and `ShowPageSize` false | Only the arrows and the numbers; the component is 40 tall |
+| Input | `TotalItems` 42 | Pages 1 to 5, no ellipses |
+| Input | `TotalItems` 0 | "No items"; every arrow grey |
+| Action | A button: `pgOrders.GoTo(20)` | Page 20 (no message: GoTo doesn't run OnPageChange) |
+| Action | A button: `pgOrders.Reset()` | Page 1, 10 rows per page |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, the current page purple |
