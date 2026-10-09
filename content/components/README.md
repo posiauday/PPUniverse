@@ -77,6 +77,8 @@ From pastes that worked in the product owner's developer environment. Use these 
 
 **Placing a component from its own outputs** (the Navigation shell: the instance's X, Y, Width and Height set to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`, which read a variable inside it) is **not yet paste-tested by us**. It is the instance that reads the outputs, not the component's own size, so it should differ from the case above; the paste-test checklist gives the fallback.
 
+**Long formulas** (the Tree view's rows: `Ungroup` of a table of tables built level by level, sorted with `Sort` by a text path; `Last(FirstN(...))` for the nth row) and a **`Record` output** (`SelectedNode`) are **not yet paste-tested by us**.
+
 ## variations.yaml
 
 ```

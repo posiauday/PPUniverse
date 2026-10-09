@@ -33,6 +33,7 @@ import { useStatesReplica } from "./replicas/StatesReplica";
 import { useTabsReplica } from "./replicas/TabsReplica";
 import { useTextFieldReplica } from "./replicas/TextFieldReplica";
 import { useToastReplica } from "./replicas/ToastReplica";
+import { useTreeViewReplica } from "./replicas/TreeViewReplica";
 
 /**
  * The interactive part of a component page (MVP-049; docs/final-decisions.md,
@@ -67,6 +68,7 @@ const REPLICAS: Record<string, Host> = {
   lcsPagination: hostFor(usePaginationReplica),
   lcsDataTable: hostFor(useDataTableReplica),
   lcsNavShell: hostFor(useNavShellReplica),
+  lcsTreeView: hostFor(useTreeViewReplica),
 };
 
 export function hasReplica(componentName: string): boolean {

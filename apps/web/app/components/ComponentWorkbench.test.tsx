@@ -18,6 +18,7 @@ import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePick
 import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
 import { badgeColours, progressParts, rowsFor } from "./replicas/DataTableReplica";
 import { ITEMS, menuOf, shellLayout } from "./replicas/NavShellReplica";
+import { NODES, visibleRows } from "./replicas/TreeViewReplica";
 import {
   avatarColour,
   fieldMessage,
@@ -52,6 +53,7 @@ describe("ComponentWorkbench", () => {
     "lcsPagination",
     "lcsDataTable",
     "lcsNavShell",
+    "lcsTreeView",
   ])("renders a live replica and its variations for %s", (name) => {
     expect(hasReplica(name)).toBe(true);
     const html = render(name);
@@ -238,6 +240,34 @@ describe("replica helpers match the components' own formulas", () => {
     expect(hidden.currentKey).toBe("home");
     expect(menuOf(ITEMS, "home", null).currentKey).toBe("orders");
     expect(menuOf(ITEMS, "", "customers").currentKey).toBe("customers");
+  });
+
+  it("the tree view lists open nodes' children under their parents, up to five levels", () => {
+    const labels = (open: string[]) =>
+      visibleRows(NODES, new Set(open)).map((row) => `${row.Depth}:${row.Label}`);
+    expect(labels([])).toEqual(["0:Documents", "0:Images", "0:Archive"]);
+    expect(labels(["docs"])).toEqual([
+      "0:Documents",
+      "1:Plans",
+      "1:Budget.xlsx",
+      "0:Images",
+      "0:Archive",
+    ]);
+    // A child whose parent is closed stays hidden, even if it's open itself.
+    expect(labels(["plans"])).toEqual(["0:Documents", "0:Images", "0:Archive"]);
+    expect(labels(["docs", "plans", "images"])).toContain("2:Q3 plan.docx");
+    // Archive has no children yet, but HasChildren gives it a chevron.
+    expect(visibleRows(NODES, new Set()).find((row) => row.Key === "archive")?.HasKids).toBe(true);
+    expect(visibleRows(NODES, new Set()).find((row) => row.Key === "docs")?.HasKids).toBe(true);
+    // Six levels deep: the sixth doesn't show.
+    const chain = Array.from({ length: 6 }, (_, index) => ({
+      Key: `n${index}`,
+      ParentKey: index === 0 ? "" : `n${index - 1}`,
+      Label: `Level ${index + 1}`,
+      Icon: "Folder",
+      HasChildren: true,
+    }));
+    expect(visibleRows(chain, new Set(chain.map((node) => node.Key)))).toHaveLength(5);
   });
 
   it("ItemsFromText splits on commas and trims", () => {

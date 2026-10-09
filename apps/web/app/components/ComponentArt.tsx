@@ -283,6 +283,32 @@ const ART: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  lcsTreeView: (
+    <span className="flex w-44 flex-col gap-0.5 text-left text-[11px] text-[#242424]">
+      {[
+        { label: "Documents", depth: 0, open: true },
+        { label: "Plans", depth: 1, open: true },
+        { label: "Q3 plan.docx", depth: 2, current: true },
+        { label: "Budget.xlsx", depth: 1 },
+        { label: "Images", depth: 0, open: false },
+      ].map((node) => (
+        <span
+          key={node.label}
+          style={{ paddingLeft: node.depth * 14 }}
+          className="flex items-center gap-1"
+        >
+          <span className="w-3 text-[#616161]">
+            {node.open === undefined ? "" : node.open ? "⌄" : "›"}
+          </span>
+          <span
+            className={`flex-1 truncate rounded px-1.5 py-0.5 ${node.current ? "bg-[#dfeaf6] font-semibold text-[#0b5190]" : ""}`}
+          >
+            {node.label}
+          </span>
+        </span>
+      ))}
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">
