@@ -5398,3 +5398,11 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 **Checked:** web typecheck, lint and tests (850, new: the switch route and its fallback to the environment); the content adapter's database tests (5, new: a Coming soon draft is a teaser only, never its YAML, and not once hidden or published); the e2e package's tests; locally on a production build, the gate's states for the library index (with a teaser card), the new teaser page, Settings, the switch's confirmation (opened, never confirmed: the switch is site-wide) and the component admin pages: 28 checks in Chromium, 42 in Firefox and WebKit, all passing. The first run found the faded words inside the blurred picture below contrast: the picture is decorative and its words are blurred on purpose (incidental text, WCAG 1.4.3), so it now fades through a CSS filter, which axe doesn't measure, and every readable word keeps full contrast.
 
 **Next:** the feedback box that stays open after sending (BUG-036), then the top bar (Guides menu, Learn soon, the theme icon), then "On this page" on every page.
+
+## 2026-10-09 — Fix: the feedback box closes after a note is sent (BUG-036)
+
+**Asked:** the product owner's screenshot: after writing a note in "Did this fix it?" and sending it, the button changed to the thanks, but the box stayed open.
+
+**Changed:** once a note is sent, the form closes and the thanks takes its place, with focus on it; the note is cleared (`apps/web/app/learn/GuideFeedback.tsx`). The gate's `learn-report-sent` state now checks that the box is gone and focus is on the thanks.
+
+**Checked:** web typecheck and lint; the gate's guide feedback states (votes and notes) locally in Chromium and WebKit on a production build: 42 passed.
