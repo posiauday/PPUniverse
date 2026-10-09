@@ -7,12 +7,18 @@ import { withObservability } from "../../../../../lib/observability";
  * Sign up with an email and password (MVP-036). Always answers "check your
  * email" for a valid request, whether or not the address already has an
  * account; the password only works after the emailed link is confirmed.
+ * The person must agree to the Terms of use and the Privacy notice
+ * (`acceptTerms: "yes"`); the agreement is recorded when the link is
+ * confirmed (docs/final-decisions.md, 2026-10-08, "Accounts accept the Terms
+ * when they're made").
  */
 export const POST = withObservability(
   "POST /api/auth/password/signup",
   async (request: Request) => {
-    const read = await readFields(request, ["email", "password"]);
+    const read = await readFields(request, ["email", "password", "acceptTerms"]);
     if ("response" in read) return noStore(read.response);
+    if (read.fields["acceptTerms"] !== "yes")
+      return noStore(NextResponse.json({ error: "terms" }, { status: 400 }));
     const result = await atLeast(MIN_ANSWER_MS, () =>
       passwordAuth.signUp({
         email: read.fields["email"] ?? "",

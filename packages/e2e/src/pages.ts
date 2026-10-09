@@ -73,6 +73,15 @@ async function whenHydrated(locator: Locator): Promise<Locator> {
 }
 
 /**
+ * A 404 state is ready once the not-found page has hydrated. Until then a
+ * re-render can replace the control the keyboard walk has just focused, so
+ * focus falls back to the page and the walk ends with no stops (BUG-035).
+ */
+async function notFoundSettled(page: Page): Promise<void> {
+  await whenHydrated(page.getByRole("heading", { level: 1, name: "Page not found" }));
+}
+
+/**
  * Reads observer liveness (round 2, decision 2026-09-22 "BUG-014 recurrence") and
  * turns a thrown evaluate() into evidence rather than an unhandled rejection: an
  * execution-context-destroyed error is the strongest possible signal of a document
@@ -277,6 +286,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/sharepoint",
+    prepare: notFoundSettled,
   },
   {
     id: "home",
@@ -449,6 +459,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
     prepare: async (page) => {
       await submitSignIn(page, "");
       await expect(page.getByLabel("Email address")).toHaveAttribute("aria-invalid", "true");
+      // Focus moves to the email field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Email address")).toBeFocused();
     },
   },
   {
@@ -462,6 +475,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       const interception = await interceptSignInSend(page, "failed");
       await submitSignIn(page, VALID_EMAIL, interception);
       await expect(page.getByLabel("Email address")).toHaveAccessibleDescription(/try again/i);
+      // Focus moves to the email field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Email address")).toBeFocused();
     },
   },
   {
@@ -729,6 +745,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/settings",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-users-denied",
@@ -737,6 +754,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/users",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-comments-denied",
@@ -745,6 +763,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/comments",
+    prepare: notFoundSettled,
   },
   {
     id: "account-profile",
@@ -756,7 +775,62 @@ export const GATED_PAGES: readonly GatedPage[] = [
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile");
       await expect(page.getByRole("textbox", { name: "Display name" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Draw a new avatar" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Choose your avatar" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Save avatar" })).toBeVisible();
+    },
+  },
+  {
+    id: "account-profile-avatar-picked",
+    route: "/account/profile",
+    description: "the reader's profile with a new avatar picked from the gallery, not yet saved",
+    auth: "member",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      const pick = page.getByRole("button", { name: "Avatar 3" });
+      await (await whenHydrated(pick)).click();
+      await expect(pick).toHaveAttribute("aria-pressed", "true");
+    },
+  },
+  {
+    id: "account-profile-admin",
+    route: "/account/profile",
+    description: "an admin's profile: the gallery offers the crowned avatar",
+    auth: "admin",
+    status: 200,
+    path: () => "/account/profile",
+    prepare: async (page) => {
+      await expect(page.getByRole("button", { name: "The crown, for admins" })).toBeVisible();
+    },
+  },
+  {
+    id: "account-welcome",
+    route: "/account/welcome",
+    description: "a new account's welcome page: agree to the Terms of use and the Privacy notice",
+    auth: "member",
+    status: 200,
+    path: () => "/account/welcome?callbackUrl=%2Faccount",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Welcome");
+      await expect(
+        page.getByLabel("I agree to the Terms of use and the Privacy notice"),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "account-welcome-missing",
+    route: "/account/welcome",
+    description: "the welcome page after Continue without ticking the box",
+    auth: "member",
+    status: 200,
+    path: () => "/account/welcome?callbackUrl=%2Faccount",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByRole("button", { name: "Continue" }))).click();
+      await expect(page.getByText(/Tick the box to agree/)).toBeVisible();
+      // Focus moves to the box after the message renders (BUG-028, BUG-031).
+      await expect(
+        page.getByLabel("I agree to the Terms of use and the Privacy notice"),
+      ).toBeFocused();
     },
   },
   {
@@ -829,6 +903,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/feedback",
+    prepare: notFoundSettled,
   },
   {
     // MVP-034: the admin home lists every admin area.
@@ -858,6 +933,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin",
+    prepare: notFoundSettled,
   },
   {
     // MVP-034: where the emailed sign-in link lands. A made-up token: the
@@ -901,6 +977,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
         "aria-invalid",
         "true",
       );
+      // Focus moves to the password field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
     },
   },
   {
@@ -947,11 +1026,17 @@ export const GATED_PAGES: readonly GatedPage[] = [
       });
       await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
       await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill("short");
+      await (
+        await whenHydrated(page.getByLabel("I agree to the Terms of use and the Privacy notice"))
+      ).check();
       await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
       await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
         "aria-invalid",
         "true",
       );
+      // Focus moves to the password field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
     },
   },
   {
@@ -965,8 +1050,29 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await answerPasswordApi(page, "signup", 200, { ok: true });
       await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
       await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill(E2E_PASSWORD);
+      await (
+        await whenHydrated(page.getByLabel("I agree to the Terms of use and the Privacy notice"))
+      ).check();
       await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
       await expect(page.getByRole("status")).toContainText(/check your email/i);
+    },
+  },
+  {
+    id: "signup-terms-missing",
+    route: "/signup",
+    description: "create-account form after Create account without agreeing to the Terms",
+    auth: "guest",
+    status: 200,
+    path: () => "/signup",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByLabel("Email address"))).fill(VALID_EMAIL);
+      await (await whenHydrated(page.getByLabel("Password", { exact: true }))).fill(E2E_PASSWORD);
+      await (await whenHydrated(page.getByRole("button", { name: "Create account" }))).click();
+      await expect(page.getByText(/Tick the box to agree/)).toBeVisible();
+      // Focus moves to the box after the message renders (BUG-028, BUG-031).
+      await expect(
+        page.getByLabel("I agree to the Terms of use and the Privacy notice"),
+      ).toBeFocused();
     },
   },
   {
@@ -991,6 +1097,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await answerPasswordApi(page, "confirm", 400, { error: "invalid-link" });
       await (await whenHydrated(page.getByRole("button", { name: "Confirm" }))).click();
       await expect(page.getByRole("heading", { level: 1 })).toContainText(/expired/i);
+      // Focus moves to the new heading after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
     },
   },
   {
@@ -1051,6 +1160,9 @@ export const GATED_PAGES: readonly GatedPage[] = [
       await expect(page.getByLabel("New password", { exact: true })).toHaveAccessibleDescription(
         /12 characters/i,
       );
+      // Focus moves to the password field after the error renders. Wait for it, so it can't land in
+      // the middle of the keyboard walk (BUG-028, BUG-031).
+      await expect(page.getByLabel("New password", { exact: true })).toBeFocused();
     },
   },
   {
@@ -1077,6 +1189,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/deletion-requests",
+    prepare: notFoundSettled,
   },
   {
     // MVP-018 (FR-013). "empty": no token at all — a distinct code path
@@ -1369,6 +1482,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: (seed) => `/learn/${seed.draftArticle.slug}`,
+    prepare: notFoundSettled,
   },
   {
     // The positive admin state: proves the surface actually lists real
@@ -1397,6 +1511,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/content",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-content-new",
@@ -1413,6 +1528,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/content/new",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-content-edit",
@@ -1442,6 +1558,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/updates",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-updates-new",
@@ -1486,6 +1603,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: (seed) => `/topics/${seed.draftTopic.slug}`,
+    prepare: notFoundSettled,
   },
   {
     id: "lesson-published",
@@ -1526,6 +1644,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: (seed) => `/topics/${seed.publishedTopic.slug}/no-such-lesson`,
+    prepare: notFoundSettled,
   },
   {
     // MVP-048 slice 1b: the admin Learn topics list, with a draft topic and its draft lesson.
@@ -1547,6 +1666,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/topics",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-topics-new",
@@ -1633,6 +1753,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/components/zz-e2e-a11y-no-such-component",
+    prepare: notFoundSettled,
   },
   {
     // MVP-049: the admin component library list, with an untested draft.
@@ -1654,6 +1775,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/components",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-component-untested",
@@ -1724,6 +1846,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/products",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-products-new",
@@ -1740,6 +1863,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/products/new",
+    prepare: notFoundSettled,
   },
   {
     // The DRAFT edit state: a bare product with none of the mandatory
@@ -1821,6 +1945,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: (seed) => `/admin/products/${seed.draftAdminProduct.id}/edit`,
+    prepare: notFoundSettled,
   },
   {
     // MVP-019 (FR-015/NFR-009): the reinstate-or-archive status control,
@@ -1893,6 +2018,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/audit",
+    prepare: notFoundSettled,
   },
   {
     id: "not-found",
@@ -1901,5 +2027,6 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/no-such-page-e2e",
+    prepare: notFoundSettled,
   },
 ];

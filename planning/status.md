@@ -2,7 +2,13 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-08 (latest) — **MVP-049 (the Power Apps component library) In Progress: pipeline, admin and Docs pages built; six components drafted.**
+Last updated: 2026-10-08 (latest) — **MVP-049 In Progress: wave 2 has begun; nine components drafted.**
+- **Drafted since:** Floating action button; upgrades to Button, Toast, Tabs and States (0.2.0) and Text field (0.3.0, built-in formats); Date and time picker (0.1.0); People picker (0.1.0, sign-in to copy: your app searches the directory through `OnSearch`). Each has a live preview and a paste-test checklist.
+- **Fixed:** BUG-033, previews cut off on phones.
+- **Waiting on the product owner:** merging #125, #126 and #127 in order (#124 is merged); the paste-tests (`docs/component-paste-tests.md`); the Privacy wording for component ratings.
+- **Remaining wave 2:** Pagination, Data table (sign-in), Navigation shell (sign-in), Tree view, Stepper. Then wave 3: Kanban, screen templates, charts.
+
+Last updated (previous): 2026-10-08 — **MVP-049 (the Power Apps component library) In Progress: pipeline, admin and Docs pages built; six components drafted.**
 - **Decisions** (`docs/final-decisions.md`, 2026-10-08): design A · Docs; "Component library" and "Marketplace products" in the admin menu; more components may be drafted before the pilot paste-test; the component standard stays a proposal.
 - **Built (#116):** `content/components` checked in CI against Microsoft's pa.yaml schema and the standard; drafts imported on each release; `/admin/components` to record a paste-test, set sign-in-to-copy and hidden, and publish once tested (audit logged); `/components` and the component pages behind `FEATURE_COMPONENTS`, with one live view per component (the component on a Power Apps screen, behaving exactly as in Studio, with its variations and the screen's formulas); sitemap entries while it's on.
 - **Drafted (#117):** Button (the pilot), Text field, Dialog, Toast, Tabs, Empty/loading/error states, with paste-test checklists (`docs/component-paste-tests.md`). None is tested in Studio yet.

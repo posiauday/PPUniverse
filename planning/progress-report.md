@@ -5286,3 +5286,81 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not changed:** Next.js's own polyfills, the DOM size, the unattributed reflow and the main chunk's long task; reasons in `planning/tech-debt/TD-032.md`.
 
 **Next:** re-run PageSpeed Insights on production after the release, mobile and desktop.
+
+## 2026-10-08 — Account: one-row header, avatars from a gallery, the crown, and the Terms at sign-up
+
+**Asked:** the product owner's screenshot of the header on two rows; Admin inside Account, not in the header; choose an avatar from a set; accept the Terms and Privacy notice when making an account; a premium avatar for the admin (docs/final-decisions.md, 2026-10-08).
+
+**Changed:**
+- **Header (BUG-032):** no Admin link; the avatar is the Account button; the wordmark is screen-reader-only from 1024 to 1279 pixels; tighter spacing; the search box keeps "Search an error or topic". One row at every desktop width, signed in or out.
+- **Account page:** the admin list adds Component library and Marketplace products.
+- **Avatars:** a gallery on the profile page (your avatar, eleven more, "Show other avatars", Save). The crowned avatar, a new premium drawing (a jewelled crown, an ermine collar and cape, a midnight sunburst, a gold frame and name tag), is offered only to admins; the profile API checks the role in the database (`lib/avatar-seeds.ts`).
+- **The Terms at sign-up:** a required box on the sign-up form; the sign-up API refuses without it (`error: "terms"`); confirming the emailed link records the existing Terms consent against the current version (`lib/terms-acceptance.ts`). A new account from an emailed link or Google lands on `/account/welcome` (Auth.js `newUser`) to agree, then goes on. A signed-in reader who hasn't agreed sees a reminder under the header. The sign-in page says new accounts are asked to agree.
+
+**Checked:** web typecheck, lint and unit tests (838, new: avatar choices, safe redirect after agreeing, sign-up refused without agreeing, agreement recorded on confirm); the header measured one row at six widths; the accessibility gate for every account and sign-up state, including the new ones (avatar picked, admin profile with the crown, welcome page, welcome without ticking, sign-up without ticking), in Chromium: 84 passed.
+
+**Next:** the product owner's check of the crowned avatar and the new pages.
+
+## 2026-10-08 — Component library: Text field 0.3.0, built-in formats (MVP-049, In Progress)
+
+**Asked:** "continue": the last wave 1 item in the approved build order (Text field input formats; docs/research/2026-10-08-component-roadmap-and-differentiators.md).
+
+**Built:** a `Format` input on `lcsTextField` with built-in checks and clear messages: `Email` (Power Fx `Match.Email`), `Phone` (7 to 20 digits, spaces and `+ ( ) -`), `Number`, `Url` (https), `PostalCodeCA` and `ZipCodeUS`. The check runs after Required and before your own `Validate`, only once the user has left the box, and `IsValid` includes it. An empty box passes; Required asks for one. It checks, it doesn't reformat as people type: a Power Apps text input can't. Guide, variations (Email now uses it; Phone number and Postal code added), live preview and paste-test rows updated.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests, including each format's good and bad text.
+
+**Not yet:** the product owner's paste-test; Power Fx accepts only part of regular expression syntax, so the patterns are kept simple.
+
+**Next:** wave 2, starting with the Date and time picker.
+
+## 2026-10-08 — Component library: Date and time picker (MVP-049, wave 2, In Progress)
+
+**Asked:** "continue": wave 2 of the approved build order, starting with the Date and time picker (docs/research/2026-10-08-component-roadmap-and-differentiators.md).
+
+**Built** `lcsDatePicker` 0.1.0 (open to copy), on Microsoft's modern date picker and dropdown:
+- `Mode`: `Date`, `DateTime` (a time list in `TimeStep` minutes, 12- or 24-hour) or `Range` (start and end);
+- quick picks (Today, Tomorrow, In a week; This week, Next 7 days, Last 30 days); with weekends blocked they never land on one;
+- `MinDate` and `MaxDate` (greyed out by the date picker); `BlockWeekends` and a `BlockedDates` table, refused with clear messages, because the date picker can't grey out single days;
+- `Value`, `EndValue`, `Days`, `IsValid`, the `WorkingDays(Start, End)` helper, `OnChange(Start, End)`, `SetDates(Start, End)` and `Reset()`;
+- the time zone in the hint in DateTime mode; label, hint, required marker, `AccentColor` and `Theme`.
+
+The YAML comes from a small generator (the date-with-time formula repeats in several places). The live preview has a calendar like the modern date picker's (arrow keys, Escape, a click outside closes it), the time list, the quick picks and the same checks, with the screen kept tall enough for the calendar.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests (time list, working days, quick picks with and without weekends, the checks in order); a local axe and overflow run over the page and its flows at 375 and 1280 pixels, light and dark: 36 states, clean.
+
+**Not yet:** the product owner's paste-test. `ModernDatePicker@1.0.0` and `ModernDropdown@1.0.0` are new to this library.
+
+**Next:** the People picker (sign-in to copy).
+
+## 2026-10-08 — Component library: People picker (MVP-049, wave 2, In Progress)
+
+**Asked:** "continue": the next wave 2 component in the approved build order, the People picker, sign-in to copy (docs/research/2026-10-08-component-roadmap-and-differentiators.md: your app does the directory search, so the component holds no connection).
+
+**Built** `lcsPeoplePicker` 0.1.0 (sign-in to copy):
+- search as you type: when the user pauses (`TriggerOutput.Delayed` plus a hidden 0.4-second timer), it runs `OnSearch(Query)` once per new search, and your app puts the people in `Results` (Office 365 Users `SearchUserV2`, Dataverse or a list);
+- chips with initials avatars, two to a row, in one of six colours that stays the same for each name, each with a remove button;
+- `MaxPeople` (1 makes a single-person picker, 0 no limit), Add me (`Me`), up to three `Suggestions` while the box is empty, `DefaultPeople` for a record's people;
+- messages: type more, no one found, everyone found is already chosen, the limit, and "⚠ Choose at least one person." when required;
+- `People`, `Emails` (separated by semicolons, for Outlook or Teams), `Count`, `SearchText`, `IsValid`, `OnChange(ChosenEmails)`, `Clear()` and `Reset()`.
+
+The guide shows Office 365 Users search, Add me, the manager as a suggestion, emailing everyone, saving to a SharePoint Person column, loading a record's people, and a no-connection test table. The event parameters are `Query` and `ChosenEmails`, so they can't clash with the `Text` function or the `Emails` output. The live preview runs on a made-up example.com directory and waits for the same pause before it searches.
+
+**Fixed:** BUG-033. On phones, component previews wider than their screen were cut off on the right (the Text field at 375 px). The preview screen's grid column now shrinks to the screen.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests (search, initials, colours, both message rules); a local axe and overflow run over the People picker page and its flows at 375 and 1280 px, light and dark: 40 states, clean; all nine previews fit their screen at 320 and 375 px.
+
+**Not yet:** the product owner's paste-test (docs/component-paste-tests.md). New to this library: the text input's `Search` type and `Delayed` output, and a gallery's `WrapCount` and `AccessibleLabel`.
+
+**Next:** Pagination.
+
+## 2026-10-09 — Fix: account pages wider than a 320px phone in Firefox (BUG-034)
+
+**Asked:** "Resolve conflicts", then "continue": after the merges, the accessibility gate failed in Firefox at 320 px on #125, #126 and #127, each time on a page from #124 (the welcome page and the profile).
+
+**Changed:** the base heading style (`main h1` without classes) is 36 px on phones and 44 px from 640 px up, and wraps a word too long for the line; the profile's display name can shrink and wrap anywhere. This also covers the sign-in and email confirmation pages, which use the same heading with "LowCodeStacks".
+
+**Then:** #128's first CI run failed on the email confirmation page at 320 px: the new heading rule's `break-word` overrode the page's own `anywhere` and held the sign-in card at full width. It now uses `anywhere`. WebKit's keyboard check had also failed three times with no keyboard stops on 404 pages (BUG-035); all 21 404 states now wait for the not-found page to hydrate.
+
+**Checked:** web typecheck, lint and unit tests. After freeing 2.4 GB on C: (the npm download and npx caches, and old Playwright browser profiles), in local browsers: the 28 sign-in, sign-up, password and account states in Firefox at 320 px with a wide font standing in for CI's; the 21 404 states in Chromium, and in WebKit's keyboard walk at 320 px.
+
+**Next:** the product owner merges this fix, then #125, #126 and #127, which carry it already.

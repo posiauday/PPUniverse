@@ -1,0 +1,35 @@
+# Named presets of lcsDatePicker: each sets inputs with Power Fx formulas.
+- name: Due date
+  description: One date, a weekday from today on.
+  settings:
+    Label: ="Due date"
+    MinDate: =Today()
+    BlockWeekends: =true
+    Required: =true
+- name: Appointment
+  description: A date and a time every 30 minutes, with the time zone.
+  settings:
+    Label: ="Appointment"
+    Mode: ="DateTime"
+    TimeStep: =30
+    DefaultTime: ="10:00"
+- name: Leave request
+  description: A range with quick picks; weekends can't start or end it.
+  settings:
+    Label: ="Leave"
+    Mode: ="Range"
+    BlockWeekends: =true
+    Hint: ="Pick your first and last day off."
+- name: 24-hour clock
+  description: A date and a time on a 24-hour clock, every 15 minutes.
+  settings:
+    Label: ="Start time"
+    Mode: ="DateTime"
+    Use24Hour: =true
+    ShowPresets: =false
+- name: Dark
+  description: On a dark screen, in your brand colour.
+  settings:
+    Label: ="Follow-up"
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

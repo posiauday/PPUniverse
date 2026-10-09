@@ -156,7 +156,9 @@ export default function SignInPage() {
       </p>
       <p>
         New here? <Link href="/signup">Create an account with a password</Link>. A sign-in link
-        creates your account too.
+        creates your account too; you&rsquo;ll be asked to agree to the{" "}
+        <Link href="/terms">Terms of use</Link> and the <Link href="/privacy">Privacy notice</Link>{" "}
+        first.
       </p>
     </main>
   );

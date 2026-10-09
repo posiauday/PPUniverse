@@ -61,12 +61,14 @@ From pastes that worked in the product owner's developer environment. Use these 
 | --- | --- | --- |
 | Modern button | `ModernButton@1.0.0` | `Appearance: =ButtonAppearance.Primary`, `Icon`, `Layout`, `DisplayMode` |
 | Modern text | `ModernText@1.0.0` | `Text@0.0.51` is upgraded to this by Studio |
-| Modern text input | `ModernTextInput@1.0.0` | |
+| Modern text input | `ModernTextInput@1.0.0` | The People picker also uses `Type: =TextInputType.Search` and `TriggerOutput: =TriggerOutput.Delayed` (Microsoft Learn's current page), **not yet paste-tested by us** |
 | Container | `GroupContainer@1.5.0` with `Variant: ManualLayout` | `Fill`, `DropShadow`, `RadiusTopLeft`… and its own `Children` |
-| Gallery | `Gallery@2.15.0` with `Variant: Vertical` | `Items`, `TemplateSize`, `TemplatePadding`, `ShowScrollbar`; `ThisItem` in its children |
+| Gallery | `Gallery@2.15.0` with `Variant: Vertical` | `Items`, `TemplateSize`, `TemplatePadding`, `ShowScrollbar`; `ThisItem` in its children. The People picker also uses `WrapCount` and `AccessibleLabel`, **not yet paste-tested by us** |
 | Classic button | `Classic/Button@2.2.0` | useful as a transparent hit area. **No `AccessibleLabel`** (PA2108): its accessible name is its `Text`, so set the label there with transparent `Color`, `HoverColor`, `PressedColor` and `DisabledColor`. CI checks this. |
 | Image | `Image@2.2.3` | an SVG data URI works as `Image` |
 | Rectangle | `Rectangle@2.3.0` | |
+| Date picker | `ModernDatePicker@1.0.0` | **Not yet paste-tested by us.** The Date and time picker uses `DefaultDate`, `StartDate`, `EndDate`, `StartOfWeek`, `Format: =DatePickerFormat.LongAbbreviated`, `Appearance`, `BasePaletteColor`, `ValidationState`, `SelectedDate` and `OnChange` (Microsoft Learn's current page). |
+| Dropdown | `ModernDropdown@1.0.0` | **Not yet paste-tested by us.** `Items`, `Default` (a value in Items), `Selected.Value`, `Appearance`, `BasePaletteColor`, `OnChange`. |
 | Timer | `Timer@2.1.0` | **Not yet paste-tested by us** (used in another MIT-licensed library's component). Button 0.2.0 and Toast 0.2.0 use it with `Visible: =false`. Studio runs timers only in preview (F5). |
 
 **Never size a component from a variable:** Studio reported `locOpen` as an error in the component's own Height and Width, even with an `OnReset` that sets it (lcsFab paste-test, 2026-10-08). Size the component from its inputs only. Outputs that read variables work (lcsButton's ClickCount). Also verified: `OnReset` as a component property; Color, Record and Table inputs with defaults. Not used here: `AccessAppScope` (it ties a component to one app, and component libraries can't use it).

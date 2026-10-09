@@ -46,6 +46,21 @@ The pilot checklist (`.nav-mock/components/pilot-test-checklist.md`) has the ful
 | Action | A button with `txtEmail.Reset()` | The box goes back to `DefaultValue` and the error clears |
 | Required | Clear the box and leave it (with `ErrorMessage` empty) | "This field is required." |
 
+**0.3.0:** `Format`. Type, then leave the box (Tab), for each:
+
+| Format | Type | Expect |
+| --- | --- | --- |
+| `"Email"` | `sam@` | "⚠ Enter an email address like name@example.com." |
+| `"Phone"` | `call me` | "⚠ Enter a phone number with digits, spaces and + ( ) -." |
+| `"Number"` | `3.5.1` | "⚠ Enter a number, such as 42 or 3.5." |
+| `"Url"` | `example.com` | "⚠ Enter a web address that starts with https://." |
+| `"PostalCodeCA"` | `k1a 0b1`, then `12345` | No error, then "⚠ Enter a postal code like K1A 0B1." |
+| `"ZipCodeUS"` | `12345-6789`, then `1234` | No error, then "⚠ Enter a ZIP code like 12345 or 12345-6789." |
+| Any | Empty box, `Required` off | No error; `IsValid` is true |
+| Any | A bad value; label `txtEmail.IsValid` | false |
+
+If Studio rejects a pattern, copy the error: Power Fx accepts only part of regular expression syntax.
+
 ## Dialog: `lcsDialog` → name it `dlgDelete`
 
 Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, and keep it last in the tree view.
@@ -131,3 +146,52 @@ Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, a
 | Input | `AccentColor` purple; `State` `"Loading"`, then `"Empty"` | A purple spinner; a purple button |
 | Input | `Theme` `"Dark"` on a dark screen, each state | Light text, dark circles and rows |
 | Output | `stsRequests.IsShowing` with `"Skeleton"` | true |
+
+## Date and time picker: `lcsDatePicker` → name it `dtpDue`
+
+New controls for this library: `ModernDatePicker@1.0.0` and `ModernDropdown@1.0.0`. Check the paste first.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Leave `Mode` at `"Date"`; open the calendar and pick a day | The date shows as "Mon d, yyyy" |
+| Event | `OnChange` to `Notify(Text(Start, "mmm d, yyyy"))`; pick a day, then a quick pick | A message each time |
+| Input | `ShowPresets` true; select Today, Tomorrow, In a week | The date changes to each |
+| Input | `Mode` `"DateTime"`; pick a date and a time | A time list beside the date; `Value` (in a label) has the time |
+| Input | `TimeStep` 30, `Use24Hour` true | Times every 30 minutes, 00:00 to 23:30 |
+| Input | `Mode` `"DateTime"`, `ShowTimeZone` true | The hint ends with your time zone, such as "(UTC-6)" |
+| Input | `Mode` `"Range"`; pick an end before the start | "⚠ The end date must be on or after the start date." |
+| Input | `Mode` `"Range"`, select This week | Monday to Sunday; `Days` 7 |
+| Input | `BlockWeekends` true; pick a Saturday | "⚠ Choose a weekday. Weekends aren't available." |
+| Input | `BlockWeekends` true, `Mode` `"Range"`; select This week | Monday to Friday (quick picks skip weekends) |
+| Input | `BlockedDates` to `[Date(2026, 12, 25)]`; pick that day | "⚠ That day isn't available. Choose another." |
+| Input | `MinDate` `Today()` | Days before today are greyed out |
+| Input | `Required` true; pick a date, then clear it | "⚠ Choose a date." |
+| OutputFunction | A label: `dtpDue.WorkingDays(Date(2026, 3, 2), Date(2026, 3, 8))` | 5 |
+| Action | A button: `dtpDue.SetDates(Date(2026, 1, 5), Date(2026, 1, 9))` | The field shows those dates |
+| Action | A button: `dtpDue.Reset()` | Back to the defaults, no error |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a purple calendar |
+
+## People picker: `lcsPeoplePicker` → name it `pplApprovers`
+
+New for this library: `TextInputType.Search` and `TriggerOutput.Delayed` on the modern text input, and `WrapCount` and `AccessibleLabel` on a gallery. Check the paste first. If Studio rejects the action named `Reset` (the Date picker has one too), tell me and I'll rename both.
+
+Set up a test table first, so no connection is needed: `Screen1.OnVisible` to `ClearCollect(colStaff, {DisplayName: "Avery Brooks", Mail: "avery.brooks@example.com", JobTitle: "Finance manager"}, {DisplayName: "Jordan Lee", Mail: "jordan.lee@example.com", JobTitle: "Product owner"}, {DisplayName: "Priya Nair", Mail: "priya.nair@example.com", JobTitle: "Developer"})`, then `OnSearch` to `ClearCollect(colFound, Search(colStaff, Query, DisplayName, Mail))` and `Results` to `colFound`. Search only in Preview (F5): timers don't run in the editor.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Event | Type `an`, then pause | After a moment, Jordan Lee shows, with a coloured circle of initials and "Product owner · jordan.lee@example.com" |
+| Input | Type `a` only | "Type at least 2 characters to search." |
+| Input | Type `zz`, then pause | "No one found for "zz"." |
+| Event | `OnChange` to `Notify(ChosenEmails)`; select Jordan Lee | A chip for Jordan Lee, the box empties, a message with jordan.lee@example.com |
+| Event | Select the chip's ✕ | The chip goes, and a message shows the emails left |
+| Input | `Me` to `{DisplayName: User().FullName, Mail: User().Email, JobTitle: ""}` | Add me shows next to the label; selecting it adds you, then Add me hides |
+| Input | `Suggestions` to `colStaff`; empty the box | "Suggested" with the first three people not already chosen |
+| Input | `MaxPeople` 3; add three people | The box hides; "That's the most this field allows (3)." |
+| Input | `MaxPeople` 1; add one person | One chip across the width, the box hides, no limit message |
+| Input | `Required` true; add someone, then remove them | "⚠ Choose at least one person." and a red box; `IsValid` (in a label) false |
+| Output | A label: `pplApprovers.Emails & " / " & pplApprovers.Count` | The emails separated by semicolons, and the count |
+| Input | `DefaultPeople` to `FirstN(colStaff, 2)` | Two chips when the screen loads |
+| Action | Add a third person, then a button: `pplApprovers.Reset()` | Back to the two defaults |
+| Action | A button: `pplApprovers.Clear()` | No chips, an empty box |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark chips, a purple focus line |
+| Connection | With Office 365 Users: `OnSearch` from the guide (`SearchUserV2` with `ShowColumns`) | Real people from your directory |

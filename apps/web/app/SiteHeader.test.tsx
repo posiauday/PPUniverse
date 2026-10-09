@@ -59,18 +59,34 @@ describe("SiteHeader", () => {
     expect(signedIn).not.toContain('href="/signin"');
   });
 
-  it("shows a signed-in reader's avatar, and the Admin link only to an admin", () => {
-    const member = { isAdmin: false, displayName: "Ada Lovelace", avatarSeed: "seed-1" };
+  it("shows a signed-in reader's avatar as the Account link, and no Admin link for anyone", () => {
+    const member = {
+      isAdmin: false,
+      displayName: "Ada Lovelace",
+      avatarSeed: "seed-1",
+      needsTerms: false,
+    };
     const memberHtml = renderToStaticMarkup(<SiteHeader theme="light" signedIn viewer={member} />);
     expect(memberHtml).toContain("<svg");
     expect(memberHtml).toContain(">AL<");
-    expect(memberHtml).not.toContain('href="/admin"');
+    expect(memberHtml).toContain('<span class="sr-only">Account</span>');
+    expect(memberHtml).toContain('href="/account"');
+    // Admin lives in the account area now (docs/final-decisions.md, 2026-10-08).
     const adminHtml = renderToStaticMarkup(
       <SiteHeader theme="light" signedIn viewer={{ ...member, isAdmin: true }} />,
     );
-    expect(adminHtml).toContain('href="/admin"');
-    expect(renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />)).not.toContain(
-      'href="/admin"',
+    expect(adminHtml).not.toContain('href="/admin"');
+  });
+
+  it("draws the crown for a reader whose avatar is the crown", () => {
+    const king = {
+      isAdmin: true,
+      displayName: "King Lowcode",
+      avatarSeed: "crown",
+      needsTerms: false,
+    };
+    expect(renderToStaticMarkup(<SiteHeader theme="light" signedIn viewer={king} />)).toContain(
+      'data-avatar="crown"',
     );
   });
 

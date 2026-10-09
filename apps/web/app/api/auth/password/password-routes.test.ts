@@ -8,6 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  */
 vi.mock("@ppu/db", () => ({ prisma: {} }));
 vi.mock("../../../../lib/email", () => ({ notificationService: { sendTransactional: vi.fn() } }));
+const recordTermsAcceptance = vi.fn().mockResolvedValue({ policyVersionId: "terms-v1" });
+vi.mock("../../../../lib/terms-acceptance", () => ({ recordTermsAcceptance }));
 
 const { passwordAuth } = await import("../../../../lib/password-auth");
 const { MIN_ANSWER_MS, atLeast } = await import("../../../../lib/password-request");
@@ -43,7 +45,7 @@ afterEach(() => {
 
 describe("every password route", () => {
   const routes = [
-    ["signup", signup.POST, { email: "a@example.test", password: "x" }],
+    ["signup", signup.POST, { email: "a@example.test", password: "x", acceptTerms: "yes" }],
     ["confirm", confirm.POST, { token: "t" }],
     ["signin", signin.POST, { email: "a@example.test", password: "x" }],
     ["forgot", forgot.POST, { email: "a@example.test" }],
@@ -117,7 +119,9 @@ describe("POST /api/auth/password/signin", () => {
 describe("POST /api/auth/password/signup", () => {
   it("answers ok without saying whether the email already has an account", async () => {
     vi.spyOn(passwordAuth, "signUp").mockResolvedValue({ ok: true });
-    const response = await signup.POST(post("signup", { email: "a@example.test", password: "pw" }));
+    const response = await signup.POST(
+      post("signup", { email: "a@example.test", password: "pw", acceptTerms: "yes" }),
+    );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
     expect(response.headers.get("Set-Cookie")).toBeNull();
@@ -128,7 +132,9 @@ describe("POST /api/auth/password/signup", () => {
       ok: false,
       problems: ["too-short", "found-in-breach"],
     });
-    const response = await signup.POST(post("signup", { email: "a@example.test", password: "pw" }));
+    const response = await signup.POST(
+      post("signup", { email: "a@example.test", password: "pw", acceptTerms: "yes" }),
+    );
     expect(response.status).toBe(400);
     const body = (await response.json()) as { error: string; problems: string[] };
     expect(body.error).toBe("weak-password");
@@ -137,18 +143,36 @@ describe("POST /api/auth/password/signup", () => {
   });
 });
 
+describe("POST /api/auth/password/signup without agreeing", () => {
+  it("refuses a sign-up that doesn't agree to the Terms, before anything is sent", async () => {
+    const signUp = vi.spyOn(passwordAuth, "signUp");
+    signUp.mockClear();
+    const response = await signup.POST(
+      post("signup", { email: "a@example.test", password: "pw", acceptTerms: "no" }),
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "terms" });
+    expect(signUp).not.toHaveBeenCalled();
+  });
+});
+
 describe("POST /api/auth/password/confirm and /reset", () => {
   it("confirm signs in on a good token and says invalid-link otherwise", async () => {
     const confirmSignUp = vi.spyOn(passwordAuth, "confirmSignUp");
     confirmSignUp.mockResolvedValueOnce({ ok: true, userId: "user-1" });
+    recordTermsAcceptance.mockClear();
     const good = await confirm.POST(post("confirm", { token: "t" }));
     expect(good.status).toBe(200);
     expect(good.headers.get("Set-Cookie")).toContain(SESSION.sessionToken);
+    // The sign-up agreed to the Terms; confirming the link records it.
+    expect(recordTermsAcceptance).toHaveBeenCalledWith("user-1");
 
+    recordTermsAcceptance.mockClear();
     confirmSignUp.mockResolvedValueOnce({ ok: false, reason: "invalid-link" });
     const bad = await confirm.POST(post("confirm", { token: "t" }));
     expect(bad.status).toBe(400);
     expect(await bad.json()).toEqual({ error: "invalid-link" });
+    expect(recordTermsAcceptance).not.toHaveBeenCalled();
   });
 
   it("reset returns problems for a weak password and signs in after a good one", async () => {
