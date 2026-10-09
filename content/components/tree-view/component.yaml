@@ -1,0 +1,371 @@
+ComponentDefinitions:
+  lcsTreeView:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks tree view: nested folders or categories from one flat table, in one gallery, with nodes that open and close, children you load when a node opens, and selection."
+    CustomProperties:
+      Nodes:
+        PropertyKind: Input
+        DisplayName: Nodes
+        DataType: Table
+        Description: "Every node as one flat table: Key, ParentKey (blank for the top level), Label, Icon (a Fluent icon name, such as Folder) and HasChildren (true when it has children you load later)."
+        Default: |-
+          =Table(
+              {Key: "docs", ParentKey: "", Label: "Documents", Icon: "Folder", HasChildren: true},
+              {Key: "plans", ParentKey: "docs", Label: "Plans", Icon: "Folder", HasChildren: true},
+              {Key: "q3", ParentKey: "plans", Label: "Q3 plan.docx", Icon: "Document", HasChildren: false},
+              {Key: "q4", ParentKey: "plans", Label: "Q4 plan.docx", Icon: "Document", HasChildren: false},
+              {Key: "budget", ParentKey: "docs", Label: "Budget.xlsx", Icon: "Document", HasChildren: false},
+              {Key: "images", ParentKey: "", Label: "Images", Icon: "Folder", HasChildren: true},
+              {Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Image", HasChildren: false},
+              {Key: "archive", ParentKey: "", Label: "Archive", Icon: "Folder", HasChildren: true}
+          )
+      DefaultExpandedKeys:
+        PropertyKind: Input
+        DisplayName: DefaultExpandedKeys
+        DataType: Text
+        Description: "Keys of the nodes open when the screen loads, separated by commas."
+        Default: ="docs"
+      CurrentKey:
+        PropertyKind: Input
+        DisplayName: CurrentKey
+        DataType: Text
+        Description: "The Key of the node to mark as selected, from your app. Leave it blank and the tree marks the node last selected."
+        Default: =""
+      ShowIcons:
+        PropertyKind: Input
+        DisplayName: ShowIcons
+        DataType: Boolean
+        Description: "Shows each node's icon. An open Folder shows FolderOpen."
+        Default: =true
+      IndentSize:
+        PropertyKind: Input
+        DisplayName: IndentSize
+        DataType: Number
+        Description: "How far each level is indented, in pixels."
+        Default: =20
+      TreeLabel:
+        PropertyKind: Input
+        DisplayName: TreeLabel
+        DataType: Text
+        Description: "What screen readers call the tree."
+        Default: ="Folders"
+      ExpandText:
+        PropertyKind: Input
+        DisplayName: ExpandText
+        DataType: Text
+        Description: "The start of an open button's name, read out and shown on hover, such as Expand Documents."
+        Default: ="Expand"
+      CollapseText:
+        PropertyKind: Input
+        DisplayName: CollapseText
+        DataType: Text
+        Description: "The start of a close button's name, such as Collapse Documents."
+        Default: ="Collapse"
+      LevelText:
+        PropertyKind: Input
+        DisplayName: LevelText
+        DataType: Text
+        Description: "The word screen readers say before a node's level, such as Plans, level 2."
+        Default: ="level"
+      EmptyText:
+        PropertyKind: Input
+        DisplayName: EmptyText
+        DataType: Text
+        Description: "What the tree says when there are no nodes."
+        Default: ="Nothing here yet"
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "Your brand colour, for the selected node."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light, or Dark for a dark screen."
+        Default: ="Light"
+      SelectedKey:
+        PropertyKind: Output
+        DisplayName: SelectedKey
+        DataType: Text
+        Description: "The Key of the selected node, or blank."
+      SelectedNode:
+        PropertyKind: Output
+        DisplayName: SelectedNode
+        DataType: Record
+        Description: "The selected node's row from Nodes."
+      ExpandedKeys:
+        PropertyKind: Output
+        DisplayName: ExpandedKeys
+        DataType: Text
+        Description: "Keys of the open nodes, separated by commas, to save and pass back as DefaultExpandedKeys."
+      VisibleCount:
+        PropertyKind: Output
+        DisplayName: VisibleCount
+        DataType: Number
+        Description: "How many nodes show now."
+      OnNodeSelect:
+        PropertyKind: Event
+        DisplayName: OnNodeSelect
+        ReturnType: None
+        Description: "Runs when the user selects a node. Open what it stands for here."
+        Parameters:
+          - NodeKey:
+              DataType: Text
+              Description: "The Key of the node."
+              Default: =""
+        Default: =false
+      OnExpand:
+        PropertyKind: Event
+        DisplayName: OnExpand
+        ReturnType: None
+        Description: "Runs when the user opens a node. Load its children here if you load them as needed."
+        Parameters:
+          - NodeKey:
+              DataType: Text
+              Description: "The Key of the node."
+              Default: =""
+        Default: =false
+      OnCollapse:
+        PropertyKind: Event
+        DisplayName: OnCollapse
+        ReturnType: None
+        Description: "Runs when the user closes a node."
+        Parameters:
+          - NodeKey:
+              DataType: Text
+              Description: "The Key of the node."
+              Default: =""
+        Default: =false
+      Expand:
+        PropertyKind: Action
+        DisplayName: Expand
+        ReturnType: None
+        Description: "Opens a node, such as Expand(NodeKey) to show where something is."
+        Parameters:
+          - NodeKey:
+              DataType: Text
+              Description: "The Key of the node."
+              Default: =""
+      Collapse:
+        PropertyKind: Action
+        DisplayName: Collapse
+        ReturnType: None
+        Description: "Closes a node."
+        Parameters:
+          - NodeKey:
+              DataType: Text
+              Description: "The Key of the node."
+              Default: =""
+      ExpandAll:
+        PropertyKind: Action
+        DisplayName: ExpandAll
+        ReturnType: None
+        Description: "Opens every node that has children in Nodes. It doesn't run OnExpand."
+      CollapseAll:
+        PropertyKind: Action
+        DisplayName: CollapseAll
+        ReturnType: None
+        Description: "Closes every node."
+    Properties:
+      Width: =320
+      Height: =400
+      Fill: =RGBA(0, 0, 0, 0)
+      SelectedKey: =Coalesce(lcsTreeView.CurrentKey, locSelected)
+      SelectedNode: =LookUp(lcsTreeView.Nodes, Key = Coalesce(lcsTreeView.CurrentKey, locSelected))
+      ExpandedKeys: =Concat(Filter(Split(Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")), ";"), !IsBlank(Value)), Value, ",")
+      VisibleCount: =CountRows(galTree.AllItems)
+      Expand: =If(!((";" & NodeKey & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), Set(locExpanded, Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")) & NodeKey & ";"))
+      Collapse: =Set(locExpanded, Substitute(Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")), ";" & NodeKey & ";", ";"))
+      ExpandAll: |-
+        =Set(
+            locExpanded,
+            ";" & Concat(
+                Filter(lcsTreeView.Nodes As node, node.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = node.Key)) > 0),
+                Key & ";"
+            )
+        )
+      CollapseAll: =Set(locExpanded, ";")
+    Children:
+      - shpTree:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Fill: =If(lcsTreeView.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1))
+      - galTree:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            X: =0
+            Y: =4
+            Width: =Parent.Width
+            Height: =Parent.Height - 8
+            Items: |-
+              =With(
+                  {l0: With(
+                      {roots: Filter(lcsTreeView.Nodes, IsBlank(ParentKey))},
+                      ForAll(
+                          Sequence(CountRows(roots)) As i,
+                          With({c: Last(FirstN(roots, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 0, Path: Text(i.Value, "000")})
+                      )
+                  )},
+                  With(
+                      {l1: Ungroup(
+                          ForAll(
+                              Filter(l0 As p, ((";" & p.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")))) As p,
+                              {
+                                  Rows: With(
+                                      {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
+                                      ForAll(
+                                          Sequence(CountRows(kids)) As i,
+                                          With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 1, Path: p.Path & Text(i.Value, "000")})
+                                      )
+                                  )
+                              }
+                          ),
+                          Rows
+                      )},
+                      With(
+                          {l2: Ungroup(
+                              ForAll(
+                                  Filter(l1 As p, ((";" & p.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")))) As p,
+                                  {
+                                      Rows: With(
+                                          {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
+                                          ForAll(
+                                              Sequence(CountRows(kids)) As i,
+                                              With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 2, Path: p.Path & Text(i.Value, "000")})
+                                          )
+                                      )
+                                  }
+                              ),
+                              Rows
+                          )},
+                          With(
+                              {l3: Ungroup(
+                                  ForAll(
+                                      Filter(l2 As p, ((";" & p.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")))) As p,
+                                      {
+                                          Rows: With(
+                                              {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
+                                              ForAll(
+                                                  Sequence(CountRows(kids)) As i,
+                                                  With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 3, Path: p.Path & Text(i.Value, "000")})
+                                              )
+                                          )
+                                      }
+                                  ),
+                                  Rows
+                              )},
+                              With(
+                                  {l4: Ungroup(
+                                      ForAll(
+                                          Filter(l3 As p, ((";" & p.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")))) As p,
+                                          {
+                                              Rows: With(
+                                                  {kids: Filter(lcsTreeView.Nodes, ParentKey = p.Key)},
+                                                  ForAll(
+                                                      Sequence(CountRows(kids)) As i,
+                                                      With({c: Last(FirstN(kids, i.Value))}, {Key: c.Key, Label: c.Label, Icon: c.Icon, HasKids: c.HasChildren || CountRows(Filter(lcsTreeView.Nodes, ParentKey = c.Key)) > 0, Depth: 4, Path: p.Path & Text(i.Value, "000")})
+                                                  )
+                                              )
+                                          }
+                                      ),
+                                      Rows
+                                  )},
+                                  Sort(Ungroup(Table({Rows: l0}, {Rows: l1}, {Rows: l2}, {Rows: l3}, {Rows: l4}), Rows), Path)
+                              )
+                          )
+                      )
+                  )
+              )
+            TemplateSize: =40
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            BorderStyle: =BorderStyle.None
+            AccessibleLabel: =lcsTreeView.TreeLabel
+          Children:
+            - shpSelected:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =4
+                  Y: =2
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =Parent.TemplateHeight - 4
+                  Visible: =ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected)
+                  Fill: =ColorFade(lcsTreeView.AccentColor, If(lcsTreeView.Theme = "Dark", -0.55, 0.86))
+                  DropShadow: =DropShadow.None
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
+            - btnToggle:
+                Control: ModernButton@1.0.0
+                Properties:
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize
+                  Y: =(Parent.TemplateHeight - 32) / 2
+                  Width: =32
+                  Height: =32
+                  Visible: =ThisItem.HasKids
+                  Text: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
+                  Icon: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), "ChevronDown", "ChevronRight")
+                  Layout: =ButtonLayout.IconOnly
+                  Appearance: =ButtonAppearance.Subtle
+                  Color: =If(lcsTreeView.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+                  AccessibleLabel: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
+                  Tooltip: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
+                  OnSelect: |-
+                    =With(
+                        {k: ThisItem.Key},
+                        If(
+                            ((";" & k & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))),
+                            Set(locExpanded, Substitute(Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")), ";" & k & ";", ";"));
+                            lcsTreeView.OnCollapse(k),
+                            Set(locExpanded, Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";")) & k & ";");
+                            lcsTreeView.OnExpand(k)
+                        )
+                    )
+            - btnNode:
+                Control: ModernButton@1.0.0
+                Properties:
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 34
+                  Y: =2
+                  Width: =Max(40, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 34) - 6)
+                  Height: =Parent.TemplateHeight - 4
+                  Text: =ThisItem.Label
+                  Icon: =If(lcsTreeView.ShowIcons, If(ThisItem.Icon = "Folder" && ((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), "FolderOpen", ThisItem.Icon), "")
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), IconStyle.Filled, IconStyle.Outline)
+                  Layout: =ButtonLayout.IconBefore
+                  Align: =Align.Left
+                  PaddingLeft: =6
+                  Appearance: =ButtonAppearance.Transparent
+                  Color: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  FontWeight: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), FontWeight.Semibold, FontWeight.Normal)
+                  Size: =14
+                  AccessibleLabel: =ThisItem.Label & ", " & lcsTreeView.LevelText & " " & (ThisItem.Depth + 1)
+                  OnSelect: |-
+                    =Set(locSelected, ThisItem.Key);
+                    lcsTreeView.OnNodeSelect(ThisItem.Key)
+      - lblEmpty:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =16
+            Width: =Parent.Width
+            Height: =24
+            Visible: =CountRows(lcsTreeView.Nodes) = 0
+            Text: =lcsTreeView.EmptyText
+            Size: =13
+            Color: =If(lcsTreeView.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0

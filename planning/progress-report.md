@@ -5455,3 +5455,22 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 **Not yet:** the product owner's paste-test; `ModernCheckbox@1.0.0` is our best reading of the control's YAML name.
 
 **Next:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
+
+## 2026-10-09 — Component library: Tree view (MVP-049, wave 2, In Progress)
+
+**Asked:** keep working overnight; the Tree view follows the Navigation shell in the approved wave 2 order. Open to everyone (not in the sign-in list). Built to the approved research row: one flat gallery (no nesting), open and close, children loaded through `OnExpand`, and selection. The research row also says "keyboard arrows"; canvas components can't read key presses, so that is not claimed, and the guide's known limits say so.
+
+**Built** `lcsTreeView` 0.1.0, our own design:
+- **one flat `Nodes` table** (Key, ParentKey, Label, Icon, HasChildren) drawn in **one gallery**: the rows are worked out by one formula, level by level up to five levels, the children of open nodes under their parents (each row carries a sort path of three-digit places);
+- **open and close** with a chevron button named for what it does ("Expand Plans"); an open Folder shows FolderOpen;
+- **children loaded as needed**: `HasChildren: true` gives a node a chevron before its children exist; `OnExpand(NodeKey)` loads them, and they show at once;
+- **selection** from `CurrentKey` or the last node selected (tint, filled icon, bold); `OnNodeSelect(NodeKey)`, `OnCollapse`;
+- outputs `SelectedKey`, `SelectedNode`, `ExpandedKeys` (to save and pass back as `DefaultExpandedKeys`), `VisibleCount`; actions `Expand`, `Collapse`, `ExpandAll`, `CollapseAll`; every word screen readers hear is an input; `AccentColor`, `Theme`.
+
+Parameters are named `NodeKey`, so a maker's `LookUp(colNodes, Key = NodeKey)` never compares the column with itself.
+
+**Checked:** the component gate; web typecheck, lint and component tests (new: the rows formula's order, closed parents hiding open children, a chevron for children not yet loaded, the five-level limit); a local axe, overflow and layout run over the page and its flows (opening Images, opening Archive and its children loading, selecting, closing Documents, All open, Selected, No icons, Empty, Dark) at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test (the long rows formula, the icon names and the `Record` output are new to us).
+
+**Next:** Stepper, the last of wave 2.

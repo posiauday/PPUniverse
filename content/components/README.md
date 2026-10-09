@@ -75,6 +75,8 @@ From pastes that worked in the product owner's developer environment. Use these 
 
 **Never size a component from a variable:** Studio reported `locOpen` as an error in the component's own Height and Width, even with an `OnReset` that sets it (lcsFab paste-test, 2026-10-08). Size the component from its inputs only. Outputs that read variables work (lcsButton's ClickCount). Also verified: `OnReset` as a component property; Color, Record and Table inputs with defaults. Not used here: `AccessAppScope` (it ties a component to one app, and component libraries can't use it).
 
+**Long formulas** (the Tree view's rows: `Ungroup` of a table of tables built level by level, sorted with `Sort` by a text path; `Last(FirstN(...))` for the nth row) and a **`Record` output** (`SelectedNode`) are **not yet paste-tested by us**.
+
 ## variations.yaml
 
 ```

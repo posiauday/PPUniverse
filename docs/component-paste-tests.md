@@ -238,3 +238,21 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 | Input | `Rows` to `FirstN(dtOrders.Rows, 0)` | The empty state: an icon, "No items found" and the line under it |
 | Action | Tick rows, then a button: `dtOrders.ClearSelection()` | No rows ticked |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark cards, purple progress and selection |
+
+## Tree view: `lcsTreeView` → name it `treeDocs`
+
+New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `FolderOpen`, `Document`, `Image`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Documents open (open-folder icon) with Plans and Budget.xlsx under it, indented; Images and Archive closed |
+| Input | Select the chevron beside Plans | Plans opens: Q3 plan.docx and Q4 plan.docx, indented one more level |
+| Event | `OnNodeSelect` to `Notify("Open " & NodeKey)`; select Budget.xlsx | "Open budget"; Budget.xlsx is tinted, bold, with a filled icon |
+| Event | `OnExpand` to `Notify(NodeKey)`; open Archive | "archive"; Archive opens with nothing under it (its children aren't loaded) |
+| Event | `OnExpand` to `If(NodeKey = "archive", Collect(colNodes, {Key: "a1", ParentKey: "archive", Label: "2025", Icon: "Folder", HasChildren: false}))`, with `Nodes` set to `colNodes` (collected from the default table in `Screen1.OnVisible`) | Opening Archive shows 2025 under it |
+| Output | A label: `treeDocs.ExpandedKeys` | `docs`, then `docs,plans` as you open Plans |
+| Output | A label: `treeDocs.SelectedNode.Label` | The selected node's label |
+| Action | A button: `treeDocs.ExpandAll()`; another: `treeDocs.CollapseAll()` | Every folder with children opens; then all close |
+| Input | `CurrentKey` `"q3"` and `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx is selected inside its open folders |
+| Input | `ShowIcons` false, `IndentSize` 28 | Labels only, indented further |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node |
