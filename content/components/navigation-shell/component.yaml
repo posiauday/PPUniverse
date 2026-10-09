@@ -1,0 +1,501 @@
+ComponentDefinitions:
+  lcsNavShell:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks navigation shell: a side menu on wide screens and a bottom bar on phones, from one items table, with badges, items hidden or disabled by key, the current screen from your app, and a collapse state as an output."
+    CustomProperties:
+      Items:
+        PropertyKind: Input
+        DisplayName: Items
+        DataType: Table
+        Description: "The menu, in order: Key (your own id for the item), Label, Icon (a Fluent icon name, such as Home) and Badge (text such as 3, or blank)."
+        Default: |-
+          =Table(
+              {Key: "home", Label: "Home", Icon: "Home", Badge: ""},
+              {Key: "orders", Label: "Orders", Icon: "Cart", Badge: "3"},
+              {Key: "customers", Label: "Customers", Icon: "People", Badge: ""},
+              {Key: "reports", Label: "Reports", Icon: "ChartMultiple", Badge: ""},
+              {Key: "settings", Label: "Settings", Icon: "Settings", Badge: ""}
+          )
+      Title:
+        PropertyKind: Input
+        DisplayName: Title
+        DataType: Text
+        Description: "Your app's name, at the top of the side menu."
+        Default: ="My app"
+      CurrentKey:
+        PropertyKind: Input
+        DisplayName: CurrentKey
+        DataType: Text
+        Description: "The Key of the screen the user is on, from your app, so the menu marks it. Leave it blank and the menu marks the item last selected."
+        Default: =""
+      HiddenKeys:
+        PropertyKind: Input
+        DisplayName: HiddenKeys
+        DataType: Text
+        Description: "Keys of items to hide, separated by commas, such as for a role."
+        Default: =""
+      DisabledKeys:
+        PropertyKind: Input
+        DisplayName: DisabledKeys
+        DataType: Text
+        Description: "Keys of items to show but not allow, separated by commas."
+        Default: =""
+      StartCollapsed:
+        PropertyKind: Input
+        DisplayName: StartCollapsed
+        DataType: Boolean
+        Description: "Starts the side menu collapsed to its icons."
+        Default: =false
+      ScreenWidth:
+        PropertyKind: Input
+        DisplayName: ScreenWidth
+        DataType: Number
+        Description: "The width of your screen. Set it to Parent.Width, so the menu becomes a bottom bar on phones."
+        Default: =1366
+      ScreenHeight:
+        PropertyKind: Input
+        DisplayName: ScreenHeight
+        DataType: Number
+        Description: "The height of your screen. Set it to Parent.Height."
+        Default: =768
+      BottomBarBelow:
+        PropertyKind: Input
+        DisplayName: BottomBarBelow
+        DataType: Number
+        Description: "Below this screen width, the menu is a bottom bar."
+        Default: =640
+      MaxBottomItems:
+        PropertyKind: Input
+        DisplayName: MaxBottomItems
+        DataType: Number
+        Description: "How many items the bottom bar shows, from the top of the list."
+        Default: =5
+      ExpandedWidth:
+        PropertyKind: Input
+        DisplayName: ExpandedWidth
+        DataType: Number
+        Description: "The width of the side menu when it isn't collapsed."
+        Default: =240
+      ShowToggle:
+        PropertyKind: Input
+        DisplayName: ShowToggle
+        DataType: Boolean
+        Description: "Shows the button that collapses and expands the side menu."
+        Default: =true
+      MenuLabel:
+        PropertyKind: Input
+        DisplayName: MenuLabel
+        DataType: Text
+        Description: "What screen readers call the menu."
+        Default: ="Main menu"
+      CollapseText:
+        PropertyKind: Input
+        DisplayName: CollapseText
+        DataType: Text
+        Description: "The collapse button's name, read out and shown on hover."
+        Default: ="Collapse the menu"
+      ExpandText:
+        PropertyKind: Input
+        DisplayName: ExpandText
+        DataType: Text
+        Description: "The expand button's name, read out and shown on hover."
+        Default: ="Expand the menu"
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "Your brand colour, for the current item and badges."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light, or Dark for a dark app."
+        Default: ="Light"
+      IsCollapsed:
+        PropertyKind: Output
+        DisplayName: IsCollapsed
+        DataType: Boolean
+        Description: "True while the side menu is collapsed to its icons."
+      IsBottomBar:
+        PropertyKind: Output
+        DisplayName: IsBottomBar
+        DataType: Boolean
+        Description: "True while the menu is a bottom bar, on a narrow screen."
+      SelectedKey:
+        PropertyKind: Output
+        DisplayName: SelectedKey
+        DataType: Text
+        Description: "The Key of the item the menu marks as current."
+      ShellX:
+        PropertyKind: Output
+        DisplayName: ShellX
+        DataType: Number
+        Description: "Set the component's X to this."
+      ShellY:
+        PropertyKind: Output
+        DisplayName: ShellY
+        DataType: Number
+        Description: "Set the component's Y to this."
+      ShellWidth:
+        PropertyKind: Output
+        DisplayName: ShellWidth
+        DataType: Number
+        Description: "Set the component's Width to this."
+      ShellHeight:
+        PropertyKind: Output
+        DisplayName: ShellHeight
+        DataType: Number
+        Description: "Set the component's Height to this."
+      ContentX:
+        PropertyKind: Output
+        DisplayName: ContentX
+        DataType: Number
+        Description: "Where your screen's content starts, from the left."
+      ContentY:
+        PropertyKind: Output
+        DisplayName: ContentY
+        DataType: Number
+        Description: "Where your screen's content starts, from the top."
+      ContentWidth:
+        PropertyKind: Output
+        DisplayName: ContentWidth
+        DataType: Number
+        Description: "How wide your screen's content can be."
+      ContentHeight:
+        PropertyKind: Output
+        DisplayName: ContentHeight
+        DataType: Number
+        Description: "How tall your screen's content can be."
+      OnNavigate:
+        PropertyKind: Event
+        DisplayName: OnNavigate
+        ReturnType: None
+        Description: "Runs when the user selects an item. Go to its screen here with Navigate, using Key to choose the screen."
+        Parameters:
+          - Key:
+              DataType: Text
+              Description: "The Key of the item selected."
+              Default: =""
+        Default: =false
+      OnToggle:
+        PropertyKind: Event
+        DisplayName: OnToggle
+        ReturnType: None
+        Description: "Runs when the user collapses or expands the side menu."
+        Parameters:
+          - Collapsed:
+              DataType: Boolean
+              Description: "True when the menu is now collapsed."
+              Default: =false
+        Default: =false
+      SetCollapsed:
+        PropertyKind: Action
+        DisplayName: SetCollapsed
+        ReturnType: None
+        Description: "Collapses or expands the side menu, such as SetCollapsed(true) on a small tablet."
+        Parameters:
+          - Collapsed:
+              DataType: Boolean
+              Description: "True to collapse it, false to expand it."
+              Default: =false
+    Properties:
+      Width: =240
+      Height: =640
+      Fill: =RGBA(0, 0, 0, 0)
+      IsCollapsed: =Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+      IsBottomBar: =(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+      SelectedKey: =Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
+      ShellX: =0
+      ShellY: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenHeight - 64, 0)
+      ShellWidth: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenWidth, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth))
+      ShellHeight: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), 64, lcsNavShell.ScreenHeight)
+      ContentX: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), 0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth))
+      ContentY: =0
+      ContentWidth: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenWidth, lcsNavShell.ScreenWidth - If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth))
+      ContentHeight: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenHeight - 64, lcsNavShell.ScreenHeight)
+      SetCollapsed: =Set(locCollapsed, Collapsed)
+    Children:
+      - shpSide:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Fill: =If(lcsNavShell.Theme = "Dark", RGBA(32, 32, 32, 1), RGBA(250, 250, 250, 1))
+      - shpSideEdge:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =Parent.Width - 1
+            Y: =0
+            Width: =1
+            Height: =Parent.Height
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Fill: =If(lcsNavShell.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+      - btnToggle:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =12
+            Y: =12
+            Width: =40
+            Height: =40
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowToggle
+            Text: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), lcsNavShell.ExpandText, lcsNavShell.CollapseText)
+            Icon: ="Navigation"
+            Layout: =ButtonLayout.IconOnly
+            Appearance: =ButtonAppearance.Subtle
+            Color: =If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            AccessibleLabel: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), lcsNavShell.ExpandText, lcsNavShell.CollapseText)
+            Tooltip: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), lcsNavShell.ExpandText, lcsNavShell.CollapseText)
+            OnSelect: |-
+              =With(
+                  {next: !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)},
+                  Set(locCollapsed, next);
+                  lcsNavShell.OnToggle(next)
+              )
+      - lblTitle:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =If(lcsNavShell.ShowToggle, 60, 20)
+            Y: =12
+            Width: =Parent.Width - If(lcsNavShell.ShowToggle, 72, 32)
+            Height: =40
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+            Text: =lcsNavShell.Title
+            Size: =16
+            Color: =If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            FontWeight: =FontWeight.Semibold
+      - galSide:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            X: =8
+            Y: =64
+            Width: =Parent.Width - 16
+            Height: =Parent.Height - 72
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Items: =Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))
+            TemplateSize: =44
+            TemplatePadding: =2
+            ShowScrollbar: =false
+            BorderStyle: =BorderStyle.None
+            AccessibleLabel: =lcsNavShell.MenuLabel
+          Children:
+            - shpCurrent:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight
+                  Visible: =ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
+                  Fill: =ColorFade(lcsNavShell.AccentColor, If(lcsNavShell.Theme = "Dark", -0.55, 0.86))
+                  DropShadow: =DropShadow.None
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - shpCurrentBar:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =0
+                  Y: =12
+                  Width: =3
+                  Height: =Parent.TemplateHeight - 24
+                  Visible: =ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
+                  Fill: =lcsNavShell.AccentColor
+            - lblBadge:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =Parent.TemplateMax(22, Len(ThisItem.Badge) * 8 + 14)idth - Max(22, Len(ThisItem.Badge) * 8 + 14) - 10
+                  Y: =(Parent.TemplateHeight - 22) / 2
+                  Width: =Max(22, Len(ThisItem.Badge) * 8 + 14)
+                  Height: =22
+                  Visible: =!IsBlank(ThisItem.Badge) && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+                  Text: =ThisItem.Badge
+                  Size: =11
+                  Color: =RGBA(255, 255, 255, 1)
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  FontWeight: =FontWeight.Semibold
+                  Align: =Align.Center
+                  Fill: =lcsNavShell.AccentColor
+                  RadiusTopLeft: =11
+                  RadiusTopRight: =11
+                  RadiusBottomLeft: =11
+                  RadiusBottomRight: =11
+            - lblBadgeDot:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =30
+                  Y: =4
+                  Width: =Max(16, Len(ThisItem.Badge) * 7 + 8)
+                  Height: =16
+                  Visible: =!IsBlank(ThisItem.Badge) && Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+                  Text: =ThisItem.Badge
+                  Size: =9
+                  Color: =RGBA(255, 255, 255, 1)
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  FontWeight: =FontWeight.Semibold
+                  Align: =Align.Center
+                  Fill: =lcsNavShell.AccentColor
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - btnItem:
+                Control: ModernButton@1.0.0
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight
+                  Text: =ThisItem.Label
+                  Icon: =ThisItem.Icon
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), IconStyle.Filled, IconStyle.Outline)
+                  Layout: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), ButtonLayout.IconOnly, ButtonLayout.IconBefore)
+                  Align: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), Align.Center, Align.Left)
+                  PaddingLeft: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 0, 14)
+                  Appearance: =ButtonAppearance.Transparent
+                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25)), If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  FontWeight: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), FontWeight.Semibold, FontWeight.Normal)
+                  Size: =14
+                  DisplayMode: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), DisplayMode.Disabled, DisplayMode.Edit)
+                  AccessibleLabel: =ThisItem.Label & If(IsBlank(ThisItem.Badge), "", ", " & ThisItem.Badge)
+                  Tooltip: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), ThisItem.Label, "")
+                  OnSelect: |-
+                    =Set(locSelected, ThisItem.Key);
+                    lcsNavShell.OnNavigate(ThisItem.Key)
+      - shpBottom:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Visible: =(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Fill: =If(lcsNavShell.Theme = "Dark", RGBA(32, 32, 32, 1), RGBA(250, 250, 250, 1))
+      - shpBottomEdge:
+          Control: Rectangle@2.3.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =1
+            Visible: =(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Fill: =If(lcsNavShell.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+      - galBottom:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            X: =0
+            Y: =1
+            Width: =Parent.Width
+            Height: =63
+            Visible: =(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Items: =FirstN(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value)))), Max(1, lcsNavShell.MaxBottomItems))
+            WrapCount: =Max(1, Min(CountRows(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))), lcsNavShell.MaxBottomItems))
+            TemplateSize: =63
+            TemplatePadding: =0
+            ShowScrollbar: =false
+            BorderStyle: =BorderStyle.None
+            AccessibleLabel: =lcsNavShell.MenuLabel
+          Children:
+            - shpPill:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  X: =(Parent.TemplateWidth - 56) / 2
+                  Y: =6
+                  Width: =56
+                  Height: =30
+                  Visible: =ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
+                  Fill: =ColorFade(lcsNavShell.AccentColor, If(lcsNavShell.Theme = "Dark", -0.55, 0.86))
+                  DropShadow: =DropShadow.None
+                  RadiusTopLeft: =15
+                  RadiusTopRight: =15
+                  RadiusBottomLeft: =15
+                  RadiusBottomRight: =15
+            - lblBottom:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =2
+                  Y: =38
+                  Width: =Parent.TemplateWidth - 4
+                  Height: =20
+                  Text: =ThisItem.Label
+                  Size: =11
+                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25)), If(lcsNavShell.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1)))
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  Align: =Align.Center
+            - lblBottomBadge:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =Parent.TemplateMax(16, Len(ThisItem.Badge) * 7 + 8)idth / 2 + 6
+                  Y: =4
+                  Width: =Max(16, Len(ThisItem.Badge) * 7 + 8)
+                  Height: =16
+                  Visible: =!IsBlank(ThisItem.Badge)
+                  Text: =ThisItem.Badge
+                  Size: =9
+                  Color: =RGBA(255, 255, 255, 1)
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  FontWeight: =FontWeight.Semibold
+                  Align: =Align.Center
+                  Fill: =lcsNavShell.AccentColor
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - btnBottomItem:
+                Control: ModernButton@1.0.0
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight
+                  Text: =ThisItem.Label
+                  Icon: =ThisItem.Icon
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), IconStyle.Filled, IconStyle.Outline)
+                  Layout: =ButtonLayout.IconOnly
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Top
+                  PaddingTop: =10
+                  Appearance: =ButtonAppearance.Transparent
+                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25)), If(lcsNavShell.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  FontWeight: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), FontWeight.Semibold, FontWeight.Normal)
+                  Size: =14
+                  DisplayMode: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), DisplayMode.Disabled, DisplayMode.Edit)
+                  AccessibleLabel: =ThisItem.Label & If(IsBlank(ThisItem.Badge), "", ", " & ThisItem.Badge)
+                  Tooltip: =ThisItem.Label
+                  OnSelect: |-
+                    =Set(locSelected, ThisItem.Key);
+                    lcsNavShell.OnNavigate(ThisItem.Key)

@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Data table is drafted (eleven components).**
+Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Navigation shell is drafted (twelve components).**
+- **Drafted:** Navigation shell 0.1.0 (sign-in to copy): a side menu that collapses to icons and a bottom bar on phones, from one items table, with badges, items hidden or disabled by key, the current screen from your app, and outputs that place it and your content.
+- **In review:** #136 (MVP-050, scheduled publishing and draft previews), #137 (BUG-038, row-level security), #138 (release `develop` → `main`).
+- **Remaining wave 2:** Tree view, Stepper.
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Data table is drafted (eleven components).**
 - **Drafted:** Data table 0.1.0 (sign-in to copy), built on a gallery: Table, Cards and List views from one switch; columns as text, pills or a progress bar; select a row to open it; sorting, checkboxes with bulk buttons, a row menu, loading and empty states. Live preview and a paste-test checklist.
 - **Merged:** #133 (top bar, Guides menu, `/guides`). **Open for the product owner:** #134 (BUG-037, "On this page"); then a release PR `develop` → `main`.
 - **Remaining wave 2:** Navigation shell (sign-in), Tree view, Stepper. **Next story:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).

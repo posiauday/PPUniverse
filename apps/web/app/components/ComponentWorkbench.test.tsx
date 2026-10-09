@@ -17,6 +17,7 @@ import { formatProblem } from "./replicas/TextFieldReplica";
 import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
 import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
 import { badgeColours, progressParts, rowsFor } from "./replicas/DataTableReplica";
+import { ITEMS, menuOf, shellLayout } from "./replicas/NavShellReplica";
 import {
   avatarColour,
   fieldMessage,
@@ -50,6 +51,7 @@ describe("ComponentWorkbench", () => {
     "lcsPeoplePicker",
     "lcsPagination",
     "lcsDataTable",
+    "lcsNavShell",
   ])("renders a live replica and its variations for %s", (name) => {
     expect(hasReplica(name)).toBe(true);
     const html = render(name);
@@ -207,6 +209,35 @@ describe("replica helpers match the components' own formulas", () => {
     expect(progressParts("nonsense")).toEqual({ done: 0, total: 1 });
     expect(badgeColours(" in PROGRESS ", false)).toEqual(["#dbeafe", "#1e40af"]);
     expect(badgeColours("Unknown", false)).toEqual(["#f3f4f6", "#4b5563"]);
+  });
+
+  it("the navigation shell places itself and the content from its outputs, and hides by key", () => {
+    const wide = { screenWidth: 1366, screenHeight: 768, bottomBarBelow: 640, expandedWidth: 240 };
+    expect(shellLayout({ ...wide, collapsed: false })).toEqual({
+      isBottomBar: false,
+      shell: { x: 0, y: 0, width: 240, height: 768 },
+      content: { x: 240, y: 0, width: 1126, height: 768 },
+    });
+    expect(shellLayout({ ...wide, collapsed: true }).content).toEqual({
+      x: 64,
+      y: 0,
+      width: 1302,
+      height: 768,
+    });
+    // Below BottomBarBelow it's a 64-pixel bar along the bottom, collapsed or not.
+    expect(shellLayout({ ...wide, screenWidth: 390, screenHeight: 600, collapsed: true })).toEqual({
+      isBottomBar: true,
+      shell: { x: 0, y: 536, width: 390, height: 64 },
+      content: { x: 0, y: 0, width: 390, height: 536 },
+    });
+    expect(shellLayout({ ...wide, screenWidth: 640, collapsed: false }).isBottomBar).toBe(false);
+
+    const hidden = menuOf(ITEMS, " reports , settings", null);
+    expect(hidden.visible.map((item) => item.Key)).toEqual(["home", "orders", "customers"]);
+    // With no CurrentKey and nothing selected, the first visible item is current.
+    expect(hidden.currentKey).toBe("home");
+    expect(menuOf(ITEMS, "home", null).currentKey).toBe("orders");
+    expect(menuOf(ITEMS, "", "customers").currentKey).toBe("customers");
   });
 
   it("ItemsFromText splits on commas and trims", () => {

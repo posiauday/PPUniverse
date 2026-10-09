@@ -5455,3 +5455,24 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 **Not yet:** the product owner's paste-test; `ModernCheckbox@1.0.0` is our best reading of the control's YAML name.
 
 **Next:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
+
+## 2026-10-09 — Component library: Navigation shell (MVP-049, wave 2, In Progress)
+
+**Asked:** keep working overnight. The Navigation shell is next in the approved wave 2 order (docs/final-decisions.md, 2026-10-08, "Component library: direction, differentiators and build order"); sign-in to copy (same decision, item 4). Built to the approved research row: a side menu on desktop and a bottom bar on phones from one items table, items hidden by key, badges, the current screen from your app, and the collapse state as an output.
+
+**Built** `lcsNavShell` 0.1.0 (sign-in to copy), our own design:
+- **one Items table**: Key, Label, Icon (a Fluent icon name, as the modern button takes) and Badge;
+- **a side menu** with your app's name and a ☰ button that collapses it to icons (labels on hover, the badge as a dot); **a bottom bar** below `BottomBarBelow` (640) with an icon, a short label and a pill for the current item;
+- the current item from `CurrentKey`, or the last one selected: a bar, a filled icon and bold text, so colour isn't the only signal;
+- `HiddenKeys` and `DisabledKeys` for roles; `AccentColor`, `Theme`; every word an input (`Title`, `MenuLabel`, `CollapseText`, `ExpandText`);
+- **outputs that place it and your content**: `ShellX/Y/Width/Height` for the component itself, `ContentX/Y/Width/Height` for a container; also `IsCollapsed`, `IsBottomBar`, `SelectedKey`; `OnNavigate(Key)`, `OnToggle(Collapsed)`, `SetCollapsed()`.
+
+The live preview measures its own frame as `Parent.Width`, so on a phone-width page the menu becomes a bottom bar, as it would in Power Apps.
+
+**Found and fixed before release:** choosing a preset mounts a fresh preview frame, and the first version kept measuring the old, detached one (width 0), so the menu fell apart after the first preset. It now measures whichever frame is mounted, and ignores a width of 0. The local check now also measures the menu and the content, not only axe.
+
+**Checked:** the component gate (14 folders); web typecheck, lint and component tests (34, new: the placement outputs, collapsed and as a bottom bar, and hiding by key); a local axe, overflow and layout run over the page and its flows (selecting, collapsing, Collapsed, Phone, For a role, Current screen, Dark) at 375 and 1280 px, light and dark: 36 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test. New and unverified in Studio: the modern button's `Align`, padding and `IconStyle`, the icon names, and above all setting the component's own size from its outputs (the checklist gives the fallback).
+
+**Next:** Tree view, then Stepper.
