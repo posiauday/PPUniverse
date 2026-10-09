@@ -16,6 +16,7 @@ import { ALL_AREAS } from "./[technology]/OtherAreas";
 import "./globals.css";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
+import { TermsReminder } from "./TermsReminder";
 
 // Deny by default (MVP-021, FR-017): every page is noindex unless it opts in.
 // Only the home page, indexable category pages and published product pages
@@ -60,6 +61,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           menu={menu}
           updateTimes={updateTimes}
         />
+        {viewer?.needsTerms ? <TermsReminder /> : null}
         <div id="main-content" tabIndex={-1}>
           {children}
         </div>
