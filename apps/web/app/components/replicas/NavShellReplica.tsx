@@ -25,7 +25,7 @@ export const ITEMS: readonly NavItem[] = [
   { Key: "home", Label: "Home", Icon: "Home", Badge: "" },
   { Key: "orders", Label: "Orders", Icon: "Cart", Badge: "3" },
   { Key: "customers", Label: "Customers", Icon: "People", Badge: "" },
-  { Key: "reports", Label: "Reports", Icon: "ChartMultiple", Badge: "" },
+  { Key: "reports", Label: "Reports", Icon: "Document", Badge: "" },
   { Key: "settings", Label: "Settings", Icon: "Settings", Badge: "" },
 ];
 
@@ -50,6 +50,13 @@ interface Inputs {
   MenuLabel: string;
   CollapseText: string;
   ExpandText: string;
+  ShowUser: boolean;
+  UserName: string;
+  UserDetail: string;
+  ShowThemeToggle: boolean;
+  DarkText: string;
+  LightText: string;
+  Look: string;
   AccentColor: string;
   Theme: string;
 }
@@ -69,6 +76,13 @@ const DEFAULTS: Inputs = {
   MenuLabel: "Main menu",
   CollapseText: "Collapse the menu",
   ExpandText: "Expand the menu",
+  ShowUser: true,
+  UserName: "Avery Brooks",
+  UserDetail: "Admin",
+  ShowThemeToggle: true,
+  DarkText: "Switch to dark theme",
+  LightText: "Switch to light theme",
+  Look: "Standard",
   AccentColor: "#0f6cbd",
   Theme: "Light",
 };
@@ -86,9 +100,12 @@ export function shellLayout(options: {
   bottomBarBelow: number;
   collapsed: boolean;
   expandedWidth: number;
+  premium?: boolean;
 }) {
   const bottom = options.screenWidth < options.bottomBarBelow;
-  const side = options.collapsed ? COLLAPSED_WIDTH : options.expandedWidth;
+  const side = options.collapsed
+    ? COLLAPSED_WIDTH + (options.premium ? 16 : 0)
+    : options.expandedWidth;
   return {
     isBottomBar: bottom,
     shell: bottom
@@ -130,7 +147,12 @@ const GLYPHS: Record<string, ReactNode> = {
       <path d="M15.5 14.4c2.5-.3 4.5 1.3 5 4.1" />
     </>
   ),
-  ChartMultiple: <path d="M4 20V10M10 20V5M16 20v-7M21 20H3" />,
+  Document: (
+    <>
+      <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+      <path d="M14 3v5h5" />
+    </>
+  ),
   Settings: (
     <>
       <circle cx="12" cy="12" r="3" />
@@ -146,7 +168,7 @@ function Glyph({ name, filled }: { name: string; filled: boolean }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
       className="size-5 shrink-0"
-      fill={filled && name !== "ChartMultiple" && name !== "Navigation" ? "currentColor" : "none"}
+      fill={filled && name !== "Navigation" ? "currentColor" : "none"}
       fillOpacity={filled ? 0.18 : 0}
       stroke="currentColor"
       strokeWidth={filled ? 2 : 1.7}
@@ -158,12 +180,65 @@ function Glyph({ name, filled }: { name: string; filled: boolean }) {
   );
 }
 
+const RAYS = [
+  [1, 0],
+  [0.71, 0.71],
+  [0, 1],
+  [-0.71, 0.71],
+  [-1, 0],
+  [-0.71, -0.71],
+  [0, -1],
+  [0.71, -0.71],
+]
+  .map(
+    ([dx, dy]) =>
+      `<line x1='${(12 + 7.5 * dx!).toFixed(2)}' y1='${(12 + 7.5 * dy!).toFixed(2)}' x2='${(12 + 10 * dx!).toFixed(2)}' y2='${(12 + 10 * dy!).toFixed(2)}'/>`,
+  )
+  .join("");
+
+/**
+ * imgTheme's SVG, as the YAML builds it: going to dark, the sun's rays turn away
+ * and the disc grows into a crescent; going to light, the reverse. Reduced motion
+ * skips to the end.
+ */
+export function themeSvg(toDark: boolean, ink: string): string {
+  const frames = toDark
+    ? "@keyframes d{from{transform:scale(.6)}to{transform:scale(1)}}" +
+      "@keyframes r{from{transform:rotate(0deg) scale(1);opacity:1}to{transform:rotate(90deg) scale(.5);opacity:0}}" +
+      "@keyframes m{from{transform:translate(9px,-9px)}to{transform:translate(0,0)}}"
+    : "@keyframes d{from{transform:scale(1)}to{transform:scale(.6)}}" +
+      "@keyframes r{from{transform:rotate(-90deg) scale(.5);opacity:0}to{transform:rotate(0deg) scale(1);opacity:1}}" +
+      "@keyframes m{from{transform:translate(0,0)}to{transform:translate(9px,-9px)}}";
+  return (
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'>" +
+    "<style>.d,.r{transform-box:fill-box;transform-origin:center}" +
+    ".d{animation:d .5s ease forwards}.r{animation:r .5s ease forwards}.m{animation:m .5s ease forwards}" +
+    frames +
+    "@media (prefers-reduced-motion:reduce){.d,.r,.m{animation-duration:1ms}}</style>" +
+    "<mask id='k'><rect width='24' height='24' fill='white'/><circle class='m' cx='17' cy='7' r='6.5' fill='black'/></mask>" +
+    `<g class='r' stroke='${ink}' stroke-width='2' stroke-linecap='round'>${RAYS}</g>` +
+    `<circle class='d' cx='12' cy='12' r='8' fill='${ink}' mask='url(#k)'/>` +
+    "</svg>"
+  );
+}
+
+/** The avatar's initials, as the modern Avatar control draws them: first and last name. */
+export function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  const first = words[0]!.charAt(0);
+  const last = words.length > 1 ? words[words.length - 1]!.charAt(0) : "";
+  return (first + last).toUpperCase();
+}
+
 export function useNavShellReplica(): ReplicaApi {
   const notify = useNotify();
   const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
   // locCollapsed and locSelected: blank until the user collapses the menu or picks an item.
   const [collapsedChoice, setCollapsedChoice] = useState<boolean | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // locTheme: blank until the theme button is used.
+  const [themeChoice, setThemeChoice] = useState<string | null>(null);
   // Parent.Width: the preview frame's width, measured. A callback ref, because
   // choosing a variation mounts a fresh frame, and a detached one measures 0.
   const [parentWidth, setParentWidth] = useState(660);
@@ -179,7 +254,8 @@ export function useNavShellReplica(): ReplicaApi {
     observer.current.observe(element);
   }, []);
 
-  const dark = inputs.Theme === "Dark";
+  const theme = themeChoice ?? inputs.Theme;
+  const dark = theme === "Dark";
   const collapsed = collapsedChoice ?? inputs.StartCollapsed;
   const screenWidth = inputs.ScreenWidth === "Parent" ? parentWidth : inputs.ScreenWidth;
   const screenHeight = inputs.ScreenHeight === "Parent" ? SCREEN_HEIGHT : inputs.ScreenHeight;
@@ -189,6 +265,7 @@ export function useNavShellReplica(): ReplicaApi {
     bottomBarBelow: inputs.BottomBarBelow,
     collapsed,
     expandedWidth: inputs.ExpandedWidth,
+    premium: inputs.Look === "Premium",
   });
   const { visible, currentKey } = menuOf(ITEMS, inputs.HiddenKeys, inputs.CurrentKey || selected);
   const disabled = keysOf(inputs.DisabledKeys);
@@ -201,7 +278,8 @@ export function useNavShellReplica(): ReplicaApi {
   const tint = dark
     ? "bg-[color-mix(in_srgb,var(--accent)_45%,#202020)]"
     : "bg-[color-mix(in_srgb,var(--accent)_14%,white)]";
-  const hover = dark ? "hover:bg-white/[0.06]" : "hover:bg-black/[0.04]";
+  // The classic buttons' HoverFill in the YAML: 8% white on dark, 5% black on light.
+  const hover = dark ? "hover:bg-white/[0.08]" : "hover:bg-black/[0.05]";
 
   const go = (item: NavItem) => {
     setSelected(item.Key);
@@ -212,82 +290,189 @@ export function useNavShellReplica(): ReplicaApi {
     setCollapsedChoice(next);
     notify(next ? "Menu collapsed" : "Menu expanded");
   };
+  const switchTheme = () => {
+    const next = dark ? "Light" : "Dark";
+    setThemeChoice(next);
+    notify(`Theme: ${next}`);
+  };
+  const footer = inputs.ShowUser || inputs.ShowThemeToggle;
+  const footerHeight = !footer
+    ? 0
+    : collapsed && inputs.ShowUser && inputs.ShowThemeToggle
+      ? 120
+      : 72;
   const name = (item: NavItem) => (item.Badge ? `${item.Label}, ${item.Badge}` : item.Label);
-  const badge = (text: string, small: boolean) => (
+  const badge = (text: string, small: boolean, onPill = false) => (
     <span
       aria-hidden="true"
-      className={`grid place-items-center rounded-full bg-[var(--accent)] px-1.5 font-semibold text-white ${
-        small ? "h-4 min-w-4 text-[9px]" : "h-[22px] min-w-[22px] text-[11px]"
-      }`}
+      className={`grid place-items-center rounded-full px-1.5 font-semibold ${
+        onPill ? "bg-white text-[var(--accent)]" : "bg-[var(--accent)] text-white"
+      } ${small ? "h-4 min-w-4 text-[9px]" : "h-[22px] min-w-[22px] text-[11px]"}`}
     >
       {text}
     </span>
   );
 
+  const premium = inputs.Look === "Premium";
   const side = (
     <nav
       aria-label={inputs.MenuLabel}
-      className={`absolute flex flex-col border-r ${dark ? "border-[#424242] bg-[#202020]" : "border-[#e5e7eb] bg-[#fafafa]"}`}
+      className={`absolute ${
+        premium
+          ? "p-2"
+          : `border-r ${dark ? "border-[#424242] bg-[#202020]" : "border-[#e5e7eb] bg-[#fafafa]"}`
+      }`}
       style={{ left: 0, top: 0, width: layout.shell.width, height: layout.shell.height }}
     >
-      <div className="flex h-16 shrink-0 items-center gap-2 px-3">
-        {inputs.ShowToggle ? (
-          <button
-            type="button"
-            aria-label={collapsed ? inputs.ExpandText : inputs.CollapseText}
-            title={collapsed ? inputs.ExpandText : inputs.CollapseText}
-            onClick={toggle}
-            className={`grid size-10 shrink-0 place-items-center rounded ${ink} ${hover}`}
-          >
-            <Glyph name="Navigation" filled={false} />
-          </button>
-        ) : null}
-        {collapsed ? null : (
-          <p className={`truncate text-base font-semibold ${inputs.ShowToggle ? "" : "pl-2"}`}>
-            {inputs.Title}
-          </p>
-        )}
-      </div>
-      <ul className="flex-1 overflow-y-auto px-2">
-        {visible.map((item) => {
-          const current = item.Key === currentKey;
-          const off = disabled.includes(item.Key);
-          return (
-            <li key={item.Key} className="relative mb-0.5 h-11">
-              {current ? (
-                <>
-                  <span aria-hidden="true" className={`absolute inset-0 rounded-lg ${tint}`} />
+      <div
+        className={`flex size-full flex-col ${
+          premium
+            ? `rounded-2xl border shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)] ${dark ? "border-[#424242] bg-[#18181b]" : "border-[#e5e7eb] bg-white"}`
+            : ""
+        }`}
+      >
+        <div className="flex h-16 shrink-0 items-center gap-2 px-3">
+          {inputs.ShowToggle ? (
+            <button
+              type="button"
+              aria-label={collapsed ? inputs.ExpandText : inputs.CollapseText}
+              title={collapsed ? inputs.ExpandText : inputs.CollapseText}
+              onClick={toggle}
+              className={`grid size-10 shrink-0 place-items-center rounded ${ink} ${hover}`}
+            >
+              <Glyph name="Navigation" filled={false} />
+            </button>
+          ) : null}
+          {premium && !collapsed ? (
+            <span
+              aria-hidden="true"
+              className="grid size-[30px] shrink-0 place-items-center rounded-[9px] bg-[var(--accent)] text-sm font-semibold text-white"
+            >
+              {inputs.Title.charAt(0).toUpperCase()}
+            </span>
+          ) : null}
+          {collapsed ? null : (
+            <p className={`truncate text-base font-semibold ${inputs.ShowToggle ? "" : "pl-2"}`}>
+              {inputs.Title}
+            </p>
+          )}
+        </div>
+        <ul className="flex-1 overflow-y-auto px-2">
+          {visible.map((item) => {
+            const current = item.Key === currentKey;
+            const off = disabled.includes(item.Key);
+            const pill = current && premium;
+            return (
+              <li key={item.Key} className="relative mb-0.5 h-11">
+                {current ? (
+                  pill ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-[10px] bg-[var(--accent)]"
+                    />
+                  ) : (
+                    <>
+                      <span aria-hidden="true" className={`absolute inset-0 rounded-lg ${tint}`} />
+                      <span
+                        aria-hidden="true"
+                        className="absolute top-3 bottom-3 left-0 w-[3px] bg-[var(--accent)]"
+                      />
+                    </>
+                  )
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={name(item)}
+                  aria-current={current ? "page" : undefined}
+                  title={collapsed ? item.Label : undefined}
+                  disabled={off}
+                  onClick={() => go(item)}
+                  className={`relative flex size-full items-center gap-3 rounded-lg text-sm ${
+                    collapsed ? "justify-center" : "pl-3.5"
+                  } ${
+                    off
+                      ? `${sub} cursor-not-allowed opacity-50`
+                      : pill
+                        ? "font-semibold text-white"
+                        : `${current ? `${currentInk} font-semibold` : ink} ${hover}`
+                  }`}
+                >
+                  <Glyph name={item.Icon} filled={current} />
+                  {collapsed ? null : <span className="truncate">{item.Label}</span>}
+                </button>
+                {item.Badge ? (
                   <span
-                    aria-hidden="true"
-                    className="absolute top-3 bottom-3 left-0 w-[3px] bg-[var(--accent)]"
-                  />
-                </>
-              ) : null}
+                    className={`pointer-events-none absolute ${collapsed ? "top-1 left-[calc(50%+6px)]" : "top-1/2 right-2.5 -translate-y-1/2"}`}
+                  >
+                    {badge(item.Badge, collapsed, pill)}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+        {footer ? (
+          <div
+            className={`relative mx-3 shrink-0 ${premium ? "" : `border-t ${dark ? "border-[#424242]" : "border-[#e5e7eb]"}`}`}
+            style={{ height: footerHeight }}
+          >
+            {premium && inputs.ShowUser && !collapsed ? (
+              <span
+                aria-hidden="true"
+                className={`absolute -inset-x-1 top-3 h-12 rounded-xl ${
+                  dark ? "bg-[#27272a]" : "bg-[color-mix(in_srgb,var(--accent)_8%,white)]"
+                }`}
+              />
+            ) : null}
+            {inputs.ShowUser ? (
               <button
                 type="button"
-                aria-label={name(item)}
-                aria-current={current ? "page" : undefined}
-                title={collapsed ? item.Label : undefined}
-                disabled={off}
-                onClick={() => go(item)}
-                className={`relative flex size-full items-center gap-3 rounded-lg text-sm ${
-                  collapsed ? "justify-center" : "pl-3.5"
-                } ${off ? `${sub} cursor-not-allowed opacity-50` : `${current ? `${currentInk} font-semibold` : ink} ${hover}`}`}
+                aria-label={
+                  inputs.UserDetail ? `${inputs.UserName}, ${inputs.UserDetail}` : inputs.UserName
+                }
+                title={inputs.UserName}
+                onClick={() => notify("Open profile")}
+                className={`absolute top-5 grid size-8 place-items-center rounded-full bg-[#0e7490] text-[13px] font-semibold text-white ${collapsed ? "left-1/2 -translate-x-1/2" : "left-1"}`}
               >
-                <Glyph name={item.Icon} filled={current} />
-                {collapsed ? null : <span className="truncate">{item.Label}</span>}
+                {initialsOf(inputs.UserName)}
               </button>
-              {item.Badge ? (
-                <span
-                  className={`pointer-events-none absolute ${collapsed ? "top-1 left-[30px]" : "top-1/2 right-2.5 -translate-y-1/2"}`}
-                >
-                  {badge(item.Badge, collapsed)}
-                </span>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
+            ) : null}
+            {inputs.ShowUser && !collapsed ? (
+              <div
+                className="absolute top-[19px] left-11 min-w-0"
+                style={{ right: inputs.ShowThemeToggle ? 48 : 0 }}
+              >
+                <p className="truncate text-[13px] leading-[18px] font-semibold">
+                  {inputs.UserName}
+                </p>
+                <p className={`truncate text-[11px] leading-4 ${sub}`}>{inputs.UserDetail}</p>
+              </div>
+            ) : null}
+            {inputs.ShowThemeToggle ? (
+              <button
+                type="button"
+                aria-label={dark ? inputs.LightText : inputs.DarkText}
+                title={dark ? inputs.LightText : inputs.DarkText}
+                onClick={switchTheme}
+                className={`absolute grid size-10 place-items-center rounded ${hover} ${
+                  collapsed
+                    ? `left-1/2 -translate-x-1/2 ${inputs.ShowUser ? "top-[68px]" : "top-4"}`
+                    : "top-4 right-0"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- a data-URI SVG, as Power Apps' Image control shows it; next/image would add nothing */}
+                <img
+                  key={theme}
+                  alt=""
+                  width={24}
+                  height={24}
+                  src={`data:image/svg+xml;utf8,${encodeURIComponent(themeSvg(dark, dark ? "#ffffff" : "#242424"))}`}
+                />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </nav>
   );
 
@@ -366,6 +551,18 @@ export function useNavShellReplica(): ReplicaApi {
       property: "OnToggle",
       formula: 'Notify(If(Collapsed, "Menu collapsed", "Menu expanded"))',
     },
+    {
+      control: "lcsNavShell_1",
+      property: "OnThemeChange",
+      formula: 'Notify("Theme: " & NewTheme)',
+    },
+    { control: "lcsNavShell_1", property: "OnUserSelect", formula: 'Notify("Open profile")' },
+    {
+      control: "Screen1",
+      property: "Fill",
+      formula:
+        'If(lcsNavShell_1.CurrentTheme = "Dark", RGBA(27, 27, 27, 1), RGBA(255, 255, 255, 1))',
+    },
   ];
 
   const fixedWidth = inputs.ScreenWidth === "Parent" ? undefined : inputs.ScreenWidth;
@@ -420,6 +617,7 @@ export function useNavShellReplica(): ReplicaApi {
       setInputs(next);
       setCollapsedChoice(null);
       setSelected(null);
+      setThemeChoice(null);
     },
     dark,
     wiring,

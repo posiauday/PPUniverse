@@ -17,9 +17,17 @@ import { formatProblem } from "./replicas/TextFieldReplica";
 import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
 import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
 import { badgeColours, progressParts, rowsFor } from "./replicas/DataTableReplica";
-import { ITEMS, menuOf, shellLayout } from "./replicas/NavShellReplica";
+import { ITEMS, initialsOf, menuOf, shellLayout, themeSvg } from "./replicas/NavShellReplica";
 import { NODES, visibleRows } from "./replicas/TreeViewReplica";
-import { goToStep, stepLabel } from "./replicas/StepperReplica";
+import {
+  goToStep,
+  healthWords,
+  readSteps,
+  stageColors,
+  STATUS_COLORS,
+  statusWords,
+  stepLabel,
+} from "./replicas/StepperReplica";
 import {
   avatarColour,
   fieldMessage,
@@ -244,6 +252,22 @@ describe("replica helpers match the components' own formulas", () => {
     expect(menuOf(ITEMS, "", "customers").currentKey).toBe("customers");
   });
 
+  it("the navigation shell's theme picture is the YAML's own SVG, and initials are first and last", async () => {
+    const { readFileSync } = await import("node:fs");
+    const yaml = readFileSync(
+      new URL("../../../../content/components/navigation-shell/component.yaml", import.meta.url),
+      "utf8",
+    );
+    const [moon, sun] = [...yaml.matchAll(/"(<svg.*?<\/svg>)"/g)].map((match) =>
+      match[1]!.replaceAll('" & ink & "', "#242424"),
+    );
+    expect(themeSvg(true, "#242424")).toBe(moon);
+    expect(themeSvg(false, "#242424")).toBe(sun);
+    expect(initialsOf("Avery Brooks")).toBe("AB");
+    expect(initialsOf("  priya  van der nair ")).toBe("PN");
+    expect(initialsOf("Cher")).toBe("C");
+  });
+
   it("the tree view lists open nodes' children under their parents, up to five levels", () => {
     const labels = (open: string[]) =>
       visibleRows(NODES, new Set(open)).map((row) => `${row.Depth}:${row.Label}`);
@@ -283,6 +307,66 @@ describe("replica helpers match the components' own formulas", () => {
     expect(goToStep(1, 3, 4, () => false)).toEqual({ step: 1, blockedAt: 0 });
     // Past the end is the last step.
     expect(goToStep(9, 1, 4, all)).toEqual({ step: 4, blockedAt: 0 });
+  });
+
+  it("the stepper's Project and Approval types use the standard status colours and words", async () => {
+    expect(
+      readSteps(
+        'Table({Title: "Initiation", Description: "Charter"}, {Title: "Say ""hi""", Description: ""})',
+      ),
+    ).toEqual([
+      { Title: "Initiation", Description: "Charter" },
+      { Title: 'Say "hi"', Description: "" },
+    ]);
+    // Project: finished blue; the current stage green, amber (dark text) or red.
+    expect(stageColors("Project", "Amber", "#7c3aed")).toEqual({
+      done: STATUS_COLORS.blue,
+      now: STATUS_COLORS.amber,
+      darkInk: true,
+    });
+    expect(stageColors("Project", "Red", "#7c3aed").now).toBe(STATUS_COLORS.red);
+    expect(stageColors("Project", "Green", "#7c3aed").now).toBe(STATUS_COLORS.green);
+    // Approval: approved green, waiting amber, rejected red. Steps: the accent colour.
+    expect(stageColors("Approval", "Green", "#7c3aed")).toEqual({
+      done: STATUS_COLORS.green,
+      now: STATUS_COLORS.amber,
+      darkInk: true,
+    });
+    expect(stageColors("Approval", "Red", "#7c3aed").now).toBe(STATUS_COLORS.red);
+    expect(stageColors("Steps", "Red", "#7c3aed")).toEqual({
+      done: "#7c3aed",
+      now: "#7c3aed",
+      darkInk: false,
+    });
+    // The pill names the current stage, so it changes at each one.
+    expect(statusWords("Project", "Amber", false, "", "Execution")).toBe("Execution · At risk");
+    expect(statusWords("Project", "Green", false, "", "Planning")).toBe("Planning · On track");
+    expect(statusWords("Project", "Red", true, "", "")).toBe("Complete");
+    expect(statusWords("Approval", "Red", false, "", "Finance")).toBe("Rejected at Finance");
+    expect(statusWords("Approval", "Green", false, "", "Finance")).toBe("Waiting on Finance");
+    expect(statusWords("Approval", "Green", true, "", "")).toBe("Approved");
+    expect(statusWords("Project", "Green", false, "Arriving today", "Shipped")).toBe(
+      "Arriving today",
+    );
+    // Screen readers hear the health alone: they already hear the stage's title.
+    expect(healthWords("Project", "Amber", false, "")).toBe("At risk");
+    expect(healthWords("Approval", "Green", false, "")).toBe("Waiting for approval");
+    // The YAML uses the same colours.
+    const { readFileSync } = await import("node:fs");
+    const yaml = readFileSync(
+      new URL("../../../../content/components/stepper/component.yaml", import.meta.url),
+      "utf8",
+    );
+    const hex = (rgb: string) =>
+      "#" +
+      rgb
+        .split(",")
+        .map((part) => Number(part).toString(16).padStart(2, "0"))
+        .join("");
+    const used = [...yaml.matchAll(/RGBA\((\d+, \d+, \d+), 1\)/g)].map((m) =>
+      hex(m[1]!.replace(/ /g, "")),
+    );
+    for (const colour of Object.values(STATUS_COLORS)) expect(used).toContain(colour);
   });
 
   it("ItemsFromText splits on commas and trims", () => {

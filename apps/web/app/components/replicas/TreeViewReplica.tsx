@@ -27,7 +27,7 @@ export const NODES: readonly TreeNode[] = [
   { Key: "q4", ParentKey: "plans", Label: "Q4 plan.docx", Icon: "Document", HasChildren: false },
   { Key: "budget", ParentKey: "docs", Label: "Budget.xlsx", Icon: "Document", HasChildren: false },
   { Key: "images", ParentKey: "", Label: "Images", Icon: "Folder", HasChildren: true },
-  { Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Image", HasChildren: false },
+  { Key: "logo", ParentKey: "images", Label: "Logo.png", Icon: "Document", HasChildren: false },
   { Key: "archive", ParentKey: "", Label: "Archive", Icon: "Folder", HasChildren: true },
 ];
 
@@ -44,6 +44,8 @@ export interface TreeRow {
   Label: string;
   Icon: string;
   HasKids: boolean;
+  /** How many children it has in Nodes now. */
+  Kids: number;
   Depth: number;
   Path: string;
 }
@@ -60,6 +62,7 @@ export function visibleRows(nodes: readonly TreeNode[], open: ReadonlySet<string
     Label: node.Label,
     Icon: node.Icon,
     HasKids: node.HasChildren || childrenOf(node.Key).length > 0,
+    Kids: childrenOf(node.Key).length,
     Depth: depth,
     Path: path,
   });
@@ -81,36 +84,34 @@ export function visibleRows(nodes: readonly TreeNode[], open: ReadonlySet<string
 
 const GLYPHS: Record<string, ReactNode> = {
   Folder: <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
-  FolderOpen: (
-    <path d="M3 17V7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v1M3 17l2.6-6.2A1.5 1.5 0 0 1 7 10h13.2a1 1 0 0 1 .9 1.4L18.6 18a1.5 1.5 0 0 1-1.4 1H5a2 2 0 0 1-2-2z" />
-  ),
   Document: (
     <>
       <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
       <path d="M14 3v5h5" />
     </>
   ),
-  Image: (
-    <>
-      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
-      <circle cx="9" cy="10" r="1.6" />
-      <path d="M20 16l-5-5-8 8" />
-    </>
-  ),
   ChevronRight: <path d="M9 6l6 6-6 6" />,
   ChevronDown: <path d="M6 9l6 6 6-6" />,
 };
 
-function Glyph({ name, filled = false }: { name: string; filled?: boolean }) {
+/** IconStyle.Filled draws the shape solid; Outline draws its line. Chevrons are 16 pixels, nodes 18. */
+function Glyph({
+  name,
+  filled = false,
+  small = false,
+}: {
+  name: string;
+  filled?: boolean;
+  small?: boolean;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className="size-5 shrink-0"
+      className={`${small ? "size-4" : "size-[18px]"} shrink-0`}
       fill={filled ? "currentColor" : "none"}
-      fillOpacity={filled ? 0.18 : 0}
       stroke="currentColor"
-      strokeWidth={filled ? 2 : 1.7}
+      strokeWidth={filled ? 1.4 : 1.7}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -121,6 +122,11 @@ function Glyph({ name, filled = false }: { name: string; filled?: boolean }) {
 
 interface Inputs {
   Empty: boolean;
+  Title: string;
+  ShowTitle: boolean;
+  ShowCounts: boolean;
+  ShowGuides: boolean;
+  Look: string;
   DefaultExpandedKeys: string;
   CurrentKey: string;
   ShowIcons: boolean;
@@ -136,6 +142,11 @@ interface Inputs {
 
 const DEFAULTS: Inputs = {
   Empty: false,
+  Title: "Files",
+  ShowTitle: true,
+  ShowCounts: true,
+  ShowGuides: true,
+  Look: "Standard",
   DefaultExpandedKeys: "docs",
   CurrentKey: "",
   ShowIcons: true,
@@ -167,6 +178,7 @@ export function useTreeViewReplica(): ReplicaApi {
   const [selected, setSelected] = useState<string | null>(null);
 
   const dark = inputs.Theme === "Dark";
+  const premium = inputs.Look === "Premium";
   const open = openChoice ?? keysOf(inputs.DefaultExpandedKeys);
   const openSet = new Set(open);
   const shown = inputs.Empty ? [] : nodes;
@@ -179,7 +191,8 @@ export function useTreeViewReplica(): ReplicaApi {
   const tint = dark
     ? "bg-[color-mix(in_srgb,var(--accent)_45%,#242424)]"
     : "bg-[color-mix(in_srgb,var(--accent)_14%,white)]";
-  const hover = dark ? "hover:bg-white/[0.06]" : "hover:bg-black/[0.04]";
+  // The classic buttons' HoverFill in the YAML: 8% white on dark, 5% black on light.
+  const hover = dark ? "hover:bg-white/[0.08]" : "hover:bg-black/[0.05]";
 
   const toggle = (row: TreeRow) => {
     if (openSet.has(row.Key)) {
@@ -224,24 +237,54 @@ export function useTreeViewReplica(): ReplicaApi {
         className={`w-[320px] max-w-full text-left ${SEGOE} ${ink}`}
       >
         <div
-          className={`h-[400px] overflow-hidden rounded-md ${dark ? "bg-[#242424] ring-1 ring-white/10" : "bg-white ring-1 ring-black/10"}`}
+          className={`flex h-[400px] flex-col overflow-hidden rounded-xl border ${
+            dark ? "border-[#424242] bg-[#202020]" : "border-[#e5e7eb] bg-white"
+          } ${premium ? "m-2 shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)]" : ""}`}
         >
-          {rows.length === 0 && shown.length === 0 ? (
-            <p className={`pt-4 text-center text-[13px] ${sub}`}>{inputs.EmptyText}</p>
+          {inputs.ShowTitle ? (
+            <p className="shrink-0 px-4 pt-3.5 pb-3 text-[15px] leading-6 font-semibold">
+              {inputs.Title}
+            </p>
           ) : (
-            <ul aria-label={inputs.TreeLabel} className="h-full overflow-y-auto py-1">
+            <span className="h-2 shrink-0" />
+          )}
+          {rows.length === 0 && shown.length === 0 ? (
+            <p className={`pt-6 text-center text-[13px] ${sub}`}>{inputs.EmptyText}</p>
+          ) : (
+            <ul aria-label={inputs.TreeLabel} className="flex-1 overflow-y-auto px-2 pb-2">
               {rows.map((row) => {
                 const isOpen = openSet.has(row.Key);
                 const isCurrent = row.Key === current;
+                const pill = isCurrent && premium;
                 const indent = 4 + row.Depth * inputs.IndentSize;
                 const action = `${isOpen ? inputs.CollapseText : inputs.ExpandText} ${row.Label}`;
-                const icon = row.Icon === "Folder" && isOpen ? "FolderOpen" : row.Icon;
+                const iconInk = pill
+                  ? "text-white"
+                  : row.Icon === "Folder"
+                    ? dark
+                      ? "text-[#fbbf24]"
+                      : "text-[#d97706]"
+                    : dark
+                      ? "text-[color-mix(in_srgb,var(--accent)_55%,white)]"
+                      : "text-[var(--accent)]";
+                const showCount = inputs.ShowCounts && row.Kids > 0;
                 return (
-                  <li key={row.Key} className="relative h-10">
+                  <li key={row.Key} className="relative h-9">
+                    {inputs.ShowGuides
+                      ? Array.from({ length: Math.min(row.Depth, LEVELS - 1) }, (_, level) => (
+                          <span
+                            key={level}
+                            aria-hidden="true"
+                            className={`absolute inset-y-0 w-px ${dark ? "bg-[#424242]" : "bg-[#e2e8f0]"}`}
+                            style={{ left: 4 + level * inputs.IndentSize + 13 }}
+                          />
+                        ))
+                      : null}
                     {isCurrent ? (
                       <span
                         aria-hidden="true"
-                        className={`absolute inset-x-1 inset-y-0.5 rounded-md ${tint}`}
+                        className={`absolute inset-y-0.5 right-0.5 rounded-lg ${pill ? "bg-[var(--accent)]" : tint}`}
+                        style={{ left: indent + 26 }}
                       />
                     ) : null}
                     {row.HasKids ? (
@@ -251,22 +294,38 @@ export function useTreeViewReplica(): ReplicaApi {
                         title={action}
                         onClick={() => toggle(row)}
                         style={{ left: indent }}
-                        className={`absolute top-1 grid size-8 place-items-center rounded ${sub} ${hover}`}
+                        className={`absolute top-1 grid size-7 place-items-center rounded-md ${sub} ${hover}`}
                       >
-                        <Glyph name={isOpen ? "ChevronDown" : "ChevronRight"} />
+                        <Glyph name={isOpen ? "ChevronDown" : "ChevronRight"} small />
                       </button>
                     ) : null}
                     <button
                       type="button"
-                      aria-label={`${row.Label}, ${inputs.LevelText} ${row.Depth + 1}`}
+                      aria-label={`${row.Label}, ${inputs.LevelText} ${row.Depth + 1}${row.Kids > 0 ? `, ${row.Kids}` : ""}`}
                       onClick={() => choose(row)}
-                      style={{ left: indent + 34, right: 6 }}
-                      className={`absolute top-0.5 bottom-0.5 flex items-center gap-2 rounded-md pl-1.5 text-sm ${
-                        isCurrent ? `${currentInk} font-semibold` : `${ink} ${hover}`
+                      style={{ left: indent + 26, right: 2 }}
+                      className={`absolute top-0.5 bottom-0.5 flex items-center gap-2 rounded-lg pr-2 pl-1.5 text-left text-[13px] ${
+                        pill
+                          ? "font-semibold text-white"
+                          : isCurrent
+                            ? `${currentInk} font-semibold`
+                            : `${ink} ${hover}`
                       }`}
                     >
-                      {inputs.ShowIcons ? <Glyph name={icon} filled={isCurrent} /> : null}
-                      <span className="truncate">{row.Label}</span>
+                      {inputs.ShowIcons ? (
+                        <span className={iconInk}>
+                          <Glyph name={row.Icon} filled={isCurrent || row.Icon === "Folder"} />
+                        </span>
+                      ) : null}
+                      <span className="min-w-0 flex-1 truncate">{row.Label}</span>
+                      {showCount ? (
+                        <span
+                          aria-hidden="true"
+                          className={`text-[11px] font-normal ${pill ? "text-white" : sub}`}
+                        >
+                          {row.Kids}
+                        </span>
+                      ) : null}
                     </button>
                   </li>
                 );

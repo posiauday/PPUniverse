@@ -5560,3 +5560,146 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Changed:** `POST /api/account/profile` skips the daily allowance for an admin, by the role in the database (`requireAdmin`). Everyone else keeps the limit of ten changes a day. A change of rule at the product owner's request, not a defect: the limit worked as decided for MVP-040.
 
 **Checked:** a new route test (a reader past the limit gets "too-many"; an admin isn't counted and saves); the comment and profile route tests; web typecheck and lint.
+
+## 2026-10-09 — Fix: the Navigation shell's badge and Reports icon (BUG-039)
+
+**Found** by the product owner's first paste-test of the draft `lcsNavShell`: an error on the badge's X (`Parent.TemplateMax`), the side menu's badge over the Orders icon, and no icon for Reports. "Looks ugly."
+
+**Changed:**
+- **Generator:** the badge's width placeholder can't collide with a formula any more, so the badge sits at the right of its row (beside the icon in the bottom bar).
+- **Icons:**
+  - Reports uses `Document`, because `ChartMultiple` isn't in Power Apps' set of about 180 icons, the same as the classic icons.
+  - The not-yet-tested Tree view drops `FolderOpen` and `Image` for the same reason.
+  - The guides say to pick icons from Studio's Icon list.
+- **CI:** a new check rejects any component formula that reads a `Parent.` property other than Width, Height, TemplateWidth and TemplateHeight.
+
+**Checked:**
+- The component gate (30 checks), including the new one. Against the old YAML, it names `TemplateMax` twice.
+- Web typecheck, lint and component tests (38).
+
+**Next:** the product owner pastes the new YAML again.
+
+## 2026-10-09 — Navigation shell: who is signed in, a light and dark switch, and the collapsed width
+
+**Asked:** after re-pasting, the product owner showed the collapsed menu (icons centred in the full 240-pixel box) and asked for the person signed in, with an avatar, and an animated light and dark switch beside it, at the bottom of the menu (docs/final-decisions.md, 2026-10-09, "Navigation shell: who is signed in, and a light and dark switch").
+
+**Changed** (`lcsNavShell`, still a draft 0.1.0):
+- **Collapsed width:** the side menu now draws itself at its own width (64 collapsed, `ExpandedWidth` open), not the component's box. It looks right even when the box stays 240 wide; the guide still says to set Width from `ShellWidth`.
+- **The footer:**
+  - who is signed in, with the modern Avatar control (picture or initials), name and detail (`UserName`, `UserDetail`, `UserImage`, an `Image` input); selecting it runs `OnUserSelect()`;
+  - beside it, a sun and moon button, drawn as an animated SVG in an Image control: going dark, the rays turn away and the disc becomes a crescent; going light, the reverse; half a second, and still for reduced motion.
+  - The button switches the menu's own theme and runs `OnThemeChange(NewTheme)`; `CurrentTheme` is an output.
+  - Collapsed, the avatar and the button stack. `ShowUser` and `ShowThemeToggle` turn them off; a "Menu only" preset.
+- **The live preview** draws the same SVG as the YAML (a test compares them), and its screen follows `CurrentTheme`, as the guide wires it.
+
+**Checked:**
+- The component gate (30 checks).
+- Web typecheck, lint and component tests (39; new: the preview's SVG equals the YAML's, and initials).
+- The SVG's end states rendered in Chromium (crescent moon and sun).
+- A local axe, overflow and layout run through selecting, the theme switch both ways, the avatar, collapsing and the six presets, at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test of the new footer (`ModernAvatar@1.0.0` and the animated SVG are new to us).
+
+## 2026-10-09 — Navigation shell: a Premium look, and hover in dark mode
+
+**Asked:** after pasting the new menu, the product owner asked:
+- "Shouldn't this whole thing be collapsed?" The Components tab shows the component's defined size; its box shrinks on a screen when Width is set from `ShellWidth`, and Studio won't let a component size itself from a variable.
+- "Give a variable of more premium UI."
+- With a photo, "on hover need to be fixed too in dark mode" (a near-white hover box behind the white ☰ icon). Recorded in docs/final-decisions.md, 2026-10-09, "Navigation shell: a Premium look, and hover in dark mode".
+
+**Changed** (`lcsNavShell`, still a draft 0.1.0):
+- **Hover:** every clickable part (☰, the items, the bottom bar, the sun and moon) is now a modern Icon (`ModernIcon@1.1.0`) and Text under a transparent classic button. The classic button's `HoverFill`, `PressedFill` and `FocusedBorderColor` follow the menu's own theme: 8% white on dark, 5% black on light, a focus ring in the accent colour. The modern button took its hover from the app's light Fluent theme, with no property to change it. Disabled items are dimmed.
+- **`Look`:** `Standard`, or `Premium`:
+  - a floating card with rounded corners and a soft shadow;
+  - the app's mark (its first letter on the accent colour);
+  - a solid accent pill with white text for the current item (its badge turns white);
+  - the person signed in on their own tinted card.
+  - Collapsed, Premium is 80 pixels wide.
+  - Presets "Premium" and "Premium dark".
+- **The live preview** follows both, with the same hover shades.
+
+**Checked:**
+- The component gate (30 checks).
+- Web typecheck, lint and component tests (39).
+- A local axe, overflow and layout run through the flows, the dark hover and the eight presets at 375 and 1280 px, light and dark: 44 states, clean, with screenshots checked.
+
+## 2026-10-09 — Tree view and Stepper: hover follows their own theme
+
+**Why:** before the product owner paste-tests them, the Tree view and the Stepper get the fix the Navigation shell needed in dark mode. A modern button's hover comes from the app's light theme: a white box behind white text on a dark component.
+
+**Changed** (drafts, 0.1.0):
+- **Tree view:** each row's chevron and node are now a modern Icon and Text under transparent classic buttons. Their hover, pressed and focus colours follow `Theme`.
+- **Stepper:** the step buttons are transparent classic buttons, the same way. Back and Next stay modern buttons: Primary and Secondary have their own fills.
+- The previews' hover shades match.
+
+**Still to do (after the product owner's light-mode paste-tests):** the same change in the Data table, Pagination, People picker, Dialog and Toast, which also use subtle or transparent modern buttons on a `Dark` theme.
+
+**Checked:** the component gate (30 checks); web component tests (39).
+
+## 2026-10-09 — Tree view and Stepper: cleaner designs
+
+**Asked:** after pasting them (both pasted with no errors), the product owner found the Tree view "boring and not clean" and the Stepper "ugly" (docs/final-decisions.md, 2026-10-09, "Tree view and Stepper: cleaner designs").
+
+**Changed** (drafts, 0.1.0):
+- **Tree view:**
+  - a card with a title (`Title`, `ShowTitle`), thin guide lines between levels (`ShowGuides`), folders in amber and files in the accent colour, and each folder's child count (`ShowCounts`; screen readers hear it too);
+  - 36-pixel rows and a soft highlight for the selected node; `Look` `"Premium"` gives a solid accent pill and a soft shadow;
+  - presets "Premium" and "Premium dark".
+- **Stepper:**
+  - a padded card with 36-pixel circles, a gap before each connector, and the current step solid with a soft halo;
+  - a footer under a divider with "Step 2 of 4" and a progress bar;
+  - Back and Next are classic buttons with their own colours and hover (the modern Secondary button stayed light on a dark card); `Look` `"Premium"` adds a soft shadow; a "Premium" preset.
+- **The previews** follow both. The Tree view preview's labels were centred (a button centres its text); they're left-aligned now.
+
+**Checked:**
+- The component gate (30 checks).
+- Web typecheck, lint and component tests (39).
+- A local axe and overflow run over both pages and their flows and presets at 375 and 1280 px, light and dark: 56 states, clean. A first run flagged a variation chip as obscured, which was the site's sticky top bar after the page had scrolled; with the page at the top, all clean.
+- Screenshots checked.
+
+## 2026-10-09 — Stepper and Tree view: Premium you can see
+
+**Asked:** the product owner set `Look` to `"Premium"` on the Stepper in Studio and saw no change, then only the shadow. A component clips everything outside its box, so a card that fills it loses its shadow.
+
+**Changed:** in Premium the card sits 8 px in, so the shadow shows (Stepper and Tree view). The Stepper's Premium also has rounder corners, thicker connectors, the current step's title in the accent colour and a thicker progress bar, and its height grows by 16. The previews follow.
+
+**Checked:** the component gate (30), web typecheck, lint and component tests.
+
+## 2026-10-09 — Stepper: Project and Approval types
+
+**Asked:** a step type for a project's stage, in the standard colours, and other uses (docs/final-decisions.md, 2026-10-09, "Stepper: Project and Approval types").
+
+**Changed** (draft, 0.1.0):
+- **lcsStepper:** inputs `Type` (`"Steps"`, `"Project"`, `"Approval"`), `Health` and `StatusText`; a `Status` output; finished and current colours by type (BRAG for Project; green, amber and red for Approval), ✕ for a rejected step, dark text on amber; a status pill and a bar in the status colour; the footer shows for the trackers without buttons; one past the last step shows them all finished.
+- **Presets:** Project stages, Project complete, Project Premium dark, Approval, Approval rejected, Sales pipeline, Order tracking.
+- **The preview** reads the presets' Steps tables and follows the colours, the pill and the finished state.
+- **The guide and the paste checklist** cover the types, the colours and the uses.
+
+**Checked:**
+- The component gate (30 checks) and web component tests (34), including that the YAML and the preview use the same status colours.
+- Web typecheck and lint.
+- A local axe and overflow run over all 13 presets at 375 and 1280 px, light and dark: 52 states, clean.
+- Screenshots checked.
+
+**Research:** the five phases and the status colours were checked against PMBOK process-group summaries and RAG/BRAG guides; none of them gives a colour per phase.
+
+## 2026-10-09 — Stepper: the status pill names the stage
+
+**Asked:** after pasting both types (they worked), the product owner noticed the pill said the same at every stage (docs/final-decisions.md, 2026-10-09, "Stepper: the status pill names the stage").
+
+**Changed:** the pill reads "Approver · On track", "Waiting on Finance" or "Rejected at Finance", and sizes itself to its words. The `Status` output gives the same words; screen readers hear the status alone. The preview follows.
+
+**Checked:** the component gate (30), web component tests (34), typecheck and lint; a local axe run over the Stepper presets.
+
+## 2026-10-09 — Avatars: no tile, a little 3D
+
+**Asked:** remove the avatars' background, keep the stars behind them, make them a little bigger and slightly 3D with a very light shadow, for all avatars (docs/final-decisions.md, 2026-10-09, "Avatars: no tile, a little 3D").
+
+**Changed:**
+- `apps/web/app/Avatar.tsx`: no tile; sparkles around each critter in its colour; the crown keeps a softer gold sunburst, a pale halo and sparkles in stronger gold and violet (visible on white); offset shades under the head and the name tag; the view box 2 units in.
+- `apps/web/app/globals.css`: `.avatar-lift`, a very light drop shadow, with a faint light edge on the dark theme.
+- Bigger in the header (40), the mobile menu (32), comments (40) and the comment form (36).
+
+**Checked:**
+- Web tests for the avatar, header, guides and account (47), including a new check that neither kind draws a tile. Typecheck and lint pass.
+- A sheet of twelve avatars at 40, 72 and 112 px on white, cream and the dark theme, before and after. On dark, the first version lost the gear and antenna outlines; the light edge fixes that.

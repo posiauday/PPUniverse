@@ -58,7 +58,7 @@ export function CommentForm({ slug, viewer }: { slug: string; viewer: PublicProf
       className="flex flex-col gap-2.5 rounded-[1.5rem] border border-border bg-card p-5"
     >
       <div className="flex flex-wrap items-center gap-2.5">
-        <Avatar seed={viewer.avatarSeed} name={viewer.displayName} size={32} />
+        <Avatar seed={viewer.avatarSeed} name={viewer.displayName} size={36} />
         <label htmlFor={fieldId} className="font-semibold">
           Add a comment
         </label>

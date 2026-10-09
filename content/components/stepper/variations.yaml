@@ -17,3 +17,74 @@
   settings:
     Theme: ="Dark"
     AccentColor: =RGBA(124, 58, 237, 1)
+- name: Premium
+  description: A soft shadow under the card, on the third step.
+  settings:
+    Look: ="Premium"
+    DefaultStep: =3
+- name: Project stages
+  description: Type Project, the five standard phases, in Execution and at risk (amber).
+  settings:
+    Type: ="Project"
+    Steps: '=Table({Title: "Initiation", Description: "Charter and sponsor"}, {Title: "Planning", Description: "Scope, time, budget"}, {Title: "Execution", Description: "Build and deliver"}, {Title: "Monitoring", Description: "Track and control"}, {Title: "Closure", Description: "Hand over, lessons"})'
+    DefaultStep: =3
+    Health: ="Amber"
+    StepText: ="Stage {n} of {total}"
+    ShowButtons: =false
+    AllowJumpBack: =false
+- name: Project complete
+  description: Every stage finished in blue, the standard colour for complete.
+  settings:
+    Type: ="Project"
+    Steps: '=Table({Title: "Initiation", Description: "Charter and sponsor"}, {Title: "Planning", Description: "Scope, time, budget"}, {Title: "Execution", Description: "Build and deliver"}, {Title: "Monitoring", Description: "Track and control"}, {Title: "Closure", Description: "Hand over, lessons"})'
+    DefaultStep: =6
+    StepText: ="Stage {n} of {total}"
+    ShowButtons: =false
+    AllowJumpBack: =false
+- name: Project, Premium dark
+  description: Project stages on a dark screen in the Premium look, on track (green).
+  settings:
+    Type: ="Project"
+    Steps: '=Table({Title: "Initiation", Description: "Charter and sponsor"}, {Title: "Planning", Description: "Scope, time, budget"}, {Title: "Execution", Description: "Build and deliver"}, {Title: "Monitoring", Description: "Track and control"}, {Title: "Closure", Description: "Hand over, lessons"})'
+    DefaultStep: =2
+    Health: ="Green"
+    StepText: ="Stage {n} of {total}"
+    ShowButtons: =false
+    AllowJumpBack: =false
+    Look: ="Premium"
+    Theme: ="Dark"
+- name: Approval
+  description: Type Approval, an approval chain waiting on Finance (amber).
+  settings:
+    Type: ="Approval"
+    Steps: '=Table({Title: "Submitted", Description: "Mon 9:14"}, {Title: "Manager", Description: "Approved Mon 11:02"}, {Title: "Finance", Description: "Waiting"}, {Title: "Director", Description: "Not yet"})'
+    DefaultStep: =3
+    ShowButtons: =false
+    AllowJumpBack: =false
+- name: Approval rejected
+  description: Rejected at Finance (red, with a cross).
+  settings:
+    Type: ="Approval"
+    Steps: '=Table({Title: "Submitted", Description: "Mon 9:14"}, {Title: "Manager", Description: "Approved Mon 11:02"}, {Title: "Finance", Description: "Rejected Tue 10:30"}, {Title: "Director", Description: "Not needed"})'
+    DefaultStep: =3
+    Health: ="Red"
+    ShowButtons: =false
+    AllowJumpBack: =false
+- name: Sales pipeline
+  description: The classic sales stages as a Project tracker, on track.
+  settings:
+    Type: ="Project"
+    Steps: '=Table({Title: "Qualify", Description: "Need and budget"}, {Title: "Develop", Description: "Solution and contacts"}, {Title: "Propose", Description: "Quote sent"}, {Title: "Close", Description: "Won or lost"})'
+    DefaultStep: =2
+    StepText: ="Stage {n} of {total}"
+    ShowButtons: =false
+    AllowJumpBack: =false
+- name: Order tracking
+  description: A delivery as a Project tracker, with your own words on the pill.
+  settings:
+    Type: ="Project"
+    Steps: '=Table({Title: "Placed", Description: "Mon 9:12"}, {Title: "Packed", Description: "Mon 16:40"}, {Title: "Shipped", Description: "Tue 8:05"}, {Title: "Out for delivery", Description: "Wed 7:30"}, {Title: "Delivered", Description: "By 6 pm"})'
+    DefaultStep: =4
+    StatusText: ="Arriving today"
+    ShowButtons: =false
+    AllowJumpBack: =false

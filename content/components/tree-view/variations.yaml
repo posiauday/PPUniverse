@@ -23,3 +23,17 @@
   settings:
     Theme: ="Dark"
     AccentColor: =RGBA(124, 58, 237, 1)
+- name: Premium
+  description: A solid pill in your colour for the selected file and a soft shadow.
+  settings:
+    Look: ="Premium"
+    DefaultExpandedKeys: ="docs,plans"
+    CurrentKey: ="q3"
+- name: Premium dark
+  description: The Premium look on a dark screen, in purple.
+  settings:
+    Look: ="Premium"
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)
+    DefaultExpandedKeys: ="docs,plans"
+    CurrentKey: ="q3"
