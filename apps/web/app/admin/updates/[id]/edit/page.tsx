@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "../../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../../lib/seo/site";
 import { updateRepository } from "../../../../../lib/updates";
+import { LocalTime } from "../../../LocalTime";
+import { SchedulePanel } from "../../../SchedulePanel";
 import { UpdateForm } from "../../UpdateForm";
 
 export const metadata: Metadata = { title: `Edit update | ${SITE_NAME}` };
@@ -33,6 +36,21 @@ export default async function EditUpdatePage({ params }: { params: Promise<{ id:
           replacement: update.replacement ?? "",
         }}
       />
+      {update.status === "DRAFT" ? (
+        <SchedulePanel
+          endpoint={`/api/admin/updates/${update.id}/schedule`}
+          previewHref={`/preview/updates/${update.id}`}
+          noun="update"
+          scheduledFor={update.scheduledFor?.toISOString() ?? null}
+        />
+      ) : update.publishedAt ? (
+        <p className="mt-10">
+          Published <LocalTime iso={update.publishedAt.toISOString()} />.{" "}
+          <Link href={`/updates#${update.slug}`} className="font-semibold underline">
+            View it on the site
+          </Link>
+        </p>
+      ) : null}
     </main>
   );
 }

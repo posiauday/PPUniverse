@@ -28,6 +28,8 @@ export const GATED_ROUTES = [
   "/components",
   "/components/[slug]",
   "/guides/[slug]",
+  "/preview/guides/[id]",
+  "/preview/updates/[id]",
   "/admin/content",
   "/admin/content/new",
   "/admin/content/[id]/edit",

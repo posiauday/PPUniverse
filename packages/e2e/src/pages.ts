@@ -1589,10 +1589,37 @@ export const GATED_PAGES: readonly GatedPage[] = [
   {
     id: "admin-updates-edit",
     route: "/admin/updates/[id]/edit",
-    description: "admin edit-update form, signed in as ADMIN, pre-filled with a draft",
+    description:
+      "admin edit-update form, signed in as ADMIN, pre-filled with a draft that is scheduled (MVP-050)",
     auth: "admin",
     status: 200,
     path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
+  },
+  {
+    // MVP-050: a draft guide as it will look, under the preview banner.
+    id: "preview-guide",
+    route: "/preview/guides/[id]",
+    description: "an admin's preview of a draft guide",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/preview/guides/${seed.draftArticle.id}`,
+  },
+  {
+    id: "preview-update",
+    route: "/preview/updates/[id]",
+    description: "an admin's preview of a scheduled draft update",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/preview/updates/${seed.draftUpdate.id}`,
+  },
+  {
+    id: "preview-guide-denied",
+    route: null,
+    description: "a draft guide's preview, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: (seed) => `/preview/guides/${seed.draftArticle.id}`,
+    prepare: notFoundSettled,
   },
   {
     // MVP-048 slice 2: the Learn home, listing the seeded published topic.
