@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        # Docker's official image from Amazon ECR Public's mirror: no Docker Hub
+        # pull limit (CI failed on "toomanyrequests", 2026-10-09).
+        image: public.ecr.aws/docker/library/postgres:17-alpine
         env:
           POSTGRES_USER: ppuniverse
           POSTGRES_PASSWORD: ppuniverse
@@ -143,7 +145,9 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17-alpine
+        # Docker's official image from Amazon ECR Public's mirror: no Docker Hub
+        # pull limit (CI failed on "toomanyrequests", 2026-10-09).
+        image: public.ecr.aws/docker/library/postgres:17-alpine
         env:
           POSTGRES_USER: ppuniverse
           POSTGRES_PASSWORD: ppuniverse
@@ -363,7 +367,9 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17-alpine
+        # Docker's official image from Amazon ECR Public's mirror: no Docker Hub
+        # pull limit (CI failed on "toomanyrequests", 2026-10-09).
+        image: public.ecr.aws/docker/library/postgres:17-alpine
         env:
           POSTGRES_USER: ppuniverse
           POSTGRES_PASSWORD: ppuniverse
