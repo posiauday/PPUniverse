@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: ten components drafted; release #129 open.**
+Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the library has an admin switch and Coming soon; release #129 is merged.**
+- **Built:** the component library's on/off switch in `/admin/settings` (database-backed, audit-logged); Coming soon cards and teaser pages for drafts; Copy YAML in the admin. Pagination (#130) is merged into `develop`.
+- **Decided today:** the Data table is built on a gallery; a Guides menu with Learn (Soon) replaces Fixes, Patterns and the Learn button, and guides move to `/guides` (docs/final-decisions.md, 2026-10-09).
+- **Next:** BUG-036 (the feedback box stays open after sending); the top bar and the `/guides` move; "On this page" on every page; then the Data table.
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: ten components drafted; release #129 open.**
 - **Merged:** #124 to #128 (header and the Terms at sign-up; Text field 0.3.0; the Date and time picker; the People picker; BUG-034 and BUG-035). **Release PR #129** (`develop` → `main`) waits for the product owner.
 - **Drafted since:** Pagination (0.1.0, open to copy), with a live preview and a paste-test checklist.
 - **Remaining wave 2:** Data table (sign-in), Navigation shell (sign-in), Tree view, Stepper.

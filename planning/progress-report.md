@@ -5383,6 +5383,22 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 
 **Next:** the Data table (sign-in to copy).
 
+## 2026-10-09 — Component library: a switch in the admin, Coming soon, and Copy YAML (MVP-049, In Progress)
+
+**Asked:** "How many components are on the live site and how do I turn them off? Can I control turning certain items on and off from the admin, make them coming soon or hide them while they're under development?" Then: a Coming soon component shows its card and page with a blurred picture and nothing to copy; and yes, a switch for the whole library in the admin (docs/final-decisions.md, 2026-10-09). Also "how many components are published? I want to test them in real Power Apps".
+
+**Answered:** on the live site the library is off (`/components` is a 404) and none is published; production has nine drafts after release #129.
+
+**Built:**
+- **A switch in `/admin/settings`** for the component library, saved in the database (`site_switches`) with an append-only record of every change (`site_switch_events`) in the audit log ("Switches"). It asks for confirmation, changes the live site at once and refreshes every page. Until it's first flipped, `FEATURE_COMPONENTS` decides, so a deploy changes nothing. The header, footer, sitemap, library pages and the publish route's IndexNow ping read it.
+- **Coming soon** for a draft in `/admin/components`: its card on the library page (a "Coming soon" badge and a blurred, greyed picture) and a teaser page (title, summary, a large blurred picture, a note), with no live preview, YAML or guide, and kept out of search. The teaser read returns only the title, summary, category, component name and access, so a draft's YAML never reaches the page. Hidden still hides it; publishing makes it a normal component.
+- **Copy YAML** on each component's admin page, for paste-tests.
+- Migration `20261016000000_add_site_switches_and_coming_soon`: additive (two tables and a column), with a rollback in its header.
+
+**Checked:** web typecheck, lint and tests (850, new: the switch route and its fallback to the environment); the content adapter's database tests (5, new: a Coming soon draft is a teaser only, never its YAML, and not once hidden or published); the e2e package's tests; locally on a production build, the gate's states for the library index (with a teaser card), the new teaser page, Settings, the switch's confirmation (opened, never confirmed: the switch is site-wide) and the component admin pages: 28 checks in Chromium, 42 in Firefox and WebKit, all passing. The first run found the faded words inside the blurred picture below contrast: the picture is decorative and its words are blurred on purpose (incidental text, WCAG 1.4.3), so it now fades through a CSS filter, which axe doesn't measure, and every readable word keeps full contrast.
+
+**Next:** the feedback box that stays open after sending (BUG-036), then the top bar (Guides menu, Learn soon, the theme icon), then "On this page" on every page.
+
 ## 2026-10-09 — Fix: the feedback box closes after a note is sent (BUG-036)
 
 **Asked:** the product owner's screenshot: after writing a note in "Did this fix it?" and sending it, the button changed to the thanks, but the box stayed open.

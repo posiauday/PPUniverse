@@ -8,6 +8,7 @@ import {
   type ComponentProperty,
   type ComponentRecord,
   type ComponentRepository,
+  type ComponentTeaser,
   type ComponentVariation,
 } from "@ppu/domain-content";
 
@@ -31,6 +32,7 @@ function toRecord(row: Row): ComponentRecord {
     status: row.status,
     publishedAt: row.publishedAt,
     hidden: row.hidden,
+    comingSoon: row.comingSoon,
     testedAt: row.testedAt,
     testedStudioVersion: row.testedStudioVersion,
     updatedAt: row.updatedAt,
@@ -56,6 +58,19 @@ function contentData(input: ComponentCreateInput) {
 }
 
 const BY_TITLE = [{ title: "asc" as const }];
+
+/** A draft the admin marked Coming soon, and not hidden. */
+const COMING_SOON = { status: "DRAFT" as const, comingSoon: true, hidden: false };
+/** Only what a teaser shows: never the YAML, guide or variations. */
+const TEASER = {
+  id: true,
+  slug: true,
+  title: true,
+  summary: true,
+  category: true,
+  componentName: true,
+  access: true,
+} as const;
 
 /**
  * The component library's store (MVP-049). Every admin change (a test, a
@@ -119,6 +134,21 @@ export class PrismaComponentRepository implements ComponentRepository {
     return row ? toRecord(row) : null;
   }
 
+  async listComingSoon(): Promise<ComponentTeaser[]> {
+    return this.db.libraryComponent.findMany({
+      where: COMING_SOON,
+      select: TEASER,
+      orderBy: BY_TITLE,
+    }) as Promise<ComponentTeaser[]>;
+  }
+
+  async findComingSoonBySlug(slug: string): Promise<ComponentTeaser | null> {
+    return this.db.libraryComponent.findFirst({
+      where: { ...COMING_SOON, slug },
+      select: TEASER,
+    }) as Promise<ComponentTeaser | null>;
+  }
+
   async updateSettings(
     id: string,
     change: ComponentAdminUpdate,
@@ -127,7 +157,7 @@ export class PrismaComponentRepository implements ComponentRepository {
     const row = await this.db.$transaction(async (tx) => {
       const current = await tx.libraryComponent.findUnique({ where: { id } });
       if (!current) throw new Error(`Component ${id} not found`);
-      const data: { access?: ComponentAccess; hidden?: boolean } = {};
+      const data: { access?: ComponentAccess; hidden?: boolean; comingSoon?: boolean } = {};
       const detail: Record<string, { from: string | boolean; to: string | boolean }> = {};
       if (change.access !== undefined && change.access !== current.access) {
         data.access = change.access;
@@ -136,6 +166,10 @@ export class PrismaComponentRepository implements ComponentRepository {
       if (change.hidden !== undefined && change.hidden !== current.hidden) {
         data.hidden = change.hidden;
         detail["hidden"] = { from: current.hidden, to: change.hidden };
+      }
+      if (change.comingSoon !== undefined && change.comingSoon !== current.comingSoon) {
+        data.comingSoon = change.comingSoon;
+        detail["comingSoon"] = { from: current.comingSoon, to: change.comingSoon };
       }
       if (Object.keys(data).length === 0) return current;
       const updated = await tx.libraryComponent.update({ where: { id }, data });

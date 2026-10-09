@@ -2250,3 +2250,23 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
    - an account that hasn't agreed (made before this, or someone who left the welcome page) sees a reminder until they do.
    Each agreement is the existing Terms consent record, tied to the current Terms version by the server.
 
+
+## 2026-10-09 — Component library: a switch in the admin, and Coming soon
+
+**Source:** direct product-owner answers in this session, after asking how many components are on the live site and how to turn them off: "Can I control turning on and off of certain items from the admin centre, make it coming soon or hide till under development". Asked how a Coming soon component should look, the product owner answered "Card and page, no copy, and a blurred image of the teased component", and shared screenshots of faded "Coming Soon" cards as a reference for the idea (not a design to copy). Asked whether the whole library should be switched from the admin instead of Netlify: "Yes, a switch in admin".
+
+1. **A switch in the admin.** `/admin/settings` has an on/off switch for the component library, saved in the database and recorded in the audit log. It changes the live site at once, without Netlify or a redeploy, and asks for confirmation first. Until it is first flipped, `FEATURE_COMPONENTS` decides, so nothing changes on deploy. This replaces `FEATURE_COMPONENTS` as the way to turn the library on and off.
+2. **Coming soon.** A draft component can be marked Coming soon in `/admin/components`. Its card shows on the library page with a "Coming soon" badge, and its page shows its title, summary and a blurred picture of the component, with no live preview, no YAML and no guide. Hidden still hides it. Publishing (after a paste-test) makes it a normal component.
+3. The card's text stays readable at full contrast (WCAG 1.4.3); only the picture is blurred and faded.
+
+## 2026-10-09 — Top bar: a Guides menu, Learn coming soon, one name per kind of guide
+
+**Source:** direct product-owner instructions in this session: "remove Learn from the end and add it to the regular navigation beside Power Platform, and tease the coming-soon Learn module"; "move the light/dark theme button to just before the search bar, just an icon, no round border; the sun icon transforms to a moon, animated, when clicked, and back when clicked again"; and "I think everything is so confusing, fixes and guides and patterns; I don't feel good about the naming of organising those, please help". Offered three namings, the product owner chose the agent's recommendation.
+
+1. **Top bar:** Power Platform ▾ · Guides ▾ · Learn (Soon) · Components (while the library is switched on) · Updates; then the theme icon, the search box and the account. The black **Learn** button at the end goes.
+2. **Guides ▾** lists the five kinds of guide. Each kind has one name, used for the menu, the hub's sections, filters and badges:
+   - Fix a problem (badge FIX), Choose a tool (CHOOSE), Design patterns (DESIGN), Measure (MEASURE), Quick reference (LOOK UP).
+3. **Guides move from `/learn` to `/guides`**, with permanent redirects from every old address, so "Learn" only ever means the courses.
+4. **Learn (Soon)** is the Learn module (topics and lessons), teased as coming soon until it is switched on.
+5. **The theme button** is an icon only, just before the search box, with no round border; the sun turns into a moon, animated, and back (no animation with reduced motion).
+6. Supersedes the top-bar part of "Top bar names, AI search readiness, and comments" (2026-10-07): Fixes and Patterns as top-bar links, and the Learn button.

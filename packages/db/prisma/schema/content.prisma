@@ -384,6 +384,9 @@ model LibraryComponent {
   /// Null means draft. Set once, on publish, and never rewritten.
   publishedAt         DateTime?
   hidden              Boolean         @default(false)
+  /// A draft shown as "Coming soon": its card and page, with a blurred
+  /// picture and nothing to copy (2026-10-09). Ignored once published.
+  comingSoon          Boolean         @default(false)
   testedAt            DateTime?
   testedStudioVersion String?
   authorUserId        String

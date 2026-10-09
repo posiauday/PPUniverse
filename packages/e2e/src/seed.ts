@@ -272,6 +272,8 @@ export interface FixtureSet {
   draftComponent: { id: string; title: string };
   publishedComponent: { id: string; slug: string; title: string };
   membersComponent: { slug: string; title: string };
+  /** A draft marked Coming soon: a teaser card and page (2026-10-09). */
+  soonComponent: { slug: string; title: string };
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
    * support/compatibility/release) — visible in the admin products list,
    * and exercises the "still missing mandatory fields" publish-readiness
@@ -928,6 +930,15 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       },
     });
     created.componentIds.push(membersComponent.id);
+    const soonComponent = await prisma.libraryComponent.create({
+      data: {
+        ...componentBase,
+        slug: componentSlug("soon-component"),
+        title: `E2E fixture: coming soon component ${prefix}`,
+        comingSoon: true,
+      },
+    });
+    created.componentIds.push(soonComponent.id);
 
     // MVP-048: a published topic with three published lessons, for the public pages.
     const publishedTopicSlug = `${prefix}published-topic`;
@@ -1191,6 +1202,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         title: publishedComponent.title,
       },
       membersComponent: { slug: membersComponent.slug, title: membersComponent.title },
+      soonComponent: { slug: soonComponent.slug, title: soonComponent.title },
       draftAdminProduct: {
         id: draftAdminProduct.id,
         slug: draftAdminProduct.slug,
