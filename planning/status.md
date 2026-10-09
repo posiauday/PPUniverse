@@ -2,7 +2,10 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Data table is drafted (eleven components).**
+Last updated: 2026-10-09 (latest) — **BUG-038 fixed: row-level security on the component library and site switch tables.**
+- A migration turns it on for the four tables, and a new test fails CI for any table created without it. #134 and #135 are merged; MVP-050 is in review (#136).
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Data table is drafted (eleven components).**
 - **Drafted:** Data table 0.1.0 (sign-in to copy), built on a gallery: Table, Cards and List views from one switch; columns as text, pills or a progress bar; select a row to open it; sorting, checkboxes with bulk buttons, a row menu, loading and empty states. Live preview and a paste-test checklist.
 - **Merged:** #133 (top bar, Guides menu, `/guides`). **Open for the product owner:** #134 (BUG-037, "On this page"); then a release PR `develop` → `main`.
 - **Remaining wave 2:** Navigation shell (sign-in), Tree view, Stepper. **Next story:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
