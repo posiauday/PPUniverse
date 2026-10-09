@@ -5332,6 +5332,27 @@ The YAML comes from a small generator (the date-with-time formula repeats in sev
 
 **Next:** the People picker (sign-in to copy).
 
+## 2026-10-08 — Component library: People picker (MVP-049, wave 2, In Progress)
+
+**Asked:** "continue": the next wave 2 component in the approved build order, the People picker, sign-in to copy (docs/research/2026-10-08-component-roadmap-and-differentiators.md: your app does the directory search, so the component holds no connection).
+
+**Built** `lcsPeoplePicker` 0.1.0 (sign-in to copy):
+- search as you type: when the user pauses (`TriggerOutput.Delayed` plus a hidden 0.4-second timer), it runs `OnSearch(Query)` once per new search, and your app puts the people in `Results` (Office 365 Users `SearchUserV2`, Dataverse or a list);
+- chips with initials avatars, two to a row, in one of six colours that stays the same for each name, each with a remove button;
+- `MaxPeople` (1 makes a single-person picker, 0 no limit), Add me (`Me`), up to three `Suggestions` while the box is empty, `DefaultPeople` for a record's people;
+- messages: type more, no one found, everyone found is already chosen, the limit, and "⚠ Choose at least one person." when required;
+- `People`, `Emails` (separated by semicolons, for Outlook or Teams), `Count`, `SearchText`, `IsValid`, `OnChange(ChosenEmails)`, `Clear()` and `Reset()`.
+
+The guide shows Office 365 Users search, Add me, the manager as a suggestion, emailing everyone, saving to a SharePoint Person column, loading a record's people, and a no-connection test table. The event parameters are `Query` and `ChosenEmails`, so they can't clash with the `Text` function or the `Emails` output. The live preview runs on a made-up example.com directory and waits for the same pause before it searches.
+
+**Fixed:** BUG-033. On phones, component previews wider than their screen were cut off on the right (the Text field at 375 px). The preview screen's grid column now shrinks to the screen.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests (search, initials, colours, both message rules); a local axe and overflow run over the People picker page and its flows at 375 and 1280 px, light and dark: 40 states, clean; all nine previews fit their screen at 320 and 375 px.
+
+**Not yet:** the product owner's paste-test (docs/component-paste-tests.md). New to this library: the text input's `Search` type and `Delayed` output, and a gallery's `WrapCount` and `AccessibleLabel`.
+
+**Next:** Pagination.
+
 ## 2026-10-09 — Fix: account pages wider than a 320px phone in Firefox (BUG-034)
 
 **Asked:** "Resolve conflicts", then "continue": after the merges, the accessibility gate failed in Firefox at 320 px on #125, #126 and #127, each time on a page from #124 (the welcome page and the profile).

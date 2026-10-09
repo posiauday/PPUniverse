@@ -1,0 +1,30 @@
+# Named presets of lcsPeoplePicker: each sets inputs with Power Fx formulas.
+- name: Approvers
+  description: Up to three people, at least one.
+  settings:
+    Label: ="Approvers"
+    MaxPeople: =3
+    Required: =true
+    Hint: ="Up to three people approve this request."
+- name: One person
+  description: A single-person picker for a manager or an owner.
+  settings:
+    Label: ="Manager"
+    MaxPeople: =1
+    Placeholder: ="Search for your manager"
+- name: Team
+  description: No limit, for everyone on a project.
+  settings:
+    Label: ="Team members"
+    Hint: ="Add everyone who works on this."
+- name: Quick search
+  description: Searches from the first letter.
+  settings:
+    Label: ="Reviewer"
+    MinSearchLength: =1
+- name: Dark
+  description: On a dark screen, in your brand colour.
+  settings:
+    Label: ="Attendees"
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

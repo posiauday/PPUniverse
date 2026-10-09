@@ -24,6 +24,7 @@ import {
   type Notification,
   type NotificationType,
 } from "./replicas/notify";
+import { usePeoplePickerReplica } from "./replicas/PeoplePickerReplica";
 import type { ReplicaApi } from "./replicas/replica";
 import { useStatesReplica } from "./replicas/StatesReplica";
 import { useTabsReplica } from "./replicas/TabsReplica";
@@ -59,6 +60,7 @@ const REPLICAS: Record<string, Host> = {
   lcsStates: hostFor(useStatesReplica),
   lcsFab: hostFor(useFabReplica),
   lcsDatePicker: hostFor(useDatePickerReplica),
+  lcsPeoplePicker: hostFor(usePeoplePickerReplica),
 };
 
 export function hasReplica(componentName: string): boolean {
@@ -159,7 +161,7 @@ function Screen({
           Screen1
         </p>
         <div
-          className={`relative grid min-h-[24rem] place-items-center overflow-hidden rounded-2xl px-4 py-20 shadow-[0_2px_6px_rgba(16,24,40,0.06),0_28px_56px_-28px_rgba(46,16,101,0.45)] ring-1 ring-black/5 motion-safe:transition-colors motion-safe:duration-300 ${
+          className={`relative grid min-h-[24rem] grid-cols-[minmax(0,1fr)] place-items-center overflow-hidden rounded-2xl px-4 py-20 shadow-[0_2px_6px_rgba(16,24,40,0.06),0_28px_56px_-28px_rgba(46,16,101,0.45)] ring-1 ring-black/5 motion-safe:transition-colors motion-safe:duration-300 ${
             dark ? "bg-[#1f1f1f] [--color-ring:#c4b5fd]" : "bg-white [--color-ring:#5b21b6]"
           }`}
         >
@@ -279,7 +281,7 @@ export function ComponentWorkbench({
           {/* Keyed by the variation, so choosing one fades the screen in fresh. */}
           <div
             key={chosen}
-            className="grid w-full place-items-center motion-safe:animate-[lcs-screen-in_420ms_var(--ease-out-soft)]"
+            className="grid w-full grid-cols-[minmax(0,1fr)] place-items-center motion-safe:animate-[lcs-screen-in_420ms_var(--ease-out-soft)]"
           >
             {api.screen}
           </div>
