@@ -5494,3 +5494,11 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 - The migration applies to a local Postgres, and afterwards no public table there is without row-level security.
 
 **For the product owner:** after the release, Supabase's Security Advisor should show no "RLS disabled" warnings.
+
+## 2026-10-09 — Admins aren't limited in profile changes
+
+**Asked:** the product owner, choosing an avatar, got "You've changed your profile a few times today. Please try again tomorrow." and said an admin shouldn't (docs/final-decisions.md, 2026-10-09, "Admins aren't limited in profile changes").
+
+**Changed:** `POST /api/account/profile` skips the daily allowance for an admin, by the role in the database (`requireAdmin`). Everyone else keeps the limit of ten changes a day. A change of rule at the product owner's request, not a defect: the limit worked as decided for MVP-040.
+
+**Checked:** a new route test (a reader past the limit gets "too-many"; an admin isn't counted and saves); the comment and profile route tests; web typecheck and lint.
