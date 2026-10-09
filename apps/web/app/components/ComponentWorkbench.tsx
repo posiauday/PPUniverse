@@ -147,11 +147,14 @@ function CopyYaml({ yaml }: { yaml: string }) {
  */
 function Screen({
   dark,
+  fill = false,
   notification,
   onCloseNotification,
   children,
 }: {
   dark: boolean;
+  /** Edge to edge, for a whole-screen component (ReplicaApi.fill). */
+  fill?: boolean;
   notification: Notification | null;
   onCloseNotification: () => void;
   children: ReactNode;
@@ -171,9 +174,9 @@ function Screen({
           Screen1
         </p>
         <div
-          className={`relative grid min-h-[24rem] grid-cols-[minmax(0,1fr)] place-items-center overflow-hidden rounded-2xl px-4 py-20 shadow-[0_2px_6px_rgba(16,24,40,0.06),0_28px_56px_-28px_rgba(46,16,101,0.45)] ring-1 ring-black/5 motion-safe:transition-colors motion-safe:duration-300 ${
-            dark ? "bg-[#1f1f1f] [--color-ring:#c4b5fd]" : "bg-white [--color-ring:#5b21b6]"
-          }`}
+          className={`relative grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl shadow-[0_2px_6px_rgba(16,24,40,0.06),0_28px_56px_-28px_rgba(46,16,101,0.45)] ring-1 ring-black/5 motion-safe:transition-colors motion-safe:duration-300 ${
+            fill ? "" : "min-h-[24rem] place-items-center px-4 py-20"
+          } ${dark ? "bg-[#1f1f1f] [--color-ring:#c4b5fd]" : "bg-white [--color-ring:#5b21b6]"}`}
         >
           <NotificationBanner notification={notification} onClose={onCloseNotification} />
           {children}
@@ -285,6 +288,7 @@ export function ComponentWorkbench({
         </div>
         <Screen
           dark={api.dark}
+          fill={api.fill ?? false}
           notification={notification}
           onCloseNotification={() => setNotification(null)}
         >

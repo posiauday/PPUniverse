@@ -228,3 +228,7 @@ these questions.
 ## Raised 2026-10-09 (Azure, coming soon): awaiting the product owner
 
 76. **The Azure section's columns and first guides.** `docs/research/2026-10-09-azure-hub-research.md` proposes eight columns (Azure + Power Platform first, then AI & agents, Identity & security, Apps & integration, Data & storage, Networking, Cost & FinOps, Governance & operations) and a first list of 20 guides. **Default applied:** the `/azure` teaser lists the eight areas as plans, not as a menu; nothing else is built until the product owner chooses the columns and the first guides.
+
+## Raised 2026-10-09 (official Microsoft icons and screenshots): awaiting the product owner
+
+77. **Official product icons and real screenshots.** The product owner asked to use official logos for each technology and real screenshots, for trust. `docs/research/2026-10-09-microsoft-icons-logos-screenshots.md` finds that Microsoft's published icon sets may be used only in architecture diagrams, training material and documentation, unchanged, and never to represent our product; logos otherwise need a licence; screenshots are allowed with conditions (no cropping or callouts, "Used with permission from Microsoft."). **Default applied:** nothing changes until the product owner decides; the site keeps product names as text and its own drawings. Two existing rules would need the product owner to change them (2026-10-06 "Article visuals": own glyphs only, and screenshots "cropped, given numbered callouts").

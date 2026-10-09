@@ -14,6 +14,11 @@ export interface ReplicaApi {
   dark: boolean;
   /** The screen's formulas beyond the inputs: what a maker writes in Studio to try it the same way. */
   wiring: readonly Wiring[];
+  /**
+   * A whole-screen component (the Navigation shell): the screen shows it edge to
+   * edge, as in an app, instead of centred with room around it like a button.
+   */
+  fill?: boolean;
 }
 
 export interface Wiring {

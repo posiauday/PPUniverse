@@ -255,31 +255,63 @@ const ART: Record<string, ReactNode> = {
     </span>
   ),
   lcsNavShell: (
-    <span className="flex h-24 w-52 overflow-hidden rounded-lg border border-[#e5e7eb] text-left text-[10px] text-[#242424]">
-      <span className="flex w-20 flex-col gap-0.5 border-r border-[#e5e7eb] bg-[#fafafa] p-1.5">
-        <span className="mb-1 px-1 text-[11px] font-semibold">My app</span>
-        {["Home", "Orders", "Customers", "Reports"].map((label) => (
+    <span className="flex h-[8.5rem] w-60 overflow-hidden rounded-lg border border-[#e5e7eb] text-left text-[9px] text-[#242424]">
+      <span className="flex w-[5.75rem] flex-col border-r border-[#e5e7eb] bg-[#fafafa] p-1.5">
+        <span className="mb-1 flex items-center gap-1 px-1 text-[10px] font-semibold">
+          <Glyph d="M4 7h16M4 12h16M4 17h16" className="size-2.5" />
+          My app
+        </span>
+        {[
+          { label: "Home", d: "M4 11l8-7 8 7v9h-5v-6H9v6H4z" },
+          { label: "Orders", d: "M3 4h3l2 11h11l2-8H7M10 20h.01M17 20h.01", current: true },
+          {
+            label: "Customers",
+            d: "M8 11a3 3 0 100-6 3 3 0 000 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 15c2 .5 4 2 4 5",
+          },
+          { label: "Reports", d: "M7 3h7l5 5v13H7zM14 3v5h5" },
+        ].map((item) => (
           <span
-            key={label}
-            className={`relative flex items-center justify-between rounded px-1.5 py-1 ${label === "Orders" ? "bg-[#dfeaf6] font-semibold text-[#0b5190]" : ""}`}
+            key={item.label}
+            className={`relative flex items-center gap-1 rounded px-1 py-[3px] ${item.current ? "bg-[#dfeaf6] font-semibold text-[#0b5190]" : ""}`}
           >
-            {label === "Orders" ? (
-              <span className="absolute top-1 bottom-1 left-0 w-0.5 bg-[#0f6cbd]" />
+            {item.current ? (
+              <span className="absolute top-1 bottom-1 left-0 w-0.5 rounded bg-[#0f6cbd]" />
             ) : null}
-            {label}
-            {label === "Orders" ? (
-              <span className="grid size-3.5 place-items-center rounded-full bg-[#0f6cbd] text-[8px] text-white">
+            <Glyph d={item.d} className="size-2.5 shrink-0" />
+            <span className="flex-1 truncate">{item.label}</span>
+            {item.current ? (
+              <span className="grid size-3 place-items-center rounded-full bg-[#0f6cbd] text-[7px] text-white">
                 3
               </span>
             ) : null}
           </span>
         ))}
+        <span className="mt-auto flex items-center gap-1 border-t border-[#e5e7eb] px-0.5 pt-1">
+          <span className="grid size-3.5 place-items-center rounded-full bg-[#0f6cbd] text-[6px] font-semibold text-white">
+            AB
+          </span>
+          <span className="flex-1 truncate text-[8px]">Avery</span>
+          <Glyph
+            d="M12 3v2M12 19v2M3 12h2M19 12h2M12 8a4 4 0 100 8 4 4 0 000-8z"
+            className="size-2.5"
+          />
+        </span>
       </span>
       <span className="flex flex-1 flex-col gap-1.5 p-2">
-        <span className="text-[11px] font-semibold">Orders</span>
-        <span className="h-1.5 w-[90%] rounded bg-[#ededed]" />
-        <span className="h-1.5 w-[70%] rounded bg-[#ededed]" />
-        <span className="h-1.5 w-[80%] rounded bg-[#ededed]" />
+        <span className="text-[10px] font-semibold">Orders</span>
+        <span className="grid grid-cols-2 gap-1">
+          {["24", "132"].map((value) => (
+            <span key={value} className="rounded bg-[#f5f5f5] px-1.5 py-1 text-[9px] font-semibold">
+              {value}
+            </span>
+          ))}
+        </span>
+        {[80, 64, 72].map((width) => (
+          <span key={width} className="flex items-center gap-1">
+            <span className="size-2 rounded-full bg-[#ebebeb]" />
+            <span className="h-1 rounded bg-[#ededed]" style={{ width: `${width}%` }} />
+          </span>
+        ))}
       </span>
     </span>
   ),

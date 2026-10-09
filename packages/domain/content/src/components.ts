@@ -325,4 +325,10 @@ export interface ComponentRepository {
   ): Promise<ComponentRecord>;
   markTested(id: string, studioVersion: string, actorUserId: string): Promise<ComponentRecord>;
   publish(id: string, actorUserId: string): Promise<ComponentRecord>;
+  /**
+   * A PUBLISHED component back to a draft marked Coming soon (docs/final-decisions.md,
+   * 2026-10-09, "Component library: back to Coming soon"). Keeps its test record, so it
+   * can be published again; the next import updates it from its files, as any draft.
+   */
+  moveToComingSoon(id: string, actorUserId: string): Promise<ComponentRecord>;
 }

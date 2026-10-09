@@ -158,7 +158,11 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
       <div className="mt-8 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)] xl:grid-cols-[13rem_minmax(0,1fr)_13rem]">
         <div className="hidden lg:row-span-2 lg:block xl:row-span-1">
           <StickyColumn>
-            <LibraryNav components={library} currentSlug={component.slug} />
+            <LibraryNav
+              components={library}
+              currentSlug={component.slug}
+              signedIn={Boolean(session?.user?.id)}
+            />
           </StickyColumn>
         </div>
 
