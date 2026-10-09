@@ -440,6 +440,12 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
           where: { articleId: { in: created.articleIds } },
         }),
       );
+      // MVP-050: schedule events reference the article (and the admin) too.
+      await attempt(() =>
+        prisma.articleScheduleEvent.deleteMany({
+          where: { articleId: { in: created.articleIds } },
+        }),
+      );
     }
     await attempt(() =>
       prisma.article.deleteMany({
@@ -451,6 +457,9 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     if (created.updateIds.length > 0) {
       await attempt(() =>
         prisma.updatePublishEvent.deleteMany({ where: { updateId: { in: created.updateIds } } }),
+      );
+      await attempt(() =>
+        prisma.updateScheduleEvent.deleteMany({ where: { updateId: { in: created.updateIds } } }),
       );
     }
     await attempt(() =>
@@ -834,14 +843,26 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     const draftUpdateSlug = `${prefix}draft-update`;
     assertReserved("update", draftUpdateSlug);
+    // MVP-050: scheduled a month ahead, so the admin pages and its preview
+    // show a schedule; it never comes due during a run.
+    const draftUpdateScheduledFor = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     const draftUpdate = await prisma.updateItem.create({
       data: {
         ...updateFields,
         slug: draftUpdateSlug,
         title: `E2E fixture: draft update ${prefix}(not real news)`,
+        scheduledFor: draftUpdateScheduledFor,
       },
     });
     created.updateIds.push(draftUpdate.id);
+    await prisma.updateScheduleEvent.create({
+      data: {
+        updateId: draftUpdate.id,
+        actorUserId: admin.id,
+        action: "SCHEDULED",
+        scheduledFor: draftUpdateScheduledFor,
+      },
+    });
 
     // MVP-048: a draft Learn topic and one draft lesson in the fixed lesson shape.
     const draftTopicSlug = `${prefix}draft-topic`;

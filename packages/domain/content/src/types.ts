@@ -57,6 +57,8 @@ export interface ArticleRecord {
    * rationale applied here: a correction after publication is a new
    * ArticlePublishEvent, not a rewrite of this timestamp. */
   publishedAt: Date | null;
+  /** MVP-050: a DRAFT's planned publish time; null when none. Cleared on publish. */
+  scheduledFor: Date | null;
   authorUserId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -150,6 +152,18 @@ export interface ContentRepository {
    * Article is already PUBLISHED — the caller must check
    * isValidArticleStatusTransition first for a friendly error. */
   publishArticle(id: string, actorUserId: string): Promise<ArticleRecord>;
+  /** MVP-050: sets (or changes) a DRAFT's publish time and appends a
+   * SCHEDULED event, atomically. Throws if the Article isn't a DRAFT. The
+   * caller checks the time with scheduleTimeProblem first. */
+  scheduleArticle(id: string, at: Date, actorUserId: string): Promise<ArticleRecord>;
+  /** MVP-050: clears a DRAFT's publish time and appends a CANCELLED event.
+   * Throws if it has no schedule. */
+  cancelArticleSchedule(id: string, actorUserId: string): Promise<ArticleRecord>;
+  /** MVP-050: publishes every DRAFT whose scheduledFor is at or before
+   * `now`, each with publishedAt = its scheduledFor and a PUBLISHED event by
+   * the admin who last scheduled it. Safe to run concurrently: a row is only
+   * ever published once. Returns what it published. */
+  publishDueArticles(now: Date): Promise<ArticleRecord[]>;
   findArticleById(id: string): Promise<ArticleRecord | null>;
   /** Any status — the admin editor's own lookup, and the slug-uniqueness check. */
   findArticleBySlug(slug: string): Promise<ArticleRecord | null>;

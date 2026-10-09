@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { authOptions } from "../../../lib/auth";
 import { SITE_NAME } from "../../../lib/seo/site";
+import { LocalTime } from "../LocalTime";
 import { ArticlePublishControl } from "./ArticlePublishControl";
 
 export const metadata: Metadata = { title: `Content | ${SITE_NAME}` };
@@ -51,6 +52,24 @@ export default async function AdminContentPage() {
               <p>
                 <Link href={`/admin/content/${article.id}/edit`}>{article.title}</Link> —{" "}
                 {article.type} — {article.status}
+                {article.status === "DRAFT" && article.scheduledFor ? (
+                  <>
+                    {" "}
+                    — scheduled for <LocalTime iso={article.scheduledFor.toISOString()} />
+                  </>
+                ) : null}
+                {article.status === "DRAFT" ? (
+                  <>
+                    {" "}
+                    —{" "}
+                    <Link
+                      href={`/preview/guides/${article.id}`}
+                      aria-label={`Preview ${article.title}`}
+                    >
+                      Preview
+                    </Link>
+                  </>
+                ) : null}
               </p>
               {article.status === "DRAFT" ? <ArticlePublishControl articleId={article.id} /> : null}
             </li>

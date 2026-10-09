@@ -15,6 +15,9 @@ import {
   type Technology,
 } from "@ppu/domain-content";
 
+/** MVP-050: the most scheduled drafts one pass publishes; the next visit publishes the rest. */
+export const DUE_BATCH_SIZE = 20;
+
 /** Both match markers, for stripping them from source text (see SEARCH_MATCH_START). */
 const MARKERS = SEARCH_MATCH_START + SEARCH_MATCH_END;
 /** ts_headline options: wrap every match in the markers; the title in full. */
@@ -78,9 +81,10 @@ export class PrismaContentRepository implements ContentRepository {
       if (!isValidArticleStatusTransition(current.status as ArticleStatus, "PUBLISHED")) {
         throw new Error(`Cannot publish an Article in status ${current.status}`);
       }
+      // MVP-050: publishing by hand also clears any schedule.
       const updated = await tx.article.update({
         where: { id },
-        data: { status: "PUBLISHED", publishedAt },
+        data: { status: "PUBLISHED", publishedAt, scheduledFor: null },
       });
       await tx.articlePublishEvent.create({
         data: { articleId: id, actorUserId, action: "PUBLISHED" },
@@ -88,6 +92,82 @@ export class PrismaContentRepository implements ContentRepository {
       return updated;
     });
     return toArticleRecord(article);
+  }
+
+  /** MVP-050: sets or changes a DRAFT's publish time, with its audit event, atomically. */
+  async scheduleArticle(id: string, at: Date, actorUserId: string): Promise<ArticleRecord> {
+    const article = await this.db.$transaction(async (tx) => {
+      const current = await tx.article.findUnique({ where: { id } });
+      if (!current) throw new Error(`Article ${id} not found`);
+      if (current.status !== "DRAFT") {
+        throw new Error(`Cannot schedule an Article in status ${current.status}`);
+      }
+      const updated = await tx.article.update({ where: { id }, data: { scheduledFor: at } });
+      await tx.articleScheduleEvent.create({
+        data: { articleId: id, actorUserId, action: "SCHEDULED", scheduledFor: at },
+      });
+      return updated;
+    });
+    return toArticleRecord(article);
+  }
+
+  /** MVP-050: clears a DRAFT's publish time, with its audit event, atomically. */
+  async cancelArticleSchedule(id: string, actorUserId: string): Promise<ArticleRecord> {
+    const article = await this.db.$transaction(async (tx) => {
+      const current = await tx.article.findUnique({ where: { id } });
+      if (!current) throw new Error(`Article ${id} not found`);
+      if (current.status !== "DRAFT" || !current.scheduledFor) {
+        throw new Error(`Article ${id} has no schedule to cancel`);
+      }
+      const updated = await tx.article.update({ where: { id }, data: { scheduledFor: null } });
+      await tx.articleScheduleEvent.create({
+        data: { articleId: id, actorUserId, action: "CANCELLED" },
+      });
+      return updated;
+    });
+    return toArticleRecord(article);
+  }
+
+  /**
+   * MVP-050: publishes the DRAFTs whose time has come. Each one is claimed
+   * with a conditional UPDATE (still DRAFT, still the same time), so when two
+   * visits run this at once, Postgres lets only one of them publish a row and
+   * the other skips it. publishedAt is the scheduled time; the PUBLISHED
+   * event names the admin who last scheduled it.
+   */
+  async publishDueArticles(now: Date): Promise<ArticleRecord[]> {
+    const due = await this.db.article.findMany({
+      where: { status: "DRAFT", scheduledFor: { lte: now } },
+      select: { id: true, scheduledFor: true, authorUserId: true },
+      orderBy: [{ scheduledFor: "asc" }, { id: "asc" }],
+      take: DUE_BATCH_SIZE,
+    });
+    const published: ArticleRecord[] = [];
+    for (const candidate of due) {
+      const scheduledFor = candidate.scheduledFor as Date;
+      const row = await this.db.$transaction(async (tx) => {
+        const claimed = await tx.article.updateMany({
+          where: { id: candidate.id, status: "DRAFT", scheduledFor },
+          data: { status: "PUBLISHED", publishedAt: scheduledFor, scheduledFor: null },
+        });
+        if (claimed.count === 0) return null;
+        const scheduled = await tx.articleScheduleEvent.findFirst({
+          where: { articleId: candidate.id, action: "SCHEDULED" },
+          orderBy: { createdAt: "desc" },
+          select: { actorUserId: true },
+        });
+        await tx.articlePublishEvent.create({
+          data: {
+            articleId: candidate.id,
+            actorUserId: scheduled?.actorUserId ?? candidate.authorUserId,
+            action: "PUBLISHED",
+          },
+        });
+        return tx.article.findUnique({ where: { id: candidate.id } });
+      });
+      if (row) published.push(toArticleRecord(row));
+    }
+    return published;
   }
 
   async findArticleById(id: string): Promise<ArticleRecord | null> {
@@ -251,6 +331,7 @@ function toArticleRecord(row: {
   excerpt: string | null;
   status: string;
   publishedAt: Date | null;
+  scheduledFor: Date | null;
   authorUserId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -266,6 +347,7 @@ function toArticleRecord(row: {
     excerpt: row.excerpt,
     status: row.status as ArticleStatus,
     publishedAt: row.publishedAt,
+    scheduledFor: row.scheduledFor,
     authorUserId: row.authorUserId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

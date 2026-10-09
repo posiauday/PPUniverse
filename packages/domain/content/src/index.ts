@@ -66,6 +66,15 @@ export {
 } from "./updates.js";
 export { parseIsoDate, parseUpdateSource, type UpdateSourceResult } from "./update-source.js";
 export {
+  SCHEDULE_MAX_AHEAD_MS,
+  SCHEDULE_MIN_LEAD_MS,
+  SCHEDULE_PROBLEM_MESSAGE,
+  parseScheduleTime,
+  scheduleTimeProblem,
+  type ScheduleAction,
+  type ScheduleTimeProblem,
+} from "./schedule.js";
+export {
   ACCEPTED_MIN_VOTES,
   ACCEPTED_SHARE,
   REPORT_MAX_LENGTH,
