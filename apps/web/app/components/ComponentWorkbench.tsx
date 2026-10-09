@@ -14,6 +14,7 @@ import {
 } from "react";
 import { FormulaList } from "./FormulaList";
 import { useButtonReplica } from "./replicas/ButtonReplica";
+import { useDatePickerReplica } from "./replicas/DatePickerReplica";
 import { useDialogReplica } from "./replicas/DialogReplica";
 import { useFabReplica } from "./replicas/FabReplica";
 import {
@@ -57,6 +58,7 @@ const REPLICAS: Record<string, Host> = {
   lcsTabs: hostFor(useTabsReplica),
   lcsStates: hostFor(useStatesReplica),
   lcsFab: hostFor(useFabReplica),
+  lcsDatePicker: hostFor(useDatePickerReplica),
 };
 
 export function hasReplica(componentName: string): boolean {

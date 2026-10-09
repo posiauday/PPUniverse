@@ -135,6 +135,30 @@ const ART: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  lcsDatePicker: (
+    <span className="block w-48 text-left">
+      <span className="block text-[12px] font-semibold text-[#242424]">Leave</span>
+      <span className="mt-1 flex gap-1.5">
+        <span className="flex h-7 flex-1 items-center justify-between rounded border border-[#d1d1d1] px-1.5 text-[10px] text-[#242424]">
+          Mar 2, 2026
+          <Glyph d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" className="size-3" />
+        </span>
+        <span className="flex h-7 flex-1 items-center rounded border border-[#d1d1d1] px-1.5 text-[10px] text-[#242424]">
+          Mar 6, 2026
+        </span>
+      </span>
+      <span className="mt-1.5 grid grid-cols-7 gap-0.5 rounded-md bg-white p-1.5 text-center text-[8px] text-[#242424] shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+        {Array.from({ length: 14 }, (_, index) => (
+          <span
+            key={index}
+            className={`rounded-sm py-0.5 ${index >= 1 && index <= 5 ? "bg-[#0f6cbd] text-white" : ""}`}
+          >
+            {index + 1}
+          </span>
+        ))}
+      </span>
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">

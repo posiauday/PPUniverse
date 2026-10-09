@@ -1,0 +1,435 @@
+ComponentDefinitions:
+  lcsDatePicker:
+    DefinitionType: CanvasComponent
+    Description: "LowCodeStacks date and time picker: one date, a date and a time in 15-minute steps, or a range, with quick picks, earliest and latest dates, weekends and holidays blocked with a clear message, a working-days helper and the time zone."
+    CustomProperties:
+      Label:
+        PropertyKind: Input
+        DisplayName: Label
+        DataType: Text
+        Description: "The field's label, shown above it and read by screen readers."
+        Default: ="Due date"
+      Hint:
+        PropertyKind: Input
+        DisplayName: Hint
+        DataType: Text
+        Description: "Help text under the field, shown while there's no error. Leave empty for none."
+        Default: =""
+      Mode:
+        PropertyKind: Input
+        DisplayName: Mode
+        DataType: Text
+        Description: "Date (one date), DateTime (a date and a time) or Range (a start and an end date)."
+        Default: ="Date"
+      DefaultDate:
+        PropertyKind: Input
+        DisplayName: DefaultDate
+        DataType: DateAndTime
+        Description: "The date (or range start) when the screen loads, such as ThisItem.DueDate. Leave blank for none."
+        Default: =Blank()
+      DefaultEndDate:
+        PropertyKind: Input
+        DisplayName: DefaultEndDate
+        DataType: DateAndTime
+        Description: "The range end when the screen loads, in Range mode."
+        Default: =Blank()
+      DefaultTime:
+        PropertyKind: Input
+        DisplayName: DefaultTime
+        DataType: Text
+        Description: "The time when the screen loads, in DateTime mode, as 24-hour text such as 09:00."
+        Default: ="09:00"
+      TimeStep:
+        PropertyKind: Input
+        DisplayName: TimeStep
+        DataType: Number
+        Description: "Minutes between the times in the list: 15, 30 or 60 work best."
+        Default: =15
+      Use24Hour:
+        PropertyKind: Input
+        DisplayName: Use24Hour
+        DataType: Boolean
+        Description: "When true, times read 14:30; when false, 2:30 PM."
+        Default: =false
+      MinDate:
+        PropertyKind: Input
+        DisplayName: MinDate
+        DataType: DateAndTime
+        Description: "The earliest date that can be chosen."
+        Default: =Date(1900, 1, 1)
+      MaxDate:
+        PropertyKind: Input
+        DisplayName: MaxDate
+        DataType: DateAndTime
+        Description: "The latest date that can be chosen."
+        Default: =Date(2100, 12, 31)
+      BlockWeekends:
+        PropertyKind: Input
+        DisplayName: BlockWeekends
+        DataType: Boolean
+        Description: "When true, a Saturday or Sunday shows an error instead of being accepted."
+        Default: =false
+      BlockedDates:
+        PropertyKind: Input
+        DisplayName: BlockedDates
+        DataType: Table
+        Description: "Days that can't be chosen, such as public holidays, as a one-column table of dates."
+        Default: =FirstN([Date(1900, 1, 1)], 0)
+      Required:
+        PropertyKind: Input
+        DisplayName: Required
+        DataType: Boolean
+        Description: "When true, the label shows * and an empty field is an error once the user has changed it."
+        Default: =false
+      ShowPresets:
+        PropertyKind: Input
+        DisplayName: ShowPresets
+        DataType: Boolean
+        Description: "Shows quick picks above the field: Today, Tomorrow and In a week, or for a range This week, Next 7 days and Last 30 days."
+        Default: =true
+      ShowTimeZone:
+        PropertyKind: Input
+        DisplayName: ShowTimeZone
+        DataType: Boolean
+        Description: "In DateTime mode, adds the time zone to the hint, such as UTC-6."
+        Default: =true
+      StartOfWeek:
+        PropertyKind: Input
+        DisplayName: StartOfWeek
+        DataType: Text
+        Description: "The calendar's first day: Sunday or Monday."
+        Default: ="Sunday"
+      AccentColor:
+        PropertyKind: Input
+        DisplayName: AccentColor
+        DataType: Color
+        Description: "Your brand colour, for the calendar, the time list and the quick picks."
+        Default: =RGBA(15, 108, 189, 1)
+      Theme:
+        PropertyKind: Input
+        DisplayName: Theme
+        DataType: Text
+        Description: "Light, or Dark for a dark screen."
+        Default: ="Light"
+      Value:
+        PropertyKind: Output
+        DisplayName: Value
+        DataType: DateAndTime
+        Description: "The chosen date, with its time in DateTime mode, or the range start. Blank when nothing is chosen."
+      EndValue:
+        PropertyKind: Output
+        DisplayName: EndValue
+        DataType: DateAndTime
+        Description: "The range end, in Range mode. Blank otherwise."
+      Days:
+        PropertyKind: Output
+        DisplayName: Days
+        DataType: Number
+        Description: "How many days the range covers, counting both ends. 0 until both are chosen."
+      IsValid:
+        PropertyKind: Output
+        DisplayName: IsValid
+        DataType: Boolean
+        Description: "True when the field passes every check: required, the range order, weekends and blocked dates."
+      WorkingDays:
+        PropertyKind: OutputFunction
+        DisplayName: WorkingDays
+        DataType: Number
+        Description: "Counts Monday to Friday between two dates, both ends included. Use it to show working days in a range."
+        Parameters:
+          - Start:
+              DataType: DateAndTime
+              Description: "The first day."
+              Default: =Today()
+          - End:
+              DataType: DateAndTime
+              Description: "The last day."
+              Default: =Today()
+      OnChange:
+        PropertyKind: Event
+        DisplayName: OnChange
+        ReturnType: None
+        Description: "Runs in the app when the user changes the date, the time or the range, or picks a quick pick. Receives the new value and range end."
+        Parameters:
+          - Start:
+              DataType: DateAndTime
+              Description: "The new value: the date, with its time in DateTime mode, or the range start."
+              Default: =Today()
+          - End:
+              DataType: DateAndTime
+              Description: "The new range end in Range mode; blank otherwise."
+              Default: =Today()
+        Default: =false
+      Reset:
+        PropertyKind: Action
+        DisplayName: Reset
+        ReturnType: None
+        Description: "Puts the field back to its defaults and clears the error."
+      SetDates:
+        PropertyKind: Action
+        DisplayName: SetDates
+        ReturnType: None
+        Description: "Sets the date (or range start) and the range end from your app, such as after loading a record."
+        Parameters:
+          - Start:
+              DataType: DateAndTime
+              Description: "The date, or the range start."
+              Default: =Today()
+          - End:
+              DataType: DateAndTime
+              Description: "The range end; leave blank outside Range mode."
+              Default: =Blank()
+    Properties:
+      Width: =340
+      Height: =If(lcsDatePicker.ShowPresets, 148, 112)
+      Fill: =RGBA(0, 0, 0, 0)
+      OnReset: |-
+        =Set(locStart, Blank());
+        Set(locEnd, Blank());
+        Set(locTime, "");
+        Set(locTouched, false)
+      Value: =If(lcsDatePicker.Mode = "DateTime" && !IsBlank(dpStart.SelectedDate) && !IsBlank(ddTime.Selected.Value), DateAdd(dpStart.SelectedDate, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), dpStart.SelectedDate)
+      EndValue: =If(lcsDatePicker.Mode = "Range", dpEnd.SelectedDate, Blank())
+      Days: |-
+        =If(
+            lcsDatePicker.Mode = "Range" && !IsBlank(dpStart.SelectedDate) && !IsBlank(dpEnd.SelectedDate),
+            DateDiff(dpStart.SelectedDate, dpEnd.SelectedDate, TimeUnit.Days) + 1,
+            0
+        )
+      IsValid: |-
+        =IsBlank(If(
+            lcsDatePicker.Required && IsBlank(dpStart.SelectedDate), "Choose a date.",
+            lcsDatePicker.Mode = "Range" && lcsDatePicker.Required && IsBlank(dpEnd.SelectedDate), "Choose an end date.",
+            lcsDatePicker.Mode = "Range" && !IsBlank(dpStart.SelectedDate) && !IsBlank(dpEnd.SelectedDate) && dpEnd.SelectedDate < dpStart.SelectedDate, "The end date must be on or after the start date.",
+            lcsDatePicker.BlockWeekends && ((!IsBlank(dpStart.SelectedDate) && Weekday(dpStart.SelectedDate, StartOfWeek.Monday) > 5) || (lcsDatePicker.Mode = "Range" && (!IsBlank(dpEnd.SelectedDate) && Weekday(dpEnd.SelectedDate, StartOfWeek.Monday) > 5))), "Choose a weekday. Weekends aren't available.",
+            (!IsBlank(dpStart.SelectedDate) && !IsBlank(LookUp(lcsDatePicker.BlockedDates As blocked, DateDiff(blocked.Value, dpStart.SelectedDate, TimeUnit.Days) = 0))) || (lcsDatePicker.Mode = "Range" && (!IsBlank(dpEnd.SelectedDate) && !IsBlank(LookUp(lcsDatePicker.BlockedDates As blocked, DateDiff(blocked.Value, dpEnd.SelectedDate, TimeUnit.Days) = 0)))), "That day isn't available. Choose another.",
+            ""
+        ))
+      WorkingDays: |-
+        =CountRows(
+            Filter(
+                ForAll(Sequence(Max(0, DateDiff(Start, End, TimeUnit.Days)) + 1, 0) As offset, DateAdd(Start, offset.Value, TimeUnit.Days)) As day,
+                Weekday(day.Value, StartOfWeek.Monday) <= 5
+            )
+        )
+      Reset: |-
+        =Set(locStart, Blank());
+        Set(locEnd, Blank());
+        Set(locTime, "");
+        Set(locTouched, false);
+        Reset(dpStart);
+        Reset(dpEnd);
+        Reset(ddTime)
+      SetDates: |-
+        =Set(locStart, Start);
+        Set(locEnd, End);
+        Reset(dpStart);
+        Reset(dpEnd)
+    Children:
+      - lblLabel:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =22
+            Text: =lcsDatePicker.Label & If(lcsDatePicker.Required, " *", "")
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+      - btnPreset1:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =0 * 112
+            Y: =lblLabel.Height + 4
+            Width: =104
+            Height: =32
+            Visible: =lcsDatePicker.ShowPresets
+            Text: =If(lcsDatePicker.Mode = "Range", "This week", "Today")
+            Appearance: =ButtonAppearance.Secondary
+            BasePaletteColor: =lcsDatePicker.AccentColor
+            Size: =12
+            AccessibleLabel: =If(lcsDatePicker.Mode = "Range", "This week", "Today")
+            OnSelect: |-
+              =If(
+                  lcsDatePicker.Mode = "Range",
+                  Set(locStart, With({d: DateAdd(Today(), 1 - Weekday(Today(), StartOfWeek.Monday), TimeUnit.Days)}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 8 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d)));
+                  Set(locEnd, With({d: DateAdd(Today(), 7 - Weekday(Today(), StartOfWeek.Monday), TimeUnit.Days)}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 5 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d))),
+                  Set(locStart, With({d: Today()}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 8 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d)));
+                  Set(locEnd, Blank())
+              );
+              Reset(dpStart);
+              Reset(dpEnd);
+              Set(locTouched, true);
+              lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(locStart) && !IsBlank(ddTime.Selected.Value), DateAdd(locStart, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), locStart), If(lcsDatePicker.Mode = "Range", locEnd, Blank()))
+      - btnPreset2:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =1 * 112
+            Y: =lblLabel.Height + 4
+            Width: =104
+            Height: =32
+            Visible: =lcsDatePicker.ShowPresets
+            Text: =If(lcsDatePicker.Mode = "Range", "Next 7 days", "Tomorrow")
+            Appearance: =ButtonAppearance.Secondary
+            BasePaletteColor: =lcsDatePicker.AccentColor
+            Size: =12
+            AccessibleLabel: =If(lcsDatePicker.Mode = "Range", "Next 7 days", "Tomorrow")
+            OnSelect: |-
+              =If(
+                  lcsDatePicker.Mode = "Range",
+                  Set(locStart, With({d: Today()}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 8 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d)));
+                  Set(locEnd, With({d: DateAdd(Today(), 6, TimeUnit.Days)}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 5 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d))),
+                  Set(locStart, With({d: DateAdd(Today(), 1, TimeUnit.Days)}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 8 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d)));
+                  Set(locEnd, Blank())
+              );
+              Reset(dpStart);
+              Reset(dpEnd);
+              Set(locTouched, true);
+              lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(locStart) && !IsBlank(ddTime.Selected.Value), DateAdd(locStart, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), locStart), If(lcsDatePicker.Mode = "Range", locEnd, Blank()))
+      - btnPreset3:
+          Control: ModernButton@1.0.0
+          Properties:
+            X: =2 * 112
+            Y: =lblLabel.Height + 4
+            Width: =104
+            Height: =32
+            Visible: =lcsDatePicker.ShowPresets
+            Text: =If(lcsDatePicker.Mode = "Range", "Last 30 days", "In a week")
+            Appearance: =ButtonAppearance.Secondary
+            BasePaletteColor: =lcsDatePicker.AccentColor
+            Size: =12
+            AccessibleLabel: =If(lcsDatePicker.Mode = "Range", "Last 30 days", "In a week")
+            OnSelect: |-
+              =If(
+                  lcsDatePicker.Mode = "Range",
+                  Set(locStart, With({d: DateAdd(Today(), -29, TimeUnit.Days)}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 8 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d)));
+                  Set(locEnd, With({d: Today()}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 5 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d))),
+                  Set(locStart, With({d: DateAdd(Today(), 7, TimeUnit.Days)}, If(lcsDatePicker.BlockWeekends && Weekday(d, StartOfWeek.Monday) > 5, DateAdd(d, 8 - Weekday(d, StartOfWeek.Monday), TimeUnit.Days), d)));
+                  Set(locEnd, Blank())
+              );
+              Reset(dpStart);
+              Reset(dpEnd);
+              Set(locTouched, true);
+              lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(locStart) && !IsBlank(ddTime.Selected.Value), DateAdd(locStart, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), locStart), If(lcsDatePicker.Mode = "Range", locEnd, Blank()))
+      - dpStart:
+          Control: ModernDatePicker@1.0.0
+          Properties:
+            X: =0
+            Y: =lblLabel.Height + 4 + If(lcsDatePicker.ShowPresets, 36, 0)
+            Width: =If(lcsDatePicker.Mode = "Date", Parent.Width, (Parent.Width - 8) / 2 + If(lcsDatePicker.Mode = "DateTime", (Parent.Width - 8) / 2 - 120, 0))
+            Height: =40
+            Visible: =true
+            DefaultDate: =Coalesce(locStart, lcsDatePicker.DefaultDate)
+            StartDate: =lcsDatePicker.MinDate
+            EndDate: =lcsDatePicker.MaxDate
+            StartOfWeek: =If(lcsDatePicker.StartOfWeek = "Monday", StartOfWeek.Monday, StartOfWeek.Sunday)
+            Format: =DatePickerFormat.LongAbbreviated
+            Placeholder: ="Select a date"
+            Appearance: =Appearance.Outline
+            BasePaletteColor: =lcsDatePicker.AccentColor
+            Fill: =If(lcsDatePicker.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            ValidationState: =If(Left(lblMessage.Text, 1) = "⚠", ValidationState.Error, ValidationState.None)
+            AccessibleLabel: =lcsDatePicker.Label & If(lcsDatePicker.Mode = "Range", ", start date", "")
+            OnChange: |-
+              =Set(locStart, Self.SelectedDate);
+              Set(locTouched, true);
+              lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(Self.SelectedDate) && !IsBlank(ddTime.Selected.Value), DateAdd(Self.SelectedDate, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), Self.SelectedDate), If(lcsDatePicker.Mode = "Range", dpEnd.SelectedDate, Blank()))
+      - dpEnd:
+          Control: ModernDatePicker@1.0.0
+          Properties:
+            X: =(Parent.Width + 8) / 2
+            Y: =lblLabel.Height + 4 + If(lcsDatePicker.ShowPresets, 36, 0)
+            Width: =(Parent.Width - 8) / 2
+            Height: =40
+            Visible: =lcsDatePicker.Mode = "Range"
+            DefaultDate: =Coalesce(locEnd, lcsDatePicker.DefaultEndDate)
+            StartDate: =lcsDatePicker.MinDate
+            EndDate: =lcsDatePicker.MaxDate
+            StartOfWeek: =If(lcsDatePicker.StartOfWeek = "Monday", StartOfWeek.Monday, StartOfWeek.Sunday)
+            Format: =DatePickerFormat.LongAbbreviated
+            Placeholder: ="Select a date"
+            Appearance: =Appearance.Outline
+            BasePaletteColor: =lcsDatePicker.AccentColor
+            Fill: =If(lcsDatePicker.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            ValidationState: =If(Left(lblMessage.Text, 1) = "⚠", ValidationState.Error, ValidationState.None)
+            AccessibleLabel: =lcsDatePicker.Label & ", end date"
+            OnChange: |-
+              =Set(locEnd, Self.SelectedDate);
+              Set(locTouched, true);
+              lcsDatePicker.OnChange(dpStart.SelectedDate, Self.SelectedDate)
+      - ddTime:
+          Control: ModernDropdown@1.0.0
+          Properties:
+            X: =Parent.Width - 112
+            Y: =lblLabel.Height + 4 + If(lcsDatePicker.ShowPresets, 36, 0)
+            Width: =112
+            Height: =40
+            Visible: =lcsDatePicker.Mode = "DateTime"
+            Items: |-
+              =ForAll(
+                  Sequence(RoundDown(1440 / Max(5, lcsDatePicker.TimeStep), 0), 0) As step,
+                  Text(
+                      Time(RoundDown(step.Value * Max(5, lcsDatePicker.TimeStep) / 60, 0), Mod(step.Value * Max(5, lcsDatePicker.TimeStep), 60), 0),
+                      If(lcsDatePicker.Use24Hour, "hh:mm", "h:mm AM/PM")
+                  )
+              )
+            Default: |-
+              =Coalesce(
+                  locTime,
+                  Text(TimeValue(lcsDatePicker.DefaultTime), If(lcsDatePicker.Use24Hour, "hh:mm", "h:mm AM/PM"))
+              )
+            Appearance: =Appearance.Outline
+            BasePaletteColor: =lcsDatePicker.AccentColor
+            Fill: =If(lcsDatePicker.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            AccessibleLabel: =lcsDatePicker.Label & ", time"
+            OnChange: |-
+              =Set(locTime, Self.Selected.Value);
+              Set(locTouched, true);
+              lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(dpStart.SelectedDate) && !IsBlank(ddTime.Selected.Value), DateAdd(dpStart.SelectedDate, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), dpStart.SelectedDate), Blank())
+      - lblMessage:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =0
+            Y: =lblLabel.Height + 4 + If(lcsDatePicker.ShowPresets, 36, 0) + 46
+            Width: =Parent.Width
+            Height: =40
+            Text: |-
+              =With(
+                  {problem: If(locTouched, If(
+                      lcsDatePicker.Required && IsBlank(dpStart.SelectedDate), "Choose a date.",
+                      lcsDatePicker.Mode = "Range" && lcsDatePicker.Required && IsBlank(dpEnd.SelectedDate), "Choose an end date.",
+                      lcsDatePicker.Mode = "Range" && !IsBlank(dpStart.SelectedDate) && !IsBlank(dpEnd.SelectedDate) && dpEnd.SelectedDate < dpStart.SelectedDate, "The end date must be on or after the start date.",
+                      lcsDatePicker.BlockWeekends && ((!IsBlank(dpStart.SelectedDate) && Weekday(dpStart.SelectedDate, StartOfWeek.Monday) > 5) || (lcsDatePicker.Mode = "Range" && (!IsBlank(dpEnd.SelectedDate) && Weekday(dpEnd.SelectedDate, StartOfWeek.Monday) > 5))), "Choose a weekday. Weekends aren't available.",
+                      (!IsBlank(dpStart.SelectedDate) && !IsBlank(LookUp(lcsDatePicker.BlockedDates As blocked, DateDiff(blocked.Value, dpStart.SelectedDate, TimeUnit.Days) = 0))) || (lcsDatePicker.Mode = "Range" && (!IsBlank(dpEnd.SelectedDate) && !IsBlank(LookUp(lcsDatePicker.BlockedDates As blocked, DateDiff(blocked.Value, dpEnd.SelectedDate, TimeUnit.Days) = 0)))), "That day isn't available. Choose another.",
+                      ""
+                  ), "")},
+                  If(
+                      !IsBlank(problem), "⚠ " & problem,
+                      lcsDatePicker.Hint & If(
+                          lcsDatePicker.Mode = "DateTime" && lcsDatePicker.ShowTimeZone,
+                          If(IsBlank(lcsDatePicker.Hint), "", " ") & "Times are in your time zone (UTC" & If(TimeZoneOffset() <= 0, "+", "-") & Text(Abs(TimeZoneOffset()) / 60, "0.##") & ").",
+                          ""
+                      )
+                  )
+              )
+            Wrap: =true
+            VerticalAlign: =VerticalAlign.Top
+            Size: =12
+            Color: |-
+              =If(
+                  Left(Self.Text, 1) = "⚠",
+                  If(lcsDatePicker.Theme = "Dark", RGBA(241, 112, 123, 1), RGBA(196, 49, 75, 1)),
+                  If(lcsDatePicker.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+              )
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0

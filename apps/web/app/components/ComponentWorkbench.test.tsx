@@ -14,6 +14,7 @@ import { readButtons, visibleButtons } from "./replicas/DialogReplica";
 import { skeletonRows, stateFor } from "./replicas/StatesReplica";
 import { itemsFromText, tabText } from "./replicas/TabsReplica";
 import { formatProblem } from "./replicas/TextFieldReplica";
+import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
 
 const render = (componentName: string, yaml: string | null = "ComponentDefinitions: {}") =>
   renderToStaticMarkup(
@@ -27,17 +28,23 @@ const render = (componentName: string, yaml: string | null = "ComponentDefinitio
   );
 
 describe("ComponentWorkbench", () => {
-  it.each(["lcsButton", "lcsTextField", "lcsDialog", "lcsToast", "lcsTabs", "lcsStates", "lcsFab"])(
-    "renders a live replica and its variations for %s",
-    (name) => {
-      expect(hasReplica(name)).toBe(true);
-      const html = render(name);
-      expect(html).toContain('role="tablist"');
-      expect(html).toContain("Copy YAML");
-      expect(html).toContain("Plain");
-      expect(html).not.toContain("on its way");
-    },
-  );
+  it.each([
+    "lcsButton",
+    "lcsTextField",
+    "lcsDialog",
+    "lcsToast",
+    "lcsTabs",
+    "lcsStates",
+    "lcsFab",
+    "lcsDatePicker",
+  ])("renders a live replica and its variations for %s", (name) => {
+    expect(hasReplica(name)).toBe(true);
+    const html = render(name);
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain("Copy YAML");
+    expect(html).toContain("Plain");
+    expect(html).not.toContain("on its way");
+  });
 
   it("says the live preview is coming for a component without a replica", () => {
     expect(render("lcsSomethingNew")).toContain("on its way");
@@ -80,6 +87,38 @@ describe("replica helpers match the components' own formulas", () => {
     expect(formatProblem("ZipCodeUS", "1234")).toMatch(/ZIP/);
     expect(formatProblem("Email", "   ")).toBe("");
     expect(formatProblem("None", "anything")).toBe("");
+  });
+
+  it("the date picker's time list, working days and quick picks follow the component", () => {
+    expect(timeList(15, false).slice(0, 3)).toEqual(["12:00 AM", "12:15 AM", "12:30 AM"]);
+    expect(timeList(30, true)).toHaveLength(48);
+    expect(timeList(60, true)[14]).toBe("14:00");
+    // Monday 2 March to Sunday 8 March 2026: five working days.
+    expect(workingDays(new Date(2026, 2, 2), new Date(2026, 2, 8))).toBe(5);
+    const wednesday = new Date(2026, 2, 4);
+    const [thisWeek, nextSeven, lastThirty] = presets("Range", wednesday);
+    expect(thisWeek![1].getDate()).toBe(2);
+    expect(thisWeek![2]!.getDate()).toBe(8);
+    expect(nextSeven![2]!.getDate()).toBe(10);
+    expect(lastThirty![1].getMonth()).toBe(1);
+    expect(presets("Date", wednesday).map((entry) => entry[0])).toEqual([
+      "Today",
+      "Tomorrow",
+      "In a week",
+    ]);
+    // With weekends blocked, a quick pick never lands on one: This week ends on Friday 6 March,
+    // and "In a week" from Saturday 7 March moves on to Monday 16 March.
+    expect(presets("Range", wednesday, true)[0]![2]!.getDate()).toBe(6);
+    expect(presets("Date", new Date(2026, 2, 7), true)[2]![1].getDate()).toBe(16);
+  });
+
+  it("the date picker's checks run in the component's order", () => {
+    const range = { Mode: "Range" as const, Required: true, BlockWeekends: true };
+    expect(dateProblem(range, null, null)).toBe("Choose a date.");
+    expect(dateProblem(range, new Date(2026, 2, 4), null)).toBe("Choose an end date.");
+    expect(dateProblem(range, new Date(2026, 2, 6), new Date(2026, 2, 4))).toMatch(/on or after/);
+    expect(dateProblem(range, new Date(2026, 2, 7), new Date(2026, 2, 9))).toMatch(/weekday/);
+    expect(dateProblem(range, new Date(2026, 2, 4), new Date(2026, 2, 6))).toBe("");
   });
 
   it("ItemsFromText splits on commas and trims", () => {
