@@ -69,7 +69,7 @@ Go to the screen the user picks:
 ```powerfx
 // navMain.OnNavigate
 Navigate(
-    Switch(Key, "orders", OrdersScreen, "customers", CustomersScreen, "reports", ReportsScreen, "settings", SettingsScreen, HomeScreen),
+    Switch(ItemKey, "orders", OrdersScreen, "customers", CustomersScreen, "reports", ReportsScreen, "settings", SettingsScreen, HomeScreen),
     ScreenTransition.None
 )
 ```

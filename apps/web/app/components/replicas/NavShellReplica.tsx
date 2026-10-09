@@ -359,7 +359,7 @@ export function useNavShellReplica(): ReplicaApi {
     {
       control: "lcsNavShell_1",
       property: "OnNavigate",
-      formula: 'Notify("Go to " & Key)',
+      formula: 'Notify("Go to " & ItemKey)',
     },
     {
       control: "lcsNavShell_1",

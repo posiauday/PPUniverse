@@ -171,9 +171,9 @@ ComponentDefinitions:
         PropertyKind: Event
         DisplayName: OnNavigate
         ReturnType: None
-        Description: "Runs when the user selects an item. Go to its screen here with Navigate, using Key to choose the screen."
+        Description: "Runs when the user selects an item. Go to its screen here with Navigate, using ItemKey to choose the screen."
         Parameters:
-          - Key:
+          - ItemKey:
               DataType: Text
               Description: "The Key of the item selected."
               Default: =""

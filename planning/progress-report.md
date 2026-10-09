@@ -5465,7 +5465,7 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 - **a side menu** with your app's name and a ☰ button that collapses it to icons (labels on hover, the badge as a dot); **a bottom bar** below `BottomBarBelow` (640) with an icon, a short label and a pill for the current item;
 - the current item from `CurrentKey`, or the last one selected: a bar, a filled icon and bold text, so colour isn't the only signal;
 - `HiddenKeys` and `DisabledKeys` for roles; `AccentColor`, `Theme`; every word an input (`Title`, `MenuLabel`, `CollapseText`, `ExpandText`);
-- **outputs that place it and your content**: `ShellX/Y/Width/Height` for the component itself, `ContentX/Y/Width/Height` for a container; also `IsCollapsed`, `IsBottomBar`, `SelectedKey`; `OnNavigate(Key)`, `OnToggle(Collapsed)`, `SetCollapsed()`.
+- **outputs that place it and your content**: `ShellX/Y/Width/Height` for the component itself, `ContentX/Y/Width/Height` for a container; also `IsCollapsed`, `IsBottomBar`, `SelectedKey`; `OnNavigate(ItemKey)`, `OnToggle(Collapsed)`, `SetCollapsed()`.
 
 The live preview measures its own frame as `Parent.Width`, so on a phone-width page the menu becomes a bottom bar, as it would in Power Apps.
 

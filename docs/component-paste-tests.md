@@ -248,7 +248,7 @@ Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y
 | Kind | Do this | Expect |
 | --- | --- | --- |
 | Input | Nothing else | A side menu on the left: "My app", Home marked (light blue, a bar on its left, a filled icon), Orders with a blue 3 |
-| Event | `OnNavigate` to `Notify("Go to " & Key)`; select Customers | "Go to customers"; Customers is marked |
+| Event | `OnNavigate` to `Notify("Go to " & ItemKey)`; select Customers | "Go to customers"; Customers is marked |
 | Input | `CurrentKey` `"reports"` | Reports is marked, whatever was selected |
 | Event | `OnToggle` to `Notify(Collapsed)`; select the ☰ button | "true"; the menu shrinks to icons, Orders shows a small 3; hovering an icon shows its name |
 | Output | A label: `navMain.ShellWidth` | 64 collapsed, 240 expanded |
