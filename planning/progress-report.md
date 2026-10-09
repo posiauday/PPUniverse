@@ -5364,3 +5364,21 @@ The guide shows Office 365 Users search, Add me, the manager as a suggestion, em
 **Checked:** web typecheck, lint and unit tests. After freeing 2.4 GB on C: (the npm download and npx caches, and old Playwright browser profiles), in local browsers: the 28 sign-in, sign-up, password and account states in Firefox at 320 px with a wide font standing in for CI's; the 21 404 states in Chromium, and in WebKit's keyboard walk at 320 px.
 
 **Next:** the product owner merges this fix, then #125, #126 and #127, which carry it already.
+
+## 2026-10-09 — Component library: Pagination (MVP-049, wave 2, In Progress)
+
+**Asked:** "continue": after #124 to #128 were merged and the release PR (#129) opened, the next wave 2 component in the approved build order (docs/research/2026-10-08-component-roadmap-and-differentiators.md: first/previous/next/last, page numbers, a page-size picker, "1–20 of 312", and a page-change event for loading a page at a time).
+
+**Built** `lcsPagination` 0.1.0 (open to copy):
+- first, previous, next and last, grey at either end; page numbers with ellipses, never more than seven (1 … 4 5 6 … 32), in one gallery of buttons seven to a row;
+- rows per page from `PageSizes`, back to page 1 on a change; the summary ("21–40 of 312 orders", with thousands separators); a compact "Page 3 of 32" for phones;
+- outputs that drive a gallery: `Page`, `PageSize`, `PageCount`, `FirstRow`, `LastRow` and `RowsOnPage` (Items: `LastN(FirstN(colOrders, LastRow), RowsOnPage)`);
+- `OnPageChange(NewPage, NewPageSize)` for loading one page at a time, `GoTo(PageNumber)` (a page past the end shows the last) and `Reset()`.
+
+The live preview has a gallery of 312 made-up orders wired with the guide's formula; the gallery takes keyboard focus so a long page can be scrolled.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests (the seven page buttons at the start, middle and end; the row arithmetic, including a short last page and a page past the end; the summary); a local axe and overflow run over the page and its flows at 375 and 1280 px, light and dark: 40 states, clean after making the gallery focusable.
+
+**Not yet:** the product owner's paste-test. New to this library: the button icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide modern buttons in a gallery seven to a row.
+
+**Next:** the Data table (sign-in to copy).

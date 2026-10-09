@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-08 (latest) — **MVP-049 In Progress: wave 2 has begun; nine components drafted.**
+Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: ten components drafted; release #129 open.**
+- **Merged:** #124 to #128 (header and the Terms at sign-up; Text field 0.3.0; the Date and time picker; the People picker; BUG-034 and BUG-035). **Release PR #129** (`develop` → `main`) waits for the product owner.
+- **Drafted since:** Pagination (0.1.0, open to copy), with a live preview and a paste-test checklist.
+- **Remaining wave 2:** Data table (sign-in), Navigation shell (sign-in), Tree view, Stepper.
+
+Last updated (previous): 2026-10-08 — **MVP-049 In Progress: wave 2 has begun; nine components drafted.**
 - **Drafted since:** Floating action button; upgrades to Button, Toast, Tabs and States (0.2.0) and Text field (0.3.0, built-in formats); Date and time picker (0.1.0); People picker (0.1.0, sign-in to copy: your app searches the directory through `OnSearch`). Each has a live preview and a paste-test checklist.
 - **Fixed:** BUG-033, previews cut off on phones.
 - **Waiting on the product owner:** merging #125, #126 and #127 in order (#124 is merged); the paste-tests (`docs/component-paste-tests.md`); the Privacy wording for component ratings.

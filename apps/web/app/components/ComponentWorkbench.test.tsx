@@ -15,6 +15,7 @@ import { skeletonRows, stateFor } from "./replicas/StatesReplica";
 import { itemsFromText, tabText } from "./replicas/TabsReplica";
 import { formatProblem } from "./replicas/TextFieldReplica";
 import { dateProblem, presets, timeList, workingDays } from "./replicas/DatePickerReplica";
+import { pageSlots, paging, summary } from "./replicas/PaginationReplica";
 import {
   avatarColour,
   fieldMessage,
@@ -46,6 +47,7 @@ describe("ComponentWorkbench", () => {
     "lcsFab",
     "lcsDatePicker",
     "lcsPeoplePicker",
+    "lcsPagination",
   ])("renders a live replica and its variations for %s", (name) => {
     expect(hasReplica(name)).toBe(true);
     const html = render(name);
@@ -162,6 +164,30 @@ describe("replica helpers match the components' own formulas", () => {
     expect(fieldMessage(inputs, 0, true)).toBe("⚠ Choose at least one person.");
     expect(fieldMessage(inputs, 3, true)).toMatch(/most this field allows \(3\)/);
     expect(fieldMessage({ ...inputs, MaxPeople: 1 }, 1, true)).toBe("Up to three.");
+  });
+
+  it("pagination shows seven buttons at most, with ellipses, and the rows a gallery needs", () => {
+    expect(pageSlots(1, 5)).toEqual([1, 2, 3, 4, 5]);
+    expect(pageSlots(3, 32)).toEqual([1, 2, 3, 4, 5, 0, 32]);
+    expect(pageSlots(5, 32)).toEqual([1, 0, 4, 5, 6, 0, 32]);
+    expect(pageSlots(30, 32)).toEqual([1, 0, 28, 29, 30, 31, 32]);
+    expect(paging(312, 10, 3)).toEqual({
+      page: 3,
+      pageCount: 32,
+      firstRow: 21,
+      lastRow: 30,
+      rowsOnPage: 10,
+    });
+    // The last page is short, and a page past the end shows the last one.
+    expect(paging(312, 25, 99)).toMatchObject({
+      page: 13,
+      firstRow: 301,
+      lastRow: 312,
+      rowsOnPage: 12,
+    });
+    expect(paging(0, 10, 1)).toMatchObject({ pageCount: 1, firstRow: 0, rowsOnPage: 0 });
+    expect(summary(1312, 25, 2, "orders")).toBe("26–50 of 1,312 orders");
+    expect(summary(0, 10, 1, "orders")).toBe("No orders");
   });
 
   it("ItemsFromText splits on commas and trims", () => {
