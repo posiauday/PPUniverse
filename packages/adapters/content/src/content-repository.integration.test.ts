@@ -27,6 +27,7 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
     await db.articlePublishEvent.deleteMany({
       where: { article: { id: { in: createdArticleIds } } },
     });
+    await db.articleScheduleEvent.deleteMany({ where: { articleId: { in: createdArticleIds } } });
     await db.article.deleteMany({ where: { id: { in: createdArticleIds } } });
     await db.user.deleteMany({ where: { id: { in: createdUserIds } } });
     await db.$disconnect();
@@ -134,6 +135,86 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
 
     const events = await db.articlePublishEvent.findMany({ where: { articleId: created.id } });
     expect(events).toHaveLength(1);
+  });
+
+  async function draft(slug: string, authorUserId: string) {
+    const created = await repo.createArticle({
+      slug,
+      title: `Title ${slug}`,
+      type: "TUTORIAL",
+      technology: null,
+      topic: null,
+      body: "Body.",
+      excerpt: null,
+      authorUserId,
+    });
+    createdArticleIds.push(created.id);
+    return created;
+  }
+
+  it("schedules, reschedules and cancels a draft, recording each change (MVP-050)", async () => {
+    const author = await createTestUser("content-repo-schedule@example.test");
+    const created = await draft("content-repo-schedule-slug", author.id);
+    const first = new Date("2030-01-02T15:00:00.000Z");
+    const second = new Date("2030-01-03T09:30:00.000Z");
+
+    expect((await repo.scheduleArticle(created.id, first, author.id)).scheduledFor).toEqual(first);
+    const moved = await repo.scheduleArticle(created.id, second, author.id);
+    expect(moved).toMatchObject({ status: "DRAFT", scheduledFor: second, publishedAt: null });
+
+    const cancelled = await repo.cancelArticleSchedule(created.id, author.id);
+    expect(cancelled.scheduledFor).toBeNull();
+    await expect(repo.cancelArticleSchedule(created.id, author.id)).rejects.toThrow();
+
+    const events = await db.articleScheduleEvent.findMany({
+      where: { articleId: created.id },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(events.map((event) => [event.action, event.scheduledFor])).toEqual([
+      ["SCHEDULED", first],
+      ["SCHEDULED", second],
+      ["CANCELLED", null],
+    ]);
+  });
+
+  it("never schedules a published article, and publishing by hand clears a schedule (MVP-050)", async () => {
+    const author = await createTestUser("content-repo-schedule-published@example.test");
+    const created = await draft("content-repo-schedule-published-slug", author.id);
+    await repo.scheduleArticle(created.id, new Date("2030-01-02T15:00:00.000Z"), author.id);
+
+    const published = await repo.publishArticle(created.id, author.id);
+    expect(published.scheduledFor).toBeNull();
+    await expect(
+      repo.scheduleArticle(created.id, new Date("2030-02-02T15:00:00.000Z"), author.id),
+    ).rejects.toThrow();
+  });
+
+  it("publishDueArticles publishes due drafts once, at their time, by the admin who scheduled them (MVP-050)", async () => {
+    const author = await createTestUser("content-repo-due-author@example.test");
+    const scheduler = await createTestUser("content-repo-due-scheduler@example.test");
+    const due = await draft("content-repo-due-slug", author.id);
+    const later = await draft("content-repo-not-due-slug", author.id);
+    const dueAt = new Date("2026-01-05T08:00:00.000Z");
+    const now = new Date("2026-01-05T08:00:30.000Z");
+    await repo.scheduleArticle(due.id, dueAt, scheduler.id);
+    await repo.scheduleArticle(later.id, new Date("2026-01-05T08:01:00.000Z"), scheduler.id);
+
+    // Two visits at once: only one of them publishes it.
+    const [a, b] = await Promise.all([repo.publishDueArticles(now), repo.publishDueArticles(now)]);
+    const published = [...a, ...b].filter((article) => article.id === due.id);
+    expect(published).toHaveLength(1);
+    expect(published[0]).toMatchObject({
+      status: "PUBLISHED",
+      publishedAt: dueAt,
+      scheduledFor: null,
+    });
+
+    const events = await db.articlePublishEvent.findMany({ where: { articleId: due.id } });
+    expect(events).toHaveLength(1);
+    expect(events[0]?.actorUserId).toBe(scheduler.id);
+
+    expect(await repo.findArticleById(later.id)).toMatchObject({ status: "DRAFT" });
+    expect(await repo.publishDueArticles(now)).toEqual([]);
   });
 
   it("findPublishedArticleBySlug returns null for a DRAFT article", async () => {
@@ -280,9 +361,10 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       "content-repo-tf-apps-tutorial",
     ]);
     expect(apps.every((a) => a.technology === "POWER_APPS")).toBe(true);
-    expect(
-      apps.filter((a) => a.slug.startsWith("content-repo-tf-")).map((a) => a.topic),
-    ).toEqual(["choose-and-plan", "choose-and-plan"]);
+    expect(apps.filter((a) => a.slug.startsWith("content-repo-tf-")).map((a) => a.topic)).toEqual([
+      "choose-and-plan",
+      "choose-and-plan",
+    ]);
 
     const learnTab = await repo.listPublishedArticleSummaries({
       limit: 50,
@@ -350,7 +432,10 @@ describe.skipIf(!hasDatabase)("PrismaContentRepository (integration)", () => {
       limit: 10,
       technology: "POWER_APPS",
     });
-    expect(apps.map((hit) => hit.slug)).toEqual(["content-repo-search-title", "content-repo-search-body"]);
+    expect(apps.map((hit) => hit.slug)).toEqual([
+      "content-repo-search-title",
+      "content-repo-search-body",
+    ]);
     expect(
       await repo.searchPublishedArticles({ query: "zyxquark", limit: 10, technology: "POWER_BI" }),
     ).toEqual([]);

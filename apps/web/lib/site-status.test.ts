@@ -19,7 +19,6 @@ describe("siteSwitches (MVP-047)", () => {
     const on = Object.fromEntries(switches.map((s) => [s.name, s.on]));
     expect(on).toMatchObject({
       Comments: true,
-      "Components catalog": false,
       "Google sign-in": true,
       "Sending email": true,
       IndexNow: true,

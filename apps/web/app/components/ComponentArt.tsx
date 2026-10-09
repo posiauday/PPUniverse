@@ -200,6 +200,60 @@ const ART: Record<string, ReactNode> = {
       </span>
     </span>
   ),
+  lcsPagination: (
+    <span className="flex flex-col items-center gap-2 text-[12px] font-semibold text-[#242424]">
+      <span className="flex items-center gap-0.5">
+        <Glyph d="M15 6l-6 6 6 6" className="size-3.5 text-[#616161]" />
+        {["1", "…", "4", "5", "6", "…", "32"].map((label, index) => (
+          <span
+            key={index}
+            className={`grid size-6 place-items-center rounded ${label === "5" ? "bg-[#0f6cbd] text-white" : ""}`}
+          >
+            {label}
+          </span>
+        ))}
+        <Glyph d="M9 6l6 6-6 6" className="size-3.5" />
+      </span>
+      <span className="text-[11px] font-normal text-[#616161]">41–50 of 312 orders</span>
+    </span>
+  ),
+  lcsDataTable: (
+    <span className="block w-52 overflow-hidden rounded-lg border border-[#e5e7eb] text-left text-[9px] text-[#242424]">
+      <span className="flex bg-[#f9fafb] px-2 py-1 font-semibold text-[#616161]">
+        <span className="w-12">Order</span>
+        <span className="w-16">Status</span>
+        <span className="flex-1">Progress</span>
+      </span>
+      {[
+        ["#1001", "In progress", "#dbeafe", "#1e40af", 2],
+        ["#1002", "Completed", "#dcfce7", "#166534", 4],
+        ["#1003", "On hold", "#fef3c7", "#92400e", 1],
+      ].map(([order, status, fill, ink, done]) => (
+        <span
+          key={order as string}
+          className="flex items-center border-t border-[#f0f0f0] px-2 py-1.5"
+        >
+          <span className="w-12 font-semibold">{order}</span>
+          <span className="w-16">
+            <span
+              style={{ backgroundColor: fill as string, color: ink as string }}
+              className="rounded-full px-1.5 py-0.5 font-semibold"
+            >
+              {status}
+            </span>
+          </span>
+          <span className="flex flex-1 gap-0.5">
+            {[0, 1, 2, 3].map((segment) => (
+              <span
+                key={segment}
+                className={`h-1.5 flex-1 rounded-sm ${segment < (done as number) ? "bg-[#0f6cbd]" : "bg-[#e2e8f0]"}`}
+              />
+            ))}
+          </span>
+        </span>
+      ))}
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">

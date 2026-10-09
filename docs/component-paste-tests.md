@@ -195,3 +195,46 @@ Set up a test table first, so no connection is needed: `Screen1.OnVisible` to `C
 | Action | A button: `pplApprovers.Clear()` | No chips, an empty box |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark chips, a purple focus line |
 | Connection | With Office 365 Users: `OnSearch` from the guide (`SearchUserV2` with `ShowColumns`) | Real people from your directory |
+
+## Pagination: `lcsPagination` → name it `pgOrders`
+
+New for this library: a gallery of buttons seven to a row (`WrapCount`), the button icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide modern buttons. Check the paste first, and that a page number fits its button.
+
+Set up first: `Screen1.OnVisible` to `ClearCollect(colOrders, ForAll(Sequence(312), {Title: "Order " & (1000 + Value)}))`, `pgOrders.TotalItems` to `CountRows(colOrders)`, and a gallery's `Items` to `LastN(FirstN(colOrders, pgOrders.LastRow), pgOrders.RowsOnPage)` with `ThisItem.Title` in a label.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Pages 1 2 3 4 5 … 32, page 1 filled; "1–10 of 312 items"; the gallery shows Order 1001 to 1010; First and Previous grey |
+| Event | `OnPageChange` to `Notify("Page " & NewPage & " of " & pgOrders.PageCount)`; select 5 | "Page 5 of 32"; 1 … 4 5 6 … 32; Order 1041 to 1050 |
+| Input | Select Last page | Page 32; "311–312 of 312 items"; two orders; Next and Last grey |
+| Input | Rows per page 50 | Back to page 1; 7 pages; 1–50 |
+| Input | `ItemLabel` `"orders"`, `DefaultPageSize` 25, `PageSizes` `"10,25,50,100"` | 13 pages, "1–25 of 312 orders" |
+| Input | `Compact` true | "Page 1 of 32" between the arrows, no page numbers |
+| Input | `ShowFirstLast`, `ShowSummary` and `ShowPageSize` false | Only the arrows and the numbers; the component is 40 tall |
+| Input | `TotalItems` 42 | Pages 1 to 5, no ellipses |
+| Input | `TotalItems` 0 | "No items"; every arrow grey |
+| Action | A button: `pgOrders.GoTo(20)` | Page 20 (no message: GoTo doesn't run OnPageChange) |
+| Action | A button: `pgOrders.Reset()` | Page 1, 10 rows per page |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, the current page purple |
+
+## Data table: `lcsDataTable` → name it `dtOrders`
+
+New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML name is our best reading; if Studio rejects it, tell me, or set `Selectable` to false); `JSON()` of a colour inside the progress bar's picture; the button icon `MoreHorizontal`; and `BorderThickness` on a container. It pastes with four sample rows, so it shows something at once.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Four orders: bold order numbers, blue/green/amber/grey status pills, a segmented progress bar, due dates, red/amber/green priority pills |
+| Event | `OnRowSelect` to `Notify("Open " & RowId)`; select a row (not its checkbox or menu) | "Open 1002" |
+| Input | Select the ⋯ on a row | A small menu opens in the row: View, Edit, Delete; the ⋯ turns into ✕ |
+| Event | `OnRowAction` to `Notify(Action & " " & RowId)`; choose Edit | "Edit 1001"; the menu closes |
+| Event | `OnSort` to `Notify(ColumnNumber & " " & Descending)`; select Customer, then again | "2 false", then "2 true"; the header shows ↑ then ↓ |
+| Input | Tick two rows, then the header box | Rows tint in the accent colour; the header box selects all |
+| Input | `BulkActions` `"Approve,Reject"` | "Select rows", Approve and Reject greyed; tick a row: "1 selected", the buttons work, Clear selection appears |
+| Event | `OnBulkAction` to `Notify(Action & ": " & RowIds)`; tick two, select Approve | "Approve: 1001;1003" |
+| Input | Select Cards, then List in the switch | Cards two or three across with pills, progress and "Due: …"; then a list with a coloured initial, pills and › |
+| Event | `OnViewChange` to `Notify(NewView)` | "Cards", "List" |
+| Input | `Density` `"Compact"` | 44-pixel rows |
+| Input | `Loading` true | Grey placeholder rows |
+| Input | `Rows` to `FirstN(dtOrders.Rows, 0)` | The empty state: an icon, "No items found" and the line under it |
+| Action | Tick rows, then a button: `dtOrders.ClearSelection()` | No rows ticked |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark cards, purple progress and selection |

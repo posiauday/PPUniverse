@@ -5364,3 +5364,133 @@ The guide shows Office 365 Users search, Add me, the manager as a suggestion, em
 **Checked:** web typecheck, lint and unit tests. After freeing 2.4 GB on C: (the npm download and npx caches, and old Playwright browser profiles), in local browsers: the 28 sign-in, sign-up, password and account states in Firefox at 320 px with a wide font standing in for CI's; the 21 404 states in Chromium, and in WebKit's keyboard walk at 320 px.
 
 **Next:** the product owner merges this fix, then #125, #126 and #127, which carry it already.
+
+## 2026-10-09 — Component library: Pagination (MVP-049, wave 2, In Progress)
+
+**Asked:** "continue": after #124 to #128 were merged and the release PR (#129) opened, the next wave 2 component in the approved build order (docs/research/2026-10-08-component-roadmap-and-differentiators.md: first/previous/next/last, page numbers, a page-size picker, "1–20 of 312", and a page-change event for loading a page at a time).
+
+**Built** `lcsPagination` 0.1.0 (open to copy):
+- first, previous, next and last, grey at either end; page numbers with ellipses, never more than seven (1 … 4 5 6 … 32), in one gallery of buttons seven to a row;
+- rows per page from `PageSizes`, back to page 1 on a change; the summary ("21–40 of 312 orders", with thousands separators); a compact "Page 3 of 32" for phones;
+- outputs that drive a gallery: `Page`, `PageSize`, `PageCount`, `FirstRow`, `LastRow` and `RowsOnPage` (Items: `LastN(FirstN(colOrders, LastRow), RowsOnPage)`);
+- `OnPageChange(NewPage, NewPageSize)` for loading one page at a time, `GoTo(PageNumber)` (a page past the end shows the last) and `Reset()`.
+
+The live preview has a gallery of 312 made-up orders wired with the guide's formula; the gallery takes keyboard focus so a long page can be scrolled.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests (the seven page buttons at the start, middle and end; the row arithmetic, including a short last page and a page past the end; the summary); a local axe and overflow run over the page and its flows at 375 and 1280 px, light and dark: 40 states, clean after making the gallery focusable.
+
+**Not yet:** the product owner's paste-test. New to this library: the button icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide modern buttons in a gallery seven to a row.
+
+**Next:** the Data table (sign-in to copy).
+
+## 2026-10-09 — Component library: a switch in the admin, Coming soon, and Copy YAML (MVP-049, In Progress)
+
+**Asked:** "How many components are on the live site and how do I turn them off? Can I control turning certain items on and off from the admin, make them coming soon or hide them while they're under development?" Then: a Coming soon component shows its card and page with a blurred picture and nothing to copy; and yes, a switch for the whole library in the admin (docs/final-decisions.md, 2026-10-09). Also "how many components are published? I want to test them in real Power Apps".
+
+**Answered:** on the live site the library is off (`/components` is a 404) and none is published; production has nine drafts after release #129.
+
+**Built:**
+- **A switch in `/admin/settings`** for the component library, saved in the database (`site_switches`) with an append-only record of every change (`site_switch_events`) in the audit log ("Switches"). It asks for confirmation, changes the live site at once and refreshes every page. Until it's first flipped, `FEATURE_COMPONENTS` decides, so a deploy changes nothing. The header, footer, sitemap, library pages and the publish route's IndexNow ping read it.
+- **Coming soon** for a draft in `/admin/components`: its card on the library page (a "Coming soon" badge and a blurred, greyed picture) and a teaser page (title, summary, a large blurred picture, a note), with no live preview, YAML or guide, and kept out of search. The teaser read returns only the title, summary, category, component name and access, so a draft's YAML never reaches the page. Hidden still hides it; publishing makes it a normal component.
+- **Copy YAML** on each component's admin page, for paste-tests.
+- Migration `20261016000000_add_site_switches_and_coming_soon`: additive (two tables and a column), with a rollback in its header.
+
+**Checked:** web typecheck, lint and tests (850, new: the switch route and its fallback to the environment); the content adapter's database tests (5, new: a Coming soon draft is a teaser only, never its YAML, and not once hidden or published); the e2e package's tests; locally on a production build, the gate's states for the library index (with a teaser card), the new teaser page, Settings, the switch's confirmation (opened, never confirmed: the switch is site-wide) and the component admin pages: 28 checks in Chromium, 42 in Firefox and WebKit, all passing. The first run found the faded words inside the blurred picture below contrast: the picture is decorative and its words are blurred on purpose (incidental text, WCAG 1.4.3), so it now fades through a CSS filter, which axe doesn't measure, and every readable word keeps full contrast.
+
+**Next:** the feedback box that stays open after sending (BUG-036), then the top bar (Guides menu, Learn soon, the theme icon), then "On this page" on every page.
+
+## 2026-10-09 — Fix: the feedback box closes after a note is sent (BUG-036)
+
+**Asked:** the product owner's screenshot: after writing a note in "Did this fix it?" and sending it, the button changed to the thanks, but the box stayed open.
+
+**Changed:** once a note is sent, the form closes and the thanks takes its place, with focus on it; the note is cleared (`apps/web/app/learn/GuideFeedback.tsx`). The gate's `learn-report-sent` state now checks that the box is gone and focus is on the thanks.
+
+**Checked:** web typecheck and lint; the gate's guide feedback states (votes and notes) locally in Chromium and WebKit on a production build: 42 passed.
+
+## 2026-10-09 — Top bar: a Guides menu, Learn coming soon, guides at /guides, the theme icon
+
+**Asked:** "remove Learn from the end and add it to the regular navigation beside Power Platform, and tease the coming-soon Learn module"; "move the light/dark theme button to just before the search bar, just an icon, no round border; the sun transforms to a moon, animated, when clicked, and back"; and help with the confusing names (fixes, guides, patterns). The product owner chose the agent's recommendation (docs/final-decisions.md, 2026-10-09, "Top bar").
+
+**Changed:**
+- **Top bar:** Power Platform ▾ · Guides ▾ · Learn (Soon) · Components (while switched on) · Updates; then the theme icon, the search box and the account. The black Learn button is gone; the phone menu follows (Guides, Learn with Soon, the five kinds, then the areas).
+- **Guides ▾** (`app/GuidesMenu.tsx`): the five kinds, each with its badge, its one name and a few words; and All guides. The same disclosure pattern as Power Platform (Escape and a click outside close it).
+- **One name per kind of guide** (`lib/article-types.ts`): Fix a problem (FIX), Choose a tool (CHOOSE), Design patterns (DESIGN), Measure (MEASURE), Quick reference (LOOK UP), used by the menu, the hub's sections, the article page (it no longer says "Fix · Tutorial"), the footer, search results, share images and the technology hubs' Quick reference row.
+- **Guides moved from `/learn` to `/guides`** (the route folder, every internal link, canonical URLs, breadcrumbs ("Guides"), the sitemap, the RSS feed at `/guides/feed.xml`, IndexNow and the content files' links), with permanent redirects for `/learn` and `/learn/*` that keep the #anchor and query. The share images stay at `/og/learn/*` and Learn progress at `/api/learn/progress`.
+- **Learn (Soon):** while the Learn module is off, `/topics` says Learn is coming soon, points to the guides and is kept out of search (it was a 404).
+- **The theme icon:** no border or circle; the sun's rays turn and shrink away, the disc grows and a bite slides in to make the moon, all with CSS transforms, and it simply switches with reduced motion. Still a "Dark theme" toggle button with aria-pressed, and a 44px target.
+
+**On the way:** the rewrite of `/learn` also turned `https://learn.microsoft.com` into `guides.microsoft.com` in 20 places in code and tests (the address has `//learn`); all were found by the tests and put back before anything was committed, and the content files used a separate exact rewrite and were never touched.
+
+**Checked:** web typecheck, lint and tests (853, including a new test for Learn coming soon and the rewritten header tests); the e2e package's tests (route coverage includes `/guides/feed.xml`); locally on a production build, `/learn/x` answers 308 to `/guides/x`; the gate's home, search, sign-in, guides hub, guide, comments, topics, account, admin and 404 states: 91 checks in Chromium, and home, a guide and topics in Firefox and WebKit: 56, all passing; the header, Guides menu and sun-to-moon toggle looked at in the browser.
+
+**Next:** the "On this page" highlight (BUG-037), then the Data table.
+
+## 2026-10-09 — Fix: "On this page" follows the section being read (BUG-037)
+
+**Asked:** "On this page doesn't work or move with scrolling on lots of pages, but on some it works; review all the pages."
+
+**Found:** the panel does stick (measured on the live site at 1,080 and 1,280 px). The highlight lagged: scrolling with the wheel to each section on all 64 live pages with "On this page", in Chromium and Firefox, every page marked the previous section and never the first. A heading counted as "being read" only within 140 px of the top, under the 100 px sticky header.
+
+**Changed:** the reading line is about a third of the way down the window, at least 160 px (`readingLine` in `apps/web/app/guides/TocSpy.tsx`), with unit tests.
+
+**Checked:** web typecheck and tests; locally on a production build with the 60 guides imported and published in the local database only, scrolling to each section in Chromium and Firefox: the section scrolled to is marked, or its sub-heading when one follows straight away. Firefox needed exact scroll positions in the check, because it scales wheel distances differently.
+
+## 2026-10-09 — Component library: Data table (MVP-049, wave 2, In Progress)
+
+**Asked:** the Data table, built on a gallery (docs/final-decisions.md, 2026-10-09, "Data table: our own, on a gallery"); then the product owner shared a table component's YAML from elsewhere: "for data is this useful? I don't want grid but I want you to design the gallery to look like this". Answered: useful as a look, not as code (its table rows can't be selected, its click areas have no names, it uses `AccessAppScope`, its columns are fixed, and its licence is unknown); built our own in that style, with none of its code, colour parsing, sample rows or names.
+
+**Built** `lcsDataTable` 0.1.0 (sign-in to copy):
+- **three views from one switch:** a table, cards two or three across, and a list with a coloured initial; the user picks, and `View` sets the first one;
+- **columns from a table:** up to six, each Text, Strong, Badge (a pill coloured by its text from `BadgeStyles`) or Progress (a segmented bar drawn from "2/4");
+- **select a row, card or list item to open it** (`OnRowSelect(RowId)`): the whole row is one button, named by its title column;
+- sortable headers that tell the app (`OnSort(ColumnNumber, Descending)`, with arrows); checkboxes with a select-all box and bulk buttons (`OnBulkAction(Action, RowIds)`); a row menu that opens inside the row (`OnRowAction(Action, RowId)`); loading and empty states; two densities; `AccentColor` and `Theme`;
+- outputs `CurrentView`, `SortColumn`, `SortDescending`, `SelectedIds`, `SelectedCount`, `SelectedRows`; `ClearSelection()`.
+
+The live preview runs on ten made-up orders sorted by the component's SortColumn, as the guide shows.
+
+**Also fixed in the workbench:** when a preset sets an input that the preview's screen also sets (the Data table's Empty preset sets Rows), the preset's formula now replaces the screen's in "Formulas on this screen", and the list's keys are unique; before, a stale line could stay on screen after switching presets. Found before release; no component shipped with it.
+
+**Checked:** the component gate (13 folders); web typecheck, lint and component tests (32, new: sorting as the Rows formula does, progress and pill colours); a local axe and overflow run over the page and its flows (sorting, selecting, the row menu, opening a row, cards, list, approvals, compact, loading, empty, dark) at 375 and 1280 px, light and dark: 56 states, clean after two fixes found by it (the card checkbox's position and its 24-pixel target size).
+
+**Not yet:** the product owner's paste-test; `ModernCheckbox@1.0.0` is our best reading of the control's YAML name.
+
+**Next:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
+
+## 2026-10-09 — Admin: scheduled publishing and draft previews (MVP-050, QA)
+
+**Asked:** "scheduled publishing and draft previews", next after the Data table (docs/final-decisions.md, 2026-10-09). Before building, two answers from the product owner, recorded the same day: previews are for admins only (no share links), and a schedule goes live on the first visit after its time (no timer or new service).
+
+**Built:**
+- **Schedule a draft guide or update** from its edit page (**Publishing**): pick a date and time in your own time zone (sent as UTC); change it or cancel it. From a minute to a year ahead. The admin lists show "scheduled for" with the time.
+- **Goes live on the first visit after the time** (`apps/web/lib/scheduled-publishing.ts`): every public read of guides and updates first publishes what is due, at most once per 30 seconds per server, and a visit that arrives while a check runs waits for it, so that visit already sees the item. `publishedAt` is the scheduled time; the publish event names the admin who scheduled it; IndexNow is told after the response is sent. A conditional update means a row is published once even when two visits race (an integration test runs two at once). A failure is logged and never breaks the page. Publishing by hand clears a schedule.
+- **Previews, admins only:** `/preview/guides/{id}` and `/preview/updates/{id}` show the draft as it will look, under a "Preview" banner (with its schedule and a way back to editing). The guide preview uses the same render function as the public page (`app/guides/guide-page.tsx`), without votes, "Did this fix it?", comments, the copy link and structured data. Anyone else gets the ordinary 404; never indexed; a published item redirects to its public page.
+- **Audit log:** a "Schedule" kind (set, changed, cancelled, with the time in UTC), and update publishes, which were never in the log before.
+- **Data:** `scheduledFor` on articles and updates, and two append-only schedule-event tables (migration `20261017000000_add_content_scheduling`, additive; rollback in its header; row-level security on with no policies).
+- **API:** `PUT`/`DELETE /api/admin/content/{id}/schedule` and `/api/admin/updates/{id}/schedule`: admins only, same-origin only, drafts only (`docs/07-api-contracts.md`).
+
+**Choices made without a product-owner answer (safe and reversible; tell me to change any):** times from a minute to a year ahead; a scheduled item is dated with its scheduled time, not the visit that published it; the publish event's actor is the admin who last scheduled it; 30 seconds between checks; up to 20 items per check; the update preview is dated with its scheduled time, or today.
+
+**On the way:**
+- The guide page's layout moved into `renderGuidePage`, shared with the preview; the update card moved into `app/updates/UpdateCard.tsx`.
+- The accessibility harness (`packages/e2e/src/browser.ts`) now walks through a date or time input's parts (Chromium and Firefox give each part its own Tab stop) instead of reading the second stop as the end of the page. Only those input types, at most 8 parts; a control that keeps focus still fails as a trap.
+- Found **BUG-038**: the component library and site switch tables were created without row-level security (fixed in its own PR).
+
+**Checked:** domain tests (7 new); web typecheck, lint and tests (all pass, new: the publish-on-visit logic, the schedule routes for guides and updates, the previews, the audit entries); repository integration tests against a local Postgres (16 pass; the two-visits-at-once case was run one after the other locally, because the local Prisma dev server can't take two transactions at once, and runs as written in CI on real Postgres); the accessibility gate locally on the previews, the admin lists and edit pages, the guide page and Updates: axe in all three browsers at every width, 135 pass; keyboard, 44 of 48 pass. The 4 failures were the admin guides list at both widths in Chromium and Firefox: my local database holds 96 guides (60 imported for testing and 36 leftover fixtures from runs where the local database crashed), so the list passes the gate's 160-press limit; CI seeds only a few.
+
+**Not yet:** the product owner's review; CI.
+
+**Next:** release `develop` → `main` once #134, #135 and this are merged; then the remaining wave 2 components.
+
+## 2026-10-09 — Fix: row-level security on the component library and site switch tables (BUG-038)
+
+**Found** by the agent while adding MVP-050's tables. `library_components`, `component_events`, `site_switches` and `site_switch_events` were created without row-level security. Every other table has it, with no policies (docs/final-decisions.md, "RLS implementation note"). No exposure is known: reaching them needs the Supabase anon key, which the site never publishes.
+
+**Changed:**
+- Migration `20261016000100_enable_rls_component_and_switch_tables` turns it on for the four tables. It is additive and makes no difference to the app, which connects as the owner.
+- `packages/db/src/row-level-security.test.ts` fails CI for any table a migration creates without it. Without the fix, it names exactly these four.
+
+**Checked:**
+- The test passes with the migration and fails without it.
+- The migration applies to a local Postgres, and afterwards no public table there is without row-level security.
+
+**For the product owner:** after the release, Supabase's Security Advisor should show no "RLS disabled" warnings.

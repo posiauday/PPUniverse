@@ -3,15 +3,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { componentRepository } from "../../lib/components";
-import { componentsEnabled } from "../../lib/feature-flags";
+import { componentsLibraryOn } from "../../lib/site-switches";
 import { buildComponentsIndexMetadata, buildNotFoundMetadata } from "../../lib/seo/metadata";
 import { getSiteUrl } from "../../lib/site-url";
+import { ComingSoonBadge, TeaserArt } from "./ComingSoonComponent";
 import { ComponentArt } from "./ComponentArt";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (!componentsEnabled()) return buildNotFoundMetadata("Page not found");
+  if (!(await componentsLibraryOn())) return buildNotFoundMetadata("Page not found");
   const components = await componentRepository.listPublic();
   return buildComponentsIndexMetadata({ site: getSiteUrl(), hasComponents: components.length > 0 });
 }
@@ -20,16 +21,22 @@ export async function generateMetadata(): Promise<Metadata> {
  * The Power Apps component library (MVP-049; docs/final-decisions.md,
  * 2026-10-08, "One live view"): every published, visible component, grouped by
  * category, each card with a picture of the component, how many properties of
- * each kind it has, and whether copying needs a (free) account. A 404 while
- * FEATURE_COMPONENTS is off.
+ * each kind it has, and whether copying needs a (free) account; then any
+ * marked Coming soon, with a blurred picture (docs/final-decisions.md,
+ * 2026-10-09). A 404 while
+ * component library is switched off (/admin/settings).
  */
 export default async function ComponentsPage() {
-  if (!componentsEnabled()) notFound();
-  const components = await componentRepository.listPublic();
+  if (!(await componentsLibraryOn())) notFound();
+  const [components, teasers] = await Promise.all([
+    componentRepository.listPublic(),
+    componentRepository.listComingSoon(),
+  ]);
   const groups = COMPONENT_CATEGORIES.map((category) => ({
     ...category,
     items: components.filter((component) => component.category === category.id),
-  })).filter((group) => group.items.length > 0);
+    soon: teasers.filter((teaser) => teaser.category === category.id),
+  })).filter((group) => group.items.length + group.soon.length > 0);
   const tested = components.filter((component) => component.testedAt).length;
 
   return (
@@ -60,6 +67,7 @@ export default async function ComponentsPage() {
             {[
               `${components.length} ${components.length === 1 ? "component" : "components"}`,
               ...(tested > 0 ? [`${tested} tested in Power Apps Studio`] : []),
+              ...(teasers.length > 0 ? [`${teasers.length} coming soon`] : []),
               "Every kind of custom property",
               "No premium licence",
             ].map((fact) => (
@@ -147,6 +155,30 @@ export default async function ComponentsPage() {
                         {component.access === "MEMBERS" ? "Free with an account" : "Free to copy"}
                       </span>
                     </p>
+                  </div>
+                </li>
+              ))}
+              {group.soon.map((teaser) => (
+                <li
+                  key={teaser.slug}
+                  className="group relative flex flex-col overflow-hidden rounded-[1.5rem] border border-dashed border-border bg-card hover:border-foreground"
+                >
+                  <div className="relative grid h-44 place-items-center overflow-hidden bg-stage">
+                    <TeaserArt componentName={teaser.componentName} />
+                    <ComingSoonBadge className="absolute top-3 left-3" />
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2 p-5">
+                    <h3 className="font-display text-xl font-bold">
+                      <Link
+                        href={`/components/${teaser.slug}`}
+                        className="no-underline after:absolute after:inset-0 after:content-['']"
+                      >
+                        {teaser.title}
+                        <span className="sr-only"> (coming soon)</span>
+                      </Link>
+                    </h3>
+                    <p className="text-[0.9375rem] text-muted-foreground">{teaser.summary}</p>
+                    <p className="mt-auto pt-2 text-sm">Being tested in Power Apps Studio</p>
                   </div>
                 </li>
               ))}

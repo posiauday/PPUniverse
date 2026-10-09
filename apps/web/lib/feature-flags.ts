@@ -3,16 +3,10 @@
  * modules"). Read on the server at request time, so a flag is switched in the
  * hosting environment without a code change.
  *
- * FEATURE_COMPONENTS: the component catalog's navigation links. Off until the
- * first product is published, so the top bar never leads to an empty catalog
- * (docs/final-decisions.md, "Navigation restructure", decision 1). Since
- * MVP-049 it also switches on the Power Apps component library pages
- * (/components); while it's off they are a 404. Publishing and testing in
- * /admin/components work either way.
+ * FEATURE_COMPONENTS is now only the starting value of the component
+ * library's admin switch (lib/site-switches.ts): it decides until the switch
+ * is first flipped in /admin/settings (docs/final-decisions.md, 2026-10-09).
  */
-export function componentsEnabled(): boolean {
-  return process.env["FEATURE_COMPONENTS"] === "on";
-}
 
 /**
  * FEATURE_COMMENTS: comments on guides and readers' profiles (MVP-040). Off
@@ -28,7 +22,7 @@ export function commentsEnabled(): boolean {
  * FEATURE_LEARN: the public Learn module at /topics (MVP-048). Off until the
  * first topic is published: off, /topics and its pages answer 404, they stay
  * out of the sitemap, and the top bar's Learn button keeps opening the guides
- * (/learn). On, the Learn button opens /topics (docs/plans/learn-module.md,
+ * (/guides). On, the Learn button opens /topics (docs/plans/learn-module.md,
  * "Where it lives"). The admin works either way.
  */
 export function learnEnabled(): boolean {

@@ -2250,3 +2250,47 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
    - an account that hasn't agreed (made before this, or someone who left the welcome page) sees a reminder until they do.
    Each agreement is the existing Terms consent record, tied to the current Terms version by the server.
 
+
+## 2026-10-09 — Component library: a switch in the admin, and Coming soon
+
+**Source:** direct product-owner answers in this session, after asking how many components are on the live site and how to turn them off: "Can I control turning on and off of certain items from the admin centre, make it coming soon or hide till under development". Asked how a Coming soon component should look, the product owner answered "Card and page, no copy, and a blurred image of the teased component", and shared screenshots of faded "Coming Soon" cards as a reference for the idea (not a design to copy). Asked whether the whole library should be switched from the admin instead of Netlify: "Yes, a switch in admin".
+
+1. **A switch in the admin.** `/admin/settings` has an on/off switch for the component library, saved in the database and recorded in the audit log. It changes the live site at once, without Netlify or a redeploy, and asks for confirmation first. Until it is first flipped, `FEATURE_COMPONENTS` decides, so nothing changes on deploy. This replaces `FEATURE_COMPONENTS` as the way to turn the library on and off.
+2. **Coming soon.** A draft component can be marked Coming soon in `/admin/components`. Its card shows on the library page with a "Coming soon" badge, and its page shows its title, summary and a blurred picture of the component, with no live preview, no YAML and no guide. Hidden still hides it. Publishing (after a paste-test) makes it a normal component.
+3. The card's text stays readable at full contrast (WCAG 1.4.3); only the picture is blurred and faded.
+
+## 2026-10-09 — Top bar: a Guides menu, Learn coming soon, one name per kind of guide
+
+**Source:** direct product-owner instructions in this session: "remove Learn from the end and add it to the regular navigation beside Power Platform, and tease the coming-soon Learn module"; "move the light/dark theme button to just before the search bar, just an icon, no round border; the sun icon transforms to a moon, animated, when clicked, and back when clicked again"; and "I think everything is so confusing, fixes and guides and patterns; I don't feel good about the naming of organising those, please help". Offered three namings, the product owner chose the agent's recommendation.
+
+1. **Top bar:** Power Platform ▾ · Guides ▾ · Learn (Soon) · Components (while the library is switched on) · Updates; then the theme icon, the search box and the account. The black **Learn** button at the end goes.
+2. **Guides ▾** lists the five kinds of guide. Each kind has one name, used for the menu, the hub's sections, filters and badges:
+   - Fix a problem (badge FIX), Choose a tool (CHOOSE), Design patterns (DESIGN), Measure (MEASURE), Quick reference (LOOK UP).
+3. **Guides move from `/learn` to `/guides`**, with permanent redirects from every old address, so "Learn" only ever means the courses.
+4. **Learn (Soon)** is the Learn module (topics and lessons), teased as coming soon until it is switched on.
+5. **The theme button** is an icon only, just before the search box, with no round border; the sun turns into a moon, animated, and back (no animation with reduced motion).
+6. Supersedes the top-bar part of "Top bar names, AI search readiness, and comments" (2026-10-07): Fixes and Patterns as top-bar links, and the Learn button.
+
+## 2026-10-09 — Data table: our own, on a gallery
+
+**Source:** direct product-owner answer in this session. Asked how to handle the planned Data table now that Microsoft ships a modern Data Grid control (`ModernDataGrid@1.1.0`: sorting, search, row checkboxes, virtualised rows, button columns; Microsoft Learn, "Data Grid modern control in canvas apps"), the product owner chose "Build our own on a gallery" over building on the Data Grid or skipping the Data table, because "Data grid has design limitations but galleries can [be] designed like modern UI too and OnSelect works best to open [an] item".
+
+1. **lcsDataTable is built on a gallery**, as planned in the 2026-10-08 build order: columns from a table input, sorting and paging as events, row selection and bulk actions, row actions, a sticky header, density, empty and loading states.
+2. **Selecting a row opens it:** the row itself is the main action (`OnRowSelect`), with checkboxes and row actions beside it.
+3. **Sign-in to copy**, as already decided.
+4. **The look** (direct product-owner instruction, the same day, sharing a table component's YAML from elsewhere: "for data is this useful? I don't want grid but I want you to design the gallery to look like this"): **table, card and list views** with a view toggle; coloured **status and priority pills** from a style table; a **segmented progress bar**; row hover; a **row menu** (view, edit, delete); and a clear **empty state**. Built by us from scratch in that visual style: none of the shared YAML, its colour-string parsing, its sample rows or its names is reused, and its problems are not carried over (rows that can't be selected in table view, unnamed click areas, `AccessAppScope`, fixed columns).
+
+## 2026-10-09 — Admin: scheduled publishing and draft previews next
+
+**Source:** direct product-owner answer in this session, choosing from the agent's review of missing admin features (suspend a user, upload scan review, orders and refunds, an email log, scheduled publishing and draft previews, redirects): "scheduled publishing and draft previews".
+
+1. **Scheduled publishing** and **draft preview links** for articles and platform updates are the next admin feature (MVP-050), after the Data table.
+2. The other items in the review stay unscheduled until the product owner chooses them.
+
+## 2026-10-09 — MVP-050: previews for admins only; a schedule goes live on the first visit
+
+**Source:** direct product-owner answers in this session, to the agent's two questions before building MVP-050: "Admins only" and "First visit after the time".
+
+1. **Draft previews are for admins only.** A Preview button in the admin opens a draft guide or update as it will look on the site. Anyone else gets the ordinary "not found" page, and the preview is kept out of search. No share links (a link that works without signing in was offered and not chosen).
+2. **A scheduled guide or update goes live on the first visit after its time.** No new service, timer or secret: the first page view after the time (by anyone, or a search engine reading the sitemap) publishes it, and search engines are told through IndexNow as on a manual publish. Until then it stays a draft, so nobody can see it early. A 5-minute Netlify scheduled function was offered and not chosen.
+

@@ -172,7 +172,7 @@ const FIXTURE_ARTICLE_MARKDOWN = [
   "## Setting up",
   "",
   "- First step",
-  "- Second step, with [a link to the learn hub](/learn)",
+  "- Second step, with [a link to the learn hub](/guides)",
   "",
   "> [!TIP]",
   "> A fixture tip callout.",
@@ -253,11 +253,11 @@ export interface FixtureSet {
   minimalProduct: ProductRef;
   /** Isolated for the free-entitlement flow's own click-through interaction — see createFixtures. */
   freeGrantProduct: ProductRef;
-  /** MVP-017 (FR-014): a PUBLISHED Article, visible at /learn/[slug]. */
+  /** MVP-017 (FR-014): a PUBLISHED Article, visible at /guides/[slug]. */
   publishedArticle: ArticleRef;
   /** SEO story: a second PUBLISHED Article of the same type, listed under the first one's "Keep learning". */
   relatedArticle: ArticleRef;
-  /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /learn/[slug] must 404 for it. */
+  /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /guides/[slug] must 404 for it. */
   draftArticle: ArticleRef;
   /** MVP-033 slice D: a PUBLISHED platform update (on /updates, in the tracker) and a DRAFT one (admin only). */
   publishedUpdate: { id: string; slug: string; title: string };
@@ -272,6 +272,8 @@ export interface FixtureSet {
   draftComponent: { id: string; title: string };
   publishedComponent: { id: string; slug: string; title: string };
   membersComponent: { slug: string; title: string };
+  /** A draft marked Coming soon: a teaser card and page (2026-10-09). */
+  soonComponent: { slug: string; title: string };
   /** MVP-012 (FR-009): a bare DRAFT Product (core fields only, no license/
    * support/compatibility/release) — visible in the admin products list,
    * and exercises the "still missing mandatory fields" publish-readiness
@@ -438,6 +440,12 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
           where: { articleId: { in: created.articleIds } },
         }),
       );
+      // MVP-050: schedule events reference the article (and the admin) too.
+      await attempt(() =>
+        prisma.articleScheduleEvent.deleteMany({
+          where: { articleId: { in: created.articleIds } },
+        }),
+      );
     }
     await attempt(() =>
       prisma.article.deleteMany({
@@ -449,6 +457,9 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     if (created.updateIds.length > 0) {
       await attempt(() =>
         prisma.updatePublishEvent.deleteMany({ where: { updateId: { in: created.updateIds } } }),
+      );
+      await attempt(() =>
+        prisma.updateScheduleEvent.deleteMany({ where: { updateId: { in: created.updateIds } } }),
       );
     }
     await attempt(() =>
@@ -691,7 +702,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.adminUserId = admin.id;
 
-    // MVP-017 (FR-014): a PUBLISHED Article (visible at /learn/[slug]) and a
+    // MVP-017 (FR-014): a PUBLISHED Article (visible at /guides/[slug]) and a
     // DRAFT Article (must 404 there, but visible in the admin content list).
     // Authored by the fixture admin — content-publishing authority reuses
     // ADMIN, no EDITOR role exists (docs/final-decisions.md, "MVP-017
@@ -832,14 +843,26 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     const draftUpdateSlug = `${prefix}draft-update`;
     assertReserved("update", draftUpdateSlug);
+    // MVP-050: scheduled a month ahead, so the admin pages and its preview
+    // show a schedule; it never comes due during a run.
+    const draftUpdateScheduledFor = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     const draftUpdate = await prisma.updateItem.create({
       data: {
         ...updateFields,
         slug: draftUpdateSlug,
         title: `E2E fixture: draft update ${prefix}(not real news)`,
+        scheduledFor: draftUpdateScheduledFor,
       },
     });
     created.updateIds.push(draftUpdate.id);
+    await prisma.updateScheduleEvent.create({
+      data: {
+        updateId: draftUpdate.id,
+        actorUserId: admin.id,
+        action: "SCHEDULED",
+        scheduledFor: draftUpdateScheduledFor,
+      },
+    });
 
     // MVP-048: a draft Learn topic and one draft lesson in the fixed lesson shape.
     const draftTopicSlug = `${prefix}draft-topic`;
@@ -928,6 +951,15 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
       },
     });
     created.componentIds.push(membersComponent.id);
+    const soonComponent = await prisma.libraryComponent.create({
+      data: {
+        ...componentBase,
+        slug: componentSlug("soon-component"),
+        title: `E2E fixture: coming soon component ${prefix}`,
+        comingSoon: true,
+      },
+    });
+    created.componentIds.push(soonComponent.id);
 
     // MVP-048: a published topic with three published lessons, for the public pages.
     const publishedTopicSlug = `${prefix}published-topic`;
@@ -1191,6 +1223,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
         title: publishedComponent.title,
       },
       membersComponent: { slug: membersComponent.slug, title: membersComponent.title },
+      soonComponent: { slug: soonComponent.slug, title: soonComponent.title },
       draftAdminProduct: {
         id: draftAdminProduct.id,
         slug: draftAdminProduct.slug,

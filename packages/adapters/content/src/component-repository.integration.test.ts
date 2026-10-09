@@ -119,4 +119,40 @@ describe.skipIf(!hasDatabase)("PrismaComponentRepository (integration, MVP-049)"
     });
     await expect(repo.replaceDraft(created.id, input("component-repo-settings", user.id))).rejects.toThrow(/draft/);
   });
+  it("shows a Coming soon draft as a teaser only, never its YAML, and not once hidden or published", async () => {
+    const user = await admin("component-repo-soon@example.test");
+    const created = await create("component-repo-soon", user.id);
+    expect(await repo.findComingSoonBySlug("component-repo-soon")).toBeNull();
+
+    await repo.updateSettings(created.id, { comingSoon: true }, user.id);
+    const teaser = await repo.findComingSoonBySlug("component-repo-soon");
+    expect(teaser).toEqual({
+      id: created.id,
+      slug: "component-repo-soon",
+      title: "Component component-repo-soon",
+      summary: created.summary,
+      category: "buttons-and-actions",
+      componentName: "lcsThing",
+      access: "OPEN",
+    });
+    expect(teaser).not.toHaveProperty("yaml");
+    expect((await repo.listComingSoon()).map((t) => t.slug)).toContain("component-repo-soon");
+    // Still not a public component: nothing to copy.
+    expect(await repo.findPublicBySlug("component-repo-soon")).toBeNull();
+
+    await repo.updateSettings(created.id, { hidden: true }, user.id);
+    expect(await repo.findComingSoonBySlug("component-repo-soon")).toBeNull();
+    await repo.updateSettings(created.id, { hidden: false }, user.id);
+
+    await repo.markTested(created.id, "3.1", user.id);
+    await repo.publish(created.id, user.id);
+    expect(await repo.findComingSoonBySlug("component-repo-soon")).toBeNull();
+    expect(await repo.findPublicBySlug("component-repo-soon")).not.toBeNull();
+
+    const changes = await db.componentEvent.findMany({
+      where: { componentId: created.id, action: "SETTINGS_CHANGED" },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(changes[0]?.detail).toEqual({ comingSoon: { from: false, to: true } });
+  });
 });

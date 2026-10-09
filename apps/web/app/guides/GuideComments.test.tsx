@@ -65,7 +65,7 @@ describe("GuideComments (MVP-040)", () => {
   it("asks a guest to sign in, and gives a signed-in reader the form", () => {
     const guest = render([]);
     expect(guest).toContain("No comments yet");
-    expect(guest).toContain('href="/signin?callbackUrl=%2Flearn%2Fa-guide%23reader_comments"');
+    expect(guest).toContain('href="/signin?callbackUrl=%2Fguides%2Fa-guide%23reader_comments"');
     expect(guest).not.toContain("<textarea");
     const member = render([], true);
     expect(member).toContain("<textarea");

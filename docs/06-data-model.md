@@ -62,6 +62,12 @@ Platform updates for `/updates` and the header badge, mirroring Article and Arti
 
 Authorization: content-publishing authority (create/edit/publish an `Article`) reuses the existing `ADMIN` role — no `EDITOR` role exists or is introduced (`docs/final-decisions.md`, "MVP-017 implementation: content-publishing authorization reuses ADMIN").
 
+### Scheduled publishing (MVP-050)
+A draft guide or update can carry a planned publish time (`docs/final-decisions.md`, 2026-10-09, "a schedule goes live on the first visit").
+- `Article.scheduledFor` and `UpdateItem.scheduledFor`: nullable `DateTime`; only ever set on a `DRAFT`, and cleared on publish. Indexed on `(status, scheduledFor)`.
+- When the first public read after that time runs (`apps/web/lib/scheduled-publishing.ts`), the row becomes `PUBLISHED` with `publishedAt` = the scheduled time and a `PUBLISHED` publish event by the admin who last scheduled it. A conditional update (still `DRAFT`, still the same time) means a row is published once even when two visits race.
+- `ArticleScheduleEvent` (`article_schedule_events`) and `UpdateScheduleEvent` (`update_schedule_events`): append-only, one row per change: `articleId`/`updateId`, `actorUserId`, `action` (enum `ScheduleAction`: `SCHEDULED | CANCELLED`; a new time is another `SCHEDULED`), `scheduledFor` (null for `CANCELLED`), `createdAt`. Restrict FKs; row-level security on with no policies. Shown in the audit log as "Schedule".
+
 ### LearnTopic, LearnLesson and LearnPublishEvent (MVP-048)
 The Learn module (`docs/plans/learn-module.md`): topics made of 3 to 6 lessons at `/topics/<topic>/<lesson>`. Same lifecycle as `Article`: created `DRAFT`, `publishedAt` set once on publish and never rewritten, `Restrict` FKs, row-level security on with no policies.
 - `LearnTopic` (`learn_topics`): `slug` (unique; the address and the importer's key), `title`, `summary` (plain text), `technology` (required `Technology`, including `GOVERNANCE_ADMIN`), `sortOrder` (order among the area's topics), `status`, `publishedAt`, `authorUserId`.

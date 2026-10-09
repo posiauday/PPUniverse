@@ -237,7 +237,7 @@ describe("buildCollectionPageJsonLd", () => {
 describe("buildArticleJsonLd (SEO story)", () => {
   const input = {
     origin: "https://example.com",
-    url: "https://example.com/learn/intro",
+    url: "https://example.com/guides/intro",
     title: "Intro",
     excerpt: "Start here.",
     publishedAt: new Date("2026-09-01T00:00:00.000Z"),
@@ -257,7 +257,7 @@ describe("buildArticleJsonLd (SEO story)", () => {
       "@type": "TechArticle",
       headline: "Intro",
       description: "Start here.",
-      url: "https://example.com/learn/intro",
+      url: "https://example.com/guides/intro",
       datePublished: "2026-09-01T00:00:00.000Z",
       dateModified: "2026-09-20T00:00:00.000Z",
       author: brand,
@@ -279,14 +279,14 @@ describe("buildBreadcrumbJsonLd (SEO story)", () => {
     expect(
       buildBreadcrumbJsonLd([
         { name: SITE_NAME, url: "https://example.com/" },
-        { name: "Learn", url: "https://example.com/learn" },
+        { name: "Guides", url: "https://example.com/guides" },
       ]),
     ).toEqual({
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: SITE_NAME, item: "https://example.com/" },
-        { "@type": "ListItem", position: 2, name: "Learn", item: "https://example.com/learn" },
+        { "@type": "ListItem", position: 2, name: "Guides", item: "https://example.com/guides" },
       ],
     });
   });

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { ViewerSummary } from "../lib/viewer";
 import { Avatar } from "./Avatar";
-import { componentsEnabled, learnEnabled } from "../lib/feature-flags";
+import { learnEnabled } from "../lib/feature-flags";
 import { buildTechnologyMenu, type TechnologyMenuArea } from "../lib/technology-menu";
 import type { Theme } from "../lib/theme";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
 import { SITE_NAME } from "../lib/seo/site";
 import { BrandMark } from "./BrandMark";
+import { GuidesMenu } from "./GuidesMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileMenu } from "./MobileMenu";
 import { TechnologiesMenu } from "./TechnologiesMenu";
@@ -21,17 +22,27 @@ const TECHNOLOGY_LINKS = ALL_AREAS.map((area) => ({
   tint: area.tint,
 }));
 
-/** The main links (docs/final-decisions.md, "Top bar names", MVP-045): the
- * two kinds of guide people come for, each opening its section of /learn,
- * and Components only once the catalog has products (feature flag). The
- * other kinds stay one click away: each technology page, and the Power
- * Platform menu's "every guide by goal" link. */
-function mainLinks(): Array<{ name: string; href: string }> {
+/** The links after the Power Platform and Guides menus (docs/final-decisions.md,
+ * 2026-10-09, "Top bar: a Guides menu, Learn coming soon"): Learn, marked Soon
+ * until the Learn module is switched on, and Components while the library is
+ * switched on. */
+export function mainLinks(
+  componentsOn: boolean,
+  learnOn: boolean,
+): Array<{ name: string; href: string; soon?: boolean }> {
   return [
-    { name: "Fixes", href: "/learn#tutorials" },
-    { name: "Patterns", href: "/learn#patterns" },
-    ...(componentsEnabled() ? [{ name: "Components", href: "/components" }] : []),
+    { name: "Learn", href: "/topics", ...(learnOn ? {} : { soon: true }) },
+    ...(componentsOn ? [{ name: "Components", href: "/components" }] : []),
   ];
+}
+
+/** The "Soon" mark beside Learn: part of the link's name, so it's read out too. */
+function SoonMark() {
+  return (
+    <span className="ml-1.5 rounded-full bg-highlight px-1.5 py-px text-[0.6875rem] font-semibold text-highlight-foreground">
+      Soon
+    </span>
+  );
 }
 
 const NAV_LINK =
@@ -39,9 +50,10 @@ const NAV_LINK =
 
 /**
  * Site-wide header (MVP-027; Daylight look, MVP-031): a floating pill with
- * the brand, the main sections, search, sign-in (or, signed in, the reader's
- * avatar, which opens their account and, for admins, Admin), the theme
- * toggle and the "Learn" call to action. No headings here, so every page's own h1
+ * the brand; Power Platform, Guides, Learn (Soon), Components and Updates;
+ * then the theme icon, search, and sign-in (or, signed in, the reader's
+ * avatar, which opens their account and, for admins, Admin)
+ * (docs/final-decisions.md, 2026-10-09, "Top bar"). No headings here, so every page's own h1
  * stays its first heading. Links keep a 44px row height (WCAG 2.5.8 target
  * size) and wrap on narrow screens rather than scrolling sideways (1.4.10).
  *
@@ -56,6 +68,7 @@ export function SiteHeader({
   viewer = null,
   menu = buildTechnologyMenu(ALL_AREAS, null),
   updateTimes = [],
+  componentsOn = false,
 }: {
   theme: Theme;
   signedIn: boolean;
@@ -65,14 +78,13 @@ export function SiteHeader({
   menu?: readonly TechnologyMenuArea[];
   /** Newest published update times, for the Updates badge (lib/update-times.ts). */
   updateTimes?: readonly string[];
+  /** The component library's admin switch (lib/site-switches.ts): adds the Components link. */
+  componentsOn?: boolean;
 }) {
-  // MVP-048: the Learn button opens the Learn module once it is switched on;
-  // until then it keeps opening the guides.
-  const learnHref = learnEnabled() ? "/topics" : "/learn";
   const account = signedIn
     ? { name: "Account", href: "/account" }
     : { name: "Sign in", href: "/signin" };
-  const links = mainLinks();
+  const links = mainLinks(componentsOn, learnEnabled());
   return (
     <header className="z-30 bg-background px-3 pt-3 pb-2 md:sticky md:top-0 md:px-6 md:pt-3.5">
       <div className="relative mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-3 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
@@ -92,15 +104,20 @@ export function SiteHeader({
           className="hidden grow items-center gap-x-1 text-[0.9375rem] font-medium lg:flex"
         >
           <TechnologiesMenu areas={menu} />
+          <GuidesMenu />
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={NAV_LINK}>
               {link.name}
+              {link.soon ? <SoonMark /> : null}
             </Link>
           ))}
           {/* MVP-033 slice D: Updates, with its "new" badge. */}
           <UpdatesLink publishedTimes={updateTimes} className={NAV_LINK} />
         </nav>
         <div className="ml-auto flex items-center gap-1">
+          <span className="max-lg:hidden">
+            <ThemeToggle initialTheme={theme} />
+          </span>
           <HeaderSearch />
           {/* Signed in: the reader's avatar opens their account, where admins also find
               Admin (docs/final-decisions.md, 2026-10-08, "Header: Account holds Admin"). */}
@@ -122,15 +139,6 @@ export function SiteHeader({
               {account.name}
             </Link>
           )}
-          <span className="max-lg:hidden">
-            <ThemeToggle initialTheme={theme} />
-          </span>
-          <Link
-            href={learnHref}
-            className="motion-press hidden min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline lg:inline-flex"
-          >
-            Learn
-          </Link>
         </div>
         {/* Below lg: the menu button, and its panel as the header's last row. */}
         <MobileMenu
@@ -139,7 +147,6 @@ export function SiteHeader({
           account={account}
           themeToggle={<ThemeToggle initialTheme={theme} />}
           updateTimes={updateTimes}
-          learnHref={learnHref}
           viewer={viewer}
         />
       </div>

@@ -734,8 +734,24 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/admin/settings",
     prepare: async (page) => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Settings");
-      await expect(page.getByRole("heading", { name: "Switches" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Switch on or off here" })).toBeVisible();
+      await expect(page.getByRole("switch", { name: "Component library" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Set in Netlify" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Bing Webmaster Tools" })).toBeVisible();
+    },
+  },
+  {
+    id: "admin-settings-switch-confirm",
+    route: "/admin/settings",
+    description:
+      "settings with the component library switch asking to confirm (never confirmed: the switch is site-wide)",
+    auth: "admin",
+    status: 200,
+    path: () => "/admin/settings",
+    prepare: async (page) => {
+      await (await whenHydrated(page.getByRole("switch", { name: "Component library" }))).click();
+      // Focus moves to the confirmation, so a keyboard user lands on the choice.
+      await expect(page.getByRole("button", { name: /^Yes, turn it (on|off)$/ })).toBeFocused();
     },
   },
   {
@@ -858,12 +874,12 @@ export const GATED_PAGES: readonly GatedPage[] = [
   },
   {
     id: "learn-comments-member",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description:
       "guide page signed in as a member: the comment form, their own comment, others' to report",
     auth: "member",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       await expect(page.getByRole("heading", { name: /^Comments \(\d+\)$/ })).toBeVisible();
       await expect(page.getByRole("textbox", { name: "Add a comment" })).toBeVisible();
@@ -876,11 +892,11 @@ export const GATED_PAGES: readonly GatedPage[] = [
   },
   {
     id: "learn-comment-too-short",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description: "guide page after trying to post a comment that is too short",
     auth: "member",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       // Faked, like the feedback states: nothing is ever posted.
       await page.route("**/api/guides/*/comments", (route) =>
@@ -1327,30 +1343,30 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
-    // SEO story: the /learn hub lists every published article by type.
+    // SEO story: the /guides hub lists every published article by type.
     // Only the populated state is gated: parallel workers each publish
     // fixture articles, so an empty hub cannot be produced here without
     // racing them (the empty state is covered by a unit test instead).
     id: "learn-index",
-    route: "/learn",
-    description: "the /learn hub, listing published articles by type",
+    route: "/guides",
+    description: "the /guides hub, listing published articles by type",
     auth: "guest",
     status: 200,
-    path: () => "/learn",
+    path: () => "/guides",
     prepare: async (page, seed) => {
       await expect(page.getByRole("link", { name: seed.publishedArticle.title })).toBeVisible();
     },
   },
   {
-    // MVP-017 (FR-014). "published": the public /learn/[slug] read path.
+    // MVP-017 (FR-014). "published": the public /guides/[slug] read path.
     // SEO story: the body is rendered Markdown, with breadcrumbs above and a
     // "Keep learning" list below, both proven present here.
     id: "learn-published",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description: "published article (tutorial/pattern/comparison) content page",
     auth: "guest",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
       await expect(page.getByRole("region", { name: "Table, scrollable" })).toBeVisible();
@@ -1387,11 +1403,11 @@ export const GATED_PAGES: readonly GatedPage[] = [
   // are plain checkboxes counted by CSS, so no script is needed.
   {
     id: "learn-step-ticked",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description: "guide page with one step ticked and the diagram paused",
     auth: "guest",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       // Ticked from the keyboard, as a keyboard user would.
       for (const name of ["Done: A fixture step", "Pause animation"]) {
@@ -1414,11 +1430,11 @@ export const GATED_PAGES: readonly GatedPage[] = [
   },
   {
     id: "learn-voted",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description: "guide page after answering Did this fix it? with Yes",
     auth: "guest",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       await page.route("**/api/guides/*/vote", (route) =>
         route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
@@ -1432,11 +1448,11 @@ export const GATED_PAGES: readonly GatedPage[] = [
   },
   {
     id: "learn-report-sent",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description: "guide page after sending Something here changed?",
     auth: "guest",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       await page.route("**/api/guides/*/report", (route) =>
         route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
@@ -1448,18 +1464,20 @@ export const GATED_PAGES: readonly GatedPage[] = [
         .getByLabel(/What changed, or what.s wrong\?/)
         .fill("A setting moved in the new designer.");
       await page.getByRole("button", { name: "Send" }).click();
+      // BUG-036: the form closes once sent, and focus moves to the thanks.
       await expect(
         page.getByRole("status").filter({ hasText: "re-check this guide" }),
-      ).toBeVisible();
+      ).toBeFocused();
+      await expect(page.getByLabel(/What changed, or what.s wrong\?/)).toHaveCount(0);
     },
   },
   {
     id: "learn-report-too-short",
-    route: "/learn/[slug]",
+    route: "/guides/[slug]",
     description: "guide page with a report that is too short",
     auth: "guest",
     status: 200,
-    path: (seed) => `/learn/${seed.publishedArticle.slug}`,
+    path: (seed) => `/guides/${seed.publishedArticle.slug}`,
     prepare: async (page) => {
       await (
         await whenHydrated(page.getByRole("button", { name: /Something here changed\?/ }))
@@ -1478,10 +1496,10 @@ export const GATED_PAGES: readonly GatedPage[] = [
     // publicly-visible-only rule the product/category pages already enforce.
     id: "learn-draft-not-found",
     route: null,
-    description: "a draft article's slug 404s on the public /learn/[slug] route",
+    description: "a draft article's slug 404s on the public /guides/[slug] route",
     auth: "guest",
     status: 404,
-    path: (seed) => `/learn/${seed.draftArticle.slug}`,
+    path: (seed) => `/guides/${seed.draftArticle.slug}`,
     prepare: notFoundSettled,
   },
   {
@@ -1571,10 +1589,37 @@ export const GATED_PAGES: readonly GatedPage[] = [
   {
     id: "admin-updates-edit",
     route: "/admin/updates/[id]/edit",
-    description: "admin edit-update form, signed in as ADMIN, pre-filled with a draft",
+    description:
+      "admin edit-update form, signed in as ADMIN, pre-filled with a draft that is scheduled (MVP-050)",
     auth: "admin",
     status: 200,
     path: (seed) => `/admin/updates/${seed.draftUpdate.id}/edit`,
+  },
+  {
+    // MVP-050: a draft guide as it will look, under the preview banner.
+    id: "preview-guide",
+    route: "/preview/guides/[id]",
+    description: "an admin's preview of a draft guide",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/preview/guides/${seed.draftArticle.id}`,
+  },
+  {
+    id: "preview-update",
+    route: "/preview/updates/[id]",
+    description: "an admin's preview of a scheduled draft update",
+    auth: "admin",
+    status: 200,
+    path: (seed) => `/preview/updates/${seed.draftUpdate.id}`,
+  },
+  {
+    id: "preview-guide-denied",
+    route: null,
+    description: "a draft guide's preview, denied to a signed-in member",
+    auth: "member",
+    status: 404,
+    path: (seed) => `/preview/guides/${seed.draftArticle.id}`,
+    prepare: notFoundSettled,
   },
   {
     // MVP-048 slice 2: the Learn home, listing the seeded published topic.
@@ -1694,6 +1739,23 @@ export const GATED_PAGES: readonly GatedPage[] = [
     path: () => "/components",
     prepare: async (page, seed) => {
       await expect(page.getByRole("link", { name: seed.publishedComponent.title })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: `${seed.soonComponent.title} (coming soon)` }),
+      ).toBeVisible();
+    },
+  },
+  {
+    id: "component-coming-soon",
+    route: "/components/[slug]",
+    description:
+      "a draft marked Coming soon: its teaser page, a blurred picture and nothing to copy",
+    auth: "guest",
+    status: 200,
+    path: (seed) => `/components/${seed.soonComponent.slug}`,
+    prepare: async (page, seed) => {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(seed.soonComponent.title);
+      await expect(page.getByRole("heading", { name: "Coming soon", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Copy YAML" })).toHaveCount(0);
     },
   },
   {

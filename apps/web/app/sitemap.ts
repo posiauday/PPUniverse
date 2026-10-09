@@ -3,7 +3,8 @@ import type { MetadataRoute } from "next";
 import { catalogRepository } from "../lib/catalog";
 import { contentRepository } from "../lib/content";
 import { componentRepository } from "../lib/components";
-import { componentsEnabled, learnEnabled } from "../lib/feature-flags";
+import { learnEnabled } from "../lib/feature-flags";
+import { componentsLibraryOn } from "../lib/site-switches";
 import { learnRepository } from "../lib/learn";
 import { generateSitemap } from "../lib/seo/sitemap";
 import { getSiteUrl } from "../lib/site-url";
@@ -46,10 +47,10 @@ export default function sitemap(): Promise<MetadataRoute.Sitemap> {
       ];
     },
     // MVP-049: /components and each public component, only while the library
-    // is on (FEATURE_COMPONENTS). Members-only components are listed too: their
+    // is switched on (/admin/settings). Members-only components are listed too: their
     // pages are public; only copying the YAML needs sign-in.
     listComponentEntries: async () => {
-      if (!componentsEnabled()) return [];
+      if (!(await componentsLibraryOn())) return [];
       const components = await componentRepository.listPublic();
       if (components.length === 0) return [];
       return [

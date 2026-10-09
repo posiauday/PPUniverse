@@ -1,0 +1,33 @@
+# Named presets of lcsDataTable: each sets inputs with Power Fx formulas.
+- name: Cards
+  description: The same rows as cards, two or three across.
+  settings:
+    View: ="Cards"
+- name: List
+  description: A compact list with an initial and pills.
+  settings:
+    View: ="List"
+- name: Approvals
+  description: Checkboxes with Approve and Reject for the selected rows.
+  settings:
+    BulkActions: ="Approve,Reject"
+- name: Compact
+  description: 44-pixel rows, no menu, no checkboxes.
+  settings:
+    Density: ="Compact"
+    Selectable: =false
+    RowActions: =""
+- name: Loading
+  description: Grey placeholder rows while data loads.
+  settings:
+    Loading: =true
+- name: Empty
+  description: What it says when there are no rows.
+  settings:
+    Rows: |-
+      =FirstN(Table({Id: "", C1: "", C2: "", C3: "", C4: "", C5: "", C6: ""}), 0)
+- name: Dark
+  description: On a dark screen, in your brand colour.
+  settings:
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

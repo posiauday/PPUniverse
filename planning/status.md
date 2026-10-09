@@ -2,7 +2,31 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-08 (latest) — **MVP-049 In Progress: wave 2 has begun; nine components drafted.**
+Last updated: 2026-10-09 (latest) — **BUG-038 fixed: row-level security on the component library and site switch tables.**
+- A migration turns it on for the four tables, and a new test fails CI for any table created without it. #134 and #135 are merged; MVP-050 is in review (#136).
+
+Last updated (previous): 2026-10-09 — **MVP-050 (scheduled publishing and draft previews) built and in review (QA).**
+- **Built:** schedule a draft guide or update from its edit page; it goes live on the first visit after the time, with IndexNow; admin-only previews at `/preview/guides/{id}` and `/preview/updates/{id}`; schedules and update publishes in the audit log.
+- **Found:** BUG-038, the component library and site switch tables were created without row-level security; fixed in its own PR.
+- **Merged by auto-merge (product owner's request):** #134 (BUG-037) and #135 (Data table).
+- **Next:** release `develop` → `main`; then Navigation shell, Tree view, Stepper.
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Data table is drafted (eleven components).**
+- **Drafted:** Data table 0.1.0 (sign-in to copy), built on a gallery: Table, Cards and List views from one switch; columns as text, pills or a progress bar; select a row to open it; sorting, checkboxes with bulk buttons, a row menu, loading and empty states. Live preview and a paste-test checklist.
+- **Merged:** #133 (top bar, Guides menu, `/guides`). **Open for the product owner:** #134 (BUG-037, "On this page"); then a release PR `develop` → `main`.
+- **Remaining wave 2:** Navigation shell (sign-in), Tree view, Stepper. **Next story:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the library has an admin switch and Coming soon; release #129 is merged.**
+- **Built:** the component library's on/off switch in `/admin/settings` (database-backed, audit-logged); Coming soon cards and teaser pages for drafts; Copy YAML in the admin. Pagination (#130) is merged into `develop`.
+- **Decided today:** the Data table is built on a gallery; a Guides menu with Learn (Soon) replaces Fixes, Patterns and the Learn button, and guides move to `/guides` (docs/final-decisions.md, 2026-10-09).
+- **Next:** BUG-036 (the feedback box stays open after sending); the top bar and the `/guides` move; "On this page" on every page; then the Data table.
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: ten components drafted; release #129 open.**
+- **Merged:** #124 to #128 (header and the Terms at sign-up; Text field 0.3.0; the Date and time picker; the People picker; BUG-034 and BUG-035). **Release PR #129** (`develop` → `main`) waits for the product owner.
+- **Drafted since:** Pagination (0.1.0, open to copy), with a live preview and a paste-test checklist.
+- **Remaining wave 2:** Data table (sign-in), Navigation shell (sign-in), Tree view, Stepper.
+
+Last updated (previous): 2026-10-08 — **MVP-049 In Progress: wave 2 has begun; nine components drafted.**
 - **Drafted since:** Floating action button; upgrades to Button, Toast, Tabs and States (0.2.0) and Text field (0.3.0, built-in formats); Date and time picker (0.1.0); People picker (0.1.0, sign-in to copy: your app searches the directory through `OnSearch`). Each has a live preview and a paste-test checklist.
 - **Fixed:** BUG-033, previews cut off on phones.
 - **Waiting on the product owner:** merging #125, #126 and #127 in order (#124 is merged); the paste-tests (`docs/component-paste-tests.md`); the Privacy wording for component ratings.

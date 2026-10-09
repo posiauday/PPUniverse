@@ -34,7 +34,7 @@ export const IMAGE_ROUTE_FILES: readonly string[] = [
  */
 export const FEED_ROUTE_FILES: readonly string[] = [
   "updates/feed.xml/route.ts",
-  "learn/feed.xml/route.ts",
+  "guides/feed.xml/route.ts",
   "indexnow-key.txt/route.ts",
 ];
 

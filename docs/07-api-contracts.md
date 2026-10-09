@@ -67,6 +67,13 @@ Admin only: anyone else gets the identical `404 "Not found."`, like every admin 
 - `GET` / `PATCH /api/admin/lessons/{id}`: fetch one; edit content only (never status, `publishedAt` or topic).
 - `POST /api/admin/lessons/{id}/publish`: DRAFT → PUBLISHED with a `LearnPublishEvent`. `409` when already published, or when the body no longer passes the shape check. A lesson shows on the site only once its topic is published too.
 
+## Scheduled publishing (MVP-050; 2026-10-09)
+Admin only (anyone else gets the identical `404 "Not found."`), and same-origin only (`403` without this site's `Origin`). Drafts only.
+- `PUT /api/admin/content/{id}/schedule` and `PUT /api/admin/updates/{id}/schedule` `{ "publishAt": "<ISO 8601 date-time with Z or an offset>" }`: sets or changes the time, with a `SCHEDULED` event. `400` (with `fieldErrors.publishAt`) for a time without an offset, less than a minute ahead or more than a year ahead; `409` for a published item. Returns `{ article | update: { id, status, scheduledFor } }`.
+- `DELETE` on the same paths: cancels it, with a `CANCELLED` event. `409` when there is no schedule.
+- There is no publish-at-time endpoint: the first public read after the time publishes it (see `docs/06-data-model.md`, "Scheduled publishing").
+- Previews are pages, not API: `/preview/guides/{id}` and `/preview/updates/{id}`, admin only (`404` otherwise), never indexed; a published item redirects to its public page.
+
 ### Learn progress (MVP-048; 2026-10-08)
 Signed-in readers only (`401` otherwise); same-origin only (`403`); `404` while `FEATURE_LEARN` is off. Only ever the caller's own progress: the user comes from the session.
 - `POST /api/learn/progress` `{ topic, lesson, done: "true" | "false" }`: marks a published lesson in a published topic done or not done. `404` for anything else; `400` for another `done` value.

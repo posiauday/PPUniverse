@@ -1,7 +1,6 @@
 import { TECHNOLOGIES } from "@ppu/domain-content";
 import Link from "next/link";
 import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../lib/article-types";
-import { componentsEnabled } from "../lib/feature-flags";
 import { SITE_NAME } from "../lib/seo/site";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
 import { BrandMark } from "./BrandMark";
@@ -24,10 +23,10 @@ const COLUMNS: ReadonlyArray<{
     id: "footer-learn",
     label: "Guides",
     links: [
-      { name: "All guides", href: "/learn" },
+      { name: "All guides", href: "/guides" },
       ...ARTICLE_TYPE_SECTIONS.map((section) => ({
         name: section.heading,
-        href: `/learn#${SECTION_ANCHOR[section.type]}`,
+        href: `/guides#${SECTION_ANCHOR[section.type]}`,
       })),
     ],
   },
@@ -49,7 +48,7 @@ const FOOTER_LINK =
  * covers (the registry). The column labels are not headings, so the footer
  * adds nothing to a page's heading outline.
  */
-export function SiteFooter() {
+export function SiteFooter({ componentsOn = false }: { componentsOn?: boolean } = {}) {
   return (
     <footer className="mt-20 border-t border-border px-4 md:px-6">
       <div className="mx-auto grid max-w-[77.5rem] gap-10 py-12 md:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]">
@@ -68,7 +67,7 @@ export function SiteFooter() {
         {/* Two link columns side by side from phone width; from md they join the outer grid. */}
         <div className="grid grid-cols-2 gap-6 md:contents">
           {COLUMNS.map((column) =>
-            column.id === "footer-learn" && componentsEnabled()
+            column.id === "footer-learn" && componentsOn
               ? { ...column, links: [...column.links, { name: "Components", href: "/components" }] }
               : column,
           ).map((column) => (

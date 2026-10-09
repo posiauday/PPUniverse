@@ -7,7 +7,7 @@ topic: approvals
 excerpt: "Which approval action and approval type to use, what each one waits for, what outputs you get, and the limits that trip people up: attachments, Markdown in Teams, the same approver twice, and flows stuck between create and wait."
 searchPhrase: "start and wait for an approval"
 ---
-Power Automate gives you three approval actions, including the familiar **Start and wait for an approval**, and five approval types. Picking the right pair decides when your flow continues, what data you get back, and whether you can add reminders or Teams cards. Use this page to look it up; for deadlines and escalation, see [Approvals that don't stall](/learn/approvals-that-dont-stall).
+Power Automate gives you three approval actions, including the familiar **Start and wait for an approval**, and five approval types. Picking the right pair decides when your flow continues, what data you get back, and whether you can add reminders or Teams cards. Use this page to look it up; for deadlines and escalation, see [Approvals that don't stall](/guides/approvals-that-dont-stall).
 
 > [!ANSWER] Quick answer
 > 1. [A simple, single-step approval](#the-three-actions): use **Start and wait for an approval**.

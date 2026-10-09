@@ -84,12 +84,17 @@ model Article {
   status       ArticleStatus @default(DRAFT)
   /// Null means draft. Set once, on publish, and never rewritten — see the file header comment.
   publishedAt  DateTime?
+  /// MVP-050: a DRAFT's planned publish time; null when none. It stays a
+  /// draft until the first visit after this time publishes it (see
+  /// apps/web/lib/scheduled-publishing.ts). Cleared on publish.
+  scheduledFor DateTime?
   authorUserId String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  author   User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
-  events   ArticlePublishEvent[]
+  author         User                   @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events         ArticlePublishEvent[]
+  scheduleEvents ArticleScheduleEvent[]
   votes    ArticleVote[]
   reports  ArticleReport[]
   comments ArticleComment[]
@@ -97,6 +102,7 @@ model Article {
   @@index([status])
   @@index([type])
   @@index([technology, status])
+  @@index([status, scheduledFor])
   @@map("articles")
 }
 
@@ -115,6 +121,33 @@ model ArticlePublishEvent {
 
   @@index([articleId, createdAt])
   @@map("article_publish_events")
+}
+
+/// MVP-050: what an admin did to a draft's publish schedule. Setting a new
+/// time on a scheduled draft is another SCHEDULED row.
+enum ScheduleAction {
+  SCHEDULED
+  CANCELLED
+}
+
+/// Append-only audit trail for scheduling an Article (MVP-050), like
+/// ArticlePublishEvent. The publish itself, when the time comes, is an
+/// ArticlePublishEvent by the admin who scheduled it.
+model ArticleScheduleEvent {
+  id           String         @id @default(cuid())
+  articleId    String
+  actorUserId  String
+  action       ScheduleAction
+  /// The time set; null for CANCELLED.
+  scheduledFor DateTime?
+  createdAt    DateTime       @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([articleId, createdAt])
+  @@index([createdAt])
+  @@map("article_schedule_events")
 }
 
 /// MVP-033 slice D (docs/final-decisions.md, "Governance & admin area and the
@@ -147,14 +180,18 @@ model UpdateItem {
   status        ArticleStatus @default(DRAFT)
   /// Null means draft. Set once, on publish, and never rewritten.
   publishedAt   DateTime?
+  /// MVP-050: a DRAFT's planned publish time; null when none (as on Article).
+  scheduledFor  DateTime?
   authorUserId  String
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  author User                 @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
-  events UpdatePublishEvent[]
+  author         User                  @relation(fields: [authorUserId], references: [id], onDelete: Restrict)
+  events         UpdatePublishEvent[]
+  scheduleEvents UpdateScheduleEvent[]
 
   @@index([status, publishedAt])
+  @@index([status, scheduledFor])
   @@map("update_items")
 }
 
@@ -171,6 +208,24 @@ model UpdatePublishEvent {
 
   @@index([updateId, createdAt])
   @@map("update_publish_events")
+}
+
+/// Append-only audit trail for scheduling an UpdateItem (MVP-050), like ArticleScheduleEvent.
+model UpdateScheduleEvent {
+  id           String         @id @default(cuid())
+  updateId     String
+  actorUserId  String
+  action       ScheduleAction
+  /// The time set; null for CANCELLED.
+  scheduledFor DateTime?
+  createdAt    DateTime       @default(now())
+
+  update UpdateItem @relation(fields: [updateId], references: [id], onDelete: Restrict)
+  actor  User       @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([updateId, createdAt])
+  @@index([createdAt])
+  @@map("update_schedule_events")
 }
 
 /// "Did this fix it?" (MVP-039; docs/final-decisions.md, 2026-10-07, "Votes
@@ -384,6 +439,9 @@ model LibraryComponent {
   /// Null means draft. Set once, on publish, and never rewritten.
   publishedAt         DateTime?
   hidden              Boolean         @default(false)
+  /// A draft shown as "Coming soon": its card and page, with a blurred
+  /// picture and nothing to copy (2026-10-09). Ignored once published.
+  comingSoon          Boolean         @default(false)
   testedAt            DateTime?
   testedStudioVersion String?
   authorUserId        String

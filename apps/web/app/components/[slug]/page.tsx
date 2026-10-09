@@ -6,12 +6,18 @@ import { cache } from "react";
 import { outlineOf, type OutlineItem } from "../../../lib/article-outline";
 import { authOptions } from "../../../lib/auth";
 import { componentRepository } from "../../../lib/components";
-import { componentsEnabled } from "../../../lib/feature-flags";
-import { buildComponentMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
+import { componentsLibraryOn } from "../../../lib/site-switches";
+import {
+  buildComponentMetadata,
+  buildNotFoundMetadata,
+  NOINDEX_ROBOTS,
+} from "../../../lib/seo/metadata";
+import { SITE_NAME } from "../../../lib/seo/site";
 import { getSiteUrl } from "../../../lib/site-url";
-import { ArticleBody } from "../../learn/ArticleBody";
-import { ArticleToc, StickyColumn } from "../../learn/ArticleToc";
-import { Breadcrumbs } from "../../learn/Breadcrumbs";
+import { ArticleBody } from "../../guides/ArticleBody";
+import { ArticleToc, StickyColumn } from "../../guides/ArticleToc";
+import { Breadcrumbs } from "../../guides/Breadcrumbs";
+import { ComingSoonComponent } from "../ComingSoonComponent";
 import { ComponentWorkbench } from "../ComponentWorkbench";
 import { LibraryNav } from "../LibraryNav";
 import { PropertyTable } from "../PropertyTable";
@@ -23,11 +29,22 @@ interface ComponentPageProps {
 export const dynamic = "force-dynamic";
 
 const getComponent = cache((slug: string) => componentRepository.findPublicBySlug(slug));
+const getTeaser = cache((slug: string) => componentRepository.findComingSoonBySlug(slug));
 
 export async function generateMetadata({ params }: ComponentPageProps): Promise<Metadata> {
-  if (!componentsEnabled()) return buildNotFoundMetadata("Page not found");
-  const component = await getComponent((await params).slug);
-  if (!component) return buildNotFoundMetadata("Component not found");
+  if (!(await componentsLibraryOn())) return buildNotFoundMetadata("Page not found");
+  const { slug } = await params;
+  const component = await getComponent(slug);
+  if (!component) {
+    // A Coming soon page is a teaser: shown, but kept out of search until it's published.
+    const teaser = await getTeaser(slug);
+    if (!teaser) return buildNotFoundMetadata("Component not found");
+    return {
+      title: `${teaser.title}: coming soon | ${SITE_NAME}`,
+      description: teaser.summary,
+      robots: NOINDEX_ROBOTS,
+    };
+  }
   return buildComponentMetadata({ site: getSiteUrl(), component });
 }
 
@@ -40,15 +57,20 @@ const DATE = new Intl.DateTimeFormat("en-CA", { dateStyle: "long", timeZone: "UT
  * formulas that screen uses) and its YAML, then what it needs, its properties
  * (read from its YAML), how to add it, and its guide; "On this page" on the
  * right. Only published, visible components
- * show; anything else is a 404, as is the whole library while
- * FEATURE_COMPONENTS is off. A members-only component's YAML is never sent
+ * show; a draft marked Coming soon shows its teaser page instead
+ * (docs/final-decisions.md, 2026-10-09); anything else is a 404, as is the
+ * whole library while it's switched off in /admin/settings. A members-only component's YAML is never sent
  * to a signed-out reader: they get "Sign in to copy" instead.
  */
 export default async function ComponentPage({ params }: ComponentPageProps) {
-  if (!componentsEnabled()) notFound();
+  if (!(await componentsLibraryOn())) notFound();
   const { slug } = await params;
   const component = await getComponent(slug);
-  if (!component) notFound();
+  if (!component) {
+    const teaser = await getTeaser(slug);
+    if (!teaser) notFound();
+    return <ComingSoonComponent teaser={teaser} />;
+  }
 
   const [session, library] = await Promise.all([
     getServerSession(authOptions),

@@ -1,0 +1,28 @@
+# Named presets of lcsPagination: each sets inputs with Power Fx formulas.
+- name: Orders
+  description: 25 to a page, from four sizes.
+  settings:
+    ItemLabel: ="orders"
+    DefaultPageSize: =25
+    PageSizes: ="10,25,50,100"
+- name: Compact
+  description: Page 3 of 32 between the arrows, for phones.
+  settings:
+    Compact: =true
+    ShowFirstLast: =false
+    ShowPageSize: =false
+- name: Numbers only
+  description: Just the page numbers and the arrows.
+  settings:
+    ShowFirstLast: =false
+    ShowSummary: =false
+    ShowPageSize: =false
+- name: Few pages
+  description: 42 items, five pages, no ellipses.
+  settings:
+    TotalItems: =42
+- name: Dark
+  description: On a dark screen, in your brand colour.
+  settings:
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

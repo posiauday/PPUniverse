@@ -14,6 +14,7 @@ import {
 } from "react";
 import { FormulaList } from "./FormulaList";
 import { useButtonReplica } from "./replicas/ButtonReplica";
+import { useDataTableReplica } from "./replicas/DataTableReplica";
 import { useDatePickerReplica } from "./replicas/DatePickerReplica";
 import { useDialogReplica } from "./replicas/DialogReplica";
 import { useFabReplica } from "./replicas/FabReplica";
@@ -24,6 +25,7 @@ import {
   type Notification,
   type NotificationType,
 } from "./replicas/notify";
+import { usePaginationReplica } from "./replicas/PaginationReplica";
 import { usePeoplePickerReplica } from "./replicas/PeoplePickerReplica";
 import type { ReplicaApi } from "./replicas/replica";
 import { useStatesReplica } from "./replicas/StatesReplica";
@@ -61,6 +63,8 @@ const REPLICAS: Record<string, Host> = {
   lcsFab: hostFor(useFabReplica),
   lcsDatePicker: hostFor(useDatePickerReplica),
   lcsPeoplePicker: hostFor(usePeoplePickerReplica),
+  lcsPagination: hostFor(usePaginationReplica),
+  lcsDataTable: hostFor(useDataTableReplica),
 };
 
 export function hasReplica(componentName: string): boolean {
@@ -302,7 +306,10 @@ export function ComponentWorkbench({
               ...(api.dark
                 ? [{ control: "Screen1", property: "Fill", formula: "RGBA(31, 31, 31, 1)" }]
                 : []),
-              ...api.wiring,
+              // A preset's input replaces the screen's formula for it, as it would in Studio.
+              ...api.wiring.filter(
+                (line) => !(line.control === instance && line.property in preset.settings),
+              ),
             ]}
           />
         </div>

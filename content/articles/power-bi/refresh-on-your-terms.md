@@ -84,7 +84,7 @@ Things to plan for:
 ## 4. Make the scheduled ones healthier
 
 - **Add failure contacts:** in the model's settings, add a shared mailbox or support alias under **Email these contacts when the refresh fails**. External addresses aren't supported.
-- **Use incremental refresh** for big fact tables, so each run loads only recent data. See [Refresh failed: a checklist](/learn/refresh-failures-checklist) for the full set of fixes.
+- **Use incremental refresh** for big fact tables, so each run loads only recent data. See [Refresh failed: a checklist](/guides/refresh-failures-checklist) for the full set of fixes.
 - **On Premium,** use the admin portal's **Refresh summary** to spot overlapping refresh slots.
 
 ## Sources

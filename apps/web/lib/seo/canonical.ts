@@ -25,14 +25,14 @@ export function productUrl(origin: string, slug: string): string {
   return `${origin}/products/${encodeURIComponent(slug)}`;
 }
 
-/** The /learn hub listing every published article (SEO story). */
+/** The /guides hub listing every published article (SEO story). */
 export function learnIndexUrl(origin: string): string {
-  return `${origin}/learn`;
+  return `${origin}/guides`;
 }
 
 /** MVP-017, FR-014: tutorials, patterns and comparison pages. */
 export function learnUrl(origin: string, slug: string): string {
-  return `${origin}/learn/${encodeURIComponent(slug)}`;
+  return `${origin}/guides/${encodeURIComponent(slug)}`;
 }
 
 /** MVP-048: the Learn module's home, a topic, and a lesson. */

@@ -1,130 +1,93 @@
-import { JsonLd } from "@ppu/ui";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { cache } from "react";
-import { contentRepository } from "../../../lib/content";
-import { loadGuideComments } from "../../../lib/comments";
-import { feedbackRepository } from "../../../lib/feedback";
-import { outlineOf, readingMinutes } from "../../../lib/article-outline";
-import { ARTICLE_KIND, ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
-import { readGuideTrust } from "../../../lib/article-trust";
-import { HUB_TOPICS } from "../../../lib/technology-hubs";
-import { findRelatedArticles } from "../../../lib/related-articles";
+import type { ArticleRecord } from "@ppu/domain-content";
 import { isAcceptedFix, technologyInfo } from "@ppu/domain-content";
+import { JsonLd } from "@ppu/ui";
+import Link from "next/link";
+import type { ReactElement, ReactNode } from "react";
+import { contentRepository } from "../../lib/content";
+import { loadGuideComments } from "../../lib/comments";
+import { feedbackRepository } from "../../lib/feedback";
+import { outlineOf, readingMinutes } from "../../lib/article-outline";
+import { ARTICLE_KIND, ARTICLE_TYPE_LABEL } from "../../lib/article-types";
+import { readGuideTrust } from "../../lib/article-trust";
+import { HUB_TOPICS } from "../../lib/technology-hubs";
+import { findRelatedArticles } from "../../lib/related-articles";
 import {
   homeUrl,
   learnIndexUrl,
   learnShareImageUrl,
   learnUrl,
   technologySectionUrl,
-} from "../../../lib/seo/canonical";
-import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/seo/json-ld";
-import { buildLearnMetadata, buildNotFoundMetadata } from "../../../lib/seo/metadata";
-import { SITE_NAME } from "../../../lib/seo/site";
-import { getSiteUrl } from "../../../lib/site-url";
-import { paletteFor } from "../../../lib/technology-palette";
-import { ARTICLE_COVERS } from "../../home/HomeSections";
-import { ArticleBody } from "../ArticleBody";
-import { GuideComments } from "../GuideComments";
-import { GuideFeedback } from "../GuideFeedback";
-import { ArticleToc, StickyColumn } from "../ArticleToc";
-import { Breadcrumbs } from "../Breadcrumbs";
-import { CopyLink } from "../CopyLink";
-import { QuickAnswer } from "../QuickAnswer";
-import { ReadingProgress } from "../ReadingProgress";
-import { TrustStrip } from "../TrustStrip";
+} from "../../lib/seo/canonical";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../lib/seo/json-ld";
+import { SITE_NAME } from "../../lib/seo/site";
+import { getSiteUrl } from "../../lib/site-url";
+import { paletteFor } from "../../lib/technology-palette";
+import { ARTICLE_COVERS } from "../home/HomeSections";
+import { ArticleBody } from "./ArticleBody";
+import { GuideComments } from "./GuideComments";
+import { GuideFeedback } from "./GuideFeedback";
+import { ArticleToc, StickyColumn } from "./ArticleToc";
+import { Breadcrumbs } from "./Breadcrumbs";
+import { CopyLink } from "./CopyLink";
+import { QuickAnswer } from "./QuickAnswer";
+import { ReadingProgress } from "./ReadingProgress";
+import { TrustStrip } from "./TrustStrip";
 
-interface LearnPageProps {
-  params: Promise<{ slug: string }>;
-}
-
-// See apps/web/app/page.tsx for why these content pages render per-request
-// rather than being statically generated at build time.
-export const dynamic = "force-dynamic";
-
-// generateMetadata and the page both need the article; cache() shares one
-// query between them for the duration of a request.
-const getArticle = cache((slug: string) => contentRepository.findPublishedArticleBySlug(slug));
-
-export async function generateMetadata({ params }: LearnPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const article = await getArticle(slug);
-  if (!article) {
-    return buildNotFoundMetadata("Content not found");
-  }
-  return buildLearnMetadata({ site: getSiteUrl(), article });
-}
+const NO_VOTES = { yes: 0, no: 0 };
 
 /**
- * Published content: tutorials, patterns and comparison pages (MVP-017,
- * FR-014). An unknown slug, or one that exists but is not PUBLISHED, is a
- * 404 — never a distinguishable response, matching the same
- * publicly-visible-only rule the product/category pages already enforce.
- *
- * `body` is Markdown source, stored untrusted (an ADMIN authors it today,
- * but this is public-facing, so it is treated as though anyone could). It is
- * rendered by ArticleBody as real structure -- headings, links, lists,
- * tables, code -- without ever rendering raw HTML (TD-017, resolved by the
- * SEO story). The first pass showed it as escaped plain text; see
- * ArticleBody for why the structured rendering is equally safe.
- *
- * Internal links (SEO story): a breadcrumb back to the /learn hub and a
- * "Keep learning" list of related articles, so readers and crawlers can
- * move through the library instead of hitting a dead end.
- *
- * Layout (MVP-027 slice 3, the "A + B -- Article page" mockup): the title
- * block, then "On this page" | the article | "Keep learning" as three
- * columns on wide screens and one column, in that order, on narrow ones.
- * Each part is in the page once. The page's own ids contain an underscore,
- * which heading slugs never do, so an article heading cannot collide.
+ * A guide as readers see it: the published page (guides/[slug]) and, for
+ * admins, a draft's preview (MVP-050, preview/guides/[id]), so the two can't
+ * drift apart. A function the pages return, not a component, so a page still
+ * renders in one pass. With `preview` (the banner to show above it) the page leaves
+ * out what only makes sense for a published guide: votes, "Did this fix
+ * it?", comments, the copy-link button and the structured data.
  */
-export default async function LearnPage({ params }: LearnPageProps) {
-  const { slug } = await params;
-  const article = await getArticle(slug);
-  if (!article) {
-    notFound();
-  }
-
+export async function renderGuidePage(
+  article: ArticleRecord,
+  preview: ReactNode = null,
+): Promise<ReactElement> {
   const [related, votes, comments] = await Promise.all([
     findRelatedArticles(contentRepository, article),
     // MVP-039: the counts behind the "Accepted fix" chip. If they can't be
     // read, the page simply shows no chip.
-    feedbackRepository.voteSummary(article.id).catch(() => ({ yes: 0, no: 0 })),
-    // MVP-040: null while comments are switched off (FEATURE_COMMENTS).
-    loadGuideComments(article.id),
+    preview ? NO_VOTES : feedbackRepository.voteSummary(article.id).catch(() => NO_VOTES),
+    // MVP-040: null while comments are switched off (FEATURE_COMMENTS), and in a preview.
+    preview ? null : loadGuideComments(article.id),
   ]);
   const acceptedFix = article.type === "TUTORIAL" && isAcceptedFix(votes);
   const site = getSiteUrl();
-  const jsonLd = site.ok
-    ? buildArticleJsonLd({
-        origin: site.origin,
-        url: learnUrl(site.origin, article.slug),
-        title: article.title,
-        excerpt: article.excerpt,
-        publishedAt: article.publishedAt,
-        updatedAt: article.updatedAt,
-        image: learnShareImageUrl(site.origin, article.slug),
-      })
-    : null;
+  const jsonLd =
+    site.ok && !preview
+      ? buildArticleJsonLd({
+          origin: site.origin,
+          url: learnUrl(site.origin, article.slug),
+          title: article.title,
+          excerpt: article.excerpt,
+          publishedAt: article.publishedAt,
+          updatedAt: article.updatedAt,
+          image: learnShareImageUrl(site.origin, article.slug),
+        })
+      : null;
   // MVP-029: an article in a technology section sits under that section in
-  // the trail (LowCodeStacks / Power Apps / title); others under Learn.
+  // the trail (LowCodeStacks / Power Apps / title); others under Guides.
   const section = article.technology ? technologyInfo(article.technology) : null;
   const parent = section
     ? { name: section.name, path: `/${section.slug}` }
-    : { name: "Learn", path: "/learn" };
-  const breadcrumbJsonLd = site.ok
-    ? buildBreadcrumbJsonLd([
-        { name: SITE_NAME, url: homeUrl(site.origin) },
-        {
-          name: parent.name,
-          url: section
-            ? technologySectionUrl(site.origin, parent.path)
-            : learnIndexUrl(site.origin),
-        },
-        { name: article.title, url: learnUrl(site.origin, article.slug) },
-      ])
-    : null;
+    : { name: "Guides", path: "/guides" };
+  const breadcrumbJsonLd =
+    site.ok && !preview
+      ? buildBreadcrumbJsonLd([
+          { name: SITE_NAME, url: homeUrl(site.origin) },
+          {
+            name: parent.name,
+            url: section
+              ? technologySectionUrl(site.origin, parent.path)
+              : learnIndexUrl(site.origin),
+          },
+          { name: article.title, url: learnUrl(site.origin, article.slug) },
+        ])
+      : null;
 
   const trust = readGuideTrust(article.body);
   const outline = outlineOf(trust.body);
@@ -148,6 +111,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
   return (
     <main className="px-4 pb-6 md:px-6">
       <ReadingProgress />
+      {preview}
       <header
         className={`motion-rise relative mx-auto mt-4 grid max-w-[77.5rem] items-start gap-8 overflow-hidden rounded-[2.5rem] px-6 py-10 md:px-16 md:py-14 ${palette.tint} ${trust.quickAnswer || cover ? "lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-12" : ""}`}
       >
@@ -158,7 +122,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
             items={[
               ...(section
                 ? [{ name: section.name, href: parent.path }]
-                : [{ name: "Learn", href: "/learn" }]),
+                : [{ name: "Guides", href: "/guides" }]),
               ...(section && topic
                 ? [{ name: topic.name, href: `${parent.path}#${topic.id}` }]
                 : []),
@@ -187,7 +151,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
               </span>
             ) : null}
             <span className="rounded-full bg-card/80 px-3.5 py-1.5">
-              {kind.label} · {ARTICLE_TYPE_LABEL[article.type]}
+              {ARTICLE_TYPE_LABEL[article.type]}
             </span>
             <span className="rounded-full bg-card/80 px-3.5 py-1.5">{minutes} min read</span>
             {acceptedFix ? (
@@ -214,11 +178,13 @@ export default async function LearnPage({ params }: LearnPageProps) {
       <div className="mx-auto mt-12 grid max-w-[77.5rem] gap-10 lg:grid-cols-[13.75rem_minmax(0,46rem)] lg:gap-14 xl:grid-cols-[13.75rem_minmax(0,45rem)_minmax(0,1fr)]">
         <StickyColumn>
           <ArticleToc items={outline} />
-          {site.ok ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
+          {site.ok && !preview ? <CopyLink url={learnUrl(site.origin, article.slug)} /> : null}
         </StickyColumn>
         <div className="min-w-0">
           <ArticleBody markdown={trust.body} />
-          <GuideFeedback slug={article.slug} isFix={article.type === "TUTORIAL"} />
+          {preview ? null : (
+            <GuideFeedback slug={article.slug} isFix={article.type === "TUTORIAL"} />
+          )}
           {comments ? (
             <GuideComments
               slug={article.slug}
@@ -242,7 +208,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
               {related.slice(0, 4).map((guide) => (
                 <li key={guide.slug}>
                   <Link
-                    href={`/learn/${encodeURIComponent(guide.slug)}`}
+                    href={`/guides/${encodeURIComponent(guide.slug)}`}
                     className={`motion-lift flex h-full flex-col gap-1.5 rounded-[1.375rem] p-4.5 text-foreground no-underline ${paletteFor(guide.technology).tint}`}
                   >
                     <span
@@ -258,7 +224,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
               ))}
             </ul>
             <Link
-              href="/learn"
+              href="/guides"
               className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
             >
               All guides →

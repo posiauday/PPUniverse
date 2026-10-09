@@ -55,6 +55,8 @@ export interface UpdateRecord {
   status: UpdateStatus;
   /** Null until published. Set once, never rewritten. Drives "new since your last visit". */
   publishedAt: Date | null;
+  /** MVP-050: a DRAFT's planned publish time; null when none. Cleared on publish. */
+  scheduledFor: Date | null;
   authorUserId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -79,7 +81,7 @@ export interface UpdateCreateInput extends UpdateInput {
 /** A PUBLISHED update as the public page and header badge need it. */
 export type PublishedUpdate = Omit<
   UpdateRecord,
-  "status" | "authorUserId" | "createdAt" | "updatedAt" | "publishedAt"
+  "status" | "authorUserId" | "createdAt" | "updatedAt" | "publishedAt" | "scheduledFor"
 > & { publishedAt: Date };
 
 export interface UpdateRepository {
@@ -89,6 +91,12 @@ export interface UpdateRepository {
   /** DRAFT -> PUBLISHED, stamps publishedAt and appends a PUBLISHED event, atomically.
    * Rejects (throws) if it is already PUBLISHED. */
   publishUpdate(id: string, actorUserId: string): Promise<UpdateRecord>;
+  /** MVP-050: as ContentRepository.scheduleArticle. */
+  scheduleUpdate(id: string, at: Date, actorUserId: string): Promise<UpdateRecord>;
+  /** MVP-050: as ContentRepository.cancelArticleSchedule. */
+  cancelUpdateSchedule(id: string, actorUserId: string): Promise<UpdateRecord>;
+  /** MVP-050: as ContentRepository.publishDueArticles. */
+  publishDueUpdates(now: Date): Promise<UpdateRecord[]>;
   findUpdateById(id: string): Promise<UpdateRecord | null>;
   findUpdateBySlug(slug: string): Promise<UpdateRecord | null>;
   /** Every update, every status, newest first: the admin list. */
