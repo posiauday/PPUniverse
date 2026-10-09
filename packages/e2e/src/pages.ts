@@ -73,6 +73,15 @@ async function whenHydrated(locator: Locator): Promise<Locator> {
 }
 
 /**
+ * A 404 state is ready once the not-found page has hydrated. Until then a
+ * re-render can replace the control the keyboard walk has just focused, so
+ * focus falls back to the page and the walk ends with no stops (BUG-035).
+ */
+async function notFoundSettled(page: Page): Promise<void> {
+  await whenHydrated(page.getByRole("heading", { level: 1, name: "Page not found" }));
+}
+
+/**
  * Reads observer liveness (round 2, decision 2026-09-22 "BUG-014 recurrence") and
  * turns a thrown evaluate() into evidence rather than an unhandled rejection: an
  * execution-context-destroyed error is the strongest possible signal of a document
@@ -277,6 +286,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/sharepoint",
+    prepare: notFoundSettled,
   },
   {
     id: "home",
@@ -735,6 +745,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/settings",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-users-denied",
@@ -743,6 +754,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/users",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-comments-denied",
@@ -751,6 +763,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/comments",
+    prepare: notFoundSettled,
   },
   {
     id: "account-profile",
@@ -890,6 +903,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/feedback",
+    prepare: notFoundSettled,
   },
   {
     // MVP-034: the admin home lists every admin area.
@@ -919,6 +933,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin",
+    prepare: notFoundSettled,
   },
   {
     // MVP-034: where the emailed sign-in link lands. A made-up token: the
@@ -1174,6 +1189,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/deletion-requests",
+    prepare: notFoundSettled,
   },
   {
     // MVP-018 (FR-013). "empty": no token at all — a distinct code path
@@ -1466,6 +1482,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: (seed) => `/learn/${seed.draftArticle.slug}`,
+    prepare: notFoundSettled,
   },
   {
     // The positive admin state: proves the surface actually lists real
@@ -1494,6 +1511,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/content",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-content-new",
@@ -1510,6 +1528,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/content/new",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-content-edit",
@@ -1539,6 +1558,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/updates",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-updates-new",
@@ -1583,6 +1603,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: (seed) => `/topics/${seed.draftTopic.slug}`,
+    prepare: notFoundSettled,
   },
   {
     id: "lesson-published",
@@ -1623,6 +1644,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: (seed) => `/topics/${seed.publishedTopic.slug}/no-such-lesson`,
+    prepare: notFoundSettled,
   },
   {
     // MVP-048 slice 1b: the admin Learn topics list, with a draft topic and its draft lesson.
@@ -1644,6 +1666,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/topics",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-topics-new",
@@ -1730,6 +1753,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/components/zz-e2e-a11y-no-such-component",
+    prepare: notFoundSettled,
   },
   {
     // MVP-049: the admin component library list, with an untested draft.
@@ -1751,6 +1775,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/components",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-component-untested",
@@ -1821,6 +1846,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/products",
+    prepare: notFoundSettled,
   },
   {
     id: "admin-products-new",
@@ -1837,6 +1863,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/products/new",
+    prepare: notFoundSettled,
   },
   {
     // The DRAFT edit state: a bare product with none of the mandatory
@@ -1918,6 +1945,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: (seed) => `/admin/products/${seed.draftAdminProduct.id}/edit`,
+    prepare: notFoundSettled,
   },
   {
     // MVP-019 (FR-015/NFR-009): the reinstate-or-archive status control,
@@ -1990,6 +2018,7 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "member",
     status: 404,
     path: () => "/admin/audit",
+    prepare: notFoundSettled,
   },
   {
     id: "not-found",
@@ -1998,5 +2027,6 @@ export const GATED_PAGES: readonly GatedPage[] = [
     auth: "guest",
     status: 404,
     path: () => "/no-such-page-e2e",
+    prepare: notFoundSettled,
   },
 ];

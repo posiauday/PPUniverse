@@ -5300,3 +5300,15 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Checked:** web typecheck, lint and unit tests (838, new: avatar choices, safe redirect after agreeing, sign-up refused without agreeing, agreement recorded on confirm); the header measured one row at six widths; the accessibility gate for every account and sign-up state, including the new ones (avatar picked, admin profile with the crown, welcome page, welcome without ticking, sign-up without ticking), in Chromium: 84 passed.
 
 **Next:** the product owner's check of the crowned avatar and the new pages.
+
+## 2026-10-09 — Fix: account pages wider than a 320px phone in Firefox (BUG-034)
+
+**Asked:** "Resolve conflicts", then "continue": after the merges, the accessibility gate failed in Firefox at 320 px on #125, #126 and #127, each time on a page from #124 (the welcome page and the profile).
+
+**Changed:** the base heading style (`main h1` without classes) is 36 px on phones and 44 px from 640 px up, and wraps a word too long for the line; the profile's display name can shrink and wrap anywhere. This also covers the sign-in and email confirmation pages, which use the same heading with "LowCodeStacks".
+
+**Then:** #128's first CI run failed on the email confirmation page at 320 px: the new heading rule's `break-word` overrode the page's own `anywhere` and held the sign-in card at full width. It now uses `anywhere`. WebKit's keyboard check had also failed three times with no keyboard stops on 404 pages (BUG-035); all 21 404 states now wait for the not-found page to hydrate.
+
+**Checked:** web typecheck, lint and unit tests. After freeing 2.4 GB on C: (the npm download and npx caches, and old Playwright browser profiles), in local browsers: the 28 sign-in, sign-up, password and account states in Firefox at 320 px with a wide font standing in for CI's; the 21 404 states in Chromium, and in WebKit's keyboard walk at 320 px.
+
+**Next:** the product owner merges this fix, then #125, #126 and #127, which carry it already.
