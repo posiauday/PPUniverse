@@ -5712,7 +5712,7 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 
 **Checked:** new tests for `continuePath` (3), typecheck and lint.
 
-**Security:** the return path is checked in the browser before use and NextAuth checks `callbackUrl` against the site's own URL on the server, so it can't send a reader to another site.
+**Security:** the return path is resolved against the site's origin in the browser and kept only if it stays on it; NextAuth also checks `callbackUrl` against the site's own URL on the server. CodeQL flagged the first version on the PR: a slash, a tab and a slash (`/%09/host`) passed a text-only check and browsers read it as `//host`. Fixed and tested.
 ## 2026-10-09 — Azure: research, and a coming-soon tab
 
 **Asked:** an Azure tab, teased as coming soon, and architect-level research on what Azure users need (docs/final-decisions.md, 2026-10-09, "Top bar: Azure, coming soon").
