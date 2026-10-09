@@ -15,7 +15,7 @@ This file is written for a new session that has none of the previous conversatio
 ## Product and live state
 
 - **Site:** LowCodeStacks, https://lowcodestacks.com. Free Power Platform learning: 57 guides in `content/articles/`, architecture patterns and KPIs.
-  - The free Power Apps component library (`/components`, MVP-049) is in review, behind `FEATURE_COMPONENTS`; the older paid marketplace is hidden too.
+  - The free Power Apps component library (`/components`, MVP-049) is in review, switched off in `/admin/settings` (until first switched there, `FEATURE_COMPONENTS` decides); the older paid marketplace is hidden too.
   - Comments are on (`FEATURE_COMMENTS=on`, since release #100).
   - The Learn module (`/topics`) is built but off behind `FEATURE_LEARN` (benched, see below).
 - **No personal details:**
@@ -61,7 +61,7 @@ This file is written for a new session that has none of the previous conversatio
 
 **Product-owner to-dos (remind them; never do these for them):**
 - Merge #116, then #117, then the release #115; check the Netlify build log (it runs the migration and imports the component drafts).
-- Paste-test each component in a developer environment (`docs/component-paste-tests.md`), record the Studio version, publish, then set `FEATURE_COMPONENTS=on` in Netlify.
+- Paste-test each component in a developer environment (`docs/component-paste-tests.md`; **Copy YAML** on its admin page), record the Studio version, publish, then switch the component library on in `/admin/settings`. A draft can be marked **Coming soon** to show its card and a teaser page with nothing to copy.
 - Review and publish the three new guide drafts in `/admin/content`.
 - Search Console: submit the sitemap and request indexing; check the "Deceptive pages" review.
 - Consider making the GitHub repo **private**: the old history contains personal email addresses.

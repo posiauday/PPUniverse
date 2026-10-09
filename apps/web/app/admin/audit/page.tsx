@@ -18,6 +18,7 @@ const DOMAIN_LABELS: Record<AuditLogDomain, string> = {
   learn_publish: "Learn",
   component: "Component library",
   role_change: "Roles",
+  site_switch: "Switches",
 };
 
 /**

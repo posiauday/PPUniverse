@@ -21,7 +21,9 @@ const REPORT_MESSAGE: Partial<Record<ReportState, string>> = {
  * "Did this fix it?" on fix guides ("Was this helpful?" on the rest), and
  * "Something here changed?", a short anonymous note. Nothing about the
  * reader is stored; the Privacy notice says what is. Choosing "Not yet"
- * opens the note, so the reader can say what was missing.
+ * opens the note, so the reader can say what was missing. Once a note is
+ * sent, the form closes and the thanks takes its place, with focus on it
+ * (BUG-036: the box used to stay open with the note in it).
  */
 export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean }) {
   const [vote, setVote] = useState<Vote | null>(null);
@@ -32,13 +34,16 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // The vote buttons go away once used, so focus moves to the thanks.
   const thanksRef = useRef<HTMLParagraphElement>(null);
+  // The note's form goes away once sent, so focus moves to its thanks.
+  const sentRef = useRef<HTMLParagraphElement>(null);
   // Where focus goes next. Moved in an effect, after React has rendered: the
   // thanks is hidden while empty, and a hidden element can't take focus
   // (BUG-028: an animation-frame focus sometimes ran before the render).
-  const [focusNext, setFocusNext] = useState<"thanks" | "note" | null>(null);
+  const [focusNext, setFocusNext] = useState<"thanks" | "note" | "sent" | null>(null);
   useEffect(() => {
     if (focusNext === "thanks") thanksRef.current?.focus();
     if (focusNext === "note") textareaRef.current?.focus();
+    if (focusNext === "sent") sentRef.current?.focus();
     if (focusNext) setFocusNext(null);
   }, [focusNext]);
   const headingId = useId();
@@ -72,8 +77,11 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
     }
     setReport("busy");
     const answer = await post(`${base}/report`, { message });
-    if (answer.status === 200) setReport("sent");
-    else if (
+    if (answer.status === 200) {
+      setReport("sent");
+      setMessage("");
+      setFocusNext("sent");
+    } else if (
       answer.error === "too-short" ||
       answer.error === "too-long" ||
       answer.error === "too-many"
@@ -129,7 +137,11 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
         {vote === "no" ? "Thanks for telling us. What was missing or wrong? Tell us below." : null}
       </p>
 
-      {reportOpen ? (
+      {report === "sent" ? (
+        <p ref={sentRef} tabIndex={-1} role="status" className="font-medium">
+          {REPORT_MESSAGE.sent}
+        </p>
+      ) : reportOpen ? (
         <form onSubmit={sendReport} noValidate className="flex flex-col gap-2.5">
           <label htmlFor={fieldId} className="font-semibold">
             What changed, or what&rsquo;s wrong?
@@ -147,19 +159,16 @@ export function GuideFeedback({ slug, isFix }: { slug: string; isFix: boolean })
             onChange={(event) => setMessage(event.target.value)}
             aria-describedby={`${hintId} ${reportStatusId}`}
             aria-invalid={invalid}
-            disabled={report === "sent"}
             className="w-full rounded-2xl border-[1.5px] border-muted-foreground bg-card p-3 text-base text-foreground"
           />
           <div className="flex flex-wrap items-center gap-3">
-            {report === "sent" ? null : (
-              <button
-                type="submit"
-                className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground"
-                aria-disabled={report === "busy"}
-              >
-                {report === "busy" ? "Sending…" : "Send"}
-              </button>
-            )}
+            <button
+              type="submit"
+              className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground"
+              aria-disabled={report === "busy"}
+            >
+              {report === "busy" ? "Sending…" : "Send"}
+            </button>
             <span className="text-sm text-muted-foreground" aria-hidden="true">
               {[...message].length}/{REPORT_MAX}
             </span>

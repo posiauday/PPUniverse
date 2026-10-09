@@ -6,6 +6,7 @@ import { authOptions } from "../lib/auth";
 import { contentRepository } from "../lib/content";
 import { NOINDEX_ROBOTS } from "../lib/seo/metadata";
 import { SITE_DESCRIPTION, SITE_NAME } from "../lib/seo/site";
+import { componentsLibraryOn } from "../lib/site-switches";
 import { loadTechnologyMenu } from "../lib/technology-menu";
 import { loadUpdateTimes } from "../lib/update-times";
 import { updateRepository } from "../lib/updates";
@@ -37,10 +38,11 @@ export const metadata: Metadata = {
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const theme = resolveTheme((await cookies()).get(THEME_COOKIE)?.value);
-  const [session, menu, updateTimes] = await Promise.all([
+  const [session, menu, updateTimes, componentsOn] = await Promise.all([
     getServerSession(authOptions),
     loadTechnologyMenu(ALL_AREAS, contentRepository),
     loadUpdateTimes(updateRepository),
+    componentsLibraryOn(),
   ]);
   // The signed-in reader's avatar, name and Admin link for the header. If it
   // can't be read, the header simply shows "Account" without them.
@@ -60,12 +62,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           viewer={viewer}
           menu={menu}
           updateTimes={updateTimes}
+          componentsOn={componentsOn}
         />
         {viewer?.needsTerms ? <TermsReminder /> : null}
         <div id="main-content" tabIndex={-1}>
           {children}
         </div>
-        <SiteFooter />
+        <SiteFooter componentsOn={componentsOn} />
       </body>
     </html>
   );

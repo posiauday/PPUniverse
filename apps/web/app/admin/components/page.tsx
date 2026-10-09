@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { componentRepository } from "../../../lib/components";
-import { componentsEnabled } from "../../../lib/feature-flags";
 import { requireAdmin } from "../../../lib/require-admin";
 import { SITE_NAME } from "../../../lib/seo/site";
+import { componentsLibraryOn } from "../../../lib/site-switches";
 
 export const metadata: Metadata = { title: `Component library | ${SITE_NAME}` };
 
@@ -28,7 +28,7 @@ export default async function AdminComponentsPage() {
         Components come from <code>content/components</code> as drafts on each release. Paste-test
         each one in your developer environment, record the Studio version, then publish it.
       </p>
-      {!componentsEnabled() ? (
+      {!(await componentsLibraryOn()) ? (
         <p className="mt-2 rounded-xl bg-muted p-3">
           The library pages aren&apos;t public yet: <code>FEATURE_COMPONENTS</code> is off.
           Published components appear on the site once it&apos;s on.
@@ -49,8 +49,10 @@ export default async function AdminComponentsPage() {
               </p>
               <p className="mt-1 text-sm">
                 {component.status === "PUBLISHED" ? "Published" : "Draft"}
-                {component.hidden ? " · hidden" : ""} ·{" "}
-                {component.access === "MEMBERS" ? "sign-in to copy" : "anyone can copy"} ·{" "}
+                {component.hidden ? " · hidden" : ""}
+                {component.status !== "PUBLISHED" && component.comingSoon
+                  ? " · coming soon"
+                  : ""} · {component.access === "MEMBERS" ? "sign-in to copy" : "anyone can copy"} ·{" "}
                 {component.testedAt
                   ? `tested ${DATE.format(component.testedAt)} in Studio ${component.testedStudioVersion ?? ""}`
                   : "not tested yet"}

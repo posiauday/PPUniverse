@@ -5,7 +5,12 @@ import { notFound } from "next/navigation";
 import { componentRepository } from "../../../../lib/components";
 import { requireAdmin } from "../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../lib/seo/site";
-import { PublishComponentButton, SettingsForm, TestRecordForm } from "../ComponentAdminControls";
+import {
+  CopyYamlButton,
+  PublishComponentButton,
+  SettingsForm,
+  TestRecordForm,
+} from "../ComponentAdminControls";
 
 export const metadata: Metadata = { title: `Component | ${SITE_NAME}` };
 
@@ -33,6 +38,7 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
           {component.componentName} · {categoryName(component.category)} · version{" "}
           {component.version} · {component.status === "PUBLISHED" ? "Published" : "Draft"}
           {component.hidden ? " · hidden" : ""}
+          {component.status !== "PUBLISHED" && component.comingSoon ? " · coming soon" : ""}
         </p>
         <p className="mt-3">{component.summary}</p>
         <p className="mt-2 text-sm">
@@ -56,6 +62,9 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
             ? `This version was tested on ${DATE.format(component.testedAt)} in Studio ${component.testedStudioVersion ?? ""}.`
             : "This version hasn't been tested yet. Paste it into a test app in your developer environment and run its checklist."}
         </p>
+        <div className="mt-3">
+          <CopyYamlButton yaml={component.yaml} />
+        </div>
         <details className="mt-3">
           <summary className="cursor-pointer font-semibold">Show the YAML to paste</summary>
           <pre className="mt-2 max-h-96 overflow-auto rounded-xl bg-muted p-3 text-xs">
@@ -75,7 +84,13 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
           2. Settings
         </h2>
         <div className="mt-3">
-          <SettingsForm id={component.id} access={component.access} hidden={component.hidden} />
+          <SettingsForm
+            id={component.id}
+            access={component.access}
+            hidden={component.hidden}
+            comingSoon={component.comingSoon}
+            published={component.status === "PUBLISHED"}
+          />
         </div>
       </section>
 

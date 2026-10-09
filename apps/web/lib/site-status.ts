@@ -1,13 +1,14 @@
-import { commentsEnabled, componentsEnabled, learnEnabled } from "./feature-flags";
+import { commentsEnabled, learnEnabled } from "./feature-flags";
 import { googleCredentials } from "./google-auth";
 import { indexNowKey } from "./indexnow";
 import { getSiteUrl } from "./site-url";
 
 /**
- * What's switched on, for the admin's Settings page (MVP-047, slice 3).
- * Read only: settings live in Netlify's environment variables, so a change
- * needs a redeploy and is never made from the site. Secret values are never
- * shown, only whether they are set.
+ * What's switched on in Netlify, for the admin's Settings page (MVP-047,
+ * slice 3). Read only: these live in Netlify's environment variables, so a
+ * change needs a redeploy. Switches flipped in the admin itself are in
+ * lib/site-switches.ts. Secret values are never shown, only whether they are
+ * set.
  */
 export interface SiteSwitch {
   name: string;
@@ -29,14 +30,6 @@ export function siteSwitches(env: Record<string, string | undefined> = process.e
         ? "Signed-in readers can comment on guides."
         : "The Comments section and its pages are hidden.",
       setting: "FEATURE_COMMENTS (on / off)",
-    },
-    {
-      name: "Components catalog",
-      on: componentsEnabled(),
-      detail: componentsEnabled()
-        ? "The component library (/components) is public, with a Components link in the top bar."
-        : "The component library pages are hidden. Test and publish components in the admin first.",
-      setting: "FEATURE_COMPONENTS (on / off)",
     },
     {
       name: "Learn topics",

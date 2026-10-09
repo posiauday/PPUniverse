@@ -1,0 +1,31 @@
+// Site switches (docs/final-decisions.md, 2026-10-09, "Component library: a
+// switch in the admin, and Coming soon"): on/off switches the product owner
+// flips in /admin/settings instead of in Netlify. A switch with no row here
+// falls back to its environment variable, so nothing changes until it is
+// first flipped.
+
+/// The current setting of one switch, such as "components".
+model SiteSwitch {
+  key             String   @id
+  enabled         Boolean
+  updatedByUserId String
+  updatedAt       DateTime @updatedAt
+
+  updatedBy User @relation(fields: [updatedByUserId], references: [id], onDelete: Restrict)
+
+  @@map("site_switches")
+}
+
+/// Append-only: every time a switch is flipped, and by whom, for the audit log.
+model SiteSwitchEvent {
+  id          String   @id @default(cuid())
+  key         String
+  enabled     Boolean
+  actorUserId String
+  createdAt   DateTime @default(now())
+
+  actor User @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@map("site_switch_events")
+}
