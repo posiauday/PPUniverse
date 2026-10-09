@@ -146,7 +146,7 @@ export function MobileMenu({
         <div className="mt-3 flex items-center gap-2 border-t border-border px-1 pt-3">
           <Link href={account.href} onClick={close} className={`${linkClass} gap-2`}>
             {viewer ? (
-              <Avatar seed={viewer.avatarSeed} name={viewer.displayName ?? undefined} size={28} />
+              <Avatar seed={viewer.avatarSeed} name={viewer.displayName ?? undefined} size={32} />
             ) : null}
             {account.name}
           </Link>

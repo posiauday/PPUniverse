@@ -1269,3 +1269,13 @@ samp {
 .motion-shake {
   animation: lcs-shake 0.4s ease-in-out;
 }
+
+/* Avatars have no tile (docs/final-decisions.md, 2026-10-09, "Avatars: no tile, a little 3D"):
+   a very light shadow lifts them off the page. On dark, a faint light edge keeps their dark
+   outlines (an antenna, a gear) visible. */
+.avatar-lift {
+  filter: drop-shadow(0 1px 1.2px rgb(0 0 0 / 0.14));
+}
+[data-theme="dark"] .avatar-lift {
+  filter: drop-shadow(0 0 0.6px rgb(255 255 255 / 0.5)) drop-shadow(0 1px 1.2px rgb(0 0 0 / 0.45));
+}

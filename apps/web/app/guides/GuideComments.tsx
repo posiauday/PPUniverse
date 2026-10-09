@@ -104,7 +104,7 @@ export function GuideComments({
               }`}
             >
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <Avatar seed={comment.avatarSeed} name={comment.displayName} size={36} />
+                <Avatar seed={comment.avatarSeed} name={comment.displayName} size={40} />
                 <span className="font-semibold">{comment.displayName}</span>
                 <time
                   dateTime={comment.createdAt.toISOString()}

@@ -25,6 +25,15 @@ describe("Avatar", () => {
     expect(one).not.toContain(" id=");
   });
 
+  it("has no tile: a transparent background, with the light lift on both kinds", () => {
+    for (const seed of ["reader-1", "crown"]) {
+      const svg = renderToStaticMarkup(<Avatar seed={seed} name="Kiran Lee" />);
+      expect(svg).not.toContain('width="64" height="64"');
+      expect(svg).not.toContain("rounded-[30%]");
+      expect(svg).toContain("avatar-lift");
+    }
+  });
+
   it("wears a name tag with the initials only when it has a name", () => {
     expect(renderToStaticMarkup(<Avatar seed="reader-1" />)).not.toContain("<text");
     const tagged = renderToStaticMarkup(<Avatar seed="reader-1" name="Tidy Trigger 418" />);
