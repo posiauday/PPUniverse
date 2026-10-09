@@ -55,6 +55,8 @@ model User {
   articlePublishActions  ArticlePublishEvent[]
   updateItems            UpdateItem[]
   updatePublishActions   UpdatePublishEvent[]
+  articleScheduleActions ArticleScheduleEvent[]
+  updateScheduleActions  UpdateScheduleEvent[]
   learnTopics            LearnTopic[]
   learnLessons           LearnLesson[]
   learnPublishActions    LearnPublishEvent[]

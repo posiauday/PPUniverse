@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "../../../lib/require-admin";
 import { SITE_NAME } from "../../../lib/seo/site";
 import { updateRepository } from "../../../lib/updates";
+import { LocalTime } from "../LocalTime";
 import { UpdatePublishControl } from "./UpdatePublishControl";
 
 export const metadata: Metadata = { title: `Updates | ${SITE_NAME}` };
@@ -36,7 +37,26 @@ export default async function AdminUpdatesPage() {
             <li key={update.id}>
               <p>
                 <Link href={`/admin/updates/${update.id}/edit`}>{update.title}</Link> —{" "}
-                {UPDATE_KIND_LABEL[update.kind]} — {update.status} —{" "}
+                {UPDATE_KIND_LABEL[update.kind]} — {update.status}
+                {update.status === "DRAFT" && update.scheduledFor ? (
+                  <>
+                    {" "}
+                    — scheduled for <LocalTime iso={update.scheduledFor.toISOString()} />
+                  </>
+                ) : null}
+                {update.status === "DRAFT" ? (
+                  <>
+                    {" "}
+                    —{" "}
+                    <Link
+                      href={`/preview/updates/${update.id}`}
+                      aria-label={`Preview ${update.title}`}
+                    >
+                      Preview
+                    </Link>
+                  </>
+                ) : null}{" "}
+                —{" "}
                 <a href={update.sourceUrl} rel="noopener noreferrer" target="_blank">
                   Microsoft source (opens in a new tab)
                 </a>

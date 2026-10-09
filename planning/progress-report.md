@@ -5456,6 +5456,45 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 
 **Next:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
 
+## 2026-10-09 — Admin: scheduled publishing and draft previews (MVP-050, QA)
+
+**Asked:** "scheduled publishing and draft previews", next after the Data table (docs/final-decisions.md, 2026-10-09). Before building, two answers from the product owner, recorded the same day: previews are for admins only (no share links), and a schedule goes live on the first visit after its time (no timer or new service).
+
+**Built:**
+- **Schedule a draft guide or update** from its edit page (**Publishing**): pick a date and time in your own time zone (sent as UTC); change it or cancel it. From a minute to a year ahead. The admin lists show "scheduled for" with the time.
+- **Goes live on the first visit after the time** (`apps/web/lib/scheduled-publishing.ts`): every public read of guides and updates first publishes what is due, at most once per 30 seconds per server, and a visit that arrives while a check runs waits for it, so that visit already sees the item. `publishedAt` is the scheduled time; the publish event names the admin who scheduled it; IndexNow is told after the response is sent. A conditional update means a row is published once even when two visits race (an integration test runs two at once). A failure is logged and never breaks the page. Publishing by hand clears a schedule.
+- **Previews, admins only:** `/preview/guides/{id}` and `/preview/updates/{id}` show the draft as it will look, under a "Preview" banner (with its schedule and a way back to editing). The guide preview uses the same render function as the public page (`app/guides/guide-page.tsx`), without votes, "Did this fix it?", comments, the copy link and structured data. Anyone else gets the ordinary 404; never indexed; a published item redirects to its public page.
+- **Audit log:** a "Schedule" kind (set, changed, cancelled, with the time in UTC), and update publishes, which were never in the log before.
+- **Data:** `scheduledFor` on articles and updates, and two append-only schedule-event tables (migration `20261017000000_add_content_scheduling`, additive; rollback in its header; row-level security on with no policies).
+- **API:** `PUT`/`DELETE /api/admin/content/{id}/schedule` and `/api/admin/updates/{id}/schedule`: admins only, same-origin only, drafts only (`docs/07-api-contracts.md`).
+
+**Choices made without a product-owner answer (safe and reversible; tell me to change any):** times from a minute to a year ahead; a scheduled item is dated with its scheduled time, not the visit that published it; the publish event's actor is the admin who last scheduled it; 30 seconds between checks; up to 20 items per check; the update preview is dated with its scheduled time, or today.
+
+**On the way:**
+- The guide page's layout moved into `renderGuidePage`, shared with the preview; the update card moved into `app/updates/UpdateCard.tsx`.
+- The accessibility harness (`packages/e2e/src/browser.ts`) now walks through a date or time input's parts (Chromium and Firefox give each part its own Tab stop) instead of reading the second stop as the end of the page. Only those input types, at most 8 parts; a control that keeps focus still fails as a trap.
+- Found **BUG-038**: the component library and site switch tables were created without row-level security (fixed in its own PR).
+
+**Checked:** domain tests (7 new); web typecheck, lint and tests (all pass, new: the publish-on-visit logic, the schedule routes for guides and updates, the previews, the audit entries); repository integration tests against a local Postgres (16 pass; the two-visits-at-once case was run one after the other locally, because the local Prisma dev server can't take two transactions at once, and runs as written in CI on real Postgres); the accessibility gate locally on the previews, the admin lists and edit pages, the guide page and Updates: axe in all three browsers at every width, 135 pass; keyboard, 44 of 48 pass. The 4 failures were the admin guides list at both widths in Chromium and Firefox: my local database holds 96 guides (60 imported for testing and 36 leftover fixtures from runs where the local database crashed), so the list passes the gate's 160-press limit; CI seeds only a few.
+
+**Not yet:** the product owner's review; CI.
+
+**Next:** release `develop` → `main` once #134, #135 and this are merged; then the remaining wave 2 components.
+
+## 2026-10-09 — Fix: row-level security on the component library and site switch tables (BUG-038)
+
+**Found** by the agent while adding MVP-050's tables. `library_components`, `component_events`, `site_switches` and `site_switch_events` were created without row-level security. Every other table has it, with no policies (docs/final-decisions.md, "RLS implementation note"). No exposure is known: reaching them needs the Supabase anon key, which the site never publishes.
+
+**Changed:**
+- Migration `20261016000100_enable_rls_component_and_switch_tables` turns it on for the four tables. It is additive and makes no difference to the app, which connects as the owner.
+- `packages/db/src/row-level-security.test.ts` fails CI for any table a migration creates without it. Without the fix, it names exactly these four.
+
+**Checked:**
+- The test passes with the migration and fails without it.
+- The migration applies to a local Postgres, and afterwards no public table there is without row-level security.
+
+**For the product owner:** after the release, Supabase's Security Advisor should show no "RLS disabled" warnings.
+
 ## 2026-10-09 — Component library: Navigation shell (MVP-049, wave 2, In Progress)
 
 **Asked:** keep working overnight. The Navigation shell is next in the approved wave 2 order (docs/final-decisions.md, 2026-10-08, "Component library: direction, differentiators and build order"); sign-in to copy (same decision, item 4). Built to the approved research row: a side menu on desktop and a bottom bar on phones from one items table, items hidden by key, badges, the current screen from your app, and the collapse state as an output.
@@ -5513,3 +5552,11 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Not yet:** the product owner's paste-test (`CanLeaveStep` called inside the component and inside a `Filter`, the ✓ character, the circles' border).
 
 **Wave 2 is drafted:** Date and time picker, People picker, Pagination, Data table, Navigation shell, Tree view and Stepper. **Next:** wave 3 (Kanban board, screen templates, charts last), when the product owner has paste-tested wave 2.
+
+## 2026-10-09 — Admins aren't limited in profile changes
+
+**Asked:** the product owner, choosing an avatar, got "You've changed your profile a few times today. Please try again tomorrow." and said an admin shouldn't (docs/final-decisions.md, 2026-10-09, "Admins aren't limited in profile changes").
+
+**Changed:** `POST /api/account/profile` skips the daily allowance for an admin, by the role in the database (`requireAdmin`). Everyone else keeps the limit of ten changes a day. A change of rule at the product owner's request, not a defect: the limit worked as decided for MVP-040.
+
+**Checked:** a new route test (a reader past the limit gets "too-many"; an admin isn't counted and saves); the comment and profile route tests; web typecheck and lint.

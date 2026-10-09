@@ -192,6 +192,9 @@ export async function traverseTabOrder(page: Page, max = 160): Promise<TabTraver
 
   const stops: TabStop[] = [];
   let ended = false;
+  // At most this many more presses inside one date or time input (its parts).
+  const MAX_PARTS = 8;
+  let parts = 0;
   for (let press = 0; press < max; press++) {
     await page.keyboard.press("Tab");
     const state = await page.evaluate(() => {
@@ -200,10 +203,25 @@ export async function traverseTabOrder(page: Page, max = 160): Promise<TabTraver
         return "left" as const;
       }
       if (element.hasAttribute("data-e2e-sentinel")) return "wrapped" as const;
+      // A date or time input (MVP-050's schedule field) keeps focus on one
+      // element while Tab moves through its parts (month, day, year, hour,
+      // minute): the same stop again, not a wrap. Any other element focused
+      // twice in a row means Tab has left the page and focus stayed put.
+      if (
+        element.hasAttribute("data-e2e-tab-last") &&
+        element instanceof HTMLInputElement &&
+        ["date", "time", "datetime-local", "month", "week"].includes(element.type)
+      ) {
+        return "same" as const;
+      }
       if (element.hasAttribute("data-e2e-tab-seen")) return "wrapped" as const;
+      document.querySelector("[data-e2e-tab-last]")?.removeAttribute("data-e2e-tab-last");
       element.setAttribute("data-e2e-tab-seen", "1");
+      element.setAttribute("data-e2e-tab-last", "1");
       return "new" as const;
     });
+    if (state === "same" && ++parts <= MAX_PARTS) continue;
+    if (state === "new") parts = 0;
     if (state !== "new") {
       ended = true;
       break;
@@ -254,9 +272,12 @@ async function clearTraversalMarkers(page: Page): Promise<string[]> {
         missed.push(`${element.tagName.toLowerCase()}${label ? ` "${label}"` : ""}`);
       }
     }
-    for (const element of document.querySelectorAll("[data-e2e-expected], [data-e2e-tab-seen]")) {
+    for (const element of document.querySelectorAll(
+      "[data-e2e-expected], [data-e2e-tab-seen], [data-e2e-tab-last]",
+    )) {
       element.removeAttribute("data-e2e-expected");
       element.removeAttribute("data-e2e-tab-seen");
+      element.removeAttribute("data-e2e-tab-last");
     }
     return missed;
   });

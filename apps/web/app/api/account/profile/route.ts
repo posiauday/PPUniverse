@@ -12,6 +12,7 @@ import { commentsEnabled } from "../../../../lib/feature-flags";
 import { withObservability } from "../../../../lib/observability";
 import { noStore, readJson } from "../../../../lib/request-guards";
 import { checkAvatarChoice } from "../../../../lib/avatar-seeds";
+import { requireAdmin } from "../../../../lib/require-admin";
 import { loadViewerSummary } from "../../../../lib/viewer";
 
 /**
@@ -20,7 +21,9 @@ import { loadViewerSummary } from "../../../../lib/viewer";
  * new avatar, and `{ "avatar": "<seed>" }` sets the one chosen from the
  * gallery; the crown only for an admin, by the role in the database
  * (docs/final-decisions.md, 2026-10-08, "Avatars: choose from a gallery; the
- * crown is for admins"). The name is never logged.
+ * crown is for admins"). The name is never logged. Readers may change it
+ * ten times a day; admins aren't limited (docs/final-decisions.md, 2026-10-09,
+ * "Admins aren't limited in profile changes"), the role read from the database.
  */
 export const POST = withObservability("POST /api/account/profile", async (request: Request) => {
   if (!commentsEnabled())
@@ -32,12 +35,14 @@ export const POST = withObservability("POST /api/account/profile", async (reques
   if (!userId) return noStore(NextResponse.json({ error: "sign-in" }, { status: 401 }));
 
   const { profileChangesPerDay } = COMMENT_LIMITS;
-  const allowed = await feedbackRepository.consumeAllowance(
-    feedbackKey("profile-changes", userId),
-    profileChangesPerDay.limit,
-    profileChangesPerDay.windowMs,
-    new Date(),
-  );
+  const allowed =
+    (await requireAdmin()) !== null ||
+    (await feedbackRepository.consumeAllowance(
+      feedbackKey("profile-changes", userId),
+      profileChangesPerDay.limit,
+      profileChangesPerDay.windowMs,
+      new Date(),
+    ));
   if (!allowed) return noStore(NextResponse.json({ error: "too-many" }, { status: 429 }));
 
   await commentRepository.getOrCreateProfile(userId, secureRandom);

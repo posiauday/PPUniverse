@@ -2286,3 +2286,17 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 
 1. **Scheduled publishing** and **draft preview links** for articles and platform updates are the next admin feature (MVP-050), after the Data table.
 2. The other items in the review stay unscheduled until the product owner chooses them.
+
+## 2026-10-09 — MVP-050: previews for admins only; a schedule goes live on the first visit
+
+**Source:** direct product-owner answers in this session, to the agent's two questions before building MVP-050: "Admins only" and "First visit after the time".
+
+1. **Draft previews are for admins only.** A Preview button in the admin opens a draft guide or update as it will look on the site. Anyone else gets the ordinary "not found" page, and the preview is kept out of search. No share links (a link that works without signing in was offered and not chosen).
+2. **A scheduled guide or update goes live on the first visit after its time.** No new service, timer or secret: the first page view after the time (by anyone, or a search engine reading the sitemap) publishes it, and search engines are told through IndexNow as on a manual publish. Until then it stays a draft, so nobody can see it early. A 5-minute Netlify scheduled function was offered and not chosen.
+
+## 2026-10-09 — Admins aren't limited in profile changes
+
+**Source:** direct product-owner instruction in this session, with a screenshot of "You've changed your profile a few times today. Please try again tomorrow." while choosing an avatar: "as a admin I should not get this error".
+
+1. **Admins can change their display name and avatar as often as they like.** The daily limit (ten changes, `COMMENT_LIMITS.profileChangesPerDay`) stays for everyone else, against abuse.
+2. Whether someone is an admin is read from the database on each request, as for every admin rule.
