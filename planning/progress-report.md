@@ -5455,3 +5455,28 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 **Not yet:** the product owner's paste-test; `ModernCheckbox@1.0.0` is our best reading of the control's YAML name.
 
 **Next:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
+
+## 2026-10-09 — Admin: scheduled publishing and draft previews (MVP-050, QA)
+
+**Asked:** "scheduled publishing and draft previews", next after the Data table (docs/final-decisions.md, 2026-10-09). Before building, two answers from the product owner, recorded the same day: previews are for admins only (no share links), and a schedule goes live on the first visit after its time (no timer or new service).
+
+**Built:**
+- **Schedule a draft guide or update** from its edit page (**Publishing**): pick a date and time in your own time zone (sent as UTC); change it or cancel it. From a minute to a year ahead. The admin lists show "scheduled for" with the time.
+- **Goes live on the first visit after the time** (`apps/web/lib/scheduled-publishing.ts`): every public read of guides and updates first publishes what is due, at most once per 30 seconds per server, and a visit that arrives while a check runs waits for it, so that visit already sees the item. `publishedAt` is the scheduled time; the publish event names the admin who scheduled it; IndexNow is told after the response is sent. A conditional update means a row is published once even when two visits race (an integration test runs two at once). A failure is logged and never breaks the page. Publishing by hand clears a schedule.
+- **Previews, admins only:** `/preview/guides/{id}` and `/preview/updates/{id}` show the draft as it will look, under a "Preview" banner (with its schedule and a way back to editing). The guide preview uses the same render function as the public page (`app/guides/guide-page.tsx`), without votes, "Did this fix it?", comments, the copy link and structured data. Anyone else gets the ordinary 404; never indexed; a published item redirects to its public page.
+- **Audit log:** a "Schedule" kind (set, changed, cancelled, with the time in UTC), and update publishes, which were never in the log before.
+- **Data:** `scheduledFor` on articles and updates, and two append-only schedule-event tables (migration `20261017000000_add_content_scheduling`, additive; rollback in its header; row-level security on with no policies).
+- **API:** `PUT`/`DELETE /api/admin/content/{id}/schedule` and `/api/admin/updates/{id}/schedule`: admins only, same-origin only, drafts only (`docs/07-api-contracts.md`).
+
+**Choices made without a product-owner answer (safe and reversible; tell me to change any):** times from a minute to a year ahead; a scheduled item is dated with its scheduled time, not the visit that published it; the publish event's actor is the admin who last scheduled it; 30 seconds between checks; up to 20 items per check; the update preview is dated with its scheduled time, or today.
+
+**On the way:**
+- The guide page's layout moved into `renderGuidePage`, shared with the preview; the update card moved into `app/updates/UpdateCard.tsx`.
+- The accessibility harness (`packages/e2e/src/browser.ts`) now walks through a date or time input's parts (Chromium and Firefox give each part its own Tab stop) instead of reading the second stop as the end of the page. Only those input types, at most 8 parts; a control that keeps focus still fails as a trap.
+- Found **BUG-038**: the component library and site switch tables were created without row-level security (fixed in its own PR).
+
+**Checked:** domain tests (7 new); web typecheck, lint and tests (all pass, new: the publish-on-visit logic, the schedule routes for guides and updates, the previews, the audit entries); repository integration tests against a local Postgres (16 pass; the two-visits-at-once case was run one after the other locally, because the local Prisma dev server can't take two transactions at once, and runs as written in CI on real Postgres); the accessibility gate locally on the previews, the admin lists and edit pages, the guide page and Updates: axe in all three browsers at every width, 135 pass; keyboard, 44 of 48 pass. The 4 failures were the admin guides list at both widths in Chromium and Firefox: my local database holds 96 guides (60 imported for testing and 36 leftover fixtures from runs where the local database crashed), so the list passes the gate's 160-press limit; CI seeds only a few.
+
+**Not yet:** the product owner's review; CI.
+
+**Next:** release `develop` → `main` once #134, #135 and this are merged; then the remaining wave 2 components.

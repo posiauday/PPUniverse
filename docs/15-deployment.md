@@ -177,7 +177,7 @@ cd <repo>/packages/adapters/content
 DATABASE_URL="<session pooler string>?schema=public" ARTICLE_AUTHOR_EMAIL="you@example.com" node scripts/import-articles.mjs
 ```
 
-The import creates **drafts only**. It skips any slug that already exists and imports nothing if any file is invalid. Review and publish each article in `/admin/content`.
+The import creates **drafts only**. It skips any slug that already exists and imports nothing if any file is invalid. Review and publish each article in `/admin/content`. To publish later instead, open the draft and choose a time under **Publishing** (MVP-050): it goes live on the first visit after that time, and **Preview this guide** shows it as it will look (admins only).
 
 ## 7. Point the domain at Netlify
 

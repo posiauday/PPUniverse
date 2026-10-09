@@ -1,10 +1,13 @@
 import { prisma } from "@ppu/db";
 import { getServerSession } from "next-auth/next";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { authOptions } from "../../../../../lib/auth";
 import { contentRepository } from "../../../../../lib/content";
 import { SITE_NAME } from "../../../../../lib/seo/site";
+import { LocalTime } from "../../../LocalTime";
+import { SchedulePanel } from "../../../SchedulePanel";
 import { ArticleForm } from "../../ArticleForm";
 
 export const metadata: Metadata = { title: `Edit article | ${SITE_NAME}` };
@@ -51,6 +54,21 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
           body: article.body,
         }}
       />
+      {article.status === "DRAFT" ? (
+        <SchedulePanel
+          endpoint={`/api/admin/content/${article.id}/schedule`}
+          previewHref={`/preview/guides/${article.id}`}
+          noun="guide"
+          scheduledFor={article.scheduledFor?.toISOString() ?? null}
+        />
+      ) : article.publishedAt ? (
+        <p className="mt-10">
+          Published <LocalTime iso={article.publishedAt.toISOString()} />.{" "}
+          <Link href={`/guides/${article.slug}`} className="font-semibold underline">
+            View it on the site
+          </Link>
+        </p>
+      ) : null}
     </main>
   );
 }
