@@ -60,7 +60,7 @@ Build the child like this:
    - set `message` to a readable version of that error.
 4. **One Respond to a Power App or flow** action **after** both scopes, outside them. Set its **Configure run after** on the Catch scope to **is successful**, **has failed** and **is skipped**, so it runs on both paths. It returns the three variables.
 
-Microsoft's guidance is to keep response actions **outside** scopes, which is why the response comes last instead of sitting inside Try and Catch. The full Try/Catch setup is in [Try, catch and finally](/learn/try-catch-finally-scopes).
+Microsoft's guidance is to keep response actions **outside** scopes, which is why the response comes last instead of sitting inside Try and Catch. The full Try/Catch setup is in [Try, catch and finally](/guides/try-catch-finally-scopes).
 
 > [!DO]
 > Respond once, after the Try and Catch scopes, so the child answers on both paths.

@@ -251,7 +251,7 @@ There's no run in history, so there's no error code to read. Work through these 
 Most flows that "silently stopped working" were failing for days before anyone noticed.
 
 - **Alert on failure.** After the steps most likely to fail, add a branch set to **Configure run after** → **has failed** (and **has timed out**). Have it send an email or Teams message with the flow name and the error from the failed step.
-- **Use scopes.** Wrap the main steps in a scope and handle failures in a second scope, as shown in [Try, catch and finally: error handling with scopes](/learn/try-catch-finally-scopes).
+- **Use scopes.** Wrap the main steps in a scope and handle failures in a second scope, as shown in [Try, catch and finally: error handling with scopes](/guides/try-catch-finally-scopes).
 - **Check weekly.** For flows that matter, look at run history once a week for failed and cancelled runs, and for a sudden drop in the number of runs.
 
 ## Sources

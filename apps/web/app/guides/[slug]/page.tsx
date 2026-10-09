@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: LearnPageProps): Promise<Meta
  * SEO story). The first pass showed it as escaped plain text; see
  * ArticleBody for why the structured rendering is equally safe.
  *
- * Internal links (SEO story): a breadcrumb back to the /learn hub and a
+ * Internal links (SEO story): a breadcrumb back to the /guides hub and a
  * "Keep learning" list of related articles, so readers and crawlers can
  * move through the library instead of hitting a dead end.
  *
@@ -108,11 +108,11 @@ export default async function LearnPage({ params }: LearnPageProps) {
       })
     : null;
   // MVP-029: an article in a technology section sits under that section in
-  // the trail (LowCodeStacks / Power Apps / title); others under Learn.
+  // the trail (LowCodeStacks / Power Apps / title); others under Guides.
   const section = article.technology ? technologyInfo(article.technology) : null;
   const parent = section
     ? { name: section.name, path: `/${section.slug}` }
-    : { name: "Learn", path: "/learn" };
+    : { name: "Guides", path: "/guides" };
   const breadcrumbJsonLd = site.ok
     ? buildBreadcrumbJsonLd([
         { name: SITE_NAME, url: homeUrl(site.origin) },
@@ -158,7 +158,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
             items={[
               ...(section
                 ? [{ name: section.name, href: parent.path }]
-                : [{ name: "Learn", href: "/learn" }]),
+                : [{ name: "Guides", href: "/guides" }]),
               ...(section && topic
                 ? [{ name: topic.name, href: `${parent.path}#${topic.id}` }]
                 : []),
@@ -187,7 +187,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
               </span>
             ) : null}
             <span className="rounded-full bg-card/80 px-3.5 py-1.5">
-              {kind.label} · {ARTICLE_TYPE_LABEL[article.type]}
+              {ARTICLE_TYPE_LABEL[article.type]}
             </span>
             <span className="rounded-full bg-card/80 px-3.5 py-1.5">{minutes} min read</span>
             {acceptedFix ? (
@@ -242,7 +242,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
               {related.slice(0, 4).map((guide) => (
                 <li key={guide.slug}>
                   <Link
-                    href={`/learn/${encodeURIComponent(guide.slug)}`}
+                    href={`/guides/${encodeURIComponent(guide.slug)}`}
                     className={`motion-lift flex h-full flex-col gap-1.5 rounded-[1.375rem] p-4.5 text-foreground no-underline ${paletteFor(guide.technology).tint}`}
                   >
                     <span
@@ -258,7 +258,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
               ))}
             </ul>
             <Link
-              href="/learn"
+              href="/guides"
               className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
             >
               All guides →

@@ -130,7 +130,7 @@ export function GuideComments({
       ) : (
         <p>
           <Link
-            href={`/signin?callbackUrl=${encodeURIComponent(`/learn/${slug}#reader_comments`)}`}
+            href={`/signin?callbackUrl=${encodeURIComponent(`/guides/${slug}#reader_comments`)}`}
             className="font-semibold underline underline-offset-4"
           >
             Sign in to comment

@@ -6,8 +6,8 @@ import { SITE_NAME } from "./seo/site";
 import type { SiteUrlResult } from "./site-url";
 import { escapeXml } from "./xml";
 
-/** The guides feed's path, linked from the home page and /learn in <head>. */
-export const GUIDES_FEED_PATH = "/learn/feed.xml";
+/** The guides feed's path, linked from the home page and /guides in <head>. */
+export const GUIDES_FEED_PATH = "/guides/feed.xml";
 
 /** How many of the newest published guides the feed carries. */
 export const GUIDES_FEED_LIMIT = 50;
@@ -22,7 +22,7 @@ export const GUIDES_FEED_TITLE = `${SITE_NAME}: Power Platform guides`;
  * sitemap for recent URLs. No personal data: nothing about the author.
  */
 export function buildGuidesFeed(origin: string, guides: readonly ArticleSummary[]): string {
-  const hubUrl = `${origin}/learn`;
+  const hubUrl = `${origin}/guides`;
   const items = guides.map((guide) => {
     const link = learnUrl(origin, guide.slug);
     const categories = [

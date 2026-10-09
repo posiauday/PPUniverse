@@ -172,7 +172,7 @@ const FIXTURE_ARTICLE_MARKDOWN = [
   "## Setting up",
   "",
   "- First step",
-  "- Second step, with [a link to the learn hub](/learn)",
+  "- Second step, with [a link to the learn hub](/guides)",
   "",
   "> [!TIP]",
   "> A fixture tip callout.",
@@ -253,11 +253,11 @@ export interface FixtureSet {
   minimalProduct: ProductRef;
   /** Isolated for the free-entitlement flow's own click-through interaction — see createFixtures. */
   freeGrantProduct: ProductRef;
-  /** MVP-017 (FR-014): a PUBLISHED Article, visible at /learn/[slug]. */
+  /** MVP-017 (FR-014): a PUBLISHED Article, visible at /guides/[slug]. */
   publishedArticle: ArticleRef;
   /** SEO story: a second PUBLISHED Article of the same type, listed under the first one's "Keep learning". */
   relatedArticle: ArticleRef;
-  /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /learn/[slug] must 404 for it. */
+  /** MVP-017 (FR-014): a DRAFT Article — visible in the admin list, but /guides/[slug] must 404 for it. */
   draftArticle: ArticleRef;
   /** MVP-033 slice D: a PUBLISHED platform update (on /updates, in the tracker) and a DRAFT one (admin only). */
   publishedUpdate: { id: string; slug: string; title: string };
@@ -693,7 +693,7 @@ export async function createFixtures(workerIndex: number): Promise<FixtureSet> {
     });
     created.adminUserId = admin.id;
 
-    // MVP-017 (FR-014): a PUBLISHED Article (visible at /learn/[slug]) and a
+    // MVP-017 (FR-014): a PUBLISHED Article (visible at /guides/[slug]) and a
     // DRAFT Article (must 404 there, but visible in the admin content list).
     // Authored by the fixture admin — content-publishing authority reuses
     // ADMIN, no EDITOR role exists (docs/final-decisions.md, "MVP-017

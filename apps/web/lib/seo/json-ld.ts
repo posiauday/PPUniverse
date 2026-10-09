@@ -114,7 +114,7 @@ export function buildProductJsonLd(input: ProductJsonLdInput): JsonLdObject | nu
 export interface ArticleJsonLdInput {
   /** The validated site origin; the brand Organization links to its home page. */
   origin: string;
-  /** The canonical absolute /learn/[slug] URL. */
+  /** The canonical absolute /guides/[slug] URL. */
   url: string;
   title: string;
   excerpt: string | null;

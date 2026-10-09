@@ -41,7 +41,7 @@ export default function NotFound() {
             Back to the home page
           </Link>
           <Link
-            href="/learn"
+            href="/guides"
             className="inline-flex min-h-[3.375rem] items-center justify-center rounded-full border-[1.5px] border-foreground bg-card px-7 font-semibold text-foreground no-underline hover:bg-muted"
           >
             Browse all guides

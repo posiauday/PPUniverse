@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { ARTICLE_TYPE_SECTIONS, SECTION_ANCHOR } from "../lib/article-types";
 import type { ViewerSummary } from "../lib/viewer";
 import { Avatar } from "./Avatar";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { UpdatesLink } from "./UpdatesLink";
 
-type MenuLink = { name: string; href: string; tint?: string };
+type MenuLink = { name: string; href: string; tint?: string; soon?: boolean };
 
 /**
  * The header's menu below lg (MVP-031, "Board fidelity pass"): the mobile
@@ -24,7 +25,6 @@ export function MobileMenu({
   account,
   themeToggle,
   updateTimes = [],
-  learnHref = "/learn",
   viewer = null,
 }: {
   links: readonly MenuLink[];
@@ -33,8 +33,6 @@ export function MobileMenu({
   themeToggle: ReactNode;
   /** Newest published update times, for the Updates badge (MVP-033 slice D). */
   updateTimes?: readonly string[];
-  /** Where the Learn button goes: /topics when FEATURE_LEARN is on (MVP-048), else the guides. */
-  learnHref?: string;
   /** The signed-in reader's avatar, name and admin flag. */
   viewer?: ViewerSummary | null;
 }) {
@@ -85,16 +83,45 @@ export function MobileMenu({
       <div id={panelId} hidden={!open} className="order-last w-full pt-1 pb-2 lg:hidden">
         <nav aria-label="Main">
           <ul className="flex flex-col">
+            <li>
+              <Link href="/guides" onClick={close} className={linkClass}>
+                Guides
+              </Link>
+            </li>
             {links.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} onClick={close} className={linkClass}>
                   {link.name}
+                  {link.soon ? (
+                    <span className="rounded-full bg-highlight px-1.5 py-px text-[0.6875rem] font-semibold text-highlight-foreground">
+                      Soon
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             ))}
             <li>
               <UpdatesLink publishedTimes={updateTimes} className={linkClass} onNavigate={close} />
             </li>
+          </ul>
+          <p
+            id={`${panelId}-guides`}
+            className="mt-3 px-3 font-mono text-xs tracking-widest text-muted-foreground uppercase"
+          >
+            Guides
+          </p>
+          <ul aria-labelledby={`${panelId}-guides`} className="mt-1 flex flex-col">
+            {ARTICLE_TYPE_SECTIONS.map(({ type, heading }) => (
+              <li key={type}>
+                <Link
+                  href={`/guides#${SECTION_ANCHOR[type]}`}
+                  onClick={close}
+                  className={linkClass}
+                >
+                  {heading}
+                </Link>
+              </li>
+            ))}
           </ul>
           <p
             id={`${panelId}-tech`}
@@ -124,13 +151,6 @@ export function MobileMenu({
             {account.name}
           </Link>
           <span className="ml-auto">{themeToggle}</span>
-          <Link
-            href={learnHref}
-            onClick={close}
-            className="motion-press inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline"
-          >
-            Learn
-          </Link>
         </div>
       </div>
     </>

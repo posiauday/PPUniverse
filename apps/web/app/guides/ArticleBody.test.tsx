@@ -17,10 +17,10 @@ describe("ArticleBody", () => {
 
   it("renders links as real, crawlable anchors", () => {
     const html = render(
-      "See [the docs](https://learn.microsoft.com/power-apps/) and [a guide](/learn/other).",
+      "See [the docs](https://learn.microsoft.com/power-apps/) and [a guide](/guides/other).",
     );
     expect(html).toContain('href="https://learn.microsoft.com/power-apps/"');
-    expect(html).toContain('href="/learn/other"');
+    expect(html).toContain('href="/guides/other"');
   });
 
   it("never renders raw HTML: script and event-handler markup stays inert text", () => {

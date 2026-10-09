@@ -65,7 +65,7 @@ export default async function AdminCommentsPage() {
                   <p>
                     <strong>{comment.displayName}</strong> on{" "}
                     <Link
-                      href={`/learn/${encodeURIComponent(comment.articleSlug)}#reader_comments`}
+                      href={`/guides/${encodeURIComponent(comment.articleSlug)}#reader_comments`}
                     >
                       {comment.articleTitle}
                     </Link>{" "}

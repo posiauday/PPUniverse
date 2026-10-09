@@ -16,8 +16,8 @@ import {
  */
 const PAGES: ReadonlyArray<{ name: string; path: (seed: FixtureSet) => string }> = [
   { name: "home", path: () => "/" },
-  { name: "guides index", path: () => "/learn" },
-  { name: "a guide", path: (seed) => `/learn/${seed.publishedArticle.slug}` },
+  { name: "guides index", path: () => "/guides" },
+  { name: "a guide", path: (seed) => `/guides/${seed.publishedArticle.slug}` },
   { name: "a technology hub", path: () => "/power-apps" },
 ];
 

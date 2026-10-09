@@ -5,7 +5,7 @@ import { HUB_TOPICS, groupIntoSections, startHerePath, type HubKey } from "./tec
 /** How many of an area's sections the menu lists (the approved board shows four). */
 export const MENU_SECTION_COUNT = 4;
 
-/** How many published guides the menu reads to count them, as the /learn hub does. */
+/** How many published guides the menu reads to count them, as the /guides hub does. */
 const MENU_ARTICLE_LIMIT = 500;
 
 export interface MenuArea {
@@ -58,7 +58,7 @@ export function buildTechnologyMenu(
       ink: area.ink,
       count,
       countLabel: menuCountLabel({ key: area.key, count }),
-      startHere: first ? { title: first.title, href: `/learn/${first.slug}` } : null,
+      startHere: first ? { title: first.title, href: `/guides/${first.slug}` } : null,
       sections: HUB_TOPICS[area.key]
         .slice(0, MENU_SECTION_COUNT)
         .map((topic) => ({ name: topic.name, href: `${href}#${topic.id}` })),

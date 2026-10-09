@@ -13,7 +13,7 @@ const AREAS: TechnologyMenuArea[] = [
     ink: "text-tech-apps-ink",
     count: 4,
     countLabel: "4 guides",
-    startHere: { title: "Canvas or model-driven?", href: "/learn/canvas-or-model-driven" },
+    startHere: { title: "Canvas or model-driven?", href: "/guides/canvas-or-model-driven" },
     sections: [{ name: "Choose & plan", href: "/power-apps#choose-and-plan" }],
   },
   {
@@ -69,13 +69,11 @@ describe("TechnologiesMenu", () => {
       screen
         .getByRole("link", { name: /Start here.*Canvas or model-driven\?/ })
         .getAttribute("href"),
-    ).toBe("/learn/canvas-or-model-driven");
+    ).toBe("/guides/canvas-or-model-driven");
     expect(screen.getByRole("link", { name: "Choose & plan" }).getAttribute("href")).toBe(
       "/power-apps#choose-and-plan",
     );
-    expect(screen.getByRole("link", { name: /every guide by goal/ }).getAttribute("href")).toBe(
-      "/learn",
-    );
+    expect(screen.getByRole("link", { name: /all guides/ }).getAttribute("href")).toBe("/guides");
   });
 
   it("marks Governance & admin as new until its first guides exist", () => {

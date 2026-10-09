@@ -73,7 +73,7 @@ If **open registration** is on, anyone can sign up without a code. To require on
 | **No email arrives** | The workflow sends **only** to the contact's **primary email** (`emailaddress1`), never to the secondary or alternate address. Check that field, then the invitation's **owner**: they must be allowed to send email from your environment. If the workflow run shows an error, a quick test is to make yourself the owner and send again |
 | **People sign up without a code** | Open registration is still on (step 3) |
 | **"Email already in use"** | Another contact already has that email, **including deactivated ones**. Find and merge or clean up the duplicate |
-| **Signed in, but no access** | The roles weren't applied, or the page or table permissions don't use those roles. Check the contact's **Web Roles**, and see the [table permissions checklist](/learn/table-permissions-checklist) |
+| **Signed in, but no access** | The roles weren't applied, or the page or table permissions don't use those roles. Check the contact's **Web Roles**, and see the [table permissions checklist](/guides/table-permissions-checklist) |
 | **Code says it's invalid or used** | It has expired, a **Single** invitation was already redeemed, or a **Group** invitation reached its maximum. Check the invitation's status and redemptions |
 
 ## Sources

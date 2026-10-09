@@ -57,7 +57,7 @@ DueDate ge '@{formatDateTime(addDays(outputs('Target_date'), -1), 'yyyy-MM-dd')}
 ```
 
 - Filtering in **Get items** keeps the flow fast and stays clear of the 5,000-item threshold. Index the `DueDate` column if the list is large.
-- More date and column examples: [OData filter query cheat sheet](/learn/odata-filter-query-cheat-sheet).
+- More date and column examples: [OData filter query cheat sheet](/guides/odata-filter-query-cheat-sheet).
 
 ## Step 4: Keep only the right date
 
