@@ -268,7 +268,7 @@ Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y
 
 ## Tree view: `lcsTreeView` → name it `treeDocs`
 
-New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `Document`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
+New for this library, so check the paste first: each row's chevron and node are a modern Icon (and Text) under a transparent classic button, so hover follows the tree's own light or dark theme; the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `Document`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
 
 | Kind | Do this | Expect |
 | --- | --- | --- |
@@ -282,7 +282,7 @@ New for this library, so check the paste first: the rows come from one long form
 | Action | A button: `treeDocs.ExpandAll()`; another: `treeDocs.CollapseAll()` | Every folder with children opens; then all close |
 | Input | `CurrentKey` `"q3"` and `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx is selected inside its open folders |
 | Input | `ShowIcons` false, `IndentSize` 28 | Labels only, indented further |
-| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node; hovering a row or a chevron shows a faint light shade, never a white box |
 
 ## Stepper: `lcsStepper` → name it `stpRequest`
 

@@ -333,16 +333,32 @@ ComponentDefinitions:
                   PaddingBottom: =0
                   Align: =If((lcsStepper.Orientation = "Vertical"), Align.Left, Align.Center)
             - btnStep:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =0
                   Y: =0
                   Width: =Parent.TemplateWidth
                   Height: =Parent.TemplateHeight
-                  Text: =""
-                  Appearance: =ButtonAppearance.Transparent
+                  Text: =ThisItem.Title & ", " & Substitute(Substitute(lcsStepper.StepText, "{n}", Text(ThisItem.N)), "{total}", Text(Max(1, CountRows(lcsStepper.Steps)))) & If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), ", " & lcsStepper.DoneText, (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), ", " & lcsStepper.CurrentText, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.06), RGBA(0, 0, 0, 0.04))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsStepper.Theme = "Dark", RGBA(255, 255, 255, 0.12), RGBA(0, 0, 0, 0.08))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsStepper.Theme = "Dark", ColorFade(lcsStepper.AccentColor, 0.45), lcsStepper.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
                   DisplayMode: =If(lcsStepper.AllowJumpBack && (ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), DisplayMode.Edit, DisplayMode.Disabled)
-                  AccessibleLabel: =ThisItem.Title & ", " & Substitute(Substitute(lcsStepper.StepText, "{n}", Text(ThisItem.N)), "{total}", Text(Max(1, CountRows(lcsStepper.Steps)))) & If((ThisItem.N < Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), ", " & lcsStepper.DoneText, (ThisItem.N = Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))), ", " & lcsStepper.CurrentText, "")
                   OnSelect: |-
                     =With(
                         {to: ThisItem.N, from: Max(1, Min(Coalesce(locStep, lcsStepper.DefaultStep), Max(1, CountRows(lcsStepper.Steps))))},

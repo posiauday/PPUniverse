@@ -5622,3 +5622,16 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - The component gate (30 checks).
 - Web typecheck, lint and component tests (39).
 - A local axe, overflow and layout run through the flows, the dark hover and the eight presets at 375 and 1280 px, light and dark: 44 states, clean, with screenshots checked.
+
+## 2026-10-09 — Tree view and Stepper: hover follows their own theme
+
+**Why:** before the product owner paste-tests them, the Tree view and the Stepper get the fix the Navigation shell needed in dark mode. A modern button's hover comes from the app's light theme: a white box behind white text on a dark component.
+
+**Changed** (drafts, 0.1.0):
+- **Tree view:** each row's chevron and node are now a modern Icon and Text under transparent classic buttons. Their hover, pressed and focus colours follow `Theme`.
+- **Stepper:** the step buttons are transparent classic buttons, the same way. Back and Next stay modern buttons: Primary and Secondary have their own fills.
+- The previews' hover shades match.
+
+**Still to do (after the product owner's light-mode paste-tests):** the same change in the Data table, Pagination, People picker, Dialog and Toast, which also use subtle or transparent modern buttons on a `Dark` theme.
+
+**Checked:** the component gate (30 checks); web component tests (39).

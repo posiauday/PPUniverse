@@ -304,8 +304,19 @@ ComponentDefinitions:
                   RadiusTopRight: =6
                   RadiusBottomLeft: =6
                   RadiusBottomRight: =6
+            - icoChevron:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 8
+                  Y: =(Parent.TemplateHeight - 16) / 2
+                  Width: =16
+                  Height: =16
+                  Visible: =ThisItem.HasKids
+                  Icon: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), "ChevronDown", "ChevronRight")
+                  IconColor: =If(lcsTreeView.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+                  IconStyle: =IconStyle.Outline
             - btnToggle:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =4 + ThisItem.Depth * lcsTreeView.IndentSize
                   Y: =(Parent.TemplateHeight - 32) / 2
@@ -313,11 +324,24 @@ ComponentDefinitions:
                   Height: =32
                   Visible: =ThisItem.HasKids
                   Text: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
-                  Icon: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), "ChevronDown", "ChevronRight")
-                  Layout: =ButtonLayout.IconOnly
-                  Appearance: =ButtonAppearance.Subtle
-                  Color: =If(lcsTreeView.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-                  AccessibleLabel: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsTreeView.Theme = "Dark", ColorFade(lcsTreeView.AccentColor, 0.45), lcsTreeView.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
                   Tooltip: =If(((";" & ThisItem.Key & ";") in Coalesce(locExpanded, ";" & Concat(Split(lcsTreeView.DefaultExpandedKeys, ","), Trim(Value) & ";"))), lcsTreeView.CollapseText, lcsTreeView.ExpandText) & " " & ThisItem.Label
                   OnSelect: |-
                     =With(
@@ -330,24 +354,60 @@ ComponentDefinitions:
                             lcsTreeView.OnExpand(k)
                         )
                     )
+            - icoNode:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 42
+                  Y: =(Parent.TemplateHeight - 20) / 2
+                  Width: =20
+                  Height: =20
+                  Visible: =lcsTreeView.ShowIcons
+                  Icon: =ThisItem.Icon
+                  IconColor: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), IconStyle.Filled, IconStyle.Outline)
+            - lblNode:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 34 + If(lcsTreeView.ShowIcons, 36, 8)
+                  Y: =0
+                  Width: =Max(0, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 34 + If(lcsTreeView.ShowIcons, 36, 8)) - 8)
+                  Height: =Parent.TemplateHeight
+                  Text: =ThisItem.Label
+                  Size: =14
+                  Color: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  FontWeight: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), FontWeight.Semibold, FontWeight.Normal)
             - btnNode:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =4 + ThisItem.Depth * lcsTreeView.IndentSize + 34
                   Y: =2
                   Width: =Max(40, Parent.TemplateWidth - (4 + ThisItem.Depth * lcsTreeView.IndentSize + 34) - 6)
                   Height: =Parent.TemplateHeight - 4
-                  Text: =ThisItem.Label
-                  Icon: =If(lcsTreeView.ShowIcons, ThisItem.Icon, "")
-                  IconStyle: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), IconStyle.Filled, IconStyle.Outline)
-                  Layout: =ButtonLayout.IconBefore
-                  Align: =Align.Left
-                  PaddingLeft: =6
-                  Appearance: =ButtonAppearance.Transparent
-                  Color: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsTreeView.AccentColor, -0.25)), If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
-                  FontWeight: =If(ThisItem.Key = Coalesce(lcsTreeView.CurrentKey, locSelected), FontWeight.Semibold, FontWeight.Normal)
-                  Size: =14
-                  AccessibleLabel: =ThisItem.Label & ", " & lcsTreeView.LevelText & " " & (ThisItem.Depth + 1)
+                  Text: =ThisItem.Label & ", " & lcsTreeView.LevelText & " " & (ThisItem.Depth + 1)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsTreeView.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsTreeView.Theme = "Dark", ColorFade(lcsTreeView.AccentColor, 0.45), lcsTreeView.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =6
+                  RadiusTopRight: =6
+                  RadiusBottomLeft: =6
+                  RadiusBottomRight: =6
                   OnSelect: |-
                     =Set(locSelected, ThisItem.Key);
                     lcsTreeView.OnNodeSelect(ThisItem.Key)

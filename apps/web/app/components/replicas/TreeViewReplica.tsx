@@ -169,7 +169,8 @@ export function useTreeViewReplica(): ReplicaApi {
   const tint = dark
     ? "bg-[color-mix(in_srgb,var(--accent)_45%,#242424)]"
     : "bg-[color-mix(in_srgb,var(--accent)_14%,white)]";
-  const hover = dark ? "hover:bg-white/[0.06]" : "hover:bg-black/[0.04]";
+  // The classic buttons' HoverFill in the YAML: 8% white on dark, 5% black on light.
+  const hover = dark ? "hover:bg-white/[0.08]" : "hover:bg-black/[0.05]";
 
   const toggle = (row: TreeRow) => {
     if (openSet.has(row.Key)) {
