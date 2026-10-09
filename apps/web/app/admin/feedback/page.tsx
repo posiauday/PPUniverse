@@ -55,7 +55,7 @@ export default async function AdminFeedbackPage() {
           {reports.map((report) => (
             <li key={report.id}>
               <p>
-                <Link href={`/learn/${encodeURIComponent(report.articleSlug)}`}>
+                <Link href={`/guides/${encodeURIComponent(report.articleSlug)}`}>
                   {report.articleTitle}
                 </Link>{" "}
                 ·{" "}
@@ -95,7 +95,7 @@ export default async function AdminFeedbackPage() {
               {votes.map((row) => (
                 <tr key={row.articleId}>
                   <td>
-                    <Link href={`/learn/${encodeURIComponent(row.slug)}`}>{row.title}</Link>
+                    <Link href={`/guides/${encodeURIComponent(row.slug)}`}>{row.title}</Link>
                   </td>
                   <td>{row.yes}</td>
                   <td>{row.no}</td>

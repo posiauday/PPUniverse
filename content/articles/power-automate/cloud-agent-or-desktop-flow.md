@@ -68,7 +68,7 @@ Robotic process automation (RPA): the flow clicks and types through applications
   - *attended* runs use the signed-in user's session and need a Premium licence;
   - *unattended* runs sign in on their own and need a Process licence or an unattended add-on.
 
-  The details, and the errors that go with them, are in [Desktop flow won't run from the cloud](/learn/desktop-flow-connection-not-found).
+  The details, and the errors that go with them, are in [Desktop flow won't run from the cloud](/guides/desktop-flow-connection-not-found).
 - **Start it from a cloud flow,** which handles the trigger, the data and the notifications, and keep the desktop flow to the screen work alone.
 
 ## Mixed designs that work

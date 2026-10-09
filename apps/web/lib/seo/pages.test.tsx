@@ -78,8 +78,8 @@ import CategoryPage, {
 } from "../../app/categories/[slug]/page";
 import LearnArticlePage, {
   generateMetadata as learnArticleMetadata,
-} from "../../app/learn/[slug]/page";
-import LearnIndexPage, { generateMetadata as learnIndexMetadata } from "../../app/learn/page";
+} from "../../app/guides/[slug]/page";
+import LearnIndexPage, { generateMetadata as learnIndexMetadata } from "../../app/guides/page";
 import HomePage, { generateMetadata as homeMetadata } from "../../app/page";
 import TechnologyPage, {
   generateMetadata as technologyMetadata,
@@ -223,15 +223,15 @@ describe("home page", () => {
 });
 
 describe("home page — learning content (SEO story)", () => {
-  it("links to /learn and lists the newest articles when any are published", async () => {
+  it("links to /guides and lists the newest articles when any are published", async () => {
     content.listPublishedArticleSummaries.mockResolvedValue([summary("a"), summary("b")]);
     const markup = renderToStaticMarkup(await HomePage());
     // MVP-031: one query feeds the guide counts, the starter guides and the
-    // newest six, so it asks for every published summary (the /learn ceiling).
+    // newest six, so it asks for every published summary (the /guides ceiling).
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({ limit: 500 });
     expect(markup).toContain(`id="home-learn"`);
-    expect(markup).toContain('href="/learn/a"');
-    expect(markup).toContain('href="/learn"');
+    expect(markup).toContain('href="/guides/a"');
+    expect(markup).toContain('href="/guides"');
   });
 
   it("links each product's most-needed fixes and the newest updates once published", async () => {
@@ -257,7 +257,7 @@ describe("home page — learning content (SEO story)", () => {
     const markup = renderToStaticMarkup(await HomePage());
     expect(markup).toContain('id="home-fixes"');
     expect(markup).toContain("My trigger didn&#x27;t fire");
-    expect(markup).toContain('href="/learn/why-are-my-totals-wrong"');
+    expect(markup).toContain('href="/guides/why-are-my-totals-wrong"');
     // Areas with no published fix are left out of the band.
     expect(markup).not.toContain("Everything in Power Pages");
     expect(markup).toContain('id="home-updates"');
@@ -273,10 +273,10 @@ describe("home page — learning content (SEO story)", () => {
     expect(markup).not.toContain('id="home-categories"');
   });
 
-  it("omits the section, but keeps the /learn link, when nothing is published", async () => {
+  it("omits the section, but keeps the /guides link, when nothing is published", async () => {
     const markup = renderToStaticMarkup(await HomePage());
     expect(markup).not.toContain(`id="home-learn"`);
-    expect(markup).toContain('href="/learn"');
+    expect(markup).toContain('href="/guides"');
   });
 
   it("carries the site share image as an absolute URL", () => {
@@ -293,7 +293,7 @@ describe("home page — Daylight layout (MVP-031; was Premium 3, MVP-027 slice 2
     const markup = renderToStaticMarkup(await HomePage());
     expect(markup.match(/<h1/g)).toHaveLength(1);
     expect(text(markup)).toContain("Build Power Platform apps that actually hold up.");
-    expect(markup).toContain('href="/learn"');
+    expect(markup).toContain('href="/guides"');
     expect(markup).toContain('href="#technologies"');
     expect(markup).toContain('id="technologies"');
   });
@@ -319,7 +319,7 @@ describe("home page — Daylight layout (MVP-031; was Premium 3, MVP-027 slice 2
     ]);
     const markup = renderToStaticMarkup(await HomePage());
     expect(text(markup)).toContain("Start here.");
-    expect(markup).toContain('href="/learn/why-are-my-totals-wrong"');
+    expect(markup).toContain('href="/guides/why-are-my-totals-wrong"');
   });
 
   it("shows the newest published products, and leaves the section out when there are none", async () => {
@@ -343,12 +343,12 @@ describe("home page — Daylight layout (MVP-031; was Premium 3, MVP-027 slice 2
   });
 });
 
-describe("/learn hub (SEO story)", () => {
+describe("/guides hub (SEO story)", () => {
   it("is indexable with a self-canonical once an article is published", async () => {
     content.listPublishedArticleSummaries.mockResolvedValue([summary("a")]);
     const metadata = await learnIndexMetadata();
     expect(metadata.robots).toEqual({ index: true, follow: true });
-    expect(canonicalOf(metadata)).toBe("https://example.com/learn");
+    expect(canonicalOf(metadata)).toBe("https://example.com/guides");
   });
 
   it("stays noindex (links still followed) while it has no articles", async () => {
@@ -363,9 +363,9 @@ describe("/learn hub (SEO story)", () => {
     ]);
     const markup = renderToStaticMarkup(await LearnIndexPage());
     expect(markup).toContain(">Fix a problem</h2>");
-    expect(markup).toContain(">Choose the right tool</h2>");
-    expect(markup).not.toContain(">Design it to last</h2>");
-    expect(markup.indexOf("Fix a problem")).toBeLessThan(markup.indexOf("Choose the right tool"));
+    expect(markup).toContain(">Choose a tool</h2>");
+    expect(markup).not.toContain(">Design patterns</h2>");
+    expect(markup.indexOf("Fix a problem")).toBeLessThan(markup.indexOf("Choose a tool"));
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",
       "BreadcrumbList",
@@ -383,7 +383,7 @@ describe("/learn hub (SEO story)", () => {
     expect(markup).toContain('href="#tutorials"');
     expect(markup).toContain('href="#kpi-guides"');
     expect(markup).not.toContain('href="#patterns"');
-    expect(markup).toContain('href="/learn?technology=governance"');
+    expect(markup).toContain('href="/guides?technology=governance"');
     expect(markup).toMatch(/aria-current="page"[^>]*>All technologies</);
   });
 
@@ -438,8 +438,8 @@ describe("article page (SEO story)", () => {
       "@type": "BreadcrumbList",
       itemListElement: [
         { position: 1, name: SITE_NAME, item: "https://example.com/" },
-        { position: 2, name: "Learn", item: "https://example.com/learn" },
-        { position: 3, name: "Intro Tutorial", item: "https://example.com/learn/intro-tutorial" },
+        { position: 2, name: "Guides", item: "https://example.com/guides" },
+        { position: 3, name: "Intro Tutorial", item: "https://example.com/guides/intro-tutorial" },
       ],
     });
   });
@@ -469,7 +469,7 @@ describe("article page (SEO story)", () => {
     expect(markup).toContain(">Step one</h2>");
     // A fix guide's side column is "If that wasn't it" (the G1 board).
     expect(markup).toMatch(/If that wasn(&#x27;|')t it/);
-    expect(markup).toContain('href="/learn/other"');
+    expect(markup).toContain('href="/guides/other"');
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith({
       limit: 4,
       type: "TUTORIAL",
@@ -496,9 +496,9 @@ describe("technology sections (MVP-028)", () => {
     const markup = renderToStaticMarkup(await TechnologyPage(tech("power-apps")));
     expect(markup).toContain("Every area of Power Apps");
     expect(markup).toContain("First guides coming soon");
-    // MVP-037: nothing published, so no fix chips, no Look it up row, no What changed.
+    // MVP-037: nothing published, so no fix chips, no Quick reference row, no What changed.
     expect(markup).not.toContain("Most-needed fixes");
-    expect(markup).not.toContain("Look it up");
+    expect(markup).not.toContain("Quick reference");
     expect(markup).not.toContain("What changed");
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual(["BreadcrumbList"]);
   });
@@ -533,7 +533,7 @@ describe("technology sections (MVP-028)", () => {
     expect(markup).toContain("Gallery stops at 500 rows");
     // Only published fixes get a chip: the other Power Apps fixes are drafts here.
     expect(markup).not.toContain("Save photos to SharePoint");
-    expect(markup).toContain("Look it up");
+    expect(markup).toContain("Quick reference");
     expect(markup).toContain("What works on SharePoint");
     expect(markup).toContain("What changed");
     expect(markup).toContain('href="/updates#canvas-change"');
@@ -557,9 +557,9 @@ describe("technology sections (MVP-028)", () => {
     // A guide with no topic falls into the first section; one with a topic into its own (MVP-033).
     const choose = markup.indexOf('id="choose-and-plan"');
     const data = markup.indexOf('id="data-and-delegation"');
-    expect(markup.indexOf('href="/learn/pa-guide"')).toBeGreaterThan(choose);
-    expect(markup.indexOf('href="/learn/pa-guide"')).toBeLessThan(data);
-    expect(markup.indexOf('href="/learn/pa-delegation"')).toBeGreaterThan(data);
+    expect(markup.indexOf('href="/guides/pa-guide"')).toBeGreaterThan(choose);
+    expect(markup.indexOf('href="/guides/pa-guide"')).toBeLessThan(data);
+    expect(markup.indexOf('href="/guides/pa-delegation"')).toBeGreaterThan(data);
     expect(markup).toContain('href="/governance"');
     expect(jsonLdBlocks(markup).map((block) => block["@type"])).toEqual([
       "CollectionPage",
@@ -577,7 +577,7 @@ describe("technology sections (MVP-028)", () => {
     ]);
     expect((await governanceMetadata()).robots).toEqual({ index: true, follow: true });
     const markup = renderToStaticMarkup(await GovernancePage());
-    expect(markup.indexOf('href="/learn/dlp-guide"')).toBeGreaterThan(
+    expect(markup.indexOf('href="/guides/dlp-guide"')).toBeGreaterThan(
       markup.indexOf('id="data-policies"'),
     );
     expect(content.listPublishedArticleSummaries).toHaveBeenCalledWith(
@@ -877,14 +877,14 @@ describe("robots.txt and sitemap.xml routes", () => {
       { url: "https://example.com/" },
       { url: "https://example.com/categories/power-apps-components" },
       { url: "https://example.com/products/sample-component" },
-      { url: "https://example.com/learn", lastModified: updatedAt },
-      { url: "https://example.com/learn/intro-tutorial", lastModified: updatedAt },
+      { url: "https://example.com/guides", lastModified: updatedAt },
+      { url: "https://example.com/guides/intro-tutorial", lastModified: updatedAt },
       { url: "https://example.com/about" },
       { url: "https://example.com/privacy" },
       { url: "https://example.com/terms" },
       { url: "https://example.com/how-we-write" },
     ]);
-    // The home page, the /learn hub, About, Privacy and Terms (MVP-032) take
+    // The home page, the /guides hub, About, Privacy and Terms (MVP-032) take
     // one each of MAX_SITEMAP_URLS (50,000), and the 7 hubs (six products and
     // Governance & admin, MVP-033) plus /updates are reserved, and so are
     // 1,000 Learn pages (MVP-048) and 500 component library pages (MVP-049);

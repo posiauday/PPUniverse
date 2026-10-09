@@ -104,7 +104,7 @@ Excel is fine for a few hundred rows that one flow reads. Move the data to a **S
 - it's heading past a few thousand rows;
 - you keep hitting locks and throttling.
 
-Our guide [Dataverse or SharePoint lists?](/learn/dataverse-or-sharepoint-lists) helps you choose. For more than 5,000 SharePoint items, see [Get more than 5,000 SharePoint items](/learn/get-more-than-5000-sharepoint-items).
+Our guide [Dataverse or SharePoint lists?](/guides/dataverse-or-sharepoint-lists) helps you choose. For more than 5,000 SharePoint items, see [Get more than 5,000 SharePoint items](/guides/get-more-than-5000-sharepoint-items).
 
 ## Sources
 

@@ -14,13 +14,13 @@ import { HomeHero } from "./HomeHero";
 import { FixFirstBand, LatestUpdates } from "./home/HomeFixesAndUpdates";
 import { BrokenFirst, ClosingBand, StartHereCards, TopicRibbon } from "./home/HomeSections";
 import { TechnologyPanels } from "./home/TechnologyPanels";
-import { ArticleList } from "./learn/ArticleList";
+import { ArticleList } from "./guides/ArticleList";
 
 /** Newest articles shown under "Latest from Learn" (SEO story). */
 const HOME_ARTICLE_LIMIT = 6;
 /** Newest published products shown on the home page (MVP-027 slice 2). */
 const HOME_PRODUCT_LIMIT = 4;
-/** Every published summary, for the guide counts; the same ceiling as /learn. */
+/** Every published summary, for the guide counts; the same ceiling as /guides. */
 const HOME_SUMMARY_LIMIT = 500;
 /** Titles in the decorative topic ribbon. */
 const RIBBON_LIMIT = 8;
@@ -127,7 +127,7 @@ export default async function HomePage() {
               )}
             </h2>
             <Link
-              href="/learn"
+              href="/guides"
               className="inline-flex min-h-11 items-center border-b-2 border-foreground font-semibold text-foreground no-underline"
             >
               All {summaries.length} guides →
@@ -138,15 +138,15 @@ export default async function HomePage() {
       ) : null}
 
       {/* SEO story: the newest articles, one click from the home page, and
-          a link to the full /learn hub. Omitted until one is published. */}
+          a link to the full /guides hub. Omitted until one is published. */}
       {latest.length > 0 ? (
         <section aria-labelledby="home-learn" className="mx-auto mt-20 max-w-[77.5rem]">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 id="home-learn" className="text-4xl font-bold md:text-[3.5rem]">
-              Fresh from <span className="accent-word text-accent">Learn</span>.
+              Fresh from <span className="accent-word text-accent">Guides</span>.
             </h2>
             <Link
-              href="/learn"
+              href="/guides"
               className="inline-flex min-h-11 items-center border-b-2 border-foreground font-semibold text-foreground no-underline"
             >
               All guides →

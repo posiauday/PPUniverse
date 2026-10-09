@@ -4,7 +4,7 @@ Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `plann
 
 Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Data table is drafted (eleven components).**
 - **Drafted:** Data table 0.1.0 (sign-in to copy), built on a gallery: Table, Cards and List views from one switch; columns as text, pills or a progress bar; select a row to open it; sorting, checkboxes with bulk buttons, a row menu, loading and empty states. Live preview and a paste-test checklist.
-- **Open for the product owner:** #133 (top bar, Guides menu, `/guides`) and #134 (BUG-037, "On this page"); then a release PR `develop` → `main`.
+- **Merged:** #133 (top bar, Guides menu, `/guides`). **Open for the product owner:** #134 (BUG-037, "On this page"); then a release PR `develop` → `main`.
 - **Remaining wave 2:** Navigation shell (sign-in), Tree view, Stepper. **Next story:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
 
 Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the library has an admin switch and Coming soon; release #129 is merged.**

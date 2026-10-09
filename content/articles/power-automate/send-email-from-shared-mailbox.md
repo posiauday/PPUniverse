@@ -62,7 +62,7 @@ The flow sends with its **connection's** account: whoever signed in to the Offic
 ## 4. Replies and attachments
 
 - **Replies** go to the shared mailbox, so the whole team sees them. To send replies somewhere else, fill in **Reply To**.
-- **Attachments**: add them in the action's **Attachments** with a name and the file content. If the flow starts from an email in the shared mailbox, set the trigger's **Include Attachments** to **Yes**, or the content will be empty. See [Files and attachments in flows](/learn/files-and-attachments-in-flows).
+- **Attachments**: add them in the action's **Attachments** with a name and the file content. If the flow starts from an email in the shared mailbox, set the trigger's **Include Attachments** to **Yes**, or the content will be empty. See [Files and attachments in flows](/guides/files-and-attachments-in-flows).
 
 ## Sources
 

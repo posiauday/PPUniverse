@@ -19,8 +19,8 @@ describe("indexNowKey", () => {
 describe("buildIndexNowRequest", () => {
   it("names the key file at the site root and keeps only this host's URLs, once each", () => {
     const body = buildIndexNowRequest(SITE.origin, SAMPLE, [
-      `${SITE.origin}/learn/a`,
-      `${SITE.origin}/learn/a`,
+      `${SITE.origin}/guides/a`,
+      `${SITE.origin}/guides/a`,
       "https://elsewhere.example/learn/b",
       "not a url",
     ]);
@@ -28,7 +28,7 @@ describe("buildIndexNowRequest", () => {
       host: "lowcodestacks.example",
       key: SAMPLE,
       keyLocation: `${SITE.origin}/indexnow-key.txt`,
-      urlList: [`${SITE.origin}/learn/a`],
+      urlList: [`${SITE.origin}/guides/a`],
     });
   });
 });
@@ -38,14 +38,14 @@ describe("notifyIndexNow", () => {
     for (const status of [200, 202]) {
       const fetchImpl = vi.fn(async () => new Response(null, { status }));
       await expect(
-        notifyIndexNow([`${SITE.origin}/learn/a`], { site: SITE, key: SAMPLE, fetchImpl }),
+        notifyIndexNow([`${SITE.origin}/guides/a`], { site: SITE, key: SAMPLE, fetchImpl }),
       ).resolves.toBe("sent");
       const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
       expect(url).toBe(INDEXNOW_ENDPOINT);
       expect(init.method).toBe("POST");
       expect(JSON.parse(String(init.body))).toMatchObject({
         key: SAMPLE,
-        urlList: [`${SITE.origin}/learn/a`],
+        urlList: [`${SITE.origin}/guides/a`],
       });
     }
   });

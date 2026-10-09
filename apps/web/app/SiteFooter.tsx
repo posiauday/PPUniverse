@@ -23,10 +23,10 @@ const COLUMNS: ReadonlyArray<{
     id: "footer-learn",
     label: "Guides",
     links: [
-      { name: "All guides", href: "/learn" },
+      { name: "All guides", href: "/guides" },
       ...ARTICLE_TYPE_SECTIONS.map((section) => ({
         name: section.heading,
-        href: `/learn#${SECTION_ANCHOR[section.type]}`,
+        href: `/guides#${SECTION_ANCHOR[section.type]}`,
       })),
     ],
   },

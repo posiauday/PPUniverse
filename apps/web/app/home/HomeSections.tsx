@@ -13,7 +13,7 @@ import { paletteFor } from "../../lib/technology-palette";
  * A slow, edge-faded ribbon of guide titles. Purely decorative: a moving list
  * of links would be hard to use, so it is hidden from assistive technology and
  * holds no links; every one of these guides is a real link elsewhere on the
- * page or one click away on /learn. The list is drawn twice so the loop is
+ * page or one click away on /guides. The list is drawn twice so the loop is
  * seamless.
  */
 export function TopicRibbon({ titles }: { titles: readonly string[] }) {
@@ -155,7 +155,7 @@ export function StartHereCards({ articles }: { articles: readonly ArticleSummary
                 </p>
                 <h3 className="font-display text-[1.0625rem] leading-tight font-bold">
                   <Link
-                    href={`/learn/${encodeURIComponent(article.slug)}`}
+                    href={`/guides/${encodeURIComponent(article.slug)}`}
                     className="text-foreground no-underline after:absolute after:inset-0 after:content-['']"
                   >
                     {article.title}
@@ -199,7 +199,7 @@ function StartHereGrid({ articles }: { articles: readonly ArticleSummary[] }) {
               </p>
               <h3 className="font-display text-[1.4375rem] leading-[1.18] font-bold tracking-[-0.01em]">
                 <Link
-                  href={`/learn/${encodeURIComponent(article.slug)}`}
+                  href={`/guides/${encodeURIComponent(article.slug)}`}
                   className="text-foreground no-underline after:absolute after:inset-0 after:content-[''] hover:underline"
                 >
                   {article.title}
@@ -279,7 +279,7 @@ export function ClosingBand() {
         Free guides for every Power Platform technology.
       </p>
       <Link
-        href="/learn"
+        href="/guides"
         className="motion-press relative inline-flex min-h-[3.75rem] items-center gap-2.5 rounded-full bg-primary px-8 text-lg font-semibold text-primary-foreground no-underline"
       >
         Start learning <span aria-hidden="true">→</span>

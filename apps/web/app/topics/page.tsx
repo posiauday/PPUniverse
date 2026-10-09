@@ -1,10 +1,10 @@
 import { AREAS } from "@ppu/domain-content";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { learnEnabled } from "../../lib/feature-flags";
 import { learnRepository } from "../../lib/learn";
-import { buildTopicsIndexMetadata } from "../../lib/seo/metadata";
+import { buildTopicsIndexMetadata, NOINDEX_ROBOTS } from "../../lib/seo/metadata";
+import { SITE_NAME } from "../../lib/seo/site";
 import { getSiteUrl } from "../../lib/site-url";
 import { paletteFor } from "../../lib/technology-palette";
 
@@ -12,7 +12,10 @@ import { paletteFor } from "../../lib/technology-palette";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (!learnEnabled()) return {};
+  // Off, this is the "coming soon" teaser: kept out of search until Learn opens.
+  if (!learnEnabled()) {
+    return { title: `Learn: coming soon | ${SITE_NAME}`, robots: NOINDEX_ROBOTS };
+  }
   const topics = await learnRepository.listPublishedTopics();
   return buildTopicsIndexMetadata({ site: getSiteUrl(), hasTopics: topics.length > 0 });
 }
@@ -20,12 +23,14 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * The Learn home (MVP-048; docs/final-decisions.md, "Learn module design:
  * Workspace"): every published topic, grouped by area, each a short series of
- * lessons that explains how something works. Guides at /learn answer "how do I
+ * lessons that explains how something works. Guides at /guides answer "how do I
  * fix this?"; topics answer "how does this actually work?". Behind
- * FEATURE_LEARN: off, this is a 404.
+ * FEATURE_LEARN: off, it says Learn is coming soon (the top bar's "Learn
+ * (Soon)", docs/final-decisions.md, 2026-10-09), and topics and lessons are a
+ * 404.
  */
 export default async function TopicsPage() {
-  if (!learnEnabled()) notFound();
+  if (!learnEnabled()) return <LearnComingSoon />;
   const topics = (await learnRepository.listPublishedTopics()).filter(
     (topic) => topic.lessons.length > 0,
   );
@@ -47,7 +52,7 @@ export default async function TopicsPage() {
         <p className="mt-4 max-w-3xl text-lg leading-relaxed">
           Short lessons, about 10 minutes each: the idea, how it works, the important things, a
           small exercise and a quick check. For a fix to a problem in front of you,{" "}
-          <Link href="/learn" className="underline underline-offset-4">
+          <Link href="/guides" className="underline underline-offset-4">
             see the guides
           </Link>
           .
@@ -89,6 +94,44 @@ export default async function TopicsPage() {
           ))}
         </div>
       )}
+    </main>
+  );
+}
+
+/** The Learn module before it opens: what it will be, and where to go now. */
+function LearnComingSoon() {
+  return (
+    <main className="px-4 pb-16 md:px-6">
+      <header className="motion-rise mx-auto mt-4 max-w-[77.5rem] rounded-[2.5rem] bg-stage px-6 py-10 md:px-16 md:py-14">
+        <p className="flex flex-wrap items-center gap-2 font-mono text-xs font-medium tracking-widest text-muted-foreground uppercase">
+          Learn
+          <span className="rounded-full bg-foreground px-2.5 py-0.5 font-sans text-xs font-semibold tracking-normal text-background normal-case">
+            Coming soon
+          </span>
+        </p>
+        <h1 className="mt-3 text-4xl leading-[1.04] font-bold md:text-[3.5rem]">
+          How Power Platform{" "}
+          <span className="accent-word text-[1.08em] text-accent">really works</span>
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg leading-relaxed">
+          Short lessons, about 10 minutes each: the idea, how it works, the important things, a
+          small exercise and a quick check. We&rsquo;re writing the first topics now.
+        </p>
+        <p className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/guides"
+            className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground no-underline"
+          >
+            Browse the guides
+          </Link>
+          <Link
+            href="/guides#tutorials"
+            className="inline-flex min-h-11 items-center rounded-full border-[1.5px] border-foreground px-5 font-semibold no-underline hover:bg-muted"
+          >
+            Fix a problem
+          </Link>
+        </p>
+      </header>
     </main>
   );
 }

@@ -63,7 +63,7 @@ Power BI access comes from three places: **workspace roles**, **item permissions
 ## Row-level security (RLS): who it applies to
 
 - RLS limits data for people with **Read** or **Build**, such as viewers, app consumers and people a report was shared with.
-- Anyone with **Write**, so every Admin, Member and Contributor, **sees all the data**. Never test RLS while signed in as a workspace editor. Use **View as → Other user** in Power BI Desktop, or sign in as a real viewer. See [Dynamic row-level security](/learn/dynamic-row-level-security).
+- Anyone with **Write**, so every Admin, Member and Contributor, **sees all the data**. Never test RLS while signed in as a workspace editor. Use **View as → Other user** in Power BI Desktop, or sign in as a real viewer. See [Dynamic row-level security](/guides/dynamic-row-level-security).
 - Use the **Viewer** role or an **app** for people whose data must be restricted.
 
 ## FAQ
@@ -72,7 +72,7 @@ Power BI access comes from three places: **workspace roles**, **item permissions
 Put that report and its semantic model in a **separate workspace**, give the person **Contributor** there, and leave them as a viewer, or app user, in the original. Roles apply to the whole workspace, so a separate workspace is the clean way.
 
 **Someone can see the workspace but not the gateway connection.**
-Gateway access is separate from workspace roles. They need a role on the **gateway connection**. See [Move, upgrade or share a gateway](/learn/move-upgrade-share-a-gateway).
+Gateway access is separate from workspace roles. They need a role on the **gateway connection**. See [Move, upgrade or share a gateway](/guides/move-upgrade-share-a-gateway).
 
 **A disabled account still appears with access.**
 Access records stay until the account is **permanently deleted** in Microsoft Entra ID, but a disabled user can't use them.

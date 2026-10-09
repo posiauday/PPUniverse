@@ -169,7 +169,7 @@ Patch(
 | Nothing happens, no error | Wrap Patch in `IfError` (section 1), and check **Monitor** for the request |
 | Works for you, fails for others | They need **Edit** permission on the list |
 
-If you're filtering big lists to find the item to patch, see [Power Apps delegation and the 500-row limit](/learn/power-apps-delegation-500-rows).
+If you're filtering big lists to find the item to patch, see [Power Apps delegation and the 500-row limit](/guides/power-apps-delegation-500-rows).
 
 ## Sources
 

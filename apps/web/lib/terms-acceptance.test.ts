@@ -7,7 +7,7 @@ const { safeContinuePath } = await import("./terms-acceptance");
 
 describe("safeContinuePath", () => {
   it("keeps a path on this site", () => {
-    expect(safeContinuePath("/learn/fix-delegation?x=1")).toBe("/learn/fix-delegation?x=1");
+    expect(safeContinuePath("/guides/fix-delegation?x=1")).toBe("/guides/fix-delegation?x=1");
   });
 
   it("sends anything else to the account page", () => {

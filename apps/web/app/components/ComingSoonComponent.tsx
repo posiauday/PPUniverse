@@ -1,6 +1,6 @@
 import { categoryName, type ComponentTeaser } from "@ppu/domain-content";
 import Link from "next/link";
-import { Breadcrumbs } from "../learn/Breadcrumbs";
+import { Breadcrumbs } from "../guides/Breadcrumbs";
 import { ComponentArt } from "./ComponentArt";
 
 /**

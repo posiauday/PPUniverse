@@ -24,7 +24,7 @@ export function HomeHero({ guideCount }: { guideCount: number }) {
       <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-6 pt-8 text-center sm:px-4 md:pt-14">
         {guideCount > 0 ? (
           <Link
-            href="/learn"
+            href="/guides"
             className="motion-rise inline-flex min-h-11 items-center gap-2.5 rounded-full border border-border bg-card py-1.5 pr-4 pl-1.5 text-sm text-muted-foreground no-underline shadow-[0_6px_20px_-12px_rgb(20_20_26/0.3)] hover:text-foreground"
           >
             <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-highlight">
@@ -58,7 +58,7 @@ export function HomeHero({ guideCount }: { guideCount: number }) {
           style={{ animationDelay: "0.85s" }}
         >
           <Link
-            href="/learn"
+            href="/guides"
             className="motion-press inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-primary px-7 text-[1.0625rem] font-semibold text-primary-foreground no-underline"
           >
             Start learning <span aria-hidden="true">→</span>

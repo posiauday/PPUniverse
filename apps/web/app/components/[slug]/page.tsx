@@ -14,9 +14,9 @@ import {
 } from "../../../lib/seo/metadata";
 import { SITE_NAME } from "../../../lib/seo/site";
 import { getSiteUrl } from "../../../lib/site-url";
-import { ArticleBody } from "../../learn/ArticleBody";
-import { ArticleToc, StickyColumn } from "../../learn/ArticleToc";
-import { Breadcrumbs } from "../../learn/Breadcrumbs";
+import { ArticleBody } from "../../guides/ArticleBody";
+import { ArticleToc, StickyColumn } from "../../guides/ArticleToc";
+import { Breadcrumbs } from "../../guides/Breadcrumbs";
 import { ComingSoonComponent } from "../ComingSoonComponent";
 import { ComponentWorkbench } from "../ComponentWorkbench";
 import { LibraryNav } from "../LibraryNav";
