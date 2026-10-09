@@ -2,10 +2,15 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Tree view is drafted.**
+Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Tree view is drafted (thirteen components).**
 - **Drafted:** Tree view 0.1.0 (open to everyone): nested folders or categories from one flat table in one gallery, nodes that open and close, children loaded when a node opens, selection, and the open nodes as an output to save.
 - **In review:** #136 (MVP-050), #137 (BUG-038), #138 (release), #139 (Navigation shell).
 - **Remaining wave 2:** Stepper.
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Navigation shell is drafted (twelve components).**
+- **Drafted:** Navigation shell 0.1.0 (sign-in to copy): a side menu that collapses to icons and a bottom bar on phones, from one items table, with badges, items hidden or disabled by key, the current screen from your app, and outputs that place it and your content.
+- **In review:** #136 (MVP-050, scheduled publishing and draft previews), #137 (BUG-038, row-level security), #138 (release `develop` → `main`).
+- **Remaining wave 2:** Tree view, Stepper.
 
 Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Data table is drafted (eleven components).**
 - **Drafted:** Data table 0.1.0 (sign-in to copy), built on a gallery: Table, Cards and List views from one switch; columns as text, pills or a progress bar; select a row to open it; sorting, checkboxes with bulk buttons, a row menu, loading and empty states. Live preview and a paste-test checklist.

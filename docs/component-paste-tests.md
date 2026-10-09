@@ -239,6 +239,26 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 | Action | Tick rows, then a button: `dtOrders.ClearSelection()` | No rows ticked |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark cards, purple progress and selection |
 
+## Navigation shell: `lcsNavShell` → name it `navMain`
+
+New for this library, so check the paste first: the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the Fluent icon names `Home`, `Cart`, `People`, `ChartMultiple`, `Settings` and `Navigation`. Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
+
+Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y, Width and Height to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | A side menu on the left: "My app", Home marked (light blue, a bar on its left, a filled icon), Orders with a blue 3 |
+| Event | `OnNavigate` to `Notify("Go to " & ItemKey)`; select Customers | "Go to customers"; Customers is marked |
+| Input | `CurrentKey` `"reports"` | Reports is marked, whatever was selected |
+| Event | `OnToggle` to `Notify(Collapsed)`; select the ☰ button | "true"; the menu shrinks to icons, Orders shows a small 3; hovering an icon shows its name |
+| Output | A label: `navMain.ShellWidth` | 64 collapsed, 240 expanded |
+| Output | A container with X, Y, Width and Height from `navMain.ContentX` … `ContentHeight` | It sits beside the menu and grows when you collapse it |
+| Input | `HiddenKeys` `"reports"`, `DisabledKeys` `"settings"` | No Reports; Settings is greyed and does nothing |
+| Input | `ScreenWidth` `390` | A bottom bar along the bottom: five icons with labels, the current one in a pale pill |
+| Action | A button: `navMain.SetCollapsed(true)` | The side menu collapses |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text on dark grey, a purple bar and badge |
+| Keyboard | Tab through the menu | Each item and the ☰ button take focus; Enter selects |
+
 ## Tree view: `lcsTreeView` → name it `treeDocs`
 
 New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `FolderOpen`, `Document`, `Image`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
