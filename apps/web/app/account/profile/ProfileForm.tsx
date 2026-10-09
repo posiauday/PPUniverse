@@ -8,7 +8,6 @@ type State =
   | "idle"
   | "busy"
   | "saved"
-  | "avatar"
   | "too-short"
   | "too-long"
   | "characters"
@@ -19,7 +18,6 @@ type State =
 
 const MESSAGE: Partial<Record<State, string>> = {
   saved: "Saved. Your comments now show this name.",
-  avatar: "Here's your new avatar.",
   "too-short": "Please use at least 3 characters.",
   "too-long": "Please use at most 30 characters.",
   characters: "Use letters, numbers, spaces and . _ - only, with at least one letter.",
@@ -29,7 +27,7 @@ const MESSAGE: Partial<Record<State, string>> = {
   error: "Something went wrong. Please try again.",
 };
 
-/** Change the display name, or draw a new avatar (MVP-040). */
+/** Change the display name (MVP-040). The avatar is chosen in AvatarPicker. */
 export function ProfileForm({ displayName }: { displayName: string }) {
   const router = useRouter();
   const [name, setName] = useState(displayName);
@@ -88,16 +86,6 @@ export function ProfileForm({ displayName }: { displayName: string }) {
           </button>
         </div>
       </form>
-      <div>
-        <button
-          type="button"
-          onClick={() => void send({ avatar: "new" }, "avatar")}
-          aria-disabled={state === "busy"}
-          className="inline-flex min-h-11 items-center rounded-full border-[1.5px] border-foreground bg-card px-5 font-semibold"
-        >
-          Draw a new avatar
-        </button>
-      </div>
       <p id={statusId} role="status" className="font-medium empty:hidden">
         {MESSAGE[state] ?? ""}
       </p>

@@ -2238,3 +2238,15 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 5. **Motion** is on the page around the component (the screen fading in, Notify's banner sliding down, chips, cards lifting), never added to the component itself beyond what Power Apps does. Reduced-motion settings switch all of it off, as everywhere on the site.
 6. **The library page** shows a still picture of each component on its card, drawn by us in the component's own colours.
 
+## 2026-10-08 — Header: Account holds Admin; avatars from a gallery; the Terms accepted when an account is made
+
+**Source:** direct product-owner instructions in this session, with a screenshot of the header on two rows: "design break found, look at navigation bar"; "I don't like both Admin and Account; inside Account I should be able to see that Admin tab and all; why do we need Admin in the navigation"; "let people choose avatar from the set of avatars we have; random is just first assigned to one who creates account"; "while creating account make them accept policy and terms and all so that we don't rely on them to do it on their own"; "for me create super premium avatar … since I am the admin design mine".
+
+1. **Header: Account holds Admin.** The header has no Admin link. A signed-in reader's avatar is the Account button; admins find Admin in the account menu and every admin area on the account page. The bar stays one row at every desktop width: between 1024 and 1279 pixels the wordmark is for screen readers only, and the search box keeps its approved words ("Search an error or topic").
+2. **Avatars: choose from a gallery; the crown is for admins.** The random avatar is only the first one. On the profile page a reader chooses from a gallery (their own, then eleven more, and "Show other avatars"), then saves. The crowned avatar, a premium design, can be chosen only by an admin, checked on the server by the role in the database. This replaces "Draw a new avatar re-rolls it" in item 1 of "Reader avatars: maker critters wearing a name tag".
+3. **Accounts accept the Terms when they're made.** Creating an account means agreeing to the Terms of use and the Privacy notice:
+   - with a password: a required box on the sign-up form, recorded when the emailed link is confirmed;
+   - with an emailed link or Google: a welcome page right after the account is made;
+   - an account that hasn't agreed (made before this, or someone who left the welcome page) sees a reminder until they do.
+   Each agreement is the existing Terms consent record, tied to the current Terms version by the server.
+

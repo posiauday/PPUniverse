@@ -5,7 +5,7 @@ Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `plann
 Last updated: 2026-10-08 (latest) — **MVP-049 In Progress: wave 2 has begun; nine components drafted.**
 - **Drafted since:** Floating action button; upgrades to Button, Toast, Tabs and States (0.2.0) and Text field (0.3.0, built-in formats); Date and time picker (0.1.0); People picker (0.1.0, sign-in to copy: your app searches the directory through `OnSearch`). Each has a live preview and a paste-test checklist.
 - **Fixed:** BUG-033, previews cut off on phones.
-- **Waiting on the product owner:** merging #124, then #125, #126 and the People picker PR in order; the paste-tests (`docs/component-paste-tests.md`); the Privacy wording for component ratings.
+- **Waiting on the product owner:** merging #125, #126 and #127 in order (#124 is merged); the paste-tests (`docs/component-paste-tests.md`); the Privacy wording for component ratings.
 - **Remaining wave 2:** Pagination, Data table (sign-in), Navigation shell (sign-in), Tree view, Stepper. Then wave 3: Kanban, screen templates, charts.
 
 Last updated (previous): 2026-10-08 — **MVP-049 (the Power Apps component library) In Progress: pipeline, admin and Docs pages built; six components drafted.**
