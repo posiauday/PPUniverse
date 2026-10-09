@@ -350,7 +350,7 @@ ComponentDefinitions:
             Visible: =shpHeader.Visible
             Fill: =If(lcsDataTable.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
       - chkAll:
-          Control: ModernCheckbox@1.0.0
+          Control: ModernCheckbox@1.0.2
           Properties:
             X: =12
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0) + 6
@@ -1212,7 +1212,7 @@ ComponentDefinitions:
                   RadiusBottomRight: =0
                   OnSelect: =lcsDataTable.OnRowSelect(ThisItem.Id)
             - chkRow:
-                Control: ModernCheckbox@1.0.0
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   X: =12
                   Y: =(Parent.TemplateHeight - 32) / 2
@@ -1530,7 +1530,7 @@ ComponentDefinitions:
                   PaddingTop: =0
                   PaddingBottom: =0
             - chkCard:
-                Control: ModernCheckbox@1.0.0
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   X: =Parent.TemplateWidth - 16 - 32
                   Y: =16
@@ -1754,7 +1754,7 @@ ComponentDefinitions:
                   RadiusBottomRight: =0
                   OnSelect: =lcsDataTable.OnRowSelect(ThisItem.Id)
             - chkListItem:
-                Control: ModernCheckbox@1.0.0
+                Control: ModernCheckbox@1.0.2
                 Properties:
                   X: =12
                   Y: =22

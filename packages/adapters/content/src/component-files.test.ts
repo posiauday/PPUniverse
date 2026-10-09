@@ -40,6 +40,19 @@ describe("content/components", () => {
     },
   );
 
+  // Studio reads a control's properties by the version after "@": ModernCheckbox@1.0.0 has no
+  // Checked, so the Data table's first paste-test failed (PA2108, 2026-10-09, BUG-043).
+  it.each(folders.map((entry) => [entry.folder, entry.result] as const))(
+    "%s asks for a checkbox version that has Checked",
+    (_folder, result) => {
+      if (!result.ok) return;
+      const versions = [...result.component.yaml.matchAll(/Control: ModernCheckbox@([\d.]+)/g)].map(
+        (match) => match[1],
+      );
+      expect(versions.filter((version) => version === "1.0.0" || version === "1.0.1")).toEqual([]);
+    },
+  );
+
   it("uses each slug and component name once", () => {
     const ok = folders.flatMap((entry) => (entry.result.ok ? [entry.result.component] : []));
     const names = ok.map((component) => component.componentName);

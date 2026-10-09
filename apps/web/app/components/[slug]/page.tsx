@@ -1,6 +1,7 @@
 import { categoryName, propertyCounts } from "@ppu/domain-content";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { outlineOf, type OutlineItem } from "../../../lib/article-outline";
@@ -125,11 +126,14 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
                 ✓ Tested in Studio
               </span>
             ) : null}
-            {component.access === "MEMBERS" ? (
-              <span className="rounded-full bg-card px-3 py-1">Free with an account</span>
-            ) : (
-              <span className="rounded-full bg-card px-3 py-1">Free to copy</span>
-            )}
+            {/* The licence, whose full text is in the Terms (docs/final-decisions.md,
+                2026-10-09, "Component library: MIT License"). */}
+            <Link
+              href="/terms#mit-license"
+              className="rounded-full bg-card px-3 py-1 text-foreground no-underline hover:underline"
+            >
+              MIT License
+            </Link>
           </p>
           <h1 className="motion-rise mt-4 font-display text-4xl font-bold md:text-6xl">
             {component.title}

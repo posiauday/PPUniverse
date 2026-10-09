@@ -5744,3 +5744,13 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - Screenshots checked.
 
 **Security:** the new route is admins only (server check, as publish), and it changes only status and Coming soon, in a transaction with its audit event.
+
+## 2026-10-09 — BUG-043 (Data table paste error) and "MIT License" on components
+
+**Asked:** the product owner's Data table paste-test failed (PA2108, `Checked` on `ModernCheckbox@1.0.0`), and the component pages should say "MIT License" instead of "free" or "with an account" (docs/final-decisions.md, 2026-10-09, "Component library: MIT License").
+
+**Changed:**
+- `content/components/data-table/component.yaml`: `ModernCheckbox@1.0.2` (its generator too); a gate check against 1.0.0 and 1.0.1; the README's control table and the paste checklist updated (BUG-043).
+- Cards and the component page show "MIT License" (the page links to `/terms#mit-license`); the copy button says "Sign in to copy"; the YAML tab says "Sign in to see and copy its YAML". Copy access is unchanged.
+
+**Checked:** the component gate (44), web component tests (42), typecheck and lint.
