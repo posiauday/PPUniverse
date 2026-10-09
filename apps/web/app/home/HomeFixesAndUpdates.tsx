@@ -54,7 +54,7 @@ export function FixFirstBand({ articles }: { articles: readonly ArticleSummary[]
               {fixes.map((fix) => (
                 <li key={fix.slug}>
                   <Link
-                    href={`/learn/${encodeURIComponent(fix.slug)}`}
+                    href={`/guides/${encodeURIComponent(fix.slug)}`}
                     className={`motion-lift inline-flex min-h-11 items-center rounded-full border-[1.5px] border-transparent px-3.5 text-sm font-medium text-foreground no-underline hover:border-foreground ${palette.tint}`}
                   >
                     {fix.label}

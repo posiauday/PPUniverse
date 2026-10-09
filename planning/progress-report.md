@@ -5407,12 +5407,30 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 
 **Checked:** web typecheck and lint; the gate's guide feedback states (votes and notes) locally in Chromium and WebKit on a production build: 42 passed.
 
+## 2026-10-09 — Top bar: a Guides menu, Learn coming soon, guides at /guides, the theme icon
+
+**Asked:** "remove Learn from the end and add it to the regular navigation beside Power Platform, and tease the coming-soon Learn module"; "move the light/dark theme button to just before the search bar, just an icon, no round border; the sun transforms to a moon, animated, when clicked, and back"; and help with the confusing names (fixes, guides, patterns). The product owner chose the agent's recommendation (docs/final-decisions.md, 2026-10-09, "Top bar").
+
+**Changed:**
+- **Top bar:** Power Platform ▾ · Guides ▾ · Learn (Soon) · Components (while switched on) · Updates; then the theme icon, the search box and the account. The black Learn button is gone; the phone menu follows (Guides, Learn with Soon, the five kinds, then the areas).
+- **Guides ▾** (`app/GuidesMenu.tsx`): the five kinds, each with its badge, its one name and a few words; and All guides. The same disclosure pattern as Power Platform (Escape and a click outside close it).
+- **One name per kind of guide** (`lib/article-types.ts`): Fix a problem (FIX), Choose a tool (CHOOSE), Design patterns (DESIGN), Measure (MEASURE), Quick reference (LOOK UP), used by the menu, the hub's sections, the article page (it no longer says "Fix · Tutorial"), the footer, search results, share images and the technology hubs' Quick reference row.
+- **Guides moved from `/learn` to `/guides`** (the route folder, every internal link, canonical URLs, breadcrumbs ("Guides"), the sitemap, the RSS feed at `/guides/feed.xml`, IndexNow and the content files' links), with permanent redirects for `/learn` and `/learn/*` that keep the #anchor and query. The share images stay at `/og/learn/*` and Learn progress at `/api/learn/progress`.
+- **Learn (Soon):** while the Learn module is off, `/topics` says Learn is coming soon, points to the guides and is kept out of search (it was a 404).
+- **The theme icon:** no border or circle; the sun's rays turn and shrink away, the disc grows and a bite slides in to make the moon, all with CSS transforms, and it simply switches with reduced motion. Still a "Dark theme" toggle button with aria-pressed, and a 44px target.
+
+**On the way:** the rewrite of `/learn` also turned `https://learn.microsoft.com` into `guides.microsoft.com` in 20 places in code and tests (the address has `//learn`); all were found by the tests and put back before anything was committed, and the content files used a separate exact rewrite and were never touched.
+
+**Checked:** web typecheck, lint and tests (853, including a new test for Learn coming soon and the rewritten header tests); the e2e package's tests (route coverage includes `/guides/feed.xml`); locally on a production build, `/learn/x` answers 308 to `/guides/x`; the gate's home, search, sign-in, guides hub, guide, comments, topics, account, admin and 404 states: 91 checks in Chromium, and home, a guide and topics in Firefox and WebKit: 56, all passing; the header, Guides menu and sun-to-moon toggle looked at in the browser.
+
+**Next:** the "On this page" highlight (BUG-037), then the Data table.
+
 ## 2026-10-09 — Fix: "On this page" follows the section being read (BUG-037)
 
 **Asked:** "On this page doesn't work or move with scrolling on lots of pages, but on some it works; review all the pages."
 
 **Found:** the panel does stick (measured on the live site at 1,080 and 1,280 px). The highlight lagged: scrolling with the wheel to each section on all 64 live pages with "On this page", in Chromium and Firefox, every page marked the previous section and never the first. A heading counted as "being read" only within 140 px of the top, under the 100 px sticky header.
 
-**Changed:** the reading line is about a third of the way down the window, at least 160 px (`readingLine` in `apps/web/app/learn/TocSpy.tsx`), with unit tests.
+**Changed:** the reading line is about a third of the way down the window, at least 160 px (`readingLine` in `apps/web/app/guides/TocSpy.tsx`), with unit tests.
 
 **Checked:** web typecheck and tests; locally on a production build with the 60 guides imported and published in the local database only, scrolling to each section in Chromium and Firefox: the section scrolled to is marked, or its sub-heading when one follows straight away. Firefox needed exact scroll positions in the check, because it scales wheel distances differently.

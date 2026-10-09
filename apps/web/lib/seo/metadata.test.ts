@@ -222,7 +222,7 @@ describe("buildLearnMetadata", () => {
     expect(metadata.title).toBe(`Intro | ${SITE_NAME}`);
     expect(metadata.description).toBe("Start here.");
     expect(metadata.robots).toEqual({ index: true, follow: true });
-    expect(canonicalOf(metadata)).toBe("https://example.com/learn/intro");
+    expect(canonicalOf(metadata)).toBe("https://example.com/guides/intro");
   });
 });
 
@@ -230,8 +230,8 @@ describe("buildLearnIndexMetadata", () => {
   it("is indexable once it lists an article, and noindex-follow while empty", () => {
     const populated = buildLearnIndexMetadata({ site: SITE, hasArticles: true });
     expect(populated.robots).toEqual({ index: true, follow: true });
-    expect(canonicalOf(populated)).toBe("https://example.com/learn");
-    expect(populated.title).toBe(`Learn Power Platform | ${SITE_NAME}`);
+    expect(canonicalOf(populated)).toBe("https://example.com/guides");
+    expect(populated.title).toBe(`Power Platform guides | ${SITE_NAME}`);
     expect(buildLearnIndexMetadata({ site: SITE, hasArticles: false }).robots).toEqual({
       index: false,
       follow: true,

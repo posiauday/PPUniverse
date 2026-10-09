@@ -13,7 +13,7 @@ import { buildNotFoundMetadata, buildTopicMetadata } from "../../../lib/seo/meta
 import { SITE_NAME } from "../../../lib/seo/site";
 import { getSiteUrl } from "../../../lib/site-url";
 import { paletteFor } from "../../../lib/technology-palette";
-import { Breadcrumbs } from "../../learn/Breadcrumbs";
+import { Breadcrumbs } from "../../guides/Breadcrumbs";
 
 interface TopicPageProps {
   params: Promise<{ topic: string }>;

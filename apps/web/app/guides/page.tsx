@@ -63,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The /learn hub (SEO story; Daylight look, MVP-031): every published
+ * The /guides hub (SEO story; Daylight look, MVP-031): every published
  * tutorial, pattern, comparison and KPI guide in one crawlable place, grouped
  * by type under a lime header with links straight to each technology. It is
  * the page every article links back to, so no article is ever more than two
@@ -90,14 +90,14 @@ export default async function LearnIndexPage({
     site.ok && articles.length > 0
       ? buildCollectionPageJsonLd({
           url: learnIndexUrl(site.origin),
-          name: "Learn Power Platform",
+          name: "Power Platform guides",
           description: LEARN_INDEX_DESCRIPTION,
         })
       : null;
   const breadcrumbJsonLd = site.ok
     ? buildBreadcrumbJsonLd([
         { name: SITE_NAME, url: homeUrl(site.origin) },
-        { name: "Learn", url: learnIndexUrl(site.origin) },
+        { name: "Guides", url: learnIndexUrl(site.origin) },
       ])
     : null;
 
@@ -109,7 +109,7 @@ export default async function LearnIndexPage({
           <span className="shape-pill-coral motion-bob-alt absolute top-[250px] right-48 hidden h-[54px] w-[150px] xl:block" />
         </div>
         <div className="relative flex max-w-3xl flex-col gap-4">
-          {/* The canvas draws no visible breadcrumb here: /learn is one level
+          {/* The canvas draws no visible breadcrumb here: /guides is one level
               down, and the BreadcrumbList JSON-LD below still describes it. */}
           <p className="font-mono text-xs tracking-widest uppercase">
             Guides{articles.length > 0 ? ` · ${articles.length}` : ""}
@@ -163,7 +163,7 @@ export default async function LearnIndexPage({
           </nav>
         ) : null}
         {/* MVP-033 (TD-026): narrow the guides to one area. Plain links, so it
-            works without scripts; each filtered view keeps /learn as its canonical. */}
+            works without scripts; each filtered view keeps /guides as its canonical. */}
         <nav aria-label="Filter by technology" className="relative mt-3.5">
           <ul className="flex flex-wrap gap-2 text-sm">
             {[{ name: "All technologies", slug: null as string | null }, ...ALL_AREAS].map(
@@ -172,7 +172,7 @@ export default async function LearnIndexPage({
                 return (
                   <li key={area.slug ?? "all"}>
                     <Link
-                      href={area.slug ? `/learn?technology=${area.slug}` : "/learn"}
+                      href={area.slug ? `/guides?technology=${area.slug}` : "/guides"}
                       aria-current={current ? "page" : undefined}
                       className={`${CHIP} min-h-11 font-medium ${
                         current

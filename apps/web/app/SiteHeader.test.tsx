@@ -13,16 +13,15 @@ import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 
 describe("SiteHeader", () => {
-  it("sends the Learn button to /topics only when the Learn module is on (MVP-048)", () => {
-    const learnButton = /href="([^"]*)"[^>]*>Learn</g;
-    const targets = (html: string) => [...html.matchAll(learnButton)].map((match) => match[1]);
-    expect(
-      targets(renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />)),
-    ).not.toContain("/topics");
+  it("marks Learn as Soon until the Learn module is on, and never has a Learn button (2026-10-09)", () => {
+    const off = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
+    expect(off).toContain('href="/topics"');
+    expect(off.replace(/<[^>]+>/g, " ")).toMatch(/Learn\s+Soon/);
     process.env["FEATURE_LEARN"] = "on";
     try {
-      const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
-      expect(targets(html)).toContain("/topics");
+      const on = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
+      expect(on).toContain('href="/topics"');
+      expect(on.replace(/<[^>]+>/g, " ")).not.toContain("Soon");
     } finally {
       delete process.env["FEATURE_LEARN"];
     }
@@ -31,23 +30,33 @@ describe("SiteHeader", () => {
   it("links the brand home and the main sections, with no heading of its own", () => {
     const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
     expect(html).toContain('href="/"');
-    expect(html).toContain('href="/learn"');
+    expect(html).toContain('href="/guides"');
     expect(html).toContain('href="/search"');
     expect(html).toContain('aria-label="Main"');
     expect(html).not.toMatch(/<h[1-6]/);
   });
 
-  it("names the top bar for what's behind it (MVP-045)", () => {
+  it("names the top bar: Power Platform, Guides, Learn, Updates (2026-10-09)", () => {
     const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
     const text = html.replace(/<[^>]+>/g, " ");
-    expect(html).toContain('href="/learn#tutorials"');
-    expect(html).toContain('href="/learn#patterns"');
     expect(text).toContain("Power Platform");
-    expect(text).toContain("Fixes");
-    expect(text).toContain("Patterns");
-    expect(text).toContain(" Learn ");
+    expect(text).toContain("Guides");
+    expect(text).toContain("Updates");
     expect(html).toContain('placeholder="Search an error or topic"');
-    expect(text).not.toMatch(/Technologies|Start learning/);
+    expect(text).not.toMatch(/Technologies|Start learning|Fixes|Patterns/);
+    // The theme icon comes before the search box.
+    expect(html.indexOf('aria-label="Dark theme"')).toBeLessThan(
+      html.indexOf('placeholder="Search an error or topic"'),
+    );
+  });
+
+  it("shows Components only while the library is switched on", () => {
+    expect(renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />)).not.toContain(
+      'href="/components"',
+    );
+    expect(
+      renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} componentsOn />),
+    ).toContain('href="/components"');
   });
 
   it("offers Sign in to a guest and Account to a signed-in visitor", () => {

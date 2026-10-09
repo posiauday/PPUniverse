@@ -50,6 +50,15 @@ const nextConfig: NextConfig = {
   // pg (node-postgres) has native/optional bindings that don't bundle.
   // @prisma/client is already in Next's built-in external-packages list.
   serverExternalPackages: ["pg"],
+  // Guides moved from /learn to /guides, so "Learn" only means the courses
+  // (docs/final-decisions.md, 2026-10-09, "Top bar"). Permanent redirects
+  // keep every old link, bookmark and search result working, with its #anchor.
+  async redirects() {
+    return [
+      { source: "/learn", destination: "/guides", permanent: true },
+      { source: "/learn/:path*", destination: "/guides/:path*", permanent: true },
+    ];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: SECURITY_HEADERS },

@@ -200,7 +200,7 @@ export function buildLearnMetadata(input: {
   });
 }
 
-/** The /learn hub (SEO story). Indexable once it lists at least one article;
+/** The /guides hub (SEO story). Indexable once it lists at least one article;
  * an empty hub is thin content, so it stays noindex (links still followed)
  * until the first article is published. */
 export function buildLearnIndexMetadata(input: {
@@ -209,8 +209,8 @@ export function buildLearnIndexMetadata(input: {
 }): Metadata {
   const { site, hasArticles } = input;
   return composeMetadata({
-    title: `Learn Power Platform | ${SITE_NAME}`,
-    socialTitle: "Learn Power Platform",
+    title: `Power Platform guides | ${SITE_NAME}`,
+    socialTitle: "Power Platform guides",
     description: LEARN_INDEX_DESCRIPTION,
     url: site.ok ? learnIndexUrl(site.origin) : undefined,
     robots: hasArticles ? INDEXABLE_ROBOTS : NOINDEX_FOLLOW_ROBOTS,
@@ -222,7 +222,7 @@ export function buildLearnIndexMetadata(input: {
  * A technology section tab (MVP-028). Indexable only when the tab has
  * content: an empty "coming soon" tab is thin content, so it stays
  * noindex (links still followed) until something is published there -- the
- * same rule as the /learn hub and empty category pages.
+ * same rule as the /guides hub and empty category pages.
  */
 export function buildTechnologySectionMetadata(input: {
   site: SiteUrlResult;
@@ -276,7 +276,7 @@ export function buildComponentMetadata(input: {
   });
 }
 
-/** MVP-048: the Learn home. Indexable once it lists a topic; until then noindex, like the /learn hub. */
+/** MVP-048: the Learn home. Indexable once it lists a topic; until then noindex, like the /guides hub. */
 export function buildTopicsIndexMetadata(input: {
   site: SiteUrlResult;
   hasTopics: boolean;

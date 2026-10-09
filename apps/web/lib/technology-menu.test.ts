@@ -44,7 +44,7 @@ describe("buildTechnologyMenu", () => {
     const bi = menu.find((area) => area.key === "POWER_BI");
     expect(bi?.count).toBe(2);
     expect(bi?.countLabel).toBe("2 guides");
-    expect(bi?.startHere?.href).toMatch(/^\/learn\/bi-(one|two)$/);
+    expect(bi?.startHere?.href).toMatch(/^\/guides\/bi-(one|two)$/);
     expect(menu.find((area) => area.key === "GOVERNANCE_ADMIN")?.count).toBe(0);
     expect(menu.find((area) => area.key === "DATAVERSE")?.startHere).toBeNull();
   });
