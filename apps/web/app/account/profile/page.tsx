@@ -42,7 +42,10 @@ export default async function AccountProfilePage() {
       </p>
       <div className="mt-6 flex items-center gap-4">
         <Avatar seed={profile.avatarSeed} name={profile.displayName} size={112} />
-        <p className="font-display text-2xl font-bold">{profile.displayName}</p>
+        {/* A long name with no spaces wraps instead of widening the page on a phone (BUG-034). */}
+        <p className="min-w-0 font-display text-2xl font-bold [overflow-wrap:anywhere]">
+          {profile.displayName}
+        </p>
       </div>
       <ProfileForm displayName={profile.displayName} />
       <AvatarPicker
