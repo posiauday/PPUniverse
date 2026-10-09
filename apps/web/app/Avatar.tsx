@@ -7,9 +7,13 @@ import { CROWN_SEED } from "../lib/avatar-seeds";
  * their avatar seed by avatarFromSeed, wearing a name tag with their initials. Our own drawing on a 64 x 64 grid, no
  * product logos. Decorative: the display name is always shown next to it.
  *
- * Plain SVG with no ids (no gradients, <pattern> or clip-path defs; the
- * rounded corners clip it), so any number of avatars can share a page
- * without duplicate ids.
+ * Plain SVG with no ids (no gradients, <pattern> or clip-path defs), so any
+ * number of avatars can share a page without duplicate ids.
+ *
+ * No tile (product owner, 2026-10-09, "Avatars: no tile, a little 3D"): the
+ * background is transparent, the sparkles stay on the page around the
+ * character, and a small offset shade under the head and the name tag, with a
+ * very light drop shadow, gives a slight 3D look.
  */
 
 const PALETTE: Record<
@@ -29,44 +33,39 @@ const PALETTE: Record<
 const DARK = "#14141a";
 const GOLD = "#facc15";
 
-function Pattern({ kind, ink }: { kind: AvatarSpec["pattern"]; ink: string }) {
-  const style = { opacity: 0.16 };
-  if (kind === "dots") {
-    const dots = [];
-    for (let x = 6; x < 64; x += 9)
-      for (let y = 6; y < 64; y += 9)
-        dots.push(<circle key={`${x}-${y}`} cx={x} cy={y} r="1.3" fill={ink} />);
-    return <g style={style}>{dots}</g>;
-  }
-  if (kind === "rings") {
-    return (
-      <g style={style} fill="none" stroke={ink} strokeWidth="1.5">
-        {[8, 16, 24, 32].map((r) => (
-          <circle key={r} cx="54" cy="10" r={r} />
-        ))}
-      </g>
-    );
-  }
-  if (kind === "stripes") {
-    return (
-      <g style={style} stroke={ink} strokeWidth="2">
-        {[-48, -36, -24, -12, 0, 12, 24, 36, 48].map((o) => (
-          <line key={o} x1={o} y1="64" x2={o + 64} y2="0" />
-        ))}
-      </g>
-    );
-  }
-  return (
-    <g style={style} stroke={ink} strokeWidth="1">
-      {[8, 16, 24, 32, 40, 48, 56].map((p) => (
-        <g key={p}>
-          <line x1={p} y1="0" x2={p} y2="64" />
-          <line x1="0" y1={p} x2="64" y2={p} />
-        </g>
-      ))}
-    </g>
-  );
-}
+/**
+ * Sparkles around the critter, where the tile used to be: three per avatar,
+ * laid out by its pattern so avatars differ, clear of every accessory and the
+ * name tag. [x, y, size] on the 64 x 64 grid.
+ */
+const SPARKLES: Record<AvatarSpec["pattern"], readonly (readonly [number, number, number])[]> = {
+  dots: [
+    [6.5, 30, 3],
+    [9, 49, 1.8],
+    [57, 34, 2],
+  ],
+  rings: [
+    [7, 38, 2.4],
+    [11, 52, 1.6],
+    [57.5, 31, 2.4],
+  ],
+  stripes: [
+    [6.5, 44, 2.8],
+    [9.5, 30, 1.6],
+    [56.5, 36, 1.8],
+  ],
+  grid: [
+    [7, 33, 2],
+    [7.5, 48, 2.6],
+    [57, 32, 1.6],
+  ],
+};
+
+/** A very light drop shadow lifts the avatar off the page (.avatar-lift in globals.css). */
+const LIFT = "avatar-lift shrink-0 overflow-visible";
+
+/** A little in from the 64 x 64 grid's edge: without a tile, the character can fill more of the box. */
+const VIEW_BOX = "2 2 60 60";
 
 function Head({ kind, fill }: { kind: AvatarSpec["head"]; fill: string }) {
   if (kind === "round") return <circle cx="32" cy="37" r="17" fill={fill} />;
@@ -334,9 +333,13 @@ function Critter({
 }) {
   return (
     <g>
-      <ellipse cx="32" cy="58.5" rx="15" ry="2.6" fill={DARK} opacity=".1" />
+      <ellipse cx="32" cy="58.5" rx="15" ry="2.6" fill={DARK} opacity=".12" />
       <g transform={`rotate(${spec.tilt} 32 38)`}>
         <BackAccessory kind={spec.accessory} ink={colors.ink} bg={colors.bg} />
+        {/* The head's shade, a little down and right: the slight 3D look. */}
+        <g transform="translate(1.2 1.8)" opacity=".18">
+          <Head kind={spec.head} fill={DARK} />
+        </g>
         <Head kind={spec.head} fill={colors.body} />
         <ellipse
           cx="25"
@@ -375,34 +378,32 @@ function Sparkle({ x, y, r, fill }: { x: number; y: number; r: number; fill: str
 /**
  * The crowned avatar (docs/final-decisions.md, 2026-10-08, "Avatars: choose
  * from a gallery; the crown is for admins"): a royal critter in a gold crown
- * set with three gems, an ermine collar on a red cape, on a midnight sunburst,
- * framed in gold. Our own drawing, built to look rich large on the profile
- * and still read as a crown at 32 pixels.
+ * set with three gems, an ermine collar on a red cape, before a soft gold
+ * sunburst with sparkles (no tile since 2026-10-09). Our own drawing, built to
+ * look rich large on the profile and still read as a crown at 32 pixels.
  */
 function Crowned({ initials }: { initials: string | null }) {
   const rays = Array.from({ length: 16 }, (_, index) => index * 22.5);
   return (
     <>
-      <rect width="64" height="64" fill="#160b33" />
-      <g fill={GOLD} opacity=".13">
+      <g fill="#eab308" opacity=".22">
         {rays.map((angle) => (
-          <path key={angle} d="M32 33L29.8 -4H34.2Z" transform={`rotate(${angle} 32 33)`} />
+          <path key={angle} d="M32 33L30.3 4H33.7Z" transform={`rotate(${angle} 32 33)`} />
         ))}
       </g>
-      <circle cx="32" cy="33" r="23" fill="#2a1663" />
+      <circle cx="32" cy="33" r="23" fill="#8b5cf6" opacity=".14" />
       <circle
         cx="32"
         cy="33"
         r="23"
         fill="none"
-        stroke={GOLD}
-        strokeOpacity=".45"
+        stroke="#eab308"
+        strokeOpacity=".6"
         strokeWidth=".9"
       />
-      <Sparkle x={9.5} y={12} r={3.4} fill="#fde68a" />
-      <Sparkle x={55} y={21} r={2.4} fill="#fde68a" />
-      <Sparkle x={11} y={44} r={1.8} fill="#c4b5fd" />
-      <ellipse cx="32" cy="60" rx="17" ry="2.6" fill="#000" opacity=".3" />
+      <Sparkle x={8} y={12} r={3.4} fill="#f59e0b" />
+      <Sparkle x={56.5} y={20} r={2.4} fill="#f59e0b" />
+      <Sparkle x={8.5} y={44} r={1.9} fill="#8b5cf6" />
       {/* Cape and ermine collar. */}
       <path d="M13 64C13.5 53 21 48.5 32 48.5S50.5 53 51 64Z" fill="#b91c1c" />
       <path
@@ -417,7 +418,8 @@ function Crowned({ initials }: { initials: string | null }) {
         <path d="M32 53.6l.9 1.6-.9 1.2-.9-1.2z" />
         <path d="M40 54.2l.9 1.6-.9 1.2-.9-1.2z" />
       </g>
-      {/* Head. */}
+      {/* Head, with its shade a little down and right. */}
+      <circle cx="33.2" cy="40.8" r="14.5" fill={DARK} opacity=".18" />
       <circle cx="32" cy="39" r="14.5" fill="#8b5cf6" />
       <ellipse
         cx="26"
@@ -486,10 +488,9 @@ function Crowned({ initials }: { initials: string | null }) {
       <circle cx="25.2" cy="28.3" r="1.3" fill="#3b82f6" stroke="#1e3a8a" strokeWidth=".5" />
       <circle cx="38.8" cy="28.3" r="1.3" fill="#22c55e" stroke="#14532d" strokeWidth=".5" />
       <Sparkle x={36.5} y={17.5} r={1.6} fill="#fff" />
-      {/* The gold frame. */}
-      <rect x="1" y="1" width="62" height="62" rx="18" fill="none" stroke={GOLD} strokeWidth="2" />
       {initials ? (
         <g transform="rotate(-8 49 50)">
+          <rect x="37.7" y="44.6" width="25" height="14" rx="4.5" fill={DARK} opacity=".2" />
           <rect
             x="36.5"
             y="43"
@@ -527,8 +528,8 @@ export function Avatar({ seed, size = 40, name }: { seed: string; size?: number;
         aria-hidden="true"
         width={size}
         height={size}
-        viewBox="0 0 64 64"
-        className="shrink-0 overflow-hidden rounded-[30%]"
+        viewBox={VIEW_BOX}
+        className={LIFT}
         data-avatar="crown"
       >
         <Crowned initials={initials} />
@@ -542,16 +543,17 @@ export function Avatar({ seed, size = 40, name }: { seed: string; size?: number;
       aria-hidden="true"
       width={size}
       height={size}
-      viewBox="0 0 64 64"
-      className="shrink-0 overflow-hidden rounded-[30%]"
+      viewBox={VIEW_BOX}
+      className={LIFT}
       data-avatar={`${spec.palette}-${spec.head}-${spec.accessory}`}
     >
-      <rect width="64" height="64" fill={colors.bg} />
-      <circle cx="56" cy="6" r="30" fill={colors.glow} opacity=".7" />
-      <Pattern kind={spec.pattern} ink={colors.ink} />
+      {SPARKLES[spec.pattern].map(([x, y, r]) => (
+        <Sparkle key={`${x}-${y}`} x={x} y={y} r={r} fill={colors.body} />
+      ))}
       <Critter spec={spec} colors={colors} />
       {initials ? (
         <g transform="rotate(-8 49 50)">
+          <rect x="37.7" y="44.6" width="25" height="14" rx="4.5" fill={DARK} opacity=".2" />
           <rect
             x="36.5"
             y="43"

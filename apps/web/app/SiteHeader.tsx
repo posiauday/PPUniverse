@@ -130,7 +130,7 @@ export function SiteHeader({
               <Avatar
                 seed={viewer?.avatarSeed ?? "account"}
                 name={viewer?.displayName ?? undefined}
-                size={36}
+                size={40}
               />
               <span className="sr-only">{account.name}</span>
             </Link>

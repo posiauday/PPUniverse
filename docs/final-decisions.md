@@ -2340,3 +2340,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - The pill names the current stage with its status: Project "Execution · At risk"; Approval "Waiting on Finance" or "Rejected at Finance". When finished, "Complete" or "Approved". `StatusText` still replaces the words, and the pill sizes itself to them.
 - Screen readers keep the status alone after the stage's title, which they already hear.
 
+## 2026-10-09 — Avatars: no tile, a little 3D
+
+**Source:** direct product-owner instruction in this session, with screenshots of the header avatar and the gallery: remove the background or make it transparent, keep the stars and other pieces behind the character, make avatars a little bigger for readers and admins, and give them a slight 3D look with a very light shadow. "Similarly all."
+
+1. **No tile** for any avatar, the critters and the crown: the background is transparent. The pieces behind the character stay: sparkles in the critter's colour (laid out by its pattern, clear of its accessory and name tag), and the crown's gold sunburst, soft halo and sparkles. The square pattern, the corner glow and the crown's gold frame go with the tile.
+2. **A little 3D:** a small offset shade under the head and the name tag, and a very light drop shadow. On the dark theme, a faint light edge keeps dark outlines (an antenna, a gear) visible.
+3. **A little bigger:** the header 36 to 40 px (its 44 px target is unchanged), the mobile menu 28 to 32, comments 36 to 40 and the comment form 32 to 36; and the drawing fills a little more of its box.
+

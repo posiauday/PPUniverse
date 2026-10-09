@@ -5690,3 +5690,16 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Changed:** the pill reads "Approver · On track", "Waiting on Finance" or "Rejected at Finance", and sizes itself to its words. The `Status` output gives the same words; screen readers hear the status alone. The preview follows.
 
 **Checked:** the component gate (30), web component tests (34), typecheck and lint; a local axe run over the Stepper presets.
+
+## 2026-10-09 — Avatars: no tile, a little 3D
+
+**Asked:** remove the avatars' background, keep the stars behind them, make them a little bigger and slightly 3D with a very light shadow, for all avatars (docs/final-decisions.md, 2026-10-09, "Avatars: no tile, a little 3D").
+
+**Changed:**
+- `apps/web/app/Avatar.tsx`: no tile; sparkles around each critter in its colour; the crown keeps a softer gold sunburst, a pale halo and sparkles in stronger gold and violet (visible on white); offset shades under the head and the name tag; the view box 2 units in.
+- `apps/web/app/globals.css`: `.avatar-lift`, a very light drop shadow, with a faint light edge on the dark theme.
+- Bigger in the header (40), the mobile menu (32), comments (40) and the comment form (36).
+
+**Checked:**
+- Web tests for the avatar, header, guides and account (47), including a new check that neither kind draws a tile. Typecheck and lint pass.
+- A sheet of twelve avatars at 40, 72 and 112 px on white, cream and the dark theme, before and after. On dark, the first version lost the gear and antenna outlines; the light edge fixes that.
