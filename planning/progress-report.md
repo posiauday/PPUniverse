@@ -5703,3 +5703,44 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Checked:**
 - Web tests for the avatar, header, guides and account (47), including a new check that neither kind draws a tile. Typecheck and lint pass.
 - A sheet of twelve avatars at 40, 72 and 112 px on white, cream and the dark theme, before and after. On dark, the first version lost the gear and antenna outlines; the light edge fixes that.
+
+## 2026-10-09 — BUG-040: sign-in returns readers to the page that asked
+
+**Found by** the product owner: Copy YAML on a sign-in-to-copy component, sign in, and you land on your account, not back on the component.
+
+**Changed:** `continuePath()` (`apps/web/lib/password-client.ts`) returns the sign-in page's same-site `callbackUrl`, or the account. It refuses other sites and `/signin`. The sign-in page uses it for password, emailed link and Google sign-in. New password accounts still land on the account after confirming their email (TD-033).
+
+**Checked:** new tests for `continuePath` (3), typecheck and lint.
+
+**Security:** the return path is resolved against the site's origin in the browser and kept only if it stays on it; NextAuth also checks `callbackUrl` against the site's own URL on the server. CodeQL flagged the first version on the PR: a slash, a tab and a slash (`/%09/host`) passed a text-only check and browsers read it as `//host`. Fixed and tested.
+## 2026-10-09 — Azure: research, and a coming-soon tab
+
+**Asked:** an Azure tab, teased as coming soon, and architect-level research on what Azure users need (docs/final-decisions.md, 2026-10-09, "Top bar: Azure, coming soon").
+
+**Changed:**
+- `docs/research/2026-10-09-azure-hub-research.md`: audiences, demand, the most common problems, a proposed eight-column menu, a first list of 20 guides, trademark care, competitors, risks and questions (79 sources).
+- The top bar has **Azure (Soon)** after Power Platform, and the phone menu has it first. `/azure` is a noindex teaser with the planned areas and an independence line. The footer's trademark line names Azure.
+- The accessibility gate covers `/azure`.
+
+**Checked:** web tests (381) and the gate's unit tests (86), typecheck and lint; the bar still fits on one row at 1024 and 1280 px.
+
+**Open:** the columns and first guides (open question 76).
+
+## 2026-10-09 — Component library page, Navigation shell preview, and back to Coming soon
+
+**Asked:** the product owner's feedback on the live library (docs/final-decisions.md, 2026-10-09, "Component library page: one grid, and a Navigation shell preview like an app" and "Component library: back to Coming soon").
+
+**Changed:**
+- `apps/web/app/components/page.tsx`: one grid with category filters and counts; shorter cards (category, name, one line, two badges, "Try it"); no property counts on cards.
+- `ComponentWorkbench.tsx` and `replica.ts`: a `fill` option, so a whole-screen component fills the preview's screen; `NavShellReplica.tsx` uses it at full width, with a sample app page beside the menu; Phone still floats like a device.
+- `ComponentArt.tsx`: the Navigation shell's card picture redrawn so it fits (BUG-042).
+- `LibraryNav.tsx`: "sign-in" only for signed-out readers (BUG-041).
+- Back to Coming soon: `moveToComingSoon` in the component repository (domain interface, Prisma adapter, integration test), `POST /api/admin/components/[id]/coming-soon` (admins only, 409 unless published), the admin button, and wording on the admin page about what publishing does to Coming soon. Audited as a settings change with the status move in its detail (no migration).
+- Research for the product owner: `docs/research/2026-10-09-microsoft-icons-logos-screenshots.md` (official icons, logos and screenshots) and open question 77.
+
+**Checked:**
+- Web component tests (42) and the component repository's integration tests (6) against a local database. Typecheck and lint pass.
+- A local axe and overflow run over the library page (all and filtered), the Navigation shell page (Default, Phone, Premium dark, Collapsed) and /azure at 375 and 1280 px, light and dark: 28 states, clean.
+- Screenshots checked.
+
+**Security:** the new route is admins only (server check, as publish), and it changes only status and Coming soon, in a transaction with its audit event.

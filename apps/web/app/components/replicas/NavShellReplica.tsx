@@ -578,9 +578,11 @@ export function useNavShellReplica(): ReplicaApi {
               height: screenHeight,
             } as CSSProperties
           }
-          className={`relative mx-auto overflow-hidden rounded-md text-left ${SEGOE} ${ink} ${
-            dark ? "bg-[#1b1b1b] ring-1 ring-white/10" : "bg-white ring-1 ring-black/10"
-          }`}
+          // Edge to edge on the preview's screen (fill), as in an app; a fixed width
+          // (the Phone variation) keeps a thin outline so the phone's edge shows.
+          className={`relative mx-auto overflow-hidden text-left ${SEGOE} ${ink} ${
+            dark ? "bg-[#1b1b1b]" : "bg-white"
+          } ${fixedWidth ? (dark ? "rounded-md ring-1 ring-white/10" : "rounded-md ring-1 ring-black/10") : ""}`}
         >
           {/* Container1, placed from the component's Content outputs. */}
           <div
@@ -593,14 +595,49 @@ export function useNavShellReplica(): ReplicaApi {
             }}
           >
             <p className="text-xl font-semibold">{currentItem?.Label ?? ""}</p>
-            <div aria-hidden="true" className="mt-4 flex flex-col gap-2.5">
-              {[92, 76, 84, 58].map((width) => (
-                <span
-                  key={width}
-                  className={`h-3 rounded ${dark ? "bg-white/10" : "bg-black/[0.07]"}`}
-                  style={{ width: `${width}%` }}
-                />
-              ))}
+            {/* The app's own page beside the menu: sample tiles and a list, decorative. */}
+            <div aria-hidden="true">
+              <p className={`mt-0.5 text-xs ${sub}`}>Updated just now</p>
+              <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2.5">
+                {[
+                  ["Open orders", "24"],
+                  ["Customers", "132"],
+                  ["This week", "$8.4k"],
+                ].map(([label, value]) => (
+                  <span
+                    key={label}
+                    className={`rounded-lg px-3 py-2.5 ${dark ? "bg-white/[0.06]" : "bg-[#f5f5f5]"}`}
+                  >
+                    <span className={`block text-[11px] ${sub}`}>{label}</span>
+                    <span className="mt-0.5 block text-lg font-semibold">{value}</span>
+                  </span>
+                ))}
+              </div>
+              <p className="mt-4 text-[13px] font-semibold">Recent</p>
+              <ul className="mt-1.5">
+                {[
+                  ["JM", "Jordan Miles", "Shipped"],
+                  ["SK", "Sam Kerr", "Packing"],
+                  ["RL", "Riya Lal", "New"],
+                ].map(([initials, name, status]) => (
+                  <li
+                    key={name}
+                    className={`flex items-center gap-2.5 border-b py-2 last:border-b-0 ${
+                      dark ? "border-white/10" : "border-black/[0.06]"
+                    }`}
+                  >
+                    <span
+                      className={`grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold ${
+                        dark ? "bg-white/10" : "bg-[#ebebeb]"
+                      }`}
+                    >
+                      {initials}
+                    </span>
+                    <span className="flex-1 truncate text-[13px]">{name}</span>
+                    <span className={`text-[11px] ${sub}`}>{status}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
           {layout.isBottomBar ? bar : side}
@@ -621,5 +658,7 @@ export function useNavShellReplica(): ReplicaApi {
     },
     dark,
     wiring,
+    // Edge to edge at the screen's width; a fixed width (Phone) floats like a device.
+    fill: fixedWidth === undefined,
   };
 }

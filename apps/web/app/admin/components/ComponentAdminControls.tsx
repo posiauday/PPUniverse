@@ -247,3 +247,35 @@ export function PublishComponentButton({ id, canPublish }: { id: string; canPubl
     </div>
   );
 }
+
+/**
+ * Takes a published component back to Coming soon (docs/final-decisions.md, 2026-10-09,
+ * "Component library: back to Coming soon"): its card and page show a blurred picture and
+ * nothing to copy, and its test record is kept so it can be published again.
+ */
+export function MoveToComingSoonButton({ id }: { id: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function move() {
+    if (busy) return;
+    setBusy(true);
+    setMessage(null);
+    const result = await send(`/api/admin/components/${id}/coming-soon`, "POST");
+    setBusy(false);
+    if (result.ok) router.refresh();
+    else setMessage(result.message);
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <button type="button" onClick={move} aria-disabled={busy} className={BUTTON}>
+        {busy ? "Moving…" : "Back to Coming soon"}
+      </button>
+      <span role="status" className="text-sm text-coral">
+        {message}
+      </span>
+    </div>
+  );
+}

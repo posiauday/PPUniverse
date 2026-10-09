@@ -5,8 +5,9 @@ import { SITE_NAME } from "../lib/seo/site";
 import { ALL_AREAS } from "./[technology]/OtherAreas";
 import { BrandMark } from "./BrandMark";
 
-/** "Microsoft, Power Apps, Power Automate, ... and Power Pages", from the registry. */
-const TRADEMARKS = ["Microsoft", ...TECHNOLOGIES.map((entry) => entry.name)];
+/** "Microsoft, Power Apps, Power Automate, ... Power Pages and Azure": the registry, and Azure
+ * for the Azure section (docs/final-decisions.md, 2026-10-09, "Top bar: Azure, coming soon"). */
+const TRADEMARKS = ["Microsoft", ...TECHNOLOGIES.map((entry) => entry.name), "Azure"];
 const TRADEMARK_LIST = `${TRADEMARKS.slice(0, -1).join(", ")} and ${TRADEMARKS.at(-1)}`;
 
 const COLUMNS: ReadonlyArray<{

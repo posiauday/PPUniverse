@@ -7,6 +7,7 @@ import { requireAdmin } from "../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../lib/seo/site";
 import {
   CopyYamlButton,
+  MoveToComingSoonButton,
   PublishComponentButton,
   SettingsForm,
   TestRecordForm,
@@ -102,10 +103,20 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
           3. Publish
         </h2>
         {component.status === "PUBLISHED" ? (
-          <p className="mt-1">
-            Published {component.publishedAt ? DATE.format(component.publishedAt) : ""}. To take it
-            off the site, tick &quot;Hide from the site&quot; above.
-          </p>
+          <>
+            <p className="mt-1">
+              Published {component.publishedAt ? DATE.format(component.publishedAt) : ""}. To take
+              it off the site, tick &quot;Hide from the site&quot; above.
+            </p>
+            <p className="mt-3">
+              To show it as <strong>Coming soon</strong> again (its card and a blurred picture,
+              nothing to copy), move it back. Its paste-test is kept, so you can publish it again in
+              one step.
+            </p>
+            <div className="mt-3">
+              <MoveToComingSoonButton id={component.id} />
+            </div>
+          </>
         ) : (
           <>
             <p className="mt-1">
@@ -113,6 +124,12 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
                 ? "Tested: you can publish it."
                 : "Record a paste-test first: only tested components can be published."}
             </p>
+            {component.comingSoon ? (
+              <p className="mt-2">
+                It shows as <strong>Coming soon</strong> until you publish it. Publishing makes it a
+                normal component that people can try and copy.
+              </p>
+            ) : null}
             <div className="mt-3">
               <PublishComponentButton
                 id={component.id}

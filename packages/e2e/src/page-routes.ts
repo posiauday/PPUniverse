@@ -56,6 +56,7 @@ export const GATED_ROUTES = [
   "/[technology]/[tab]",
   "/governance",
   "/updates",
+  "/azure",
   "/topics",
   "/topics/[topic]",
   "/topics/[topic]/[lesson]",

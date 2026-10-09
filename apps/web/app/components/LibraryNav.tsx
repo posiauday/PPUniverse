@@ -3,15 +3,19 @@ import Link from "next/link";
 
 /**
  * The library list beside every component page (MVP-049, design "A · Docs"):
- * published components grouped by category, the current one marked, and a
- * "sign-in" note on the ones that need an account to copy.
+ * published components grouped by category, the current one marked, and, for
+ * a signed-out reader only, a "sign-in" note on the ones that need an account
+ * to copy (once signed in, there's nothing left to do).
  */
 export function LibraryNav({
   components,
   currentSlug,
+  signedIn = false,
 }: {
   components: readonly Pick<ComponentRecord, "slug" | "title" | "category" | "access">[];
   currentSlug?: string;
+  /** Signed in: no "sign-in" notes. */
+  signedIn?: boolean;
 }) {
   const groups = COMPONENT_CATEGORIES.map((category) => ({
     ...category,
@@ -45,7 +49,7 @@ export function LibraryNav({
                     }`}
                   >
                     <span>{component.title}</span>
-                    {component.access === "MEMBERS" ? (
+                    {component.access === "MEMBERS" && !signedIn ? (
                       <span className="text-xs text-muted-foreground">sign-in</span>
                     ) : null}
                   </Link>

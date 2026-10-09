@@ -219,4 +219,32 @@ export class PrismaComponentRepository implements ComponentRepository {
     });
     return toRecord(row);
   }
+
+  async moveToComingSoon(id: string, actorUserId: string): Promise<ComponentRecord> {
+    const row = await this.db.$transaction(async (tx) => {
+      const current = await tx.libraryComponent.findUnique({ where: { id } });
+      if (!current) throw new Error(`Component ${id} not found`);
+      if (current.status !== "PUBLISHED") {
+        throw new Error("Only a published component can go back to Coming soon");
+      }
+      const updated = await tx.libraryComponent.update({
+        where: { id },
+        data: { status: "DRAFT", comingSoon: true },
+      });
+      // A settings change in the audit trail, with the status move in its detail.
+      await tx.componentEvent.create({
+        data: {
+          componentId: id,
+          actorUserId,
+          action: "SETTINGS_CHANGED",
+          detail: {
+            status: { from: "PUBLISHED", to: "DRAFT" },
+            comingSoon: { from: current.comingSoon, to: true },
+          },
+        },
+      });
+      return updated;
+    });
+    return toRecord(row);
+  }
 }

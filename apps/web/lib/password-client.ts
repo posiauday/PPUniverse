@@ -51,3 +51,28 @@ export function linkToken(
 
 /** Where a successful password sign-in lands; a full load, so the new session cookie is read. */
 export const SIGNED_IN_PATH = "/account/sessions";
+
+/**
+ * Where to land after signing in (BUG-040): the sign-in page's callbackUrl when
+ * it's a page on this site, so a reader comes back to the page that asked them
+ * to sign in (a component's Copy YAML, a guide's comments); otherwise
+ * SIGNED_IN_PATH. Never the sign-in page itself.
+ *
+ * The address is resolved against `origin` and kept only if it stays on it, so
+ * nothing the browser would read as another site gets through: "//host",
+ * "/\\host", or a slash, a tab or newline and a slash ("/%09/host"), which
+ * browsers turn into "//host" (CodeQL js/client-side-unvalidated-url-redirection).
+ */
+export function continuePath(search: string, origin: string): string {
+  const value = new URLSearchParams(search).get("callbackUrl");
+  if (!value || !value.startsWith("/")) return SIGNED_IN_PATH;
+  let url: URL;
+  try {
+    url = new URL(value, origin);
+  } catch {
+    return SIGNED_IN_PATH;
+  }
+  if (url.origin !== origin) return SIGNED_IN_PATH;
+  if (url.pathname === "/signin" || url.pathname.startsWith("/signin/")) return SIGNED_IN_PATH;
+  return `${url.pathname}${url.search}${url.hash}`;
+}

@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17-alpine
+        # Docker's official image from Amazon ECR Public's mirror: no Docker Hub
+        # pull limit (CI failed on "toomanyrequests", 2026-10-09).
+        image: public.ecr.aws/docker/library/postgres:17-alpine
         env:
           POSTGRES_USER: ppuniverse
           POSTGRES_PASSWORD: ppuniverse
@@ -37,6 +39,11 @@ jobs:
         # Docker Hub API after the first real CI run failed with "manifest
         # unknown"). bitnamilegacy/minio:latest is the working equivalent.
         image: bitnamilegacy/minio:latest
+        # Signed-in pulls (repository secrets, a read-only token for public images):
+        # anonymous pulls hit Docker Hub's limit on shared runners (2026-10-09).
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
@@ -56,6 +63,11 @@ jobs:
           --health-retries 10
       clamav:
         image: clamav/clamav:stable
+        # Signed-in pulls (repository secrets, a read-only token for public images):
+        # anonymous pulls hit Docker Hub's limit on shared runners (2026-10-09).
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         ports:
           - 3310:3310
         options: >-
@@ -143,7 +155,9 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17-alpine
+        # Docker's official image from Amazon ECR Public's mirror: no Docker Hub
+        # pull limit (CI failed on "toomanyrequests", 2026-10-09).
+        image: public.ecr.aws/docker/library/postgres:17-alpine
         env:
           POSTGRES_USER: ppuniverse
           POSTGRES_PASSWORD: ppuniverse
@@ -363,7 +377,9 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17-alpine
+        # Docker's official image from Amazon ECR Public's mirror: no Docker Hub
+        # pull limit (CI failed on "toomanyrequests", 2026-10-09).
+        image: public.ecr.aws/docker/library/postgres:17-alpine
         env:
           POSTGRES_USER: ppuniverse
           POSTGRES_PASSWORD: ppuniverse

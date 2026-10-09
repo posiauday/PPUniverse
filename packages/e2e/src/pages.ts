@@ -280,6 +280,18 @@ export const GATED_PAGES: readonly GatedPage[] = [
     },
   },
   {
+    // The Azure section's "coming soon" teaser, from the top bar's "Azure (Soon)".
+    id: "azure-coming-soon",
+    route: "/azure",
+    description: "Azure coming-soon teaser with the planned areas",
+    auth: "guest",
+    status: 200,
+    path: () => "/azure",
+    prepare: async (page) => {
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Azure, explained");
+    },
+  },
+  {
     id: "technology-not-found",
     route: null,
     description: "an unknown technology section is a 404",
