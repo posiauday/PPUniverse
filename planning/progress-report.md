@@ -5703,3 +5703,13 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Checked:**
 - Web tests for the avatar, header, guides and account (47), including a new check that neither kind draws a tile. Typecheck and lint pass.
 - A sheet of twelve avatars at 40, 72 and 112 px on white, cream and the dark theme, before and after. On dark, the first version lost the gear and antenna outlines; the light edge fixes that.
+
+## 2026-10-09 — BUG-040: sign-in returns readers to the page that asked
+
+**Found by** the product owner: Copy YAML on a sign-in-to-copy component, sign in, and you land on your account, not back on the component.
+
+**Changed:** `continuePath()` (`apps/web/lib/password-client.ts`) returns the sign-in page's same-site `callbackUrl`, or the account. It refuses other sites and `/signin`. The sign-in page uses it for password, emailed link and Google sign-in. New password accounts still land on the account after confirming their email (TD-033).
+
+**Checked:** new tests for `continuePath` (3), typecheck and lint.
+
+**Security:** the return path is checked in the browser before use and NextAuth checks `callbackUrl` against the site's own URL on the server, so it can't send a reader to another site.

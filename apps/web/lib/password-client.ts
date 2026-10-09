@@ -51,3 +51,25 @@ export function linkToken(
 
 /** Where a successful password sign-in lands; a full load, so the new session cookie is read. */
 export const SIGNED_IN_PATH = "/account/sessions";
+
+/**
+ * Where to land after signing in (BUG-040): the sign-in page's callbackUrl when
+ * it's a path on this site, so a reader comes back to the page that asked them
+ * to sign in (a component's Copy YAML, a guide's comments); otherwise
+ * SIGNED_IN_PATH. Never another site ("//host", "/\host"), and never the
+ * sign-in page itself.
+ */
+export function continuePath(search: string): string {
+  const value = new URLSearchParams(search).get("callbackUrl");
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.startsWith("/\\") ||
+    value === "/signin" ||
+    value.startsWith("/signin?") ||
+    value.startsWith("/signin/")
+  )
+    return SIGNED_IN_PATH;
+  return value;
+}

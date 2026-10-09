@@ -16,12 +16,12 @@ import { googleButtonFont } from "../fonts";
  * Styles: .google-button in globals.css. The text names the button, so the
  * G itself is hidden from screen readers.
  */
-export function GoogleButton({ callbackUrl }: { callbackUrl: string }) {
+export function GoogleButton({ callbackUrl }: { callbackUrl: () => string }) {
   return (
     <button
       type="button"
       className={`google-button ${googleButtonFont.className}`}
-      onClick={() => void signIn("google", { callbackUrl })}
+      onClick={() => void signIn("google", { callbackUrl: callbackUrl() })}
     >
       <svg aria-hidden="true" focusable="false" viewBox="0 0 48 48" width="20" height="20">
         <path
