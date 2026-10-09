@@ -59,7 +59,7 @@ From pastes that worked in the product owner's developer environment. Use these 
 
 | Control | YAML | Notes |
 | --- | --- | --- |
-| Modern button | `ModernButton@1.0.0` | `Appearance: =ButtonAppearance.Primary`, `Icon`, `Layout`, `DisplayMode`. Pagination also uses the icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide buttons, **not yet paste-tested by us** |
+| Modern button | `ModernButton@1.0.0` | `Appearance: =ButtonAppearance.Primary`, `Icon`, `Layout`, `DisplayMode`. Pagination also uses the icons `ChevronLeft`, `ChevronRight`, `ArrowPrevious` and `ArrowNext`, and 40-pixel-wide buttons, **not yet paste-tested by us**. The Navigation shell also uses `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop`, `IconStyle` (`IconStyle.Filled` for the current item) and `Appearance: =ButtonAppearance.Transparent` over a highlight (Microsoft Learn's current page), **not yet paste-tested by us** |
 | Modern text | `ModernText@1.0.0` | `Text@0.0.51` is upgraded to this by Studio |
 | Modern text input | `ModernTextInput@1.0.0` | The People picker also uses `Type: =TextInputType.Search` and `TriggerOutput: =TriggerOutput.Delayed` (Microsoft Learn's current page), **not yet paste-tested by us** |
 | Container | `GroupContainer@1.5.0` with `Variant: ManualLayout` | `Fill`, `DropShadow`, `RadiusTopLeft`… and its own `Children`. The Data table also uses `BorderColor` and `BorderThickness` on it for its cards, **not yet paste-tested by us** |
@@ -74,6 +74,12 @@ From pastes that worked in the product owner's developer environment. Use these 
 | Timer | `Timer@2.1.0` | **Not yet paste-tested by us** (used in another MIT-licensed library's component). Button 0.2.0 and Toast 0.2.0 use it with `Visible: =false`. Studio runs timers only in preview (F5). |
 
 **Never size a component from a variable:** Studio reported `locOpen` as an error in the component's own Height and Width, even with an `OnReset` that sets it (lcsFab paste-test, 2026-10-08). Size the component from its inputs only. Outputs that read variables work (lcsButton's ClickCount). Also verified: `OnReset` as a component property; Color, Record and Table inputs with defaults. Not used here: `AccessAppScope` (it ties a component to one app, and component libraries can't use it).
+
+**Placing a component from its own outputs** (the Navigation shell: the instance's X, Y, Width and Height set to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`, which read a variable inside it) is **not yet paste-tested by us**. It is the instance that reads the outputs, not the component's own size, so it should differ from the case above; the paste-test checklist gives the fallback.
+
+**Long formulas** (the Tree view's rows: `Ungroup` of a table of tables built level by level, sorted with `Sort` by a text path; `Last(FirstN(...))` for the nth row) and a **`Record` output** (`SelectedNode`) are **not yet paste-tested by us**.
+
+**An `InputFunction` returning a Boolean, called inside the component** (the Stepper's `CanLeaveStep(Step)`, also inside `Filter(Sequence(...), ...)` in an action) is **not yet paste-tested by us**. The Button's `FormatLabel` (an `InputFunction` returning text, with a `Default`) pastes; this is the same shape.
 
 ## variations.yaml
 

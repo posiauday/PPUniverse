@@ -5494,3 +5494,69 @@ The live preview runs on ten made-up orders sorted by the component's SortColumn
 - The migration applies to a local Postgres, and afterwards no public table there is without row-level security.
 
 **For the product owner:** after the release, Supabase's Security Advisor should show no "RLS disabled" warnings.
+
+## 2026-10-09 — Component library: Navigation shell (MVP-049, wave 2, In Progress)
+
+**Asked:** keep working overnight. The Navigation shell is next in the approved wave 2 order (docs/final-decisions.md, 2026-10-08, "Component library: direction, differentiators and build order"); sign-in to copy (same decision, item 4). Built to the approved research row: a side menu on desktop and a bottom bar on phones from one items table, items hidden by key, badges, the current screen from your app, and the collapse state as an output.
+
+**Built** `lcsNavShell` 0.1.0 (sign-in to copy), our own design:
+- **one Items table**: Key, Label, Icon (a Fluent icon name, as the modern button takes) and Badge;
+- **a side menu** with your app's name and a ☰ button that collapses it to icons (labels on hover, the badge as a dot); **a bottom bar** below `BottomBarBelow` (640) with an icon, a short label and a pill for the current item;
+- the current item from `CurrentKey`, or the last one selected: a bar, a filled icon and bold text, so colour isn't the only signal;
+- `HiddenKeys` and `DisabledKeys` for roles; `AccentColor`, `Theme`; every word an input (`Title`, `MenuLabel`, `CollapseText`, `ExpandText`);
+- **outputs that place it and your content**: `ShellX/Y/Width/Height` for the component itself, `ContentX/Y/Width/Height` for a container; also `IsCollapsed`, `IsBottomBar`, `SelectedKey`; `OnNavigate(ItemKey)`, `OnToggle(Collapsed)`, `SetCollapsed()`.
+
+The live preview measures its own frame as `Parent.Width`, so on a phone-width page the menu becomes a bottom bar, as it would in Power Apps.
+
+**Found and fixed before release:** choosing a preset mounts a fresh preview frame, and the first version kept measuring the old, detached one (width 0), so the menu fell apart after the first preset. It now measures whichever frame is mounted, and ignores a width of 0. The local check now also measures the menu and the content, not only axe.
+
+**Checked:** the component gate (14 folders); web typecheck, lint and component tests (34, new: the placement outputs, collapsed and as a bottom bar, and hiding by key); a local axe, overflow and layout run over the page and its flows (selecting, collapsing, Collapsed, Phone, For a role, Current screen, Dark) at 375 and 1280 px, light and dark: 36 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test. New and unverified in Studio: the modern button's `Align`, padding and `IconStyle`, the icon names, and above all setting the component's own size from its outputs (the checklist gives the fallback).
+
+**Next:** Tree view, then Stepper.
+
+## 2026-10-09 — Component library: Tree view (MVP-049, wave 2, In Progress)
+
+**Asked:** keep working overnight; the Tree view follows the Navigation shell in the approved wave 2 order. Open to everyone (not in the sign-in list). Built to the approved research row: one flat gallery (no nesting), open and close, children loaded through `OnExpand`, and selection. The research row also says "keyboard arrows"; canvas components can't read key presses, so that is not claimed, and the guide's known limits say so.
+
+**Built** `lcsTreeView` 0.1.0, our own design:
+- **one flat `Nodes` table** (Key, ParentKey, Label, Icon, HasChildren) drawn in **one gallery**: the rows are worked out by one formula, level by level up to five levels, the children of open nodes under their parents (each row carries a sort path of three-digit places);
+- **open and close** with a chevron button named for what it does ("Expand Plans"); an open Folder shows FolderOpen;
+- **children loaded as needed**: `HasChildren: true` gives a node a chevron before its children exist; `OnExpand(NodeKey)` loads them, and they show at once;
+- **selection** from `CurrentKey` or the last node selected (tint, filled icon, bold); `OnNodeSelect(NodeKey)`, `OnCollapse`;
+- outputs `SelectedKey`, `SelectedNode`, `ExpandedKeys` (to save and pass back as `DefaultExpandedKeys`), `VisibleCount`; actions `Expand`, `Collapse`, `ExpandAll`, `CollapseAll`; every word screen readers hear is an input; `AccentColor`, `Theme`.
+
+Parameters are named `NodeKey`, so a maker's `LookUp(colNodes, Key = NodeKey)` never compares the column with itself.
+
+**Checked:** the component gate; web typecheck, lint and component tests (new: the rows formula's order, closed parents hiding open children, a chevron for children not yet loaded, the five-level limit); a local axe, overflow and layout run over the page and its flows (opening Images, opening Archive and its children loading, selecting, closing Documents, All open, Selected, No icons, Empty, Dark) at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test (the long rows formula, the icon names and the `Record` output are new to us).
+
+**Next:** Stepper, the last of wave 2.
+
+## 2026-10-09 — Component library: Stepper (MVP-049, wave 2, In Progress)
+
+**Asked:** keep working overnight; the Stepper is the last of the approved wave 2. Open to everyone. Built to the approved research row: step validation through a `CanLeaveStep(Step)` hook so users can't skip required steps, progress and a summary, and a `GoToStep()` action.
+
+**Built** `lcsStepper` 0.1.0, our own design:
+- the steps from a table (Title, Description), **horizontal or vertical**: finished steps show a ✓ in your colour, the current one a thicker ring and a bold title, and the lines between fill as you go;
+- **`CanLeaveStep(Step)`**, an input function you write: Next stays on a step it doesn't allow and says so (`BlockedText`), and `GoToStep()` stops at the first step it doesn't allow, so none is skipped;
+- **Back and Next built in** (the last step's Next says `FinishText`, "Submit", and runs `OnFinish()`), or your own buttons with `Next()` and `Back()`; select an earlier step to go back (`AllowJumpBack`);
+- `OnStepChange(NewStep, OldStep)`; outputs `CurrentStep`, `StepCount`, `CurrentTitle`, `IsFirst`, `IsLast`, `Progress`; actions `GoToStep`, `Next`, `Back`, `Reset`; every word an input, including what screen readers hear (`StepText` "Step {n} of {total}", `DoneText`, `CurrentText`); `AccentColor`, `Theme`.
+
+The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so the blocked message and moving on can be tried.
+
+**Checked:** the component gate (16 folders); web typecheck, lint and component tests (38, new: `StepText` filling, and `GoToStep` stopping at the first step it can't leave, never checking going back, and keeping to the last step); a local axe, overflow and behaviour run (Next blocked without a name, moving on with one, going back to step 1, through to Submit, then Halfway, Vertical, Titles only, Dark) at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
+
+**Not yet:** the product owner's paste-test (`CanLeaveStep` called inside the component and inside a `Filter`, the ✓ character, the circles' border).
+
+**Wave 2 is drafted:** Date and time picker, People picker, Pagination, Data table, Navigation shell, Tree view and Stepper. **Next:** wave 3 (Kanban board, screen templates, charts last), when the product owner has paste-tested wave 2.
+
+## 2026-10-09 — Admins aren't limited in profile changes
+
+**Asked:** the product owner, choosing an avatar, got "You've changed your profile a few times today. Please try again tomorrow." and said an admin shouldn't (docs/final-decisions.md, 2026-10-09, "Admins aren't limited in profile changes").
+
+**Changed:** `POST /api/account/profile` skips the daily allowance for an admin, by the role in the database (`requireAdmin`). Everyone else keeps the limit of ten changes a day. A change of rule at the product owner's request, not a defect: the limit worked as decided for MVP-040.
+
+**Checked:** a new route test (a reader past the limit gets "too-many"; an admin isn't counted and saves); the comment and profile route tests; web typecheck and lint.

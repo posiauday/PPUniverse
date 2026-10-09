@@ -25,13 +25,16 @@ import {
   type Notification,
   type NotificationType,
 } from "./replicas/notify";
+import { useNavShellReplica } from "./replicas/NavShellReplica";
 import { usePaginationReplica } from "./replicas/PaginationReplica";
 import { usePeoplePickerReplica } from "./replicas/PeoplePickerReplica";
 import type { ReplicaApi } from "./replicas/replica";
 import { useStatesReplica } from "./replicas/StatesReplica";
+import { useStepperReplica } from "./replicas/StepperReplica";
 import { useTabsReplica } from "./replicas/TabsReplica";
 import { useTextFieldReplica } from "./replicas/TextFieldReplica";
 import { useToastReplica } from "./replicas/ToastReplica";
+import { useTreeViewReplica } from "./replicas/TreeViewReplica";
 
 /**
  * The interactive part of a component page (MVP-049; docs/final-decisions.md,
@@ -65,6 +68,9 @@ const REPLICAS: Record<string, Host> = {
   lcsPeoplePicker: hostFor(usePeoplePickerReplica),
   lcsPagination: hostFor(usePaginationReplica),
   lcsDataTable: hostFor(useDataTableReplica),
+  lcsNavShell: hostFor(useNavShellReplica),
+  lcsTreeView: hostFor(useTreeViewReplica),
+  lcsStepper: hostFor(useStepperReplica),
 };
 
 export function hasReplica(componentName: string): boolean {

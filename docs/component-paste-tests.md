@@ -238,3 +238,58 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 | Input | `Rows` to `FirstN(dtOrders.Rows, 0)` | The empty state: an icon, "No items found" and the line under it |
 | Action | Tick rows, then a button: `dtOrders.ClearSelection()` | No rows ticked |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark cards, purple progress and selection |
+
+## Navigation shell: `lcsNavShell` → name it `navMain`
+
+New for this library, so check the paste first: the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the Fluent icon names `Home`, `Cart`, `People`, `ChartMultiple`, `Settings` and `Navigation`. Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
+
+Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y, Width and Height to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | A side menu on the left: "My app", Home marked (light blue, a bar on its left, a filled icon), Orders with a blue 3 |
+| Event | `OnNavigate` to `Notify("Go to " & ItemKey)`; select Customers | "Go to customers"; Customers is marked |
+| Input | `CurrentKey` `"reports"` | Reports is marked, whatever was selected |
+| Event | `OnToggle` to `Notify(Collapsed)`; select the ☰ button | "true"; the menu shrinks to icons, Orders shows a small 3; hovering an icon shows its name |
+| Output | A label: `navMain.ShellWidth` | 64 collapsed, 240 expanded |
+| Output | A container with X, Y, Width and Height from `navMain.ContentX` … `ContentHeight` | It sits beside the menu and grows when you collapse it |
+| Input | `HiddenKeys` `"reports"`, `DisabledKeys` `"settings"` | No Reports; Settings is greyed and does nothing |
+| Input | `ScreenWidth` `390` | A bottom bar along the bottom: five icons with labels, the current one in a pale pill |
+| Action | A button: `navMain.SetCollapsed(true)` | The side menu collapses |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text on dark grey, a purple bar and badge |
+| Keyboard | Tab through the menu | Each item and the ☰ button take focus; Enter selects |
+
+## Tree view: `lcsTreeView` → name it `treeDocs`
+
+New for this library, so check the paste first: the rows come from one long formula (`Ungroup` of a table of tables, `Sort` by a text path); the icon names `Folder`, `FolderOpen`, `Document`, `Image`, `ChevronRight` and `ChevronDown`; a `Record` output (`SelectedNode`). It pastes with eight sample nodes, Documents open.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Documents open (open-folder icon) with Plans and Budget.xlsx under it, indented; Images and Archive closed |
+| Input | Select the chevron beside Plans | Plans opens: Q3 plan.docx and Q4 plan.docx, indented one more level |
+| Event | `OnNodeSelect` to `Notify("Open " & NodeKey)`; select Budget.xlsx | "Open budget"; Budget.xlsx is tinted, bold, with a filled icon |
+| Event | `OnExpand` to `Notify(NodeKey)`; open Archive | "archive"; Archive opens with nothing under it (its children aren't loaded) |
+| Event | `OnExpand` to `If(NodeKey = "archive", Collect(colNodes, {Key: "a1", ParentKey: "archive", Label: "2025", Icon: "Folder", HasChildren: false}))`, with `Nodes` set to `colNodes` (collected from the default table in `Screen1.OnVisible`) | Opening Archive shows 2025 under it |
+| Output | A label: `treeDocs.ExpandedKeys` | `docs`, then `docs,plans` as you open Plans |
+| Output | A label: `treeDocs.SelectedNode.Label` | The selected node's label |
+| Action | A button: `treeDocs.ExpandAll()`; another: `treeDocs.CollapseAll()` | Every folder with children opens; then all close |
+| Input | `CurrentKey` `"q3"` and `DefaultExpandedKeys` `"docs,plans"` | Q3 plan.docx is selected inside its open folders |
+| Input | `ShowIcons` false, `IndentSize` 28 | Labels only, indented further |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, a dark tint for the selected node |
+
+## Stepper: `lcsStepper` → name it `stpRequest`
+
+New for this library, so check the paste first: an `InputFunction` that returns true or false (`CanLeaveStep`) called inside the component, also inside a `Filter` (`GoToStep`); a ✓ character in a modern text; `BorderColor` and `BorderThickness` on a container (the step circles); and the modern button's `BasePaletteColor`. It pastes with four sample steps.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Four circles joined by lines: 1 ringed in blue and bold "Your details", 2 to 4 grey; "Step 1 of 4", Back greyed, a blue Next |
+| Input | `CanLeaveStep` to `If(Step = 1, !IsBlank(TextInput1.Value), true)` with an empty TextInput1; select Next | It stays on step 1 and says "Complete this step to continue." in red |
+| Event | `OnStepChange` to `Notify("Step " & NewStep & " from " & OldStep)`; type a name, select Next | "Step 2 from 1"; step 1 shows a ✓ in blue and the line to step 2 turns blue |
+| Input | Select the ✓ of step 1 | Back on step 1 ("Step 1 from 2") |
+| Event | `OnFinish` to `Notify("Submitted")`; go to step 4 and select Submit | "Submitted" |
+| Action | A button: `stpRequest.GoToStep(4)` with TextInput1 empty, from step 1 | It stops on step 1 and shows the message |
+| Output | A label: `stpRequest.CurrentTitle & " " & stpRequest.Progress` | "Approver 0.5" on step 3 |
+| Input | `Orientation` `"Vertical"` | The steps in a column, each title beside its circle with its description under it |
+| Input | `ShowButtons` false; your own button with `stpRequest.Next()` | The footer is gone; your button moves on as Next does, and doesn't run OnStepChange |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, purple circles and Next |

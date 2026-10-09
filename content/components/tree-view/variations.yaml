@@ -1,0 +1,25 @@
+# Named presets of lcsTreeView: each sets inputs with Power Fx formulas.
+- name: All open
+  description: Every folder open, as when you call ExpandAll().
+  settings:
+    DefaultExpandedKeys: ="docs,plans,images"
+- name: Selected
+  description: The app marks a file inside two folders.
+  settings:
+    DefaultExpandedKeys: ="docs,plans"
+    CurrentKey: ="q3"
+- name: No icons
+  description: Labels only, with a wider indent.
+  settings:
+    ShowIcons: =false
+    IndentSize: =28
+- name: Empty
+  description: What it says when there are no nodes.
+  settings:
+    Nodes: |-
+      =FirstN(Table({Key: "", ParentKey: "", Label: "", Icon: "", HasChildren: false}), 0)
+- name: Dark
+  description: On a dark screen, in your brand colour.
+  settings:
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

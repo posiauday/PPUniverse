@@ -254,6 +254,91 @@ const ART: Record<string, ReactNode> = {
       ))}
     </span>
   ),
+  lcsNavShell: (
+    <span className="flex h-24 w-52 overflow-hidden rounded-lg border border-[#e5e7eb] text-left text-[10px] text-[#242424]">
+      <span className="flex w-20 flex-col gap-0.5 border-r border-[#e5e7eb] bg-[#fafafa] p-1.5">
+        <span className="mb-1 px-1 text-[11px] font-semibold">My app</span>
+        {["Home", "Orders", "Customers", "Reports"].map((label) => (
+          <span
+            key={label}
+            className={`relative flex items-center justify-between rounded px-1.5 py-1 ${label === "Orders" ? "bg-[#dfeaf6] font-semibold text-[#0b5190]" : ""}`}
+          >
+            {label === "Orders" ? (
+              <span className="absolute top-1 bottom-1 left-0 w-0.5 bg-[#0f6cbd]" />
+            ) : null}
+            {label}
+            {label === "Orders" ? (
+              <span className="grid size-3.5 place-items-center rounded-full bg-[#0f6cbd] text-[8px] text-white">
+                3
+              </span>
+            ) : null}
+          </span>
+        ))}
+      </span>
+      <span className="flex flex-1 flex-col gap-1.5 p-2">
+        <span className="text-[11px] font-semibold">Orders</span>
+        <span className="h-1.5 w-[90%] rounded bg-[#ededed]" />
+        <span className="h-1.5 w-[70%] rounded bg-[#ededed]" />
+        <span className="h-1.5 w-[80%] rounded bg-[#ededed]" />
+      </span>
+    </span>
+  ),
+  lcsTreeView: (
+    <span className="flex w-44 flex-col gap-0.5 text-left text-[11px] text-[#242424]">
+      {[
+        { label: "Documents", depth: 0, open: true },
+        { label: "Plans", depth: 1, open: true },
+        { label: "Q3 plan.docx", depth: 2, current: true },
+        { label: "Budget.xlsx", depth: 1 },
+        { label: "Images", depth: 0, open: false },
+      ].map((node) => (
+        <span
+          key={node.label}
+          style={{ paddingLeft: node.depth * 14 }}
+          className="flex items-center gap-1"
+        >
+          <span className="w-3 text-[#616161]">
+            {node.open === undefined ? "" : node.open ? "⌄" : "›"}
+          </span>
+          <span
+            className={`flex-1 truncate rounded px-1.5 py-0.5 ${node.current ? "bg-[#dfeaf6] font-semibold text-[#0b5190]" : ""}`}
+          >
+            {node.label}
+          </span>
+        </span>
+      ))}
+    </span>
+  ),
+  lcsStepper: (
+    <span className="flex w-52 items-start text-[9px] text-[#242424]">
+      {["Details", "Items", "Approver", "Review"].map((title, index) => (
+        <span key={title} className="relative flex flex-1 flex-col items-center">
+          {index > 0 ? (
+            <span
+              className={`absolute top-[11px] left-0 h-0.5 w-[calc(50%-14px)] ${index <= 2 ? "bg-[#0f6cbd]" : "bg-[#d1d5db]"}`}
+            />
+          ) : null}
+          {index < 3 ? (
+            <span
+              className={`absolute top-[11px] right-0 h-0.5 w-[calc(50%-14px)] ${index < 2 ? "bg-[#0f6cbd]" : "bg-[#d1d5db]"}`}
+            />
+          ) : null}
+          <span
+            className={`grid size-6 place-items-center rounded-full text-[10px] font-semibold ${
+              index < 2
+                ? "bg-[#0f6cbd] text-white"
+                : index === 2
+                  ? "border-2 border-[#0f6cbd] bg-white text-[#0b5190]"
+                  : "border border-[#d1d5db] bg-white text-[#616161]"
+            }`}
+          >
+            {index < 2 ? "✓" : index + 1}
+          </span>
+          <span className={`mt-1 ${index === 2 ? "font-semibold" : ""}`}>{title}</span>
+        </span>
+      ))}
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">
