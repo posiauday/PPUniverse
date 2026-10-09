@@ -224,3 +224,7 @@ these questions.
 73. **Removed comments.** **Default applied:** hidden from the guide but kept, so an admin can restore one removed by mistake; authors can delete their own for good.
 74. **Generated names.** **Default applied:** "Adjective Noun 123" from everyday Power Platform words (for example "Tidy Trigger 418"), no product names; names that look official ("admin", "moderator", "LowCodeStacks", "Maker Desk", "Microsoft" and the like) are refused when a reader types one.
 75. **DECIDED 2026-10-07: wording approved as written.** **Launch.** Comments stay off (`FEATURE_COMMENTS`) until the product owner approves the Terms and Privacy wording proposed in `docs/plans/mvp-040-comments.md`.
+
+## Raised 2026-10-09 (Azure, coming soon): awaiting the product owner
+
+76. **The Azure section's columns and first guides.** `docs/research/2026-10-09-azure-hub-research.md` proposes eight columns (Azure + Power Platform first, then AI & agents, Identity & security, Apps & integration, Data & storage, Networking, Cost & FinOps, Governance & operations) and a first list of 20 guides. **Default applied:** the `/azure` teaser lists the eight areas as plans, not as a menu; nothing else is built until the product owner chooses the columns and the first guides.

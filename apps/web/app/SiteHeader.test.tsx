@@ -21,10 +21,20 @@ describe("SiteHeader", () => {
     try {
       const on = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
       expect(on).toContain('href="/topics"');
-      expect(on.replace(/<[^>]+>/g, " ")).not.toContain("Soon");
+      expect(on.replace(/<[^>]+>/g, " ")).not.toMatch(/Learn\s+Soon/);
     } finally {
       delete process.env["FEATURE_LEARN"];
     }
+  });
+
+  it("has Azure, marked Soon, right after Power Platform (2026-10-09)", () => {
+    const html = renderToStaticMarkup(<SiteHeader theme="light" signedIn={false} />);
+    const text = html.replace(/<[^>]+>/g, " ");
+    expect(html).toContain('href="/azure"');
+    expect(text).toMatch(/Azure\s+Soon/);
+    // In the bar, between the Power Platform menu and Guides.
+    const nav = text.slice(text.indexOf("Power Platform"));
+    expect(nav.indexOf("Azure")).toBeLessThan(nav.indexOf("Guides"));
   });
 
   it("links the brand home and the main sections, with no heading of its own", () => {

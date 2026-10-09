@@ -5703,3 +5703,16 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Checked:**
 - Web tests for the avatar, header, guides and account (47), including a new check that neither kind draws a tile. Typecheck and lint pass.
 - A sheet of twelve avatars at 40, 72 and 112 px on white, cream and the dark theme, before and after. On dark, the first version lost the gear and antenna outlines; the light edge fixes that.
+
+## 2026-10-09 — Azure: research, and a coming-soon tab
+
+**Asked:** an Azure tab, teased as coming soon, and architect-level research on what Azure users need (docs/final-decisions.md, 2026-10-09, "Top bar: Azure, coming soon").
+
+**Changed:**
+- `docs/research/2026-10-09-azure-hub-research.md`: audiences, demand, the most common problems, a proposed eight-column menu, a first list of 20 guides, trademark care, competitors, risks and questions (79 sources).
+- The top bar has **Azure (Soon)** after Power Platform, and the phone menu has it first. `/azure` is a noindex teaser with the planned areas and an independence line. The footer's trademark line names Azure.
+- The accessibility gate covers `/azure`.
+
+**Checked:** web tests (381) and the gate's unit tests (86), typecheck and lint; the bar still fits on one row at 1024 and 1280 px.
+
+**Open:** the columns and first guides (open question 76).

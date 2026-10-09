@@ -36,7 +36,11 @@ export function mainLinks(
   ];
 }
 
-/** The "Soon" mark beside Learn: part of the link's name, so it's read out too. */
+/** Azure, beside Power Platform, marked Soon until its first guides are published
+ * (docs/final-decisions.md, 2026-10-09, "Top bar: Azure, coming soon"). */
+export const AZURE_LINK = { name: "Azure", href: "/azure", soon: true } as const;
+
+/** The "Soon" mark beside Azure and Learn: part of the link's name, so it's read out too. */
 function SoonMark() {
   return (
     <span className="ml-1.5 rounded-full bg-highlight px-1.5 py-px text-[0.6875rem] font-semibold text-highlight-foreground">
@@ -104,6 +108,10 @@ export function SiteHeader({
           className="hidden grow items-center gap-x-1 text-[0.9375rem] font-medium lg:flex"
         >
           <TechnologiesMenu areas={menu} />
+          <Link href={AZURE_LINK.href} className={NAV_LINK}>
+            {AZURE_LINK.name}
+            <SoonMark />
+          </Link>
           <GuidesMenu />
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={NAV_LINK}>
@@ -142,7 +150,7 @@ export function SiteHeader({
         </div>
         {/* Below lg: the menu button, and its panel as the header's last row. */}
         <MobileMenu
-          links={links}
+          links={[AZURE_LINK, ...links]}
           technologies={TECHNOLOGY_LINKS}
           account={account}
           themeToggle={<ThemeToggle initialTheme={theme} />}

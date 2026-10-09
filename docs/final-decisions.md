@@ -2348,3 +2348,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 2. **A little 3D:** a small offset shade under the head and the name tag, and a very light drop shadow. On the dark theme, a faint light edge keeps dark outlines (an antenna, a gear) visible.
 3. **A little bigger:** the header 36 to 40 px (its 44 px target is unchanged), the mobile menu 28 to 32, comments 36 to 40 and the comment form 32 to 36; and the drawing fills a little more of its box.
 
+## 2026-10-09 — Top bar: Azure, coming soon
+
+**Source:** direct product-owner instruction in this session: add one more tab, Azure, teased as coming soon for now, with full architect-level research on what Azure users need ("lets help all Azure users with everything we can").
+
+1. **Azure (Soon)** sits in the top bar right after Power Platform, and in the phone menu. It leads to `/azure`, a coming-soon teaser kept out of search (`noindex`) until the first Azure guides are published.
+2. **The teaser** lists the areas the research proposes, as plans. Which columns and guides to build is open question 76; the research is `docs/research/2026-10-09-azure-hub-research.md`.
+3. **Trademarks:** the path is `/azure` (never an `azure.` subdomain or a product name with Azure in it); the footer's trademark line now names Azure, and the teaser says the site is independent of Microsoft.
+
