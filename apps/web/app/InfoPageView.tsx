@@ -5,8 +5,8 @@ import { homeUrl, infoPageUrl } from "../lib/seo/canonical";
 import { buildBreadcrumbJsonLd } from "../lib/seo/json-ld";
 import { SITE_NAME } from "../lib/seo/site";
 import { getSiteUrl } from "../lib/site-url";
-import { ArticleBody } from "./learn/ArticleBody";
-import { ArticleToc, StickyColumn } from "./learn/ArticleToc";
+import { ArticleBody } from "./guides/ArticleBody";
+import { ArticleToc, StickyColumn } from "./guides/ArticleToc";
 
 /**
  * About, Privacy and Terms (MVP-032): a Daylight header like the guides

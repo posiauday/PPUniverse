@@ -17,7 +17,7 @@ export const SITE_NAME = "LowCodeStacks";
 export const SITE_DESCRIPTION =
   "A trusted Power Platform ecosystem for reusable assets and technical learning.";
 
-/** The /learn hub's meta description and visible introduction. */
+/** The /guides hub's meta description and visible introduction. */
 export const LEARN_INDEX_DESCRIPTION =
   "Free tutorials, comparisons, patterns and KPI guides for Power Apps, Power Automate, Power BI, Copilot Studio, Dataverse and Power Pages.";
 

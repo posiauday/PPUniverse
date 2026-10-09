@@ -9,14 +9,14 @@ import type { TechnologyMenuArea } from "../lib/technology-menu";
  * matching the approved "Header and Technologies menu" board; named
  * "Technologies" until MVP-045): every area at
  * once, each with its guide count, a start-here guide and its first sections,
- * and a way into every guide by goal.
+ * and a way into all the guides.
  *
  * A disclosure button that shows and hides a panel of plain links -- the
  * WAI-ARIA disclosure navigation pattern, not an ARIA menu (these are
  * ordinary links, so Tab moves through them). Escape closes it and returns
  * focus to the button; so does a click outside it. Closed, the links are
  * hidden (not focusable); the same areas are always reachable from the
- * footer, the home page and /learn, so crawlers and anyone without scripts
+ * footer, the home page and /guides, so crawlers and anyone without scripts
  * still find them. Shown from lg only (the header's main nav); below lg the
  * phone menu lists the areas instead.
  *
@@ -138,13 +138,13 @@ export function TechnologiesMenu({ areas }: { areas: readonly TechnologyMenuArea
         </ul>
         <div className="mt-4 flex items-center justify-between gap-4 border-t border-border px-1.5 pt-3 text-sm">
           <Link
-            href="/learn"
+            href="/guides"
             onClick={close}
             className="inline-flex min-h-11 items-center text-muted-foreground no-underline hover:underline"
           >
             <span>
               Not sure where to start? Browse{" "}
-              <b className="font-semibold text-foreground">every guide by goal</b> →
+              <b className="font-semibold text-foreground">all guides</b> →
             </span>
           </Link>
           <span className="font-mono text-xs text-muted-foreground">

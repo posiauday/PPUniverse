@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { type Theme, themeCookie } from "../lib/theme";
 
 /**
@@ -9,10 +9,18 @@ import { type Theme, themeCookie } from "../lib/theme";
  * screen readers announce the state rather than a label that flips. The
  * theme changes instantly on the page, and the cookie makes the next page
  * load render in the same theme on the server.
+ *
+ * Just the icon, no round border (docs/final-decisions.md, 2026-10-09, "Top
+ * bar"): a sun that turns into a moon, and back. The rays turn and shrink
+ * away, the sun grows, and a dark "bite" slides in to make the crescent. All
+ * of it is CSS transforms, so it animates in every browser, and it simply
+ * switches for anyone who asks for reduced motion. The button keeps a 44px
+ * target (WCAG 2.5.8) without a visible circle.
  */
 export function ThemeToggle({ initialTheme }: { initialTheme: Theme }) {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const dark = theme === "dark";
+  const maskId = `${useId()}-moon`;
 
   function toggle() {
     const next: Theme = dark ? "light" : "dark";
@@ -23,40 +31,52 @@ export function ThemeToggle({ initialTheme }: { initialTheme: Theme }) {
     setTheme(next);
   }
 
+  const move =
+    "[transform-box:fill-box] [transform-origin:center] motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.5,1.4,0.4,1)]";
+
   return (
     <button
       type="button"
       onClick={toggle}
       aria-pressed={dark}
       aria-label="Dark theme"
-      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-foreground hover:bg-card"
+      className="group inline-grid size-11 place-items-center rounded-full text-foreground hover:text-primary"
     >
-      {dark ? (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        className="overflow-visible"
+      >
+        <mask id={maskId}>
+          <rect width="24" height="24" fill="white" />
+          {/* The bite: off to the top right for the sun, over the disc for the moon. */}
+          <circle
+            cx="17"
+            cy="7"
+            r="7"
+            fill="black"
+            className={`${move} ${dark ? "translate-x-0 translate-y-0" : "translate-x-[9px] -translate-y-[9px]"}`}
+          />
+        </mask>
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          fill="currentColor"
+          mask={`url(#${maskId})`}
+          className={`${move} ${dark ? "scale-100" : "scale-[0.5]"}`}
+        />
+        <g
           stroke="currentColor"
           strokeWidth="2"
-          aria-hidden="true"
+          strokeLinecap="round"
+          className={`${move} motion-safe:transition-[transform,opacity] ${dark ? "-rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
         >
-          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-        </svg>
-      ) : (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-        </svg>
-      )}
+          <path d="M12 1.5v2.2M12 20.3v2.2M1.5 12h2.2M20.3 12h2.2M4.6 4.6l1.5 1.5M17.9 17.9l1.5 1.5M4.6 19.4l1.5-1.5M17.9 6.1l1.5-1.5" />
+        </g>
+      </svg>
     </button>
   );
 }

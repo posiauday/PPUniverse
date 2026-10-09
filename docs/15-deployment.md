@@ -129,7 +129,7 @@ The `S3_*` and `CLAMAV_*` variables aren't needed at launch: no uploads or downl
 Netlify's documentation doesn't name Next.js 16 or `next/og` specifically, so the first build must confirm them. Check on the first deploy:
 
 - [ ] The build succeeds with pnpm (from `packageManager` in the root `package.json`) and Node 22, and the deploy's server function reports runtime `nodejs22.x` (it shows `nodejs24.x` if `AWS_LAMBDA_JS_RUNTIME` is missing).
-- [ ] `/`, `/learn`, an article page, `/power-apps` and its tabs, and a product page all render, with data.
+- [ ] `/`, `/guides`, an article page, `/power-apps` and its tabs, and a product page all render, with data.
 - [ ] `/search?q=dataverse` returns results. This uses raw SQL through the transaction pooler.
 - [ ] `/og` and an article's share image return a PNG.
 - [ ] `/robots.txt` and `/sitemap.xml` show `https://lowcodestacks.com` URLs.
@@ -192,7 +192,7 @@ The import creates **drafts only**. It skips any slug that already exists and im
 - **Bing Webmaster Tools** (Microsoft Copilot answers from Bing's index): add the site by importing it from Search Console, and submit the same sitemap. Its "AI Performance" report shows when Copilot cites a page.
 - **Brave Search** (reported to power Claude's web search) has no webmaster console: submit the home page at `https://search.brave.com/submit-url`.
 - **IndexNow (MVP-046):** in Netlify, add `INDEXNOW_KEY` for **Production** only: 8 to 128 letters, digits or dashes, for example a random UUID. It is public by design (served at `/indexnow-key.txt`), so it doesn't need to be marked secret. After the next deploy, `https://lowcodestacks.com/indexnow-key.txt` shows the key, and publishing a guide or an update tells Bing and the other IndexNow search engines at once (logged as `seo.indexnow`).
-- **Feeds:** `/learn/feed.xml` (guides) and `/updates/feed.xml` (updates) are RSS feeds; feed readers find them from the home page, `/learn` and `/updates`.
+- **Feeds:** `/guides/feed.xml` (guides; the old `/learn/feed.xml` redirects) and `/updates/feed.xml` (updates) are RSS feeds; feed readers find them from the home page, `/guides` and `/updates`.
 - **Learn topics (MVP-048):** set `FEATURE_LEARN=on` for Production once at least one topic and its lessons are published in `/admin/topics`. Then `/topics` goes public, joins the sitemap, and the top bar's Learn button opens it instead of the guides. Off, those pages answer 404. Publishing a lesson notifies IndexNow only while it is on.
 - **Comments (MVP-040):** set `FEATURE_COMMENTS=on` for Production once the release with the approved Terms and Privacy wording is live. Moderate in `/admin/comments`.
 - **Admin settings:** `/admin/settings` shows which switches are on (comments, Google sign-in, email, IndexNow, the site address, error monitoring) and links to the search consoles. It never shows secret values; change them here, in Netlify, and redeploy.

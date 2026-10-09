@@ -9,7 +9,7 @@ searchPhrase: "power apps delegation cheat sheet"
 ---
 A canvas app only sees every row when the data source does the work. When a formula can't be handed to the source (it isn't **delegable**), Power Apps fetches the first 500 rows (2,000 at most) and works on those. Anything past that is silently missing. This page is the lookup table: what each source accepts, and how to rewrite the formulas that don't fit.
 
-For the why and a worked example, read [Why your gallery stops at 500 rows](/learn/power-apps-delegation-500-rows) first.
+For the why and a worked example, read [Why your gallery stops at 500 rows](/guides/power-apps-delegation-500-rows) first.
 
 > [!ANSWER] Quick answer
 > 1. [If any part of a query can't be delegated, none of it is](#the-rules-that-apply-everywhere): the whole query works on the first 500 rows (2,000 at most).

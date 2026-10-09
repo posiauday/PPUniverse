@@ -66,10 +66,10 @@ describe("search page", () => {
       limit: 20,
     });
     expect(html).toContain("1 guide matches");
-    expect(html).toContain('href="/learn/power-apps-delegation-500-rows"');
+    expect(html).toContain('href="/guides/power-apps-delegation-500-rows"');
     expect(html).toMatch(/<mark[^>]*>Delegation<\/mark> in Power Apps/);
     expect(html).toMatch(/why <mark[^>]*>delegation<\/mark> causes it/);
-    expect(html).toContain("Power Apps · Tutorial");
+    expect(html).toContain("Power Apps · Fix a problem");
     expect(html).not.toContain(S);
     expect(html).not.toContain(E);
   });
@@ -102,7 +102,7 @@ describe("search page", () => {
   it("says when nothing matched, and points to Learn", async () => {
     const html = await render({ q: "zzz" });
     expect(html).toContain("Nothing matched");
-    expect(html).toContain('href="/learn"');
+    expect(html).toContain('href="/guides"');
   });
 
   it("lists matching components after the guides", async () => {

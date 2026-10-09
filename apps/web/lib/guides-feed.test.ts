@@ -19,9 +19,9 @@ describe("buildGuidesFeed (MVP-046)", () => {
   it("is RSS 2.0 with absolute links, a self link and one item per guide", () => {
     const xml = buildGuidesFeed("https://example.com", [guide()]);
     expect(xml).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>\n<rss version="2.0"/);
-    expect(xml).toContain("<link>https://example.com/learn</link>");
+    expect(xml).toContain("<link>https://example.com/guides</link>");
     expect(xml).toContain(`href="https://example.com${GUIDES_FEED_PATH}" rel="self"`);
-    expect(xml).toContain("<link>https://example.com/learn/why-didnt-my-trigger-fire</link>");
+    expect(xml).toContain("<link>https://example.com/guides/why-didnt-my-trigger-fire</link>");
     expect(xml).toContain("<pubDate>Tue, 06 Oct 2026 10:00:00 GMT</pubDate>");
     expect(xml).toContain("<category>Power Automate</category>");
     expect(xml).toContain("<category>Fix</category>");
@@ -50,11 +50,11 @@ describe("buildGuidesFeed (MVP-046)", () => {
 describe("withGuidesFeed", () => {
   it("adds the feed to a page's head, keeping its canonical", () => {
     const metadata = withGuidesFeed(
-      { alternates: { canonical: "https://example.com/learn" } },
+      { alternates: { canonical: "https://example.com/guides" } },
       { ok: true, origin: "https://example.com" },
     );
     expect(metadata.alternates).toEqual({
-      canonical: "https://example.com/learn",
+      canonical: "https://example.com/guides",
       types: {
         "application/rss+xml": [
           {

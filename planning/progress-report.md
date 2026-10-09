@@ -5398,3 +5398,21 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 **Checked:** web typecheck, lint and tests (850, new: the switch route and its fallback to the environment); the content adapter's database tests (5, new: a Coming soon draft is a teaser only, never its YAML, and not once hidden or published); the e2e package's tests; locally on a production build, the gate's states for the library index (with a teaser card), the new teaser page, Settings, the switch's confirmation (opened, never confirmed: the switch is site-wide) and the component admin pages: 28 checks in Chromium, 42 in Firefox and WebKit, all passing. The first run found the faded words inside the blurred picture below contrast: the picture is decorative and its words are blurred on purpose (incidental text, WCAG 1.4.3), so it now fades through a CSS filter, which axe doesn't measure, and every readable word keeps full contrast.
 
 **Next:** the feedback box that stays open after sending (BUG-036), then the top bar (Guides menu, Learn soon, the theme icon), then "On this page" on every page.
+
+## 2026-10-09 — Top bar: a Guides menu, Learn coming soon, guides at /guides, the theme icon
+
+**Asked:** "remove Learn from the end and add it to the regular navigation beside Power Platform, and tease the coming-soon Learn module"; "move the light/dark theme button to just before the search bar, just an icon, no round border; the sun transforms to a moon, animated, when clicked, and back"; and help with the confusing names (fixes, guides, patterns). The product owner chose the agent's recommendation (docs/final-decisions.md, 2026-10-09, "Top bar").
+
+**Changed:**
+- **Top bar:** Power Platform ▾ · Guides ▾ · Learn (Soon) · Components (while switched on) · Updates; then the theme icon, the search box and the account. The black Learn button is gone; the phone menu follows (Guides, Learn with Soon, the five kinds, then the areas).
+- **Guides ▾** (`app/GuidesMenu.tsx`): the five kinds, each with its badge, its one name and a few words; and All guides. The same disclosure pattern as Power Platform (Escape and a click outside close it).
+- **One name per kind of guide** (`lib/article-types.ts`): Fix a problem (FIX), Choose a tool (CHOOSE), Design patterns (DESIGN), Measure (MEASURE), Quick reference (LOOK UP), used by the menu, the hub's sections, the article page (it no longer says "Fix · Tutorial"), the footer, search results, share images and the technology hubs' Quick reference row.
+- **Guides moved from `/learn` to `/guides`** (the route folder, every internal link, canonical URLs, breadcrumbs ("Guides"), the sitemap, the RSS feed at `/guides/feed.xml`, IndexNow and the content files' links), with permanent redirects for `/learn` and `/learn/*` that keep the #anchor and query. The share images stay at `/og/learn/*` and Learn progress at `/api/learn/progress`.
+- **Learn (Soon):** while the Learn module is off, `/topics` says Learn is coming soon, points to the guides and is kept out of search (it was a 404).
+- **The theme icon:** no border or circle; the sun's rays turn and shrink away, the disc grows and a bite slides in to make the moon, all with CSS transforms, and it simply switches with reduced motion. Still a "Dark theme" toggle button with aria-pressed, and a 44px target.
+
+**On the way:** the rewrite of `/learn` also turned `https://learn.microsoft.com` into `guides.microsoft.com` in 20 places in code and tests (the address has `//learn`); all were found by the tests and put back before anything was committed, and the content files used a separate exact rewrite and were never touched.
+
+**Checked:** web typecheck, lint and tests (853, including a new test for Learn coming soon and the rewritten header tests); the e2e package's tests (route coverage includes `/guides/feed.xml`); locally on a production build, `/learn/x` answers 308 to `/guides/x`; the gate's home, search, sign-in, guides hub, guide, comments, topics, account, admin and 404 states: 91 checks in Chromium, and home, a guide and topics in Firefox and WebKit: 56, all passing; the header, Guides menu and sun-to-moon toggle looked at in the browser.
+
+**Next:** the "On this page" highlight (BUG-037), then the Data table.

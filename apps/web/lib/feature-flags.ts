@@ -22,7 +22,7 @@ export function commentsEnabled(): boolean {
  * FEATURE_LEARN: the public Learn module at /topics (MVP-048). Off until the
  * first topic is published: off, /topics and its pages answer 404, they stay
  * out of the sitemap, and the top bar's Learn button keeps opening the guides
- * (/learn). On, the Learn button opens /topics (docs/plans/learn-module.md,
+ * (/guides). On, the Learn button opens /topics (docs/plans/learn-module.md,
  * "Where it lives"). The admin works either way.
  */
 export function learnEnabled(): boolean {

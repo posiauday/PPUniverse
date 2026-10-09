@@ -3,7 +3,7 @@
 import type { ComponentAccess } from "@ppu/domain-content";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
-import { copyBySelection } from "../../learn/CopyCodeButton";
+import { copyBySelection } from "../../guides/CopyCodeButton";
 
 /**
  * The admin's controls for one library component (MVP-049): record a

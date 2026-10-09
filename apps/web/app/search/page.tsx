@@ -31,7 +31,7 @@ const GUIDE_RESULT_LIMIT = 20;
 
 // Rendered per-request (see apps/web/app/page.tsx for why). Search results
 // are also intentionally noindex: they're a utility view over content
-// that's already indexable at its own canonical URL (/learn/[slug],
+// that's already indexable at its own canonical URL (/guides/[slug],
 // /products/[slug]), not a distinct page worth ranking on its own --
 // standard practice for internal site search.
 export const dynamic = "force-dynamic";
@@ -167,7 +167,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <p className="max-w-md text-muted-foreground">
             Or browse{" "}
             <Link
-              href="/learn"
+              href="/guides"
               className="font-semibold text-foreground underline underline-offset-4"
             >
               every guide on Learn
@@ -186,7 +186,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <p className="max-w-md text-muted-foreground">
             Or browse{" "}
             <Link
-              href="/learn"
+              href="/guides"
               className="font-semibold text-foreground underline underline-offset-4"
             >
               every guide on Learn
@@ -258,7 +258,7 @@ function GuideResult({ guide }: { guide: ArticleSearchHit }) {
         </p>
         <h3 className="font-display text-xl leading-snug font-bold tracking-[-0.01em] md:text-[1.4375rem]">
           <Link
-            href={`/learn/${encodeURIComponent(guide.slug)}`}
+            href={`/guides/${encodeURIComponent(guide.slug)}`}
             className="text-foreground no-underline after:absolute after:inset-0 after:content-[''] hover:underline"
           >
             <Highlighted marked={guide.titleMarked} />

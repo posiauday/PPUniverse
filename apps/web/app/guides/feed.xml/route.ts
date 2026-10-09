@@ -6,7 +6,7 @@ import { getSiteUrl } from "../../../lib/site-url";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /learn/feed.xml: the RSS 2.0 feed of published guides (MVP-046). Like
+ * GET /guides/feed.xml: the RSS 2.0 feed of published guides (MVP-046). Like
  * /updates/feed.xml: without a valid site origin it is a 404, and a database
  * failure propagates (5xx) so a reader never reads an outage as "every guide
  * was removed".

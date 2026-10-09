@@ -35,11 +35,11 @@ export interface LearnSitemapEntry {
  * home page, About/Privacy/Terms (MVP-032), categories that currently have
  * at least one PUBLISHED product
  * (base URLs only — paginated URLs are not enumerated), PUBLISHED products,
- * the /learn hub, and PUBLISHED Articles. Never DRAFT or any other status;
+ * the /guides hub, and PUBLISHED Articles. Never DRAFT or any other status;
  * never search, sort, filter or paginated variants.
  *
  * `lastmod` (SEO story; TD-010): each Article carries its real
- * `updatedAt`, which changes on every edit and on publish; the /learn hub
+ * `updatedAt`, which changes on every edit and on publish; the /guides hub
  * carries the newest of them, since its content changes exactly when an
  * article does. Products and categories deliberately have none: editing a
  * product's evidence does not bump `products.updatedAt`, and an
@@ -101,7 +101,7 @@ export async function generateSitemap(deps: SitemapDeps): Promise<MetadataRoute.
   const site = deps.getSite();
   if (!site.ok) return [];
 
-  // The home page and the /learn hub take one slot each; split the remaining budget between the
+  // The home page and the /guides hub take one slot each; split the remaining budget between the
   // catalog entries and Article slugs so one domain's growth cannot silently
   // starve the other's sitemap coverage.
   // MVP-028: the technology section tabs are reserved up front too.

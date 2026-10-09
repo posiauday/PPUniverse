@@ -30,7 +30,7 @@ Intermittent failures are the most frustrating kind: the same flow, the same dat
 | **500** Internal Server Error | The service you called failed while handling the request | On their side; temporary |
 | **502** Bad Gateway | The connection between Power Automate and the service failed | Temporary, or an on-premises **gateway** problem |
 | **503** / **504** | The service is unavailable or too slow to answer | Temporary, often under heavy load |
-| **429** Too Many Requests | You're sending too much, too fast | **Yours**: see the throttling notes in [Cloud flow error codes](/learn/cloud-flow-error-codes) |
+| **429** Too Many Requests | You're sending too much, too fast | **Yours**: see the throttling notes in [Cloud flow error codes](/guides/cloud-flow-error-codes) |
 | **400** / **401** / **403** / **404** | Your request, sign-in, permission or target is wrong | **Yours**: retrying won't help |
 
 The first rule: **retrying only helps 5xx errors and 429.** A 4xx error fails the same way every time until you change something.
@@ -63,7 +63,7 @@ Check an important action's **Settings → Retry policy**:
 
 If a failure that outlasts the retries shouldn't lose work:
 
-1. **Catch the failure.** After the risky step, add a branch set to **Configure run after → has failed / has timed out**. The full pattern is in [Try, catch and finally](/learn/try-catch-finally-scopes).
+1. **Catch the failure.** After the risky step, add a branch set to **Configure run after → has failed / has timed out**. The full pattern is in [Try, catch and finally](/guides/try-catch-finally-scopes).
 2. **Record what didn't happen.** Write the item's ID and the error to a list or table, with a status such as "Retry".
 3. **Re-process later.** A small scheduled flow can pick up the "Retry" rows each hour and try again.
 4. **Tell a person** if something stays failed for, say, a day.

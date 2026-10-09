@@ -47,7 +47,7 @@ export default async function AdminSettingsPage() {
   const ownFiles = [
     { href: "/sitemap.xml", name: "Sitemap" },
     { href: "/robots.txt", name: "robots.txt" },
-    { href: "/learn/feed.xml", name: "Guides feed (RSS)" },
+    { href: "/guides/feed.xml", name: "Guides feed (RSS)" },
     { href: "/updates/feed.xml", name: "Updates feed (RSS)" },
     ...(indexNowKey() ? [{ href: "/indexnow-key.txt", name: "IndexNow key file" }] : []),
   ];

@@ -18,7 +18,7 @@ const GRID = {
 
 /**
  * A grid of article cards (SEO story; Daylight look, MVP-031), used by the
- * /learn hub, the home page and the technology sections. Each card carries
+ * /guides hub, the home page and the technology sections. Each card carries
  * its technology's colour strip and tag, its type, title, excerpt and publish
  * date. The whole card is the link's hit area, but the link itself is only
  * the title, so a screen reader hears one clean name per card.
@@ -35,9 +35,9 @@ export function ArticleList({
   articles: readonly ArticleSummary[];
   headingLevel: 3 | 4;
   columns?: 2 | 3 | 4;
-  /** Off where the section heading already names the type (the /learn groups). */
+  /** Off where the section heading already names the type (the /guides groups). */
   showType?: boolean;
-  /** Off in the /learn library, as the canvas draws it; the article page shows the date. */
+  /** Off in the /guides library, as the canvas draws it; the article page shows the date. */
   showDate?: boolean;
 }) {
   const Heading = headingLevel === 3 ? "h3" : "h4";
@@ -71,7 +71,7 @@ export function ArticleList({
                 {/* The stretched ::after makes the whole card clickable while
                     the link's name stays the title alone. */}
                 <Link
-                  href={`/learn/${encodeURIComponent(article.slug)}`}
+                  href={`/guides/${encodeURIComponent(article.slug)}`}
                   className="text-foreground no-underline after:absolute after:inset-0 after:rounded-card after:content-[''] hover:underline"
                 >
                   {article.title}

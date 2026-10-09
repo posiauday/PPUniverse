@@ -17,7 +17,7 @@ import {
   type HubKey,
   type HubSection,
 } from "../../lib/technology-hubs";
-import { Breadcrumbs } from "../learn/Breadcrumbs";
+import { Breadcrumbs } from "../guides/Breadcrumbs";
 
 export interface HubArea {
   key: HubKey;
@@ -32,7 +32,7 @@ export interface HubArea {
 // The kind badges are shared with the guide page (lib/article-types.ts).
 const KIND = ARTICLE_KIND;
 
-const guideHref = (slug: string) => `/learn/${encodeURIComponent(slug)}`;
+const guideHref = (slug: string) => `/guides/${encodeURIComponent(slug)}`;
 
 /**
  * A technology hub, built to the chosen "Fix first" concept (H1; MVP-037,
@@ -135,7 +135,7 @@ export function TechnologyHub({
       {references.length > 0 ? (
         <section aria-labelledby="look-it-up" className="mx-auto mt-9 max-w-[77.5rem]">
           <h2 id="look-it-up" className="font-display text-[1.625rem] font-bold">
-            Look it up{" "}
+            Quick reference{" "}
             <span className="accent-word text-[1.1em] text-muted-foreground">
               · keep these open
             </span>
