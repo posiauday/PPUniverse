@@ -5399,6 +5399,14 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 
 **Next:** the feedback box that stays open after sending (BUG-036), then the top bar (Guides menu, Learn soon, the theme icon), then "On this page" on every page.
 
+## 2026-10-09 — Fix: the feedback box closes after a note is sent (BUG-036)
+
+**Asked:** the product owner's screenshot: after writing a note in "Did this fix it?" and sending it, the button changed to the thanks, but the box stayed open.
+
+**Changed:** once a note is sent, the form closes and the thanks takes its place, with focus on it; the note is cleared (`apps/web/app/learn/GuideFeedback.tsx`). The gate's `learn-report-sent` state now checks that the box is gone and focus is on the thanks.
+
+**Checked:** web typecheck and lint; the gate's guide feedback states (votes and notes) locally in Chromium and WebKit on a production build: 42 passed.
+
 ## 2026-10-09 — Top bar: a Guides menu, Learn coming soon, guides at /guides, the theme icon
 
 **Asked:** "remove Learn from the end and add it to the regular navigation beside Power Platform, and tease the coming-soon Learn module"; "move the light/dark theme button to just before the search bar, just an icon, no round border; the sun transforms to a moon, animated, when clicked, and back"; and help with the confusing names (fixes, guides, patterns). The product owner chose the agent's recommendation (docs/final-decisions.md, 2026-10-09, "Top bar").

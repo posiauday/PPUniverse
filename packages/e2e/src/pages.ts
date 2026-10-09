@@ -1464,9 +1464,11 @@ export const GATED_PAGES: readonly GatedPage[] = [
         .getByLabel(/What changed, or what.s wrong\?/)
         .fill("A setting moved in the new designer.");
       await page.getByRole("button", { name: "Send" }).click();
+      // BUG-036: the form closes once sent, and focus moves to the thanks.
       await expect(
         page.getByRole("status").filter({ hasText: "re-check this guide" }),
-      ).toBeVisible();
+      ).toBeFocused();
+      await expect(page.getByLabel(/What changed, or what.s wrong\?/)).toHaveCount(0);
     },
   },
   {
