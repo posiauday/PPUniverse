@@ -19,7 +19,8 @@ Use **lcsNavShell** as the main menu of an app with several screens. Building on
 - **Who is signed in,** at the bottom of the side menu: their picture (or initials), name and a line such as their role. Selecting it runs `OnUserSelect()`.
 - **A light and dark switch** beside it: a sun that turns into a moon, animated (it doesn't move for people who've asked for reduced motion). It switches the menu and runs `OnThemeChange(NewTheme)`, so your app can follow.
 - **Outputs that place it and your content,** so the content moves over when the menu collapses or becomes a bottom bar.
-- Your `AccentColor`, and a `Dark` theme.
+- **Two looks:** `Standard`, a plain side panel, and `Premium`, a floating card with a soft shadow, your app's mark (its first letter on your colour), a solid pill for the current item and the person signed in on their own card.
+- Your `AccentColor`, and a `Dark` theme. Hover and press shades follow the menu's own theme, so they show in dark mode too.
 
 ## Use it
 
@@ -131,7 +132,8 @@ gblMenuCollapsed
 ## Accessibility
 
 - Each item is one button, named by its label and badge ("Orders, 3"). The current item is marked by a bar, a filled icon and bold text, so colour is never the only signal.
-- Disabled items stay in the menu but can't be selected, and screen readers say they're unavailable.
+- Disabled items stay in the menu, dimmed, but can't be selected, and screen readers say they're unavailable.
+- Every button shows a focus ring in your colour when reached with the keyboard.
 - The collapse button says what it does ("Collapse the menu", "Expand the menu"), and so does the theme button ("Switch to dark theme"). All of these phrases are inputs, for your language.
 - The avatar is a button named by the person's name and detail.
 - The sun and moon animation lasts half a second and doesn't run for people who've asked their device for reduced motion.

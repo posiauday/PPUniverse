@@ -241,7 +241,7 @@ New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML
 
 ## Navigation shell: `lcsNavShell` → name it `navMain`
 
-New for this library, so check the paste first: the modern Avatar (`ModernAvatar@1.0.0`), an `Image` input (`UserImage`), an animated SVG in an Image control (the sun and moon), the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the icon names `Home`, `Cart`, `People`, `Document`, `Settings` and `Navigation` (Home, Cart, People, Settings and Navigation show, from the first paste-test, 2026-10-09). Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
+New for this library, so check the paste first: the modern Icon (`ModernIcon@1.1.0`) under a transparent classic button for every clickable part, the classic button's `FocusedBorderColor`, the modern Avatar (`ModernAvatar@1.0.0`), an `Image` input (`UserImage`), an animated SVG in an Image control (the sun and moon), the modern button's `Align`, `PaddingLeft`, `VerticalAlign`, `PaddingTop` and `IconStyle`, and the icon names `Home`, `Cart`, `People`, `Document`, `Settings` and `Navigation` (Home, Cart, People, Settings and Navigation show, from the first paste-test, 2026-10-09). Then the big one: **setting the component's own X, Y, Width and Height from its outputs** (`navMain.ShellWidth` and so on). If Studio calls that a circular reference, tell me, and set Width to `240` and Height to `Parent.Height` instead.
 
 Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y, Width and Height to `navMain.ShellX`, `ShellY`, `ShellWidth` and `ShellHeight`.
 
@@ -262,7 +262,9 @@ Set `ScreenWidth` to `Parent.Width`, `ScreenHeight` to `Parent.Height`, and X, Y
 | Event | `OnUserSelect` to `Notify("Profile")`; select the avatar | "Profile" |
 | Input | `UserName` `User().FullName`, `UserDetail` `User().Email`, `UserImage` `User().Image` | Your own picture (or initials), name and email |
 | Input | Collapse the menu | The avatar above the sun or moon, both in the 64-pixel menu, even if the component is still 240 wide |
-| Keyboard | Tab through the menu | Each item, the ☰ button, the avatar and the theme button take focus; Enter selects |
+| Input | `Theme` `"Dark"`; hover over ☰, an item and the sun | A faint light shade behind each, the icon still white (not a white box) |
+| Input | `Look` `"Premium"` | A floating white card with rounded corners and a shadow, the app's letter on blue beside "My app", Home as a solid blue pill with white text, and the person on a pale card |
+| Keyboard | Tab through the menu | Each item, the ☰ button, the avatar and the theme button take focus with a blue ring; Enter selects |
 
 ## Tree view: `lcsTreeView` → name it `treeDocs`
 

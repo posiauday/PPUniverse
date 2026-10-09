@@ -56,6 +56,7 @@ interface Inputs {
   ShowThemeToggle: boolean;
   DarkText: string;
   LightText: string;
+  Look: string;
   AccentColor: string;
   Theme: string;
 }
@@ -81,6 +82,7 @@ const DEFAULTS: Inputs = {
   ShowThemeToggle: true,
   DarkText: "Switch to dark theme",
   LightText: "Switch to light theme",
+  Look: "Standard",
   AccentColor: "#0f6cbd",
   Theme: "Light",
 };
@@ -98,9 +100,12 @@ export function shellLayout(options: {
   bottomBarBelow: number;
   collapsed: boolean;
   expandedWidth: number;
+  premium?: boolean;
 }) {
   const bottom = options.screenWidth < options.bottomBarBelow;
-  const side = options.collapsed ? COLLAPSED_WIDTH : options.expandedWidth;
+  const side = options.collapsed
+    ? COLLAPSED_WIDTH + (options.premium ? 16 : 0)
+    : options.expandedWidth;
   return {
     isBottomBar: bottom,
     shell: bottom
@@ -260,6 +265,7 @@ export function useNavShellReplica(): ReplicaApi {
     bottomBarBelow: inputs.BottomBarBelow,
     collapsed,
     expandedWidth: inputs.ExpandedWidth,
+    premium: inputs.Look === "Premium",
   });
   const { visible, currentKey } = menuOf(ITEMS, inputs.HiddenKeys, inputs.CurrentKey || selected);
   const disabled = keysOf(inputs.DisabledKeys);
@@ -272,7 +278,8 @@ export function useNavShellReplica(): ReplicaApi {
   const tint = dark
     ? "bg-[color-mix(in_srgb,var(--accent)_45%,#202020)]"
     : "bg-[color-mix(in_srgb,var(--accent)_14%,white)]";
-  const hover = dark ? "hover:bg-white/[0.06]" : "hover:bg-black/[0.04]";
+  // The classic buttons' HoverFill in the YAML: 8% white on dark, 5% black on light.
+  const hover = dark ? "hover:bg-white/[0.08]" : "hover:bg-black/[0.05]";
 
   const go = (item: NavItem) => {
     setSelected(item.Key);
@@ -295,134 +302,177 @@ export function useNavShellReplica(): ReplicaApi {
       ? 120
       : 72;
   const name = (item: NavItem) => (item.Badge ? `${item.Label}, ${item.Badge}` : item.Label);
-  const badge = (text: string, small: boolean) => (
+  const badge = (text: string, small: boolean, onPill = false) => (
     <span
       aria-hidden="true"
-      className={`grid place-items-center rounded-full bg-[var(--accent)] px-1.5 font-semibold text-white ${
-        small ? "h-4 min-w-4 text-[9px]" : "h-[22px] min-w-[22px] text-[11px]"
-      }`}
+      className={`grid place-items-center rounded-full px-1.5 font-semibold ${
+        onPill ? "bg-white text-[var(--accent)]" : "bg-[var(--accent)] text-white"
+      } ${small ? "h-4 min-w-4 text-[9px]" : "h-[22px] min-w-[22px] text-[11px]"}`}
     >
       {text}
     </span>
   );
 
+  const premium = inputs.Look === "Premium";
   const side = (
     <nav
       aria-label={inputs.MenuLabel}
-      className={`absolute flex flex-col border-r ${dark ? "border-[#424242] bg-[#202020]" : "border-[#e5e7eb] bg-[#fafafa]"}`}
+      className={`absolute ${
+        premium
+          ? "p-2"
+          : `border-r ${dark ? "border-[#424242] bg-[#202020]" : "border-[#e5e7eb] bg-[#fafafa]"}`
+      }`}
       style={{ left: 0, top: 0, width: layout.shell.width, height: layout.shell.height }}
     >
-      <div className="flex h-16 shrink-0 items-center gap-2 px-3">
-        {inputs.ShowToggle ? (
-          <button
-            type="button"
-            aria-label={collapsed ? inputs.ExpandText : inputs.CollapseText}
-            title={collapsed ? inputs.ExpandText : inputs.CollapseText}
-            onClick={toggle}
-            className={`grid size-10 shrink-0 place-items-center rounded ${ink} ${hover}`}
-          >
-            <Glyph name="Navigation" filled={false} />
-          </button>
-        ) : null}
-        {collapsed ? null : (
-          <p className={`truncate text-base font-semibold ${inputs.ShowToggle ? "" : "pl-2"}`}>
-            {inputs.Title}
-          </p>
-        )}
-      </div>
-      <ul className="flex-1 overflow-y-auto px-2">
-        {visible.map((item) => {
-          const current = item.Key === currentKey;
-          const off = disabled.includes(item.Key);
-          return (
-            <li key={item.Key} className="relative mb-0.5 h-11">
-              {current ? (
-                <>
-                  <span aria-hidden="true" className={`absolute inset-0 rounded-lg ${tint}`} />
+      <div
+        className={`flex size-full flex-col ${
+          premium
+            ? `rounded-2xl border shadow-[0_10px_30px_-12px_rgba(16,24,40,0.4)] ${dark ? "border-[#424242] bg-[#18181b]" : "border-[#e5e7eb] bg-white"}`
+            : ""
+        }`}
+      >
+        <div className="flex h-16 shrink-0 items-center gap-2 px-3">
+          {inputs.ShowToggle ? (
+            <button
+              type="button"
+              aria-label={collapsed ? inputs.ExpandText : inputs.CollapseText}
+              title={collapsed ? inputs.ExpandText : inputs.CollapseText}
+              onClick={toggle}
+              className={`grid size-10 shrink-0 place-items-center rounded ${ink} ${hover}`}
+            >
+              <Glyph name="Navigation" filled={false} />
+            </button>
+          ) : null}
+          {premium && !collapsed ? (
+            <span
+              aria-hidden="true"
+              className="grid size-[30px] shrink-0 place-items-center rounded-[9px] bg-[var(--accent)] text-sm font-semibold text-white"
+            >
+              {inputs.Title.charAt(0).toUpperCase()}
+            </span>
+          ) : null}
+          {collapsed ? null : (
+            <p className={`truncate text-base font-semibold ${inputs.ShowToggle ? "" : "pl-2"}`}>
+              {inputs.Title}
+            </p>
+          )}
+        </div>
+        <ul className="flex-1 overflow-y-auto px-2">
+          {visible.map((item) => {
+            const current = item.Key === currentKey;
+            const off = disabled.includes(item.Key);
+            const pill = current && premium;
+            return (
+              <li key={item.Key} className="relative mb-0.5 h-11">
+                {current ? (
+                  pill ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-[10px] bg-[var(--accent)]"
+                    />
+                  ) : (
+                    <>
+                      <span aria-hidden="true" className={`absolute inset-0 rounded-lg ${tint}`} />
+                      <span
+                        aria-hidden="true"
+                        className="absolute top-3 bottom-3 left-0 w-[3px] bg-[var(--accent)]"
+                      />
+                    </>
+                  )
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={name(item)}
+                  aria-current={current ? "page" : undefined}
+                  title={collapsed ? item.Label : undefined}
+                  disabled={off}
+                  onClick={() => go(item)}
+                  className={`relative flex size-full items-center gap-3 rounded-lg text-sm ${
+                    collapsed ? "justify-center" : "pl-3.5"
+                  } ${
+                    off
+                      ? `${sub} cursor-not-allowed opacity-50`
+                      : pill
+                        ? "font-semibold text-white"
+                        : `${current ? `${currentInk} font-semibold` : ink} ${hover}`
+                  }`}
+                >
+                  <Glyph name={item.Icon} filled={current} />
+                  {collapsed ? null : <span className="truncate">{item.Label}</span>}
+                </button>
+                {item.Badge ? (
                   <span
-                    aria-hidden="true"
-                    className="absolute top-3 bottom-3 left-0 w-[3px] bg-[var(--accent)]"
-                  />
-                </>
-              ) : null}
+                    className={`pointer-events-none absolute ${collapsed ? "top-1 left-[calc(50%+6px)]" : "top-1/2 right-2.5 -translate-y-1/2"}`}
+                  >
+                    {badge(item.Badge, collapsed, pill)}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+        {footer ? (
+          <div
+            className={`relative mx-3 shrink-0 ${premium ? "" : `border-t ${dark ? "border-[#424242]" : "border-[#e5e7eb]"}`}`}
+            style={{ height: footerHeight }}
+          >
+            {premium && inputs.ShowUser && !collapsed ? (
+              <span
+                aria-hidden="true"
+                className={`absolute -inset-x-1 top-3 h-12 rounded-xl ${
+                  dark ? "bg-[#27272a]" : "bg-[color-mix(in_srgb,var(--accent)_8%,white)]"
+                }`}
+              />
+            ) : null}
+            {inputs.ShowUser ? (
               <button
                 type="button"
-                aria-label={name(item)}
-                aria-current={current ? "page" : undefined}
-                title={collapsed ? item.Label : undefined}
-                disabled={off}
-                onClick={() => go(item)}
-                className={`relative flex size-full items-center gap-3 rounded-lg text-sm ${
-                  collapsed ? "justify-center" : "pl-3.5"
-                } ${off ? `${sub} cursor-not-allowed opacity-50` : `${current ? `${currentInk} font-semibold` : ink} ${hover}`}`}
+                aria-label={
+                  inputs.UserDetail ? `${inputs.UserName}, ${inputs.UserDetail}` : inputs.UserName
+                }
+                title={inputs.UserName}
+                onClick={() => notify("Open profile")}
+                className={`absolute top-5 grid size-8 place-items-center rounded-full bg-[#0e7490] text-[13px] font-semibold text-white ${collapsed ? "left-1/2 -translate-x-1/2" : "left-1"}`}
               >
-                <Glyph name={item.Icon} filled={current} />
-                {collapsed ? null : <span className="truncate">{item.Label}</span>}
+                {initialsOf(inputs.UserName)}
               </button>
-              {item.Badge ? (
-                <span
-                  className={`pointer-events-none absolute ${collapsed ? "top-1 left-[30px]" : "top-1/2 right-2.5 -translate-y-1/2"}`}
-                >
-                  {badge(item.Badge, collapsed)}
-                </span>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-      {footer ? (
-        <div
-          className={`relative mx-3 shrink-0 border-t ${dark ? "border-[#424242]" : "border-[#e5e7eb]"}`}
-          style={{ height: footerHeight }}
-        >
-          {inputs.ShowUser ? (
-            <button
-              type="button"
-              aria-label={
-                inputs.UserDetail ? `${inputs.UserName}, ${inputs.UserDetail}` : inputs.UserName
-              }
-              title={inputs.UserName}
-              onClick={() => notify("Open profile")}
-              className="absolute top-5 left-1 grid size-8 place-items-center rounded-full bg-[#0e7490] text-[13px] font-semibold text-white"
-            >
-              {initialsOf(inputs.UserName)}
-            </button>
-          ) : null}
-          {inputs.ShowUser && !collapsed ? (
-            <div
-              className="absolute top-[19px] left-11 min-w-0"
-              style={{ right: inputs.ShowThemeToggle ? 48 : 0 }}
-            >
-              <p className="truncate text-[13px] leading-[18px] font-semibold">{inputs.UserName}</p>
-              <p className={`truncate text-[11px] leading-4 ${sub}`}>{inputs.UserDetail}</p>
-            </div>
-          ) : null}
-          {inputs.ShowThemeToggle ? (
-            <button
-              type="button"
-              aria-label={dark ? inputs.LightText : inputs.DarkText}
-              title={dark ? inputs.LightText : inputs.DarkText}
-              onClick={switchTheme}
-              className={`absolute grid size-10 place-items-center rounded ${hover} ${
-                collapsed
-                  ? inputs.ShowUser
-                    ? "top-[68px] left-0"
-                    : "top-4 left-0"
-                  : "top-4 right-0"
-              }`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- a data-URI SVG, as Power Apps' Image control shows it; next/image would add nothing */}
-              <img
-                key={theme}
-                alt=""
-                width={24}
-                height={24}
-                src={`data:image/svg+xml;utf8,${encodeURIComponent(themeSvg(dark, dark ? "#ffffff" : "#242424"))}`}
-              />
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+            ) : null}
+            {inputs.ShowUser && !collapsed ? (
+              <div
+                className="absolute top-[19px] left-11 min-w-0"
+                style={{ right: inputs.ShowThemeToggle ? 48 : 0 }}
+              >
+                <p className="truncate text-[13px] leading-[18px] font-semibold">
+                  {inputs.UserName}
+                </p>
+                <p className={`truncate text-[11px] leading-4 ${sub}`}>{inputs.UserDetail}</p>
+              </div>
+            ) : null}
+            {inputs.ShowThemeToggle ? (
+              <button
+                type="button"
+                aria-label={dark ? inputs.LightText : inputs.DarkText}
+                title={dark ? inputs.LightText : inputs.DarkText}
+                onClick={switchTheme}
+                className={`absolute grid size-10 place-items-center rounded ${hover} ${
+                  collapsed
+                    ? `left-1/2 -translate-x-1/2 ${inputs.ShowUser ? "top-[68px]" : "top-4"}`
+                    : "top-4 right-0"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- a data-URI SVG, as Power Apps' Image control shows it; next/image would add nothing */}
+                <img
+                  key={theme}
+                  alt=""
+                  width={24}
+                  height={24}
+                  src={`data:image/svg+xml;utf8,${encodeURIComponent(themeSvg(dark, dark ? "#ffffff" : "#242424"))}`}
+                />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </nav>
   );
 

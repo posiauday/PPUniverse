@@ -5599,3 +5599,26 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - A local axe, overflow and layout run through selecting, the theme switch both ways, the avatar, collapsing and the six presets, at 375 and 1280 px, light and dark: 40 states, clean, with screenshots checked.
 
 **Not yet:** the product owner's paste-test of the new footer (`ModernAvatar@1.0.0` and the animated SVG are new to us).
+
+## 2026-10-09 — Navigation shell: a Premium look, and hover in dark mode
+
+**Asked:** after pasting the new menu, the product owner asked:
+- "Shouldn't this whole thing be collapsed?" The Components tab shows the component's defined size; its box shrinks on a screen when Width is set from `ShellWidth`, and Studio won't let a component size itself from a variable.
+- "Give a variable of more premium UI."
+- With a photo, "on hover need to be fixed too in dark mode" (a near-white hover box behind the white ☰ icon). Recorded in docs/final-decisions.md, 2026-10-09, "Navigation shell: a Premium look, and hover in dark mode".
+
+**Changed** (`lcsNavShell`, still a draft 0.1.0):
+- **Hover:** every clickable part (☰, the items, the bottom bar, the sun and moon) is now a modern Icon (`ModernIcon@1.1.0`) and Text under a transparent classic button. The classic button's `HoverFill`, `PressedFill` and `FocusedBorderColor` follow the menu's own theme: 8% white on dark, 5% black on light, a focus ring in the accent colour. The modern button took its hover from the app's light Fluent theme, with no property to change it. Disabled items are dimmed.
+- **`Look`:** `Standard`, or `Premium`:
+  - a floating card with rounded corners and a soft shadow;
+  - the app's mark (its first letter on the accent colour);
+  - a solid accent pill with white text for the current item (its badge turns white);
+  - the person signed in on their own tinted card.
+  - Collapsed, Premium is 80 pixels wide.
+  - Presets "Premium" and "Premium dark".
+- **The live preview** follows both, with the same hover shades.
+
+**Checked:**
+- The component gate (30 checks).
+- Web typecheck, lint and component tests (39).
+- A local axe, overflow and layout run through the flows, the dark hover and the eight presets at 375 and 1280 px, light and dark: 44 states, clean, with screenshots checked.

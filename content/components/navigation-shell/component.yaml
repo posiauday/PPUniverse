@@ -148,6 +148,12 @@ ComponentDefinitions:
         DataType: Color
         Description: "Your brand colour, for the current item and badges."
         Default: =RGBA(15, 108, 189, 1)
+      Look:
+        PropertyKind: Input
+        DisplayName: Look
+        DataType: Text
+        Description: "Standard, or Premium: a floating card with a soft shadow, your app's mark, a solid pill for the current item and the user in a card."
+        Default: ="Standard"
       Theme:
         PropertyKind: Input
         DisplayName: Theme
@@ -273,11 +279,11 @@ ComponentDefinitions:
       SelectedKey: =Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
       ShellX: =0
       ShellY: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenHeight - 64, 0)
-      ShellWidth: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenWidth, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth))
+      ShellWidth: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenWidth, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth))
       ShellHeight: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), 64, lcsNavShell.ScreenHeight)
-      ContentX: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), 0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth))
+      ContentX: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), 0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth))
       ContentY: =0
-      ContentWidth: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenWidth, lcsNavShell.ScreenWidth - If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth))
+      ContentWidth: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenWidth, lcsNavShell.ScreenWidth - If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth))
       ContentHeight: =If((lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow), lcsNavShell.ScreenHeight - 64, lcsNavShell.ScreenHeight)
       SetCollapsed: =Set(locCollapsed, Collapsed)
     Children:
@@ -286,33 +292,74 @@ ComponentDefinitions:
           Properties:
             X: =0
             Y: =0
-            Width: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth)
+            Width: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth)
             Height: =Parent.Height
-            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && !(lcsNavShell.Look = "Premium")
             Fill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(32, 32, 32, 1), RGBA(250, 250, 250, 1))
+      - conSideCard:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            X: =8
+            Y: =8
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 16)
+            Height: =Max(0, Parent.Height - 16)
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && (lcsNavShell.Look = "Premium")
+            Fill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(24, 24, 27, 1), RGBA(255, 255, 255, 1))
+            BorderColor: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            BorderThickness: =1
+            DropShadow: =DropShadow.Regular
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
       - shpSideEdge:
           Control: Rectangle@2.3.0
           Properties:
-            X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 1
+            X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 1
             Y: =0
             Width: =1
             Height: =Parent.Height
-            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && !(lcsNavShell.Look = "Premium")
             Fill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
-      - btnToggle:
-          Control: ModernButton@1.0.0
+      - icoToggle:
+          Control: ModernIcon@1.1.0
           Properties:
-            X: =12
-            Y: =12
+            X: =22 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =22 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Width: =20
+            Height: =20
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowToggle
+            Icon: ="Navigation"
+            IconColor: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            IconStyle: =IconStyle.Outline
+      - btnToggle:
+          Control: Classic/Button@2.2.0
+          Properties:
+            X: =12 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =12 + If((lcsNavShell.Look = "Premium"), 8, 0)
             Width: =40
             Height: =40
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowToggle
             Text: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), lcsNavShell.ExpandText, lcsNavShell.CollapseText)
-            Icon: ="Navigation"
-            Layout: =ButtonLayout.IconOnly
-            Appearance: =ButtonAppearance.Subtle
-            Color: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-            AccessibleLabel: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), lcsNavShell.ExpandText, lcsNavShell.CollapseText)
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", ColorFade(lcsNavShell.AccentColor, 0.45), lcsNavShell.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
             Tooltip: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), lcsNavShell.ExpandText, lcsNavShell.CollapseText)
             OnSelect: |-
               =With(
@@ -320,12 +367,36 @@ ComponentDefinitions:
                   Set(locCollapsed, next);
                   lcsNavShell.OnToggle(next)
               )
+      - lblMark:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =If(lcsNavShell.ShowToggle, 62, 20) + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =17 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Width: =30
+            Height: =30
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && (lcsNavShell.Look = "Premium") && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+            Text: =Upper(Left(lcsNavShell.Title, 1))
+            Size: =14
+            Color: =RGBA(255, 255, 255, 1)
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            FontWeight: =FontWeight.Semibold
+            Align: =Align.Center
+            Fill: =lcsNavShell.AccentColor
+            RadiusTopLeft: =9
+            RadiusTopRight: =9
+            RadiusBottomLeft: =9
+            RadiusBottomRight: =9
       - lblTitle:
           Control: ModernText@1.0.0
           Properties:
-            X: =If(lcsNavShell.ShowToggle, 60, 20)
-            Y: =12
-            Width: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - If(lcsNavShell.ShowToggle, 72, 32)
+            X: =If(lcsNavShell.ShowToggle, 60, 20) + If((lcsNavShell.Look = "Premium"), 8, 0) + If((lcsNavShell.Look = "Premium"), 40, 0)
+            Y: =12 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - (If(lcsNavShell.ShowToggle, 60, 20) + If((lcsNavShell.Look = "Premium"), 8, 0) + If((lcsNavShell.Look = "Premium"), 40, 0)) - 12 - If((lcsNavShell.Look = "Premium"), 8, 0))
             Height: =40
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
             Text: =lcsNavShell.Title
@@ -342,10 +413,10 @@ ComponentDefinitions:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            X: =8
-            Y: =64
-            Width: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 16
-            Height: =Parent.Height - 72 - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0)
+            X: =8 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =64 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 16 - 2 * If((lcsNavShell.Look = "Premium"), 8, 0))
+            Height: =Max(0, Parent.Height - 72 - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - 2 * If((lcsNavShell.Look = "Premium"), 8, 0))
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow)
             Items: =Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))
             TemplateSize: =44
@@ -363,12 +434,12 @@ ComponentDefinitions:
                   Width: =Parent.TemplateWidth
                   Height: =Parent.TemplateHeight
                   Visible: =ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
-                  Fill: =ColorFade(lcsNavShell.AccentColor, If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", -0.55, 0.86))
+                  Fill: =If((lcsNavShell.Look = "Premium"), lcsNavShell.AccentColor, ColorFade(lcsNavShell.AccentColor, If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", -0.55, 0.86)))
                   DropShadow: =DropShadow.None
-                  RadiusTopLeft: =8
-                  RadiusTopRight: =8
-                  RadiusBottomLeft: =8
-                  RadiusBottomRight: =8
+                  RadiusTopLeft: =If((lcsNavShell.Look = "Premium"), 10, 8)
+                  RadiusTopRight: =If((lcsNavShell.Look = "Premium"), 10, 8)
+                  RadiusBottomLeft: =If((lcsNavShell.Look = "Premium"), 10, 8)
+                  RadiusBottomRight: =If((lcsNavShell.Look = "Premium"), 10, 8)
             - shpCurrentBar:
                 Control: Rectangle@2.3.0
                 Properties:
@@ -376,7 +447,7 @@ ComponentDefinitions:
                   Y: =12
                   Width: =3
                   Height: =Parent.TemplateHeight - 24
-                  Visible: =ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key)
+                  Visible: =ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key) && !(lcsNavShell.Look = "Premium")
                   Fill: =lcsNavShell.AccentColor
             - lblBadge:
                 Control: ModernText@1.0.0
@@ -388,7 +459,7 @@ ComponentDefinitions:
                   Visible: =!IsBlank(ThisItem.Badge) && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
                   Text: =ThisItem.Badge
                   Size: =11
-                  Color: =RGBA(255, 255, 255, 1)
+                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key) && (lcsNavShell.Look = "Premium"), lcsNavShell.AccentColor, RGBA(255, 255, 255, 1))
                   VerticalAlign: =VerticalAlign.Middle
                   Wrap: =false
                   PaddingLeft: =0
@@ -397,7 +468,7 @@ ComponentDefinitions:
                   PaddingBottom: =0
                   FontWeight: =FontWeight.Semibold
                   Align: =Align.Center
-                  Fill: =lcsNavShell.AccentColor
+                  Fill: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key) && (lcsNavShell.Look = "Premium"), RGBA(255, 255, 255, 1), lcsNavShell.AccentColor)
                   RadiusTopLeft: =11
                   RadiusTopRight: =11
                   RadiusBottomLeft: =11
@@ -405,14 +476,14 @@ ComponentDefinitions:
             - lblBadgeDot:
                 Control: ModernText@1.0.0
                 Properties:
-                  X: =30
+                  X: =Parent.TemplateWidth / 2 + 6
                   Y: =4
                   Width: =Max(16, Len(ThisItem.Badge) * 7 + 8)
                   Height: =16
                   Visible: =!IsBlank(ThisItem.Badge) && Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
                   Text: =ThisItem.Badge
                   Size: =9
-                  Color: =RGBA(255, 255, 255, 1)
+                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key) && (lcsNavShell.Look = "Premium"), lcsNavShell.AccentColor, RGBA(255, 255, 255, 1))
                   VerticalAlign: =VerticalAlign.Middle
                   Wrap: =false
                   PaddingLeft: =0
@@ -421,31 +492,67 @@ ComponentDefinitions:
                   PaddingBottom: =0
                   FontWeight: =FontWeight.Semibold
                   Align: =Align.Center
-                  Fill: =lcsNavShell.AccentColor
+                  Fill: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key) && (lcsNavShell.Look = "Premium"), RGBA(255, 255, 255, 1), lcsNavShell.AccentColor)
                   RadiusTopLeft: =8
                   RadiusTopRight: =8
                   RadiusBottomLeft: =8
                   RadiusBottomRight: =8
+            - icoItem:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), (Parent.TemplateWidth - 20) / 2, 14)
+                  Y: =(Parent.TemplateHeight - 20) / 2
+                  Width: =20
+                  Height: =20
+                  Icon: =ThisItem.Icon
+                  IconColor: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If((lcsNavShell.Look = "Premium"), RGBA(255, 255, 255, 1), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25))), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))))
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), IconStyle.Filled, IconStyle.Outline)
+            - lblItem:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =46
+                  Y: =0
+                  Width: =Max(0, Parent.TemplateWidth - 46 - If(IsBlank(ThisItem.Badge), 8, 44))
+                  Height: =Parent.TemplateHeight
+                  Visible: =!Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+                  Text: =ThisItem.Label
+                  Size: =14
+                  Color: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If((lcsNavShell.Look = "Premium"), RGBA(255, 255, 255, 1), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25))), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))))
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  FontWeight: =FontWeight.Semibold
             - btnItem:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =0
                   Y: =0
                   Width: =Parent.TemplateWidth
                   Height: =Parent.TemplateHeight
-                  Text: =ThisItem.Label
-                  Icon: =ThisItem.Icon
-                  IconStyle: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), IconStyle.Filled, IconStyle.Outline)
-                  Layout: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), ButtonLayout.IconOnly, ButtonLayout.IconBefore)
-                  Align: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), Align.Center, Align.Left)
-                  PaddingLeft: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 0, 14)
-                  Appearance: =ButtonAppearance.Transparent
-                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25)), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
-                  FontWeight: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), FontWeight.Semibold, FontWeight.Normal)
-                  Size: =14
-                  DisplayMode: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), DisplayMode.Disabled, DisplayMode.Edit)
-                  AccessibleLabel: =ThisItem.Label & If(IsBlank(ThisItem.Badge), "", ", " & ThisItem.Badge)
+                  Text: =ThisItem.Label & If(IsBlank(ThisItem.Badge), "", ", " & ThisItem.Badge)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", ColorFade(lcsNavShell.AccentColor, 0.45), lcsNavShell.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =If((lcsNavShell.Look = "Premium"), 10, 8)
+                  RadiusTopRight: =If((lcsNavShell.Look = "Premium"), 10, 8)
+                  RadiusBottomLeft: =If((lcsNavShell.Look = "Premium"), 10, 8)
+                  RadiusBottomRight: =If((lcsNavShell.Look = "Premium"), 10, 8)
                   Tooltip: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), ThisItem.Label, "")
+                  DisplayMode: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), DisplayMode.Disabled, DisplayMode.Edit)
                   OnSelect: |-
                     =Set(locSelected, ThisItem.Key);
                     lcsNavShell.OnNavigate(ThisItem.Key)
@@ -453,16 +560,31 @@ ComponentDefinitions:
           Control: Rectangle@2.3.0
           Properties:
             X: =12
-            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0)
-            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 24)
+            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0)
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 24)
             Height: =1
-            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && (lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle)
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && (lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle) && !(lcsNavShell.Look = "Premium")
             Fill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+      - conUserCard:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            X: =8 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 12
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 16 - 2 * If((lcsNavShell.Look = "Premium"), 8, 0))
+            Height: =48
+            Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && (lcsNavShell.Look = "Premium") && lcsNavShell.ShowUser && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
+            Fill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(39, 39, 42, 1), ColorFade(lcsNavShell.AccentColor, 0.92))
+            DropShadow: =DropShadow.None
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
       - avUser:
           Control: ModernAvatar@1.0.0
           Properties:
-            X: =16
-            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 20
+            X: =16 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 20
             Width: =32
             Height: =32
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowUser
@@ -475,9 +597,9 @@ ComponentDefinitions:
       - lblUserName:
           Control: ModernText@1.0.0
           Properties:
-            X: =56
-            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 20 - 1
-            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 56 - If(lcsNavShell.ShowThemeToggle, 60, 12))
+            X: =56 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 20 - 1
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 56 - 2 * If((lcsNavShell.Look = "Premium"), 8, 0) - If(lcsNavShell.ShowThemeToggle, 60, 12))
             Height: =18
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowUser && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
             Text: =lcsNavShell.UserName
@@ -493,9 +615,9 @@ ComponentDefinitions:
       - lblUserDetail:
           Control: ModernText@1.0.0
           Properties:
-            X: =56
-            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 20 + 17
-            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 56 - If(lcsNavShell.ShowThemeToggle, 60, 12))
+            X: =56 + If((lcsNavShell.Look = "Premium"), 8, 0)
+            Y: =Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 20 + 17
+            Width: =Max(0, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 56 - 2 * If((lcsNavShell.Look = "Premium"), 8, 0) - If(lcsNavShell.ShowThemeToggle, 60, 12))
             Height: =16
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowUser && !Coalesce(locCollapsed, lcsNavShell.StartCollapsed)
             Text: =lcsNavShell.UserDetail
@@ -510,24 +632,40 @@ ComponentDefinitions:
       - imgTheme:
           Control: Image@2.2.3
           Properties:
-            X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 12, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 52) + 8
-            Y: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 68, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 16) + 8
+            X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 12 + If((lcsNavShell.Look = "Premium"), 8, 0), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 52 - If((lcsNavShell.Look = "Premium"), 8, 0)) + 8
+            Y: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 68, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 16) + 8
             Width: =24
             Height: =24
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowThemeToggle
             Image: |-
               =With({ink: If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", "#ffffff", "#242424")}, "data:image/svg+xml;utf8," & EncodeUrl(If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'><style>.d,.r{transform-box:fill-box;transform-origin:center}.d{animation:d .5s ease forwards}.r{animation:r .5s ease forwards}.m{animation:m .5s ease forwards}@keyframes d{from{transform:scale(.6)}to{transform:scale(1)}}@keyframes r{from{transform:rotate(0deg) scale(1);opacity:1}to{transform:rotate(90deg) scale(.5);opacity:0}}@keyframes m{from{transform:translate(9px,-9px)}to{transform:translate(0,0)}}@media (prefers-reduced-motion:reduce){.d,.r,.m{animation-duration:1ms}}</style><mask id='k'><rect width='24' height='24' fill='white'/><circle class='m' cx='17' cy='7' r='6.5' fill='black'/></mask><g class='r' stroke='" & ink & "' stroke-width='2' stroke-linecap='round'><line x1='19.50' y1='12.00' x2='22.00' y2='12.00'/><line x1='17.32' y1='17.32' x2='19.10' y2='19.10'/><line x1='12.00' y1='19.50' x2='12.00' y2='22.00'/><line x1='6.68' y1='17.32' x2='4.90' y2='19.10'/><line x1='4.50' y1='12.00' x2='2.00' y2='12.00'/><line x1='6.68' y1='6.68' x2='4.90' y2='4.90'/><line x1='12.00' y1='4.50' x2='12.00' y2='2.00'/><line x1='17.32' y1='6.68' x2='19.10' y2='4.90'/></g><circle class='d' cx='12' cy='12' r='8' fill='" & ink & "' mask='url(#k)'/></svg>", "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'><style>.d,.r{transform-box:fill-box;transform-origin:center}.d{animation:d .5s ease forwards}.r{animation:r .5s ease forwards}.m{animation:m .5s ease forwards}@keyframes d{from{transform:scale(1)}to{transform:scale(.6)}}@keyframes r{from{transform:rotate(-90deg) scale(.5);opacity:0}to{transform:rotate(0deg) scale(1);opacity:1}}@keyframes m{from{transform:translate(0,0)}to{transform:translate(9px,-9px)}}@media (prefers-reduced-motion:reduce){.d,.r,.m{animation-duration:1ms}}</style><mask id='k'><rect width='24' height='24' fill='white'/><circle class='m' cx='17' cy='7' r='6.5' fill='black'/></mask><g class='r' stroke='" & ink & "' stroke-width='2' stroke-linecap='round'><line x1='19.50' y1='12.00' x2='22.00' y2='12.00'/><line x1='17.32' y1='17.32' x2='19.10' y2='19.10'/><line x1='12.00' y1='19.50' x2='12.00' y2='22.00'/><line x1='6.68' y1='17.32' x2='4.90' y2='19.10'/><line x1='4.50' y1='12.00' x2='2.00' y2='12.00'/><line x1='6.68' y1='6.68' x2='4.90' y2='4.90'/><line x1='12.00' y1='4.50' x2='12.00' y2='2.00'/><line x1='17.32' y1='6.68' x2='19.10' y2='4.90'/></g><circle class='d' cx='12' cy='12' r='8' fill='" & ink & "' mask='url(#k)'/></svg>")))
       - btnTheme:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
-            X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 12, If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 64, lcsNavShell.ExpandedWidth) - 52)
-            Y: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 68, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) + 16)
+            X: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), 12 + If((lcsNavShell.Look = "Premium"), 8, 0), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed), If((lcsNavShell.Look = "Premium"), 80, 64), lcsNavShell.ExpandedWidth) - 52 - If((lcsNavShell.Look = "Premium"), 8, 0))
+            Y: =If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 68, Parent.Height - If((lcsNavShell.ShowUser || lcsNavShell.ShowThemeToggle), If(Coalesce(locCollapsed, lcsNavShell.StartCollapsed) && lcsNavShell.ShowUser && lcsNavShell.ShowThemeToggle, 120, 72), 0) - If((lcsNavShell.Look = "Premium"), 8, 0) + 16)
             Width: =40
             Height: =40
             Visible: =!(lcsNavShell.ScreenWidth < lcsNavShell.BottomBarBelow) && lcsNavShell.ShowThemeToggle
-            Text: =""
-            Appearance: =ButtonAppearance.Transparent
-            AccessibleLabel: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", lcsNavShell.LightText, lcsNavShell.DarkText)
+            Text: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", lcsNavShell.LightText, lcsNavShell.DarkText)
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", ColorFade(lcsNavShell.AccentColor, 0.45), lcsNavShell.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
             Tooltip: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", lcsNavShell.LightText, lcsNavShell.DarkText)
             OnSelect: |-
               =With(
@@ -626,27 +764,44 @@ ComponentDefinitions:
                   RadiusTopRight: =8
                   RadiusBottomLeft: =8
                   RadiusBottomRight: =8
+            - icoBottom:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =(Parent.TemplateWidth - 20) / 2
+                  Y: =11
+                  Width: =20
+                  Height: =20
+                  Icon: =ThisItem.Icon
+                  IconColor: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25)), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))))
+                  IconStyle: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), IconStyle.Filled, IconStyle.Outline)
             - btnBottomItem:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =0
                   Y: =0
                   Width: =Parent.TemplateWidth
                   Height: =Parent.TemplateHeight
-                  Text: =ThisItem.Label
-                  Icon: =ThisItem.Icon
-                  IconStyle: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), IconStyle.Filled, IconStyle.Outline)
-                  Layout: =ButtonLayout.IconOnly
-                  Align: =Align.Center
-                  VerticalAlign: =VerticalAlign.Top
-                  PaddingTop: =10
-                  Appearance: =ButtonAppearance.Transparent
-                  Color: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), ColorFade(lcsNavShell.AccentColor, -0.25)), If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
-                  FontWeight: =If(ThisItem.Key = Coalesce(lcsNavShell.CurrentKey, locSelected, First(Filter(lcsNavShell.Items As item, !(item.Key in ForAll(Split(lcsNavShell.HiddenKeys, ","), Trim(ThisRecord.Value))))).Key), FontWeight.Semibold, FontWeight.Normal)
-                  Size: =14
-                  DisplayMode: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), DisplayMode.Disabled, DisplayMode.Edit)
-                  AccessibleLabel: =ThisItem.Label & If(IsBlank(ThisItem.Badge), "", ", " & ThisItem.Badge)
+                  Text: =ThisItem.Label & If(IsBlank(ThisItem.Badge), "", ", " & ThisItem.Badge)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(Coalesce(locTheme, lcsNavShell.Theme) = "Dark", ColorFade(lcsNavShell.AccentColor, 0.45), lcsNavShell.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
                   Tooltip: =ThisItem.Label
+                  DisplayMode: =If(ThisItem.Key in ForAll(Split(lcsNavShell.DisabledKeys, ","), Trim(ThisRecord.Value)), DisplayMode.Disabled, DisplayMode.Edit)
                   OnSelect: |-
                     =Set(locSelected, ThisItem.Key);
                     lcsNavShell.OnNavigate(ThisItem.Key)

@@ -2308,3 +2308,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **The side menu's footer shows who is signed in** with the modern Avatar control (their picture, or initials), their name and a detail line, all inputs (`UserName`, `UserDetail`, `UserImage`). Selecting it runs `OnUserSelect()`.
 2. **Beside it, a light and dark switch:** a sun that turns into a moon, animated in SVG (an Image control showing an animated SVG), still for people who ask for reduced motion. It switches the menu's theme at once and runs `OnThemeChange(NewTheme)` so the app can follow; `CurrentTheme` is an output.
 3. **Collapsed, the menu draws itself 64 pixels wide** even if the component's box is wider, after the paste-test showed icons centred in the full width.
+
+## 2026-10-09 — Navigation shell: a Premium look, and hover in dark mode
+
+**Source:** direct product-owner instructions in this session, after pasting the Navigation shell: "give a variable of more premium UI in this if possible", and, with a photo of a white hover box behind the white menu icon, "on hover need to be fixed too in dark mode".
+
+1. **A `Look` input:** `Standard` (the plain side panel) or `Premium`: a floating card with rounded corners and a soft shadow, the app's mark (its first letter on the accent colour), a solid pill in the accent colour with white text for the current item, and the signed-in person on their own tinted card. Presets "Premium" and "Premium dark".
+2. **Hover follows the menu's own theme.** Every clickable part is a modern Icon (and Text) under a transparent classic button whose hover, pressed and focus colours follow the component's light or dark theme, because the modern button's hover comes from the app's light theme and can't be changed.
+
