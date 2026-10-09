@@ -2250,3 +2250,11 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
    - an account that hasn't agreed (made before this, or someone who left the welcome page) sees a reminder until they do.
    Each agreement is the existing Terms consent record, tied to the current Terms version by the server.
 
+
+## 2026-10-09 — Data table: our own, on a gallery
+
+**Source:** direct product-owner answer in this session. Asked how to handle the planned Data table now that Microsoft ships a modern Data Grid control (`ModernDataGrid@1.1.0`: sorting, search, row checkboxes, virtualised rows, button columns; Microsoft Learn, "Data Grid modern control in canvas apps"), the product owner chose "Build our own on a gallery" over building on the Data Grid or skipping the Data table, because "Data grid has design limitations but galleries can [be] designed like modern UI too and OnSelect works best to open [an] item".
+
+1. **lcsDataTable is built on a gallery**, as planned in the 2026-10-08 build order: columns from a table input, sorting and paging as events, row selection and bulk actions, row actions, a sticky header, density, empty and loading states.
+2. **Selecting a row opens it:** the row itself is the main action (`OnRowSelect`), with checkboxes and row actions beside it.
+3. **Sign-in to copy**, as already decided.
