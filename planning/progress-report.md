@@ -5398,3 +5398,13 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 **Checked:** web typecheck, lint and tests (850, new: the switch route and its fallback to the environment); the content adapter's database tests (5, new: a Coming soon draft is a teaser only, never its YAML, and not once hidden or published); the e2e package's tests; locally on a production build, the gate's states for the library index (with a teaser card), the new teaser page, Settings, the switch's confirmation (opened, never confirmed: the switch is site-wide) and the component admin pages: 28 checks in Chromium, 42 in Firefox and WebKit, all passing. The first run found the faded words inside the blurred picture below contrast: the picture is decorative and its words are blurred on purpose (incidental text, WCAG 1.4.3), so it now fades through a CSS filter, which axe doesn't measure, and every readable word keeps full contrast.
 
 **Next:** the feedback box that stays open after sending (BUG-036), then the top bar (Guides menu, Learn soon, the theme icon), then "On this page" on every page.
+
+## 2026-10-09 — Fix: "On this page" follows the section being read (BUG-037)
+
+**Asked:** "On this page doesn't work or move with scrolling on lots of pages, but on some it works; review all the pages."
+
+**Found:** the panel does stick (measured on the live site at 1,080 and 1,280 px). The highlight lagged: scrolling with the wheel to each section on all 64 live pages with "On this page", in Chromium and Firefox, every page marked the previous section and never the first. A heading counted as "being read" only within 140 px of the top, under the 100 px sticky header.
+
+**Changed:** the reading line is about a third of the way down the window, at least 160 px (`readingLine` in `apps/web/app/learn/TocSpy.tsx`), with unit tests.
+
+**Checked:** web typecheck and tests; locally on a production build with the 60 guides imported and published in the local database only, scrolling to each section in Chromium and Firefox: the section scrolled to is marked, or its sub-heading when one follows straight away. Firefox needed exact scroll positions in the check, because it scales wheel distances differently.
