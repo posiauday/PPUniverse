@@ -2,8 +2,16 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
-/** How far below the top of the window a heading counts as "being read". */
-const READING_LINE = 140;
+/**
+ * How far down the window a heading counts as "being read": about a third of
+ * the way down, and never less than 160px (BUG-037). The sticky header is about
+ * 100px tall, so a line at 140px only marked a section once its heading was
+ * almost under the header; while you read a section lower on the screen, the
+ * list still marked the one before, and the first section was never marked.
+ */
+export function readingLine(windowHeight: number): number {
+  return Math.max(160, Math.round(windowHeight * 0.35));
+}
 
 /**
  * Follows the reader through "On this page" (BUG-029): the link for the
@@ -26,8 +34,9 @@ export function TocSpy({ ids, children }: { ids: readonly string[]; children: Re
 
     const update = () => {
       let current: string | null = null;
+      const line = readingLine(window.innerHeight);
       for (const heading of headings) {
-        if (heading.getBoundingClientRect().top > READING_LINE) break;
+        if (heading.getBoundingClientRect().top > line) break;
         current = heading.id;
       }
       const atBottom =

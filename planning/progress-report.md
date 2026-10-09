@@ -5425,6 +5425,16 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 
 **Next:** the "On this page" highlight (BUG-037), then the Data table.
 
+## 2026-10-09 — Fix: "On this page" follows the section being read (BUG-037)
+
+**Asked:** "On this page doesn't work or move with scrolling on lots of pages, but on some it works; review all the pages."
+
+**Found:** the panel does stick (measured on the live site at 1,080 and 1,280 px). The highlight lagged: scrolling with the wheel to each section on all 64 live pages with "On this page", in Chromium and Firefox, every page marked the previous section and never the first. A heading counted as "being read" only within 140 px of the top, under the 100 px sticky header.
+
+**Changed:** the reading line is about a third of the way down the window, at least 160 px (`readingLine` in `apps/web/app/guides/TocSpy.tsx`), with unit tests.
+
+**Checked:** web typecheck and tests; locally on a production build with the 60 guides imported and published in the local database only, scrolling to each section in Chromium and Firefox: the section scrolled to is marked, or its sub-heading when one follows straight away. Firefox needed exact scroll positions in the check, because it scales wheel distances differently.
+
 ## 2026-10-09 — Component library: Data table (MVP-049, wave 2, In Progress)
 
 **Asked:** the Data table, built on a gallery (docs/final-decisions.md, 2026-10-09, "Data table: our own, on a gallery"); then the product owner shared a table component's YAML from elsewhere: "for data is this useful? I don't want grid but I want you to design the gallery to look like this". Answered: useful as a look, not as code (its table rows can't be selected, its click areas have no names, it uses `AccessAppScope`, its columns are fixed, and its licence is unknown); built our own in that style, with none of its code, colour parsing, sample rows or names.
