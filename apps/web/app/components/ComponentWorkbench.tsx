@@ -30,6 +30,7 @@ import { usePaginationReplica } from "./replicas/PaginationReplica";
 import { usePeoplePickerReplica } from "./replicas/PeoplePickerReplica";
 import type { ReplicaApi } from "./replicas/replica";
 import { useStatesReplica } from "./replicas/StatesReplica";
+import { useStepperReplica } from "./replicas/StepperReplica";
 import { useTabsReplica } from "./replicas/TabsReplica";
 import { useTextFieldReplica } from "./replicas/TextFieldReplica";
 import { useToastReplica } from "./replicas/ToastReplica";
@@ -69,6 +70,7 @@ const REPLICAS: Record<string, Host> = {
   lcsDataTable: hostFor(useDataTableReplica),
   lcsNavShell: hostFor(useNavShellReplica),
   lcsTreeView: hostFor(useTreeViewReplica),
+  lcsStepper: hostFor(useStepperReplica),
 };
 
 export function hasReplica(componentName: string): boolean {

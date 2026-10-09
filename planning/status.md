@@ -2,7 +2,12 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: the Tree view is drafted (thirteen components).**
+Last updated: 2026-10-09 (latest) — **MVP-049 In Progress: wave 2 is drafted (fourteen components); the Stepper is the last.**
+- **Drafted:** Stepper 0.1.0 (open to everyone): horizontal or vertical steps with progress, a `CanLeaveStep` check that stops users skipping required steps, Back and Next, and `GoToStep()`.
+- **In review:** #139 (Navigation shell), #140 (Tree view), #141 (Stepper) and #142 (admins not limited in profile changes). #136, #137 and the release #138 are merged.
+- **Next:** the product owner's paste-tests of wave 2; then wave 3 (Kanban board, screen templates, charts last).
+
+Last updated (previous): 2026-10-09 — **MVP-049 In Progress: the Tree view is drafted (thirteen components).**
 - **Drafted:** Tree view 0.1.0 (open to everyone): nested folders or categories from one flat table in one gallery, nodes that open and close, children loaded when a node opens, selection, and the open nodes as an output to save.
 - **In review:** #139 (Navigation shell). #136, #137 and the release #138 are merged.
 - **Remaining wave 2:** Stepper.

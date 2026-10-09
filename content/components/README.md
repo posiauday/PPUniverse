@@ -79,6 +79,8 @@ From pastes that worked in the product owner's developer environment. Use these 
 
 **Long formulas** (the Tree view's rows: `Ungroup` of a table of tables built level by level, sorted with `Sort` by a text path; `Last(FirstN(...))` for the nth row) and a **`Record` output** (`SelectedNode`) are **not yet paste-tested by us**.
 
+**An `InputFunction` returning a Boolean, called inside the component** (the Stepper's `CanLeaveStep(Step)`, also inside `Filter(Sequence(...), ...)` in an action) is **not yet paste-tested by us**. The Button's `FormatLabel` (an `InputFunction` returning text, with a `Default`) pastes; this is the same shape.
+
 ## variations.yaml
 
 ```

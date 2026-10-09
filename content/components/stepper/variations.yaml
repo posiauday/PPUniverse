@@ -1,0 +1,19 @@
+# Named presets of lcsStepper: each sets inputs with Power Fx formulas.
+- name: Halfway
+  description: Two steps done, on the third.
+  settings:
+    DefaultStep: =3
+- name: Vertical
+  description: Steps in a column, for a narrow screen or a side panel.
+  settings:
+    Orientation: ="Vertical"
+- name: Titles only
+  description: No descriptions and no buttons, for your own Back and Next.
+  settings:
+    ShowDescriptions: =false
+    ShowButtons: =false
+- name: Dark
+  description: On a dark screen, in your brand colour.
+  settings:
+    Theme: ="Dark"
+    AccentColor: =RGBA(124, 58, 237, 1)

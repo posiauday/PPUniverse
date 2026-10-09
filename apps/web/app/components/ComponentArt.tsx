@@ -309,6 +309,36 @@ const ART: Record<string, ReactNode> = {
       ))}
     </span>
   ),
+  lcsStepper: (
+    <span className="flex w-52 items-start text-[9px] text-[#242424]">
+      {["Details", "Items", "Approver", "Review"].map((title, index) => (
+        <span key={title} className="relative flex flex-1 flex-col items-center">
+          {index > 0 ? (
+            <span
+              className={`absolute top-[11px] left-0 h-0.5 w-[calc(50%-14px)] ${index <= 2 ? "bg-[#0f6cbd]" : "bg-[#d1d5db]"}`}
+            />
+          ) : null}
+          {index < 3 ? (
+            <span
+              className={`absolute top-[11px] right-0 h-0.5 w-[calc(50%-14px)] ${index < 2 ? "bg-[#0f6cbd]" : "bg-[#d1d5db]"}`}
+            />
+          ) : null}
+          <span
+            className={`grid size-6 place-items-center rounded-full text-[10px] font-semibold ${
+              index < 2
+                ? "bg-[#0f6cbd] text-white"
+                : index === 2
+                  ? "border-2 border-[#0f6cbd] bg-white text-[#0b5190]"
+                  : "border border-[#d1d5db] bg-white text-[#616161]"
+            }`}
+          >
+            {index < 2 ? "✓" : index + 1}
+          </span>
+          <span className={`mt-1 ${index === 2 ? "font-semibold" : ""}`}>{title}</span>
+        </span>
+      ))}
+    </span>
+  ),
   lcsStates: (
     <span className="flex flex-col items-center text-center">
       <span className="grid size-10 place-items-center rounded-full bg-[#f0f0f0] text-lg font-bold text-[#424242]">
