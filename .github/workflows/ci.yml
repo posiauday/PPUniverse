@@ -39,6 +39,11 @@ jobs:
         # Docker Hub API after the first real CI run failed with "manifest
         # unknown"). bitnamilegacy/minio:latest is the working equivalent.
         image: bitnamilegacy/minio:latest
+        # Signed-in pulls (repository secrets, a read-only token for public images):
+        # anonymous pulls hit Docker Hub's limit on shared runners (2026-10-09).
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           MINIO_ROOT_USER: minioadmin
           MINIO_ROOT_PASSWORD: minioadmin
@@ -58,6 +63,11 @@ jobs:
           --health-retries 10
       clamav:
         image: clamav/clamav:stable
+        # Signed-in pulls (repository secrets, a read-only token for public images):
+        # anonymous pulls hit Docker Hub's limit on shared runners (2026-10-09).
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         ports:
           - 3310:3310
         options: >-
