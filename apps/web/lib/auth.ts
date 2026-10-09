@@ -19,7 +19,11 @@ export const authOptions: NextAuthOptions = {
   // Linking a Google account stores who it is, never Google's tokens.
   adapter: withoutStoredTokens(PrismaAdapter(prisma)),
   session: { strategy: "database" },
-  pages: { signIn: "/signin" },
+  // A brand-new account from an emailed link or Google lands on the welcome
+  // page first, to accept the Terms of use and the Privacy notice
+  // (docs/final-decisions.md, 2026-10-08, "Accounts accept the Terms when
+  // they're made"). Auth.js adds the page they were going to as callbackUrl.
+  pages: { signIn: "/signin", newUser: "/account/welcome" },
   callbacks: {
     session: ({ session, user }) => {
       if (session.user) {

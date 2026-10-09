@@ -35,12 +35,13 @@ function mainLinks(): Array<{ name: string; href: string }> {
 }
 
 const NAV_LINK =
-  "inline-flex min-h-11 items-center rounded-full px-3 text-foreground no-underline hover:bg-muted";
+  "inline-flex min-h-11 items-center rounded-full px-2.5 text-foreground no-underline hover:bg-muted";
 
 /**
  * Site-wide header (MVP-027; Daylight look, MVP-031): a floating pill with
- * the brand, the main sections, search, sign-in, the theme toggle and the
- * "Learn" call to action. No headings here, so every page's own h1
+ * the brand, the main sections, search, sign-in (or, signed in, the reader's
+ * avatar, which opens their account and, for admins, Admin), the theme
+ * toggle and the "Learn" call to action. No headings here, so every page's own h1
  * stays its first heading. Links keep a 44px row height (WCAG 2.5.8 target
  * size) and wrap on narrow screens rather than scrolling sideways (1.4.10).
  *
@@ -74,13 +75,15 @@ export function SiteHeader({
   const links = mainLinks();
   return (
     <header className="z-30 bg-background px-3 pt-3 pb-2 md:sticky md:top-0 md:px-6 md:pt-3.5">
-      <div className="relative mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-4 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
+      <div className="relative mx-auto flex max-w-[77.5rem] flex-wrap items-center gap-x-2 gap-y-1 rounded-3xl border border-border bg-card/85 py-1.5 pr-1.5 pl-3 sm:gap-x-3 sm:pl-4 shadow-[0_10px_30px_-18px_rgb(20_20_26/0.3)] backdrop-blur-md md:rounded-full">
         <Link
           href="/"
           className="inline-flex min-h-11 items-center gap-2 text-foreground no-underline md:mr-2 md:gap-2.5"
         >
           <BrandMark size={32} />
-          <span className="font-display text-base font-bold tracking-tight sm:text-lg">
+          {/* Between lg and xl the wordmark is for screen readers only, so the one-row
+              bar fits with every link, the badge and the account button. */}
+          <span className="font-display text-base font-bold tracking-tight sm:text-lg lg:max-xl:sr-only">
             {SITE_NAME}
           </span>
         </Link>
@@ -99,22 +102,20 @@ export function SiteHeader({
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <HeaderSearch />
-          {viewer?.isAdmin ? (
-            <Link href="/admin" className={`${NAV_LINK} font-semibold max-lg:hidden`}>
-              Admin
-            </Link>
-          ) : null}
+          {/* Signed in: the reader's avatar opens their account, where admins also find
+              Admin (docs/final-decisions.md, 2026-10-08, "Header: Account holds Admin"). */}
           {signedIn ? (
             <Link
               href={account.href}
-              className="motion-press inline-flex min-h-11 items-center gap-2 rounded-full py-1 pr-3.5 pl-1.5 font-semibold text-foreground no-underline hover:bg-muted max-lg:hidden"
+              title={account.name}
+              className="motion-press inline-grid size-11 place-items-center rounded-full text-foreground no-underline hover:bg-muted max-lg:hidden"
             >
               <Avatar
                 seed={viewer?.avatarSeed ?? "account"}
                 name={viewer?.displayName ?? undefined}
-                size={32}
+                size={36}
               />
-              {account.name}
+              <span className="sr-only">{account.name}</span>
             </Link>
           ) : (
             <Link href={account.href} className={`${NAV_LINK} font-semibold max-lg:hidden`}>

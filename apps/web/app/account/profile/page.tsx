@@ -7,6 +7,9 @@ import { learnRepository } from "../../../lib/learn";
 import { SITE_NAME } from "../../../lib/seo/site";
 import { Avatar } from "../../Avatar";
 import { ClearProgressButton } from "../../topics/ProgressControls";
+import { newAvatarSeed } from "../../../lib/avatar-seeds";
+import { loadViewerSummary } from "../../../lib/viewer";
+import { AvatarPicker } from "./AvatarPicker";
 import { ProfileForm } from "./ProfileForm";
 
 // Authenticated, self-service account content: not indexed, like every other
@@ -25,6 +28,8 @@ export default async function AccountProfilePage() {
   const userId = await currentUserId();
   if (!userId) redirect("/signin?callbackUrl=%2Faccount%2Fprofile");
   const profile = await commentRepository.getOrCreateProfile(userId, secureRandom);
+  const { isAdmin } = await loadViewerSummary(userId);
+  const gallery = Array.from({ length: 11 }, () => newAvatarSeed(secureRandom));
   // MVP-048: the reader's Learn progress, which only they see and can clear.
   const progress = learnEnabled() ? await learnRepository.listProgress(userId) : null;
 
@@ -32,14 +37,20 @@ export default async function AccountProfilePage() {
     <main className="mx-auto max-w-[46rem] px-4 py-10">
       <h1 className="font-display text-4xl font-bold">Your profile</h1>
       <p className="mt-3">
-        Your comments show this name and avatar. They were picked at random; change them whenever
-        you like. Your email address is never shown.
+        Your comments show this name and avatar. They were picked at random when you joined; change
+        them whenever you like. Your email address is never shown.
       </p>
       <div className="mt-6 flex items-center gap-4">
-        <Avatar seed={profile.avatarSeed} name={profile.displayName} size={64} />
+        <Avatar seed={profile.avatarSeed} name={profile.displayName} size={112} />
         <p className="font-display text-2xl font-bold">{profile.displayName}</p>
       </div>
       <ProfileForm displayName={profile.displayName} />
+      <AvatarPicker
+        current={profile.avatarSeed}
+        displayName={profile.displayName}
+        isAdmin={isAdmin}
+        initialSeeds={gallery}
+      />
       {progress ? (
         <section aria-labelledby="learn_progress" className="mt-10">
           <h2 id="learn_progress" className="font-display text-2xl font-bold">

@@ -5286,3 +5286,17 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 **Not changed:** Next.js's own polyfills, the DOM size, the unattributed reflow and the main chunk's long task; reasons in `planning/tech-debt/TD-032.md`.
 
 **Next:** re-run PageSpeed Insights on production after the release, mobile and desktop.
+
+## 2026-10-08 — Account: one-row header, avatars from a gallery, the crown, and the Terms at sign-up
+
+**Asked:** the product owner's screenshot of the header on two rows; Admin inside Account, not in the header; choose an avatar from a set; accept the Terms and Privacy notice when making an account; a premium avatar for the admin (docs/final-decisions.md, 2026-10-08).
+
+**Changed:**
+- **Header (BUG-032):** no Admin link; the avatar is the Account button; the wordmark is screen-reader-only from 1024 to 1279 pixels; tighter spacing; the search box keeps "Search an error or topic". One row at every desktop width, signed in or out.
+- **Account page:** the admin list adds Component library and Marketplace products.
+- **Avatars:** a gallery on the profile page (your avatar, eleven more, "Show other avatars", Save). The crowned avatar, a new premium drawing (a jewelled crown, an ermine collar and cape, a midnight sunburst, a gold frame and name tag), is offered only to admins; the profile API checks the role in the database (`lib/avatar-seeds.ts`).
+- **The Terms at sign-up:** a required box on the sign-up form; the sign-up API refuses without it (`error: "terms"`); confirming the emailed link records the existing Terms consent against the current version (`lib/terms-acceptance.ts`). A new account from an emailed link or Google lands on `/account/welcome` (Auth.js `newUser`) to agree, then goes on. A signed-in reader who hasn't agreed sees a reminder under the header. The sign-in page says new accounts are asked to agree.
+
+**Checked:** web typecheck, lint and unit tests (838, new: avatar choices, safe redirect after agreeing, sign-up refused without agreeing, agreement recorded on confirm); the header measured one row at six widths; the accessibility gate for every account and sign-up state, including the new ones (avatar picked, admin profile with the crown, welcome page, welcome without ticking, sign-up without ticking), in Chromium: 84 passed.
+
+**Next:** the product owner's check of the crowned avatar and the new pages.

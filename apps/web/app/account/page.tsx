@@ -27,6 +27,8 @@ const ADMIN_LINKS = [
   { href: "/admin/content", name: "Guides" },
   { href: "/admin/updates", name: "Updates" },
   { href: "/admin/topics", name: "Learn topics" },
+  { href: "/admin/components", name: "Component library" },
+  { href: "/admin/products", name: "Marketplace products" },
   { href: "/admin/comments", name: "Comments" },
   { href: "/admin/feedback", name: "Feedback" },
   { href: "/admin/users", name: "Users and roles" },

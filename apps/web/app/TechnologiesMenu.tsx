@@ -58,7 +58,7 @@ export function TechnologiesMenu({ areas }: { areas: readonly TechnologyMenuArea
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3 ${
+        className={`inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 ${
           open ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
         }`}
       >

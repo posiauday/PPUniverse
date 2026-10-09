@@ -1,4 +1,5 @@
 import { avatarFromSeed, type AvatarSpec } from "@ppu/domain-content";
+import { CROWN_SEED } from "../lib/avatar-seeds";
 
 /**
  * A reader's generated avatar, a "maker critter" (MVP-040; redrawn
@@ -360,6 +361,154 @@ function Critter({
   );
 }
 
+/** A four-point sparkle centred on (x, y). */
+function Sparkle({ x, y, r, fill }: { x: number; y: number; r: number; fill: string }) {
+  const k = r * 0.28;
+  return (
+    <path
+      d={`M${x} ${y - r}L${x + k} ${y - k}L${x + r} ${y}L${x + k} ${y + k}L${x} ${y + r}L${x - k} ${y + k}L${x - r} ${y}L${x - k} ${y - k}Z`}
+      fill={fill}
+    />
+  );
+}
+
+/**
+ * The crowned avatar (docs/final-decisions.md, 2026-10-08, "Avatars: choose
+ * from a gallery; the crown is for admins"): a royal critter in a gold crown
+ * set with three gems, an ermine collar on a red cape, on a midnight sunburst,
+ * framed in gold. Our own drawing, built to look rich large on the profile
+ * and still read as a crown at 32 pixels.
+ */
+function Crowned({ initials }: { initials: string | null }) {
+  const rays = Array.from({ length: 16 }, (_, index) => index * 22.5);
+  return (
+    <>
+      <rect width="64" height="64" fill="#160b33" />
+      <g fill={GOLD} opacity=".13">
+        {rays.map((angle) => (
+          <path key={angle} d="M32 33L29.8 -4H34.2Z" transform={`rotate(${angle} 32 33)`} />
+        ))}
+      </g>
+      <circle cx="32" cy="33" r="23" fill="#2a1663" />
+      <circle
+        cx="32"
+        cy="33"
+        r="23"
+        fill="none"
+        stroke={GOLD}
+        strokeOpacity=".45"
+        strokeWidth=".9"
+      />
+      <Sparkle x={9.5} y={12} r={3.4} fill="#fde68a" />
+      <Sparkle x={55} y={21} r={2.4} fill="#fde68a" />
+      <Sparkle x={11} y={44} r={1.8} fill="#c4b5fd" />
+      <ellipse cx="32" cy="60" rx="17" ry="2.6" fill="#000" opacity=".3" />
+      {/* Cape and ermine collar. */}
+      <path d="M13 64C13.5 53 21 48.5 32 48.5S50.5 53 51 64Z" fill="#b91c1c" />
+      <path
+        d="M13 64C13.5 53 21 48.5 32 48.5S50.5 53 51 64"
+        fill="none"
+        stroke="#7f1d1d"
+        strokeWidth="1"
+      />
+      <path d="M17.5 55.5C22 50.5 42 50.5 46.5 55.5C42 59 22 59 17.5 55.5Z" fill="#fff" />
+      <g fill="#14141a">
+        <path d="M24 54.2l.9 1.6-.9 1.2-.9-1.2z" />
+        <path d="M32 53.6l.9 1.6-.9 1.2-.9-1.2z" />
+        <path d="M40 54.2l.9 1.6-.9 1.2-.9-1.2z" />
+      </g>
+      {/* Head. */}
+      <circle cx="32" cy="39" r="14.5" fill="#8b5cf6" />
+      <ellipse
+        cx="26"
+        cy="32.5"
+        rx="5"
+        ry="2.5"
+        fill="#fff"
+        opacity=".3"
+        transform="rotate(-24 26 32.5)"
+      />
+      <g fill="#ff8fab" opacity=".55">
+        <ellipse cx="22.6" cy="42.6" rx="2.8" ry="1.6" />
+        <ellipse cx="41.4" cy="42.6" rx="2.8" ry="1.6" />
+      </g>
+      {/* Eyes: calm and pleased, with a glint. */}
+      <g fill="#14141a">
+        <ellipse cx="27" cy="38.6" rx="2.3" ry="2.7" />
+        <ellipse cx="37" cy="38.6" rx="2.3" ry="2.7" />
+      </g>
+      <g fill="#fff">
+        <circle cx="27.8" cy="37.6" r=".9" />
+        <circle cx="37.8" cy="37.6" r=".9" />
+      </g>
+      <path
+        d="M23.8 35.2q3.2-1.8 6.4 0M33.8 35.2q3.2-1.8 6.4 0"
+        fill="none"
+        stroke="#14141a"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M28.4 44.2q3.6 3.2 7.2 0"
+        fill="none"
+        stroke="#14141a"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      {/* Crown: five points, a band, three gems. */}
+      <path
+        d="M18.5 28.5L20.5 14.5L25.5 21.5L32 10.5L38.5 21.5L43.5 14.5L45.5 28.5Z"
+        fill={GOLD}
+        stroke="#a16207"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 26.5L23 18.8M42 26.5L41 18.8"
+        stroke="#fde68a"
+        strokeWidth=".9"
+        strokeLinecap="round"
+      />
+      <rect
+        x="18"
+        y="25.6"
+        width="28"
+        height="5.4"
+        rx="1.8"
+        fill="#eab308"
+        stroke="#a16207"
+        strokeWidth="1"
+      />
+      <circle cx="20.5" cy="14.5" r="1.7" fill="#fde68a" stroke="#a16207" strokeWidth=".7" />
+      <circle cx="32" cy="10.5" r="1.9" fill="#fde68a" stroke="#a16207" strokeWidth=".7" />
+      <circle cx="43.5" cy="14.5" r="1.7" fill="#fde68a" stroke="#a16207" strokeWidth=".7" />
+      <circle cx="32" cy="28.3" r="1.9" fill="#ef4444" stroke="#7f1d1d" strokeWidth=".6" />
+      <circle cx="25.2" cy="28.3" r="1.3" fill="#3b82f6" stroke="#1e3a8a" strokeWidth=".5" />
+      <circle cx="38.8" cy="28.3" r="1.3" fill="#22c55e" stroke="#14532d" strokeWidth=".5" />
+      <Sparkle x={36.5} y={17.5} r={1.6} fill="#fff" />
+      {/* The gold frame. */}
+      <rect x="1" y="1" width="62" height="62" rx="18" fill="none" stroke={GOLD} strokeWidth="2" />
+      {initials ? (
+        <g transform="rotate(-8 49 50)">
+          <rect
+            x="36.5"
+            y="43"
+            width="25"
+            height="14"
+            rx="4.5"
+            fill={GOLD}
+            stroke="#14141a"
+            strokeWidth="1.3"
+          />
+          <text x="49" y="53.4" fontSize="9.5" textAnchor="middle" fill="#14141a" style={LETTERS}>
+            {initials}
+          </text>
+        </g>
+      ) : null}
+    </>
+  );
+}
+
 const LETTERS = {
   fontFamily: "var(--font-display), 'Segoe UI', system-ui, sans-serif",
   fontWeight: 800,
@@ -371,9 +520,23 @@ const LETTERS = {
  * critter alone.
  */
 export function Avatar({ seed, size = 40, name }: { seed: string; size?: number; name?: string }) {
+  const initials = name ? initialsOf(name) : null;
+  if (seed === CROWN_SEED) {
+    return (
+      <svg
+        aria-hidden="true"
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        className="shrink-0 overflow-hidden rounded-[30%]"
+        data-avatar="crown"
+      >
+        <Crowned initials={initials} />
+      </svg>
+    );
+  }
   const spec = avatarFromSeed(seed);
   const colors = PALETTE[spec.palette];
-  const initials = name ? initialsOf(name) : null;
   return (
     <svg
       aria-hidden="true"
