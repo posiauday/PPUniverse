@@ -46,6 +46,21 @@ The pilot checklist (`.nav-mock/components/pilot-test-checklist.md`) has the ful
 | Action | A button with `txtEmail.Reset()` | The box goes back to `DefaultValue` and the error clears |
 | Required | Clear the box and leave it (with `ErrorMessage` empty) | "This field is required." |
 
+**0.3.0:** `Format`. Type, then leave the box (Tab), for each:
+
+| Format | Type | Expect |
+| --- | --- | --- |
+| `"Email"` | `sam@` | "⚠ Enter an email address like name@example.com." |
+| `"Phone"` | `call me` | "⚠ Enter a phone number with digits, spaces and + ( ) -." |
+| `"Number"` | `3.5.1` | "⚠ Enter a number, such as 42 or 3.5." |
+| `"Url"` | `example.com` | "⚠ Enter a web address that starts with https://." |
+| `"PostalCodeCA"` | `k1a 0b1`, then `12345` | No error, then "⚠ Enter a postal code like K1A 0B1." |
+| `"ZipCodeUS"` | `12345-6789`, then `1234` | No error, then "⚠ Enter a ZIP code like 12345 or 12345-6789." |
+| Any | Empty box, `Required` off | No error; `IsValid` is true |
+| Any | A bad value; label `txtEmail.IsValid` | false |
+
+If Studio rejects a pattern, copy the error: Power Fx accepts only part of regular expression syntax.
+
 ## Dialog: `lcsDialog` → name it `dlgDelete`
 
 Set the instance's **Width** to `Parent.Width`, **Height** to `Parent.Height`, and keep it last in the tree view.

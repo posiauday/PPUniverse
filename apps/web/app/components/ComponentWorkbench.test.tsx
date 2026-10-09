@@ -13,6 +13,7 @@ import { ComponentWorkbench, hasReplica } from "./ComponentWorkbench";
 import { readButtons, visibleButtons } from "./replicas/DialogReplica";
 import { skeletonRows, stateFor } from "./replicas/StatesReplica";
 import { itemsFromText, tabText } from "./replicas/TabsReplica";
+import { formatProblem } from "./replicas/TextFieldReplica";
 
 const render = (componentName: string, yaml: string | null = "ComponentDefinitions: {}") =>
   renderToStaticMarkup(
@@ -62,6 +63,23 @@ describe("replica helpers match the components' own formulas", () => {
     expect(skeletonRows(3)).toBe(3);
     expect(skeletonRows(12)).toBe(4);
     expect(skeletonRows(0)).toBe(1);
+  });
+
+  it("Text field formats pass good text and an empty box, and explain bad text", () => {
+    expect(formatProblem("Email", "sam@example.com")).toBe("");
+    expect(formatProblem("Email", "sam@")).toMatch(/email address/);
+    expect(formatProblem("Phone", "+1 (555) 010-0100")).toBe("");
+    expect(formatProblem("Phone", "call me")).toMatch(/phone number/);
+    expect(formatProblem("Number", "3,5")).toBe("");
+    expect(formatProblem("Number", "3.5.1")).toMatch(/number/);
+    expect(formatProblem("Url", "https://example.com/a")).toBe("");
+    expect(formatProblem("Url", "example.com")).toMatch(/https/);
+    expect(formatProblem("PostalCodeCA", "k1a 0b1")).toBe("");
+    expect(formatProblem("PostalCodeCA", "12345")).toMatch(/postal code/);
+    expect(formatProblem("ZipCodeUS", "12345-6789")).toBe("");
+    expect(formatProblem("ZipCodeUS", "1234")).toMatch(/ZIP/);
+    expect(formatProblem("Email", "   ")).toBe("");
+    expect(formatProblem("None", "anything")).toBe("");
   });
 
   it("ItemsFromText splits on commas and trims", () => {

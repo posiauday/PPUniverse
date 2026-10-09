@@ -7,13 +7,14 @@
     Required: =true
     MaxLength: =60
 - name: Email
-  description: An email field. Add the email check in Validate (see the guide).
+  description: An email field with the built-in check. No formula needed.
   settings:
     Label: ="Work email"
     Placeholder: ="name@example.com"
     Hint: ="We'll send the confirmation here."
     Required: =true
     MaxLength: =100
+    Format: ="Email"
 - name: Comments
   description: Several lines with a character count. Make the component about 160 tall.
   settings:
@@ -41,3 +42,19 @@
     Label: ="City"
     Look: ="Filled"
     Hint: =""
+- name: Phone number
+  description: The built-in phone check, for digits with spaces and + ( ) -.
+  settings:
+    Label: ="Phone"
+    Placeholder: ="+1 555 010 0100"
+    Hint: ="We only call about this request."
+    MaxLength: =20
+    Format: ="Phone"
+- name: Postal code
+  description: A Canadian postal code, such as K1A 0B1. ZipCodeUS works the same way.
+  settings:
+    Label: ="Postal code"
+    Placeholder: ="K1A 0B1"
+    Hint: =""
+    MaxLength: =7
+    Format: ="PostalCodeCA"

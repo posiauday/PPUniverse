@@ -5301,6 +5301,18 @@ The product owner approved the Terms and Privacy wording as written (`docs/final
 
 **Next:** the product owner's check of the crowned avatar and the new pages.
 
+## 2026-10-08 — Component library: Text field 0.3.0, built-in formats (MVP-049, In Progress)
+
+**Asked:** "continue": the last wave 1 item in the approved build order (Text field input formats; docs/research/2026-10-08-component-roadmap-and-differentiators.md).
+
+**Built:** a `Format` input on `lcsTextField` with built-in checks and clear messages: `Email` (Power Fx `Match.Email`), `Phone` (7 to 20 digits, spaces and `+ ( ) -`), `Number`, `Url` (https), `PostalCodeCA` and `ZipCodeUS`. The check runs after Required and before your own `Validate`, only once the user has left the box, and `IsValid` includes it. An empty box passes; Required asks for one. It checks, it doesn't reformat as people type: a Power Apps text input can't. Guide, variations (Email now uses it; Phone number and Postal code added), live preview and paste-test rows updated.
+
+**Checked:** the component gate (Microsoft's schema and the standard), web typecheck, lint and component tests, including each format's good and bad text.
+
+**Not yet:** the product owner's paste-test; Power Fx accepts only part of regular expression syntax, so the patterns are kept simple.
+
+**Next:** wave 2, starting with the Date and time picker.
+
 ## 2026-10-09 — Fix: account pages wider than a 320px phone in Firefox (BUG-034)
 
 **Asked:** "Resolve conflicts", then "continue": after the merges, the accessibility gate failed in Firefox at 320 px on #125, #126 and #127, each time on a page from #124 (the welcome page and the profile).
