@@ -2355,4 +2355,5 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 1. **Azure (Soon)** sits in the top bar right after Power Platform, and in the phone menu. It leads to `/azure`, a coming-soon teaser kept out of search (`noindex`) until the first Azure guides are published.
 2. **The teaser** lists the areas the research proposes, as plans. Which columns and guides to build is open question 76; the research is `docs/research/2026-10-09-azure-hub-research.md`.
 3. **Trademarks:** the path is `/azure` (never an `azure.` subdomain or a product name with Azure in it); the footer's trademark line now names Azure, and the teaser says the site is independent of Microsoft.
+4. **Room in the bar:** with Azure added, the one-row bar no longer fit at 1280 px with the full search box. Below 1536 px (2xl) the search is its icon button, as it already was below 1280; the full search box shows from 1536 px, where the bar may grow to 84rem (1,344 px) so it still fits on one row.
 
