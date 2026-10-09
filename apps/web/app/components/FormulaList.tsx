@@ -68,10 +68,10 @@ export function FormulaList({ lines }: { lines: readonly Wiring[] }) {
   return (
     <div className="on-code-surface mt-3 overflow-hidden rounded-2xl border border-code-border bg-code text-code-foreground">
       <ul className="divide-y divide-code-border font-mono text-[0.8125rem] leading-relaxed">
-        {lines.map((line) => {
+        {lines.map((line, index) => {
           const name = `${line.control}.${line.property}`;
           return (
-            <li key={name} className="flex items-start gap-2 py-1.5 pr-1.5 pl-4">
+            <li key={`${name}:${index}`} className="flex items-start gap-2 py-1.5 pr-1.5 pl-4">
               <p className="min-w-0 flex-1 py-1.5 break-all">
                 <span className="font-semibold text-white">{name}</span>{" "}
                 <span className="text-code-muted">=</span> <Formula formula={line.formula} />

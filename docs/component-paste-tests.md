@@ -216,3 +216,25 @@ Set up first: `Screen1.OnVisible` to `ClearCollect(colOrders, ForAll(Sequence(31
 | Action | A button: `pgOrders.GoTo(20)` | Page 20 (no message: GoTo doesn't run OnPageChange) |
 | Action | A button: `pgOrders.Reset()` | Page 1, 10 rows per page |
 | Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, the current page purple |
+
+## Data table: `lcsDataTable` → name it `dtOrders`
+
+New for this library, so check the paste first: `ModernCheckbox@1.0.0` (the YAML name is our best reading; if Studio rejects it, tell me, or set `Selectable` to false); `JSON()` of a colour inside the progress bar's picture; the button icon `MoreHorizontal`; and `BorderThickness` on a container. It pastes with four sample rows, so it shows something at once.
+
+| Kind | Do this | Expect |
+| --- | --- | --- |
+| Input | Nothing else | Four orders: bold order numbers, blue/green/amber/grey status pills, a segmented progress bar, due dates, red/amber/green priority pills |
+| Event | `OnRowSelect` to `Notify("Open " & RowId)`; select a row (not its checkbox or menu) | "Open 1002" |
+| Input | Select the ⋯ on a row | A small menu opens in the row: View, Edit, Delete; the ⋯ turns into ✕ |
+| Event | `OnRowAction` to `Notify(Action & " " & RowId)`; choose Edit | "Edit 1001"; the menu closes |
+| Event | `OnSort` to `Notify(ColumnNumber & " " & Descending)`; select Customer, then again | "2 false", then "2 true"; the header shows ↑ then ↓ |
+| Input | Tick two rows, then the header box | Rows tint in the accent colour; the header box selects all |
+| Input | `BulkActions` `"Approve,Reject"` | "Select rows", Approve and Reject greyed; tick a row: "1 selected", the buttons work, Clear selection appears |
+| Event | `OnBulkAction` to `Notify(Action & ": " & RowIds)`; tick two, select Approve | "Approve: 1001;1003" |
+| Input | Select Cards, then List in the switch | Cards two or three across with pills, progress and "Due: …"; then a list with a coloured initial, pills and › |
+| Event | `OnViewChange` to `Notify(NewView)` | "Cards", "List" |
+| Input | `Density` `"Compact"` | 44-pixel rows |
+| Input | `Loading` true | Grey placeholder rows |
+| Input | `Rows` to `FirstN(dtOrders.Rows, 0)` | The empty state: an icon, "No items found" and the line under it |
+| Action | Tick rows, then a button: `dtOrders.ClearSelection()` | No rows ticked |
+| Input | `Theme` `"Dark"` on a dark screen; `AccentColor` purple | Light text, dark cards, purple progress and selection |

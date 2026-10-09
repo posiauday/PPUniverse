@@ -5406,3 +5406,24 @@ The live preview has a gallery of 312 made-up orders wired with the guide's form
 **Changed:** once a note is sent, the form closes and the thanks takes its place, with focus on it; the note is cleared (`apps/web/app/learn/GuideFeedback.tsx`). The gate's `learn-report-sent` state now checks that the box is gone and focus is on the thanks.
 
 **Checked:** web typecheck and lint; the gate's guide feedback states (votes and notes) locally in Chromium and WebKit on a production build: 42 passed.
+
+## 2026-10-09 — Component library: Data table (MVP-049, wave 2, In Progress)
+
+**Asked:** the Data table, built on a gallery (docs/final-decisions.md, 2026-10-09, "Data table: our own, on a gallery"); then the product owner shared a table component's YAML from elsewhere: "for data is this useful? I don't want grid but I want you to design the gallery to look like this". Answered: useful as a look, not as code (its table rows can't be selected, its click areas have no names, it uses `AccessAppScope`, its columns are fixed, and its licence is unknown); built our own in that style, with none of its code, colour parsing, sample rows or names.
+
+**Built** `lcsDataTable` 0.1.0 (sign-in to copy):
+- **three views from one switch:** a table, cards two or three across, and a list with a coloured initial; the user picks, and `View` sets the first one;
+- **columns from a table:** up to six, each Text, Strong, Badge (a pill coloured by its text from `BadgeStyles`) or Progress (a segmented bar drawn from "2/4");
+- **select a row, card or list item to open it** (`OnRowSelect(RowId)`): the whole row is one button, named by its title column;
+- sortable headers that tell the app (`OnSort(ColumnNumber, Descending)`, with arrows); checkboxes with a select-all box and bulk buttons (`OnBulkAction(Action, RowIds)`); a row menu that opens inside the row (`OnRowAction(Action, RowId)`); loading and empty states; two densities; `AccentColor` and `Theme`;
+- outputs `CurrentView`, `SortColumn`, `SortDescending`, `SelectedIds`, `SelectedCount`, `SelectedRows`; `ClearSelection()`.
+
+The live preview runs on ten made-up orders sorted by the component's SortColumn, as the guide shows.
+
+**Also fixed in the workbench:** when a preset sets an input that the preview's screen also sets (the Data table's Empty preset sets Rows), the preset's formula now replaces the screen's in "Formulas on this screen", and the list's keys are unique; before, a stale line could stay on screen after switching presets. Found before release; no component shipped with it.
+
+**Checked:** the component gate (13 folders); web typecheck, lint and component tests (32, new: sorting as the Rows formula does, progress and pill colours); a local axe and overflow run over the page and its flows (sorting, selecting, the row menu, opening a row, cards, list, approvals, compact, loading, empty, dark) at 375 and 1280 px, light and dark: 56 states, clean after two fixes found by it (the card checkbox's position and its 24-pixel target size).
+
+**Not yet:** the product owner's paste-test; `ModernCheckbox@1.0.0` is our best reading of the control's YAML name.
+
+**Next:** MVP-050, scheduled publishing and draft previews (docs/final-decisions.md, 2026-10-09).
