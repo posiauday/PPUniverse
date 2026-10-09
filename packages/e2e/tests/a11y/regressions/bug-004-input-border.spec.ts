@@ -27,10 +27,10 @@ test.describe("BUG-004: the search input boundary has enough contrast", () => {
     });
   }
 
-  // MVP-031: the header's own search box (shown from the xl breakpoint) is a
-  // text box too, so its edge needs the same 3:1.
-  test("the header search box border is at least 3:1 at 1280px", async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: VIEWPORT_HEIGHT });
+  // MVP-031: the header's own search box (shown from the 2xl breakpoint, 1536px, since
+  // Azure joined the bar) is a text box too, so its edge needs the same 3:1.
+  test("the header search box border is at least 3:1 at 1536px", async ({ page }) => {
+    await page.setViewportSize({ width: 1536, height: VIEWPORT_HEIGHT });
     await page.goto("/");
 
     const boundary = await measureBorderContrast(
