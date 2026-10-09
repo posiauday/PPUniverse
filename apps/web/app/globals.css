@@ -243,10 +243,18 @@ samp {
     max-width: 48rem;
     padding: 2rem 1rem 3rem;
   }
+  /* Smaller on phones, so "LowCodeStacks" in "Welcome to LowCodeStacks" fits
+     a 320px screen; a longer word still wraps rather than scroll (BUG-034). */
   main h1:not([class]) {
-    font-size: 2.75rem;
+    font-size: 2.25rem;
     line-height: 1.05;
     font-weight: 700;
+    overflow-wrap: break-word;
+  }
+  @media (min-width: 40rem) {
+    main h1:not([class]) {
+      font-size: 2.75rem;
+    }
   }
   main h2:not([class]) {
     margin-top: 2.5rem;
