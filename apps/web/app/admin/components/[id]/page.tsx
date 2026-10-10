@@ -1,14 +1,19 @@
 import { canPublishComponent, categoryName, propertyCounts } from "@ppu/domain-content";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { commentRepository } from "../../../../lib/comments";
+import { componentStarter } from "../../../../lib/component-starters";
 import { componentRepository } from "../../../../lib/components";
+import { commentsEnabled } from "../../../../lib/feature-flags";
 import { requireAdmin } from "../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../lib/seo/site";
+import { STATUS_WORD, StatusPill } from "../../AdminList";
+import { AdminPageHeader } from "../../AdminPageHeader";
 import {
   CopyYamlButton,
   PublishComponentButton,
   SettingsForm,
+  TeamPostForm,
   TestRecordForm,
 } from "../ComponentAdminControls";
 
@@ -20,23 +25,27 @@ const DATE = new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeZone: "
  * One library component in the admin (MVP-049): what it is, its properties
  * (read from its YAML), its paste-test record, its settings and publishing.
  * Its content (YAML, guide, variations) is edited in content/components and
- * arrives with the next release. Admins only.
+ * arrives with the next release. Once it's published and shown, with comments
+ * on, its team post starts the conversation on its page (MVP-053). Admins only.
  */
 export default async function AdminComponentPage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) notFound();
   const component = await componentRepository.findById((await params).id);
   if (!component) notFound();
+  const conversation = component.status === "PUBLISHED" && !component.hidden && commentsEnabled();
+  const teamPost = conversation ? await commentRepository.findTeamPost(component.id) : null;
 
   return (
     <main className="flex max-w-4xl flex-col gap-8 pb-10">
       <div>
-        <p className="text-sm font-semibold text-muted-foreground">
-          <Link href="/admin/components">Component library</Link>
-        </p>
-        <h1 className="mt-1 font-display text-3xl font-bold md:text-4xl">{component.title}</h1>
-        <p className="text-sm text-muted-foreground">
+        <AdminPageHeader
+          back={{ href: "/admin/components", label: "Component library" }}
+          title={component.title}
+          actions={<StatusPill status={STATUS_WORD[component.status]} />}
+        />
+        <p className="mt-1 text-sm text-muted-foreground">
           {component.componentName} · {categoryName(component.category)} · version{" "}
-          {component.version} · {component.status === "PUBLISHED" ? "Published" : "Draft"}
+          {component.version}
           {component.hidden ? " · hidden" : ""}
           {component.status !== "PUBLISHED" && component.comingSoon ? " · coming soon" : ""}
         </p>
@@ -52,9 +61,9 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
 
       <section
         aria-labelledby="test_heading"
-        className="rounded-2xl border border-border bg-card p-5"
+        className="rounded-[1.5rem] border border-border bg-card p-5"
       >
-        <h2 id="test_heading" className="text-lg font-semibold">
+        <h2 id="test_heading" className="font-display text-xl font-bold">
           1. Paste-test it
         </h2>
         <p className="mt-1">
@@ -78,9 +87,9 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
 
       <section
         aria-labelledby="settings_heading"
-        className="rounded-2xl border border-border bg-card p-5"
+        className="rounded-[1.5rem] border border-border bg-card p-5"
       >
-        <h2 id="settings_heading" className="text-lg font-semibold">
+        <h2 id="settings_heading" className="font-display text-xl font-bold">
           2. Settings
         </h2>
         <div className="mt-3">
@@ -96,9 +105,9 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
 
       <section
         aria-labelledby="publish_heading"
-        className="rounded-2xl border border-border bg-card p-5"
+        className="rounded-[1.5rem] border border-border bg-card p-5"
       >
-        <h2 id="publish_heading" className="text-lg font-semibold">
+        <h2 id="publish_heading" className="font-display text-xl font-bold">
           3. Publish
         </h2>
         {component.status === "PUBLISHED" ? (
@@ -134,6 +143,29 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
           </>
         )}
       </section>
+
+      {conversation ? (
+        <section
+          aria-labelledby="conversation_heading"
+          className="rounded-[1.5rem] border border-border bg-card p-5"
+        >
+          <h2 id="conversation_heading" className="font-display text-xl font-bold">
+            4. Start the conversation
+          </h2>
+          <p className="mt-1">
+            A pinned post from the team, first under &quot;Questions and discussion&quot; on the
+            component&apos;s page: a tip and a question, so the first reader isn&apos;t writing into
+            an empty box.
+          </p>
+          <div className="mt-3">
+            <TeamPostForm
+              componentId={component.id}
+              live={teamPost}
+              draft={componentStarter(component.slug)}
+            />
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

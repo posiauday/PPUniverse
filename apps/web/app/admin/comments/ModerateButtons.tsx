@@ -21,6 +21,7 @@ function labels(kind: "guide" | "component", compact: boolean): Record<Action, s
  * Remove or restore a comment, or mark it as its guide's accepted fix (MVP-040)
  * or its component's accepted answer (MVP-051). `compact` (the Overview's
  * Inbox, 2026-10-10) offers only Keep and Remove, with Remove as the strong one.
+ * A team post (MVP-053) can be removed or restored, never accepted.
  */
 export function ModerateButtons({
   commentId,
@@ -29,6 +30,7 @@ export function ModerateButtons({
   reported,
   kind = "guide",
   compact = false,
+  team = false,
 }: {
   commentId: string;
   removed: boolean;
@@ -37,6 +39,7 @@ export function ModerateButtons({
   reported: boolean;
   kind?: "guide" | "component";
   compact?: boolean;
+  team?: boolean;
 }) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
@@ -46,7 +49,7 @@ export function ModerateButtons({
       ? ["restore"]
       : [
           ...(reported ? (["remove", "keep"] as const) : (["remove"] as const)),
-          accepted ? "unaccept" : "accept",
+          ...(team ? [] : [accepted ? ("unaccept" as const) : ("accept" as const)]),
         ];
   const LABEL = labels(kind, compact);
 

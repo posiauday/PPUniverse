@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ARTICLE_TYPE_LABEL } from "../../../lib/article-types";
 import { TECHNOLOGY_OPTIONS, topicOptions } from "../../../lib/technology-options";
+import { EditorField, FIELD_CONTROL, SaveBar, useSlugFollowsTitle } from "../EditorParts";
 
 export interface ArticleFormValues {
   slug: string;
@@ -41,23 +42,20 @@ const DEFAULT_VALUES: ArticleFormValues = {
  * [id]/route.ts) — this form only mirrors those messages back, it never
  * decides validity on its own. Publishing is not part of this form: it is
  * the dedicated ArticlePublishControl on the list page, a deliberately
- * separate action.
+ * separate action. MVP-052 phase 4: the title comes first and a new guide's
+ * slug follows it; Save stays in view at the bottom of the screen.
  */
 export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps) {
   const router = useRouter();
-  const [values, setValues] = useState<ArticleFormValues>(initialValues ?? DEFAULT_VALUES);
+  const initial = initialValues ?? DEFAULT_VALUES;
+  const [values, setValues] = useState<ArticleFormValues>(initial);
   const [status, setStatus] = useState<Status>("idle");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
-
-  const slugId = useId();
-  const titleId = useId();
-  const typeId = useId();
-  const technologyId = useId();
-  const topicId = useId();
-  const excerptId = useId();
-  const bodyId = useId();
-  const statusId = useId();
+  const slug = useSlugFollowsTitle(mode, initial.slug);
+  const baseId = useId();
+  const id = (key: keyof ArticleFormValues) => `${baseId}-${key}`;
+  const dirty = JSON.stringify(values) !== JSON.stringify(initial);
 
   function update<K extends keyof ArticleFormValues>(key: K, value: ArticleFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -108,131 +106,157 @@ export function ArticleForm({ mode, articleId, initialValues }: ArticleFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div>
-        <label htmlFor={slugId}>Slug</label>
-        <input
-          id={slugId}
-          type="text"
-          value={values.slug}
-          onChange={(event) => update("slug", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["slug"])}
-          aria-describedby={fieldErrors["slug"] ? `${slugId}-error` : undefined}
-        />
-        {fieldErrors["slug"] ? <p id={`${slugId}-error`}>{fieldErrors["slug"][0]}</p> : null}
-      </div>
+    <form onSubmit={handleSubmit} noValidate className="flex min-w-0 flex-col gap-5">
+      <EditorField id={id("title")} label="Title" errors={fieldErrors["title"]}>
+        {(props) => (
+          <input
+            {...props}
+            type="text"
+            value={values.title}
+            onChange={(event) => {
+              const title = event.target.value;
+              const next = slug.fromTitle(title);
+              setValues((current) => ({
+                ...current,
+                title,
+                ...(next === null ? {} : { slug: next }),
+              }));
+            }}
+            className={`${FIELD_CONTROL} text-lg font-semibold`}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={titleId}>Title</label>
-        <input
-          id={titleId}
-          type="text"
-          value={values.title}
-          onChange={(event) => update("title", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["title"])}
-          aria-describedby={fieldErrors["title"] ? `${titleId}-error` : undefined}
-        />
-        {fieldErrors["title"] ? <p id={`${titleId}-error`}>{fieldErrors["title"][0]}</p> : null}
-      </div>
+      <EditorField
+        id={id("slug")}
+        label="Slug"
+        hint={
+          <>
+            The address: /guides/{values.slug || "<slug>"}.{" "}
+            {mode === "create"
+              ? "It follows the title until you change it."
+              : "Changing it after publishing breaks links to the old address."}
+          </>
+        }
+        errors={fieldErrors["slug"]}
+      >
+        {(props) => (
+          <input
+            {...props}
+            type="text"
+            value={values.slug}
+            onChange={(event) => {
+              slug.onSlugTyped(event.target.value);
+              update("slug", event.target.value);
+            }}
+            className={`${FIELD_CONTROL} font-mono text-sm`}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={typeId}>Type</label>
-        <select
-          id={typeId}
-          value={values.type}
-          onChange={(event) => update("type", event.target.value as ArticleFormValues["type"])}
-          aria-invalid={Boolean(fieldErrors["type"])}
-          aria-describedby={fieldErrors["type"] ? `${typeId}-error` : undefined}
+      <div className="grid gap-5 sm:grid-cols-2">
+        <EditorField id={id("type")} label="Type" errors={fieldErrors["type"]}>
+          {(props) => (
+            <select
+              {...props}
+              value={values.type}
+              onChange={(event) => update("type", event.target.value as ArticleFormValues["type"])}
+              className={FIELD_CONTROL}
+            >
+              {(Object.keys(ARTICLE_TYPE_LABEL) as ArticleFormValues["type"][]).map((type) => (
+                <option key={type} value={type}>
+                  {ARTICLE_TYPE_LABEL[type]}
+                </option>
+              ))}
+            </select>
+          )}
+        </EditorField>
+
+        {/* MVP-028: which technology section the article appears in. */}
+        <EditorField
+          id={id("technology")}
+          label="Technology section (optional)"
+          errors={fieldErrors["technology"]}
         >
-          {(Object.keys(ARTICLE_TYPE_LABEL) as ArticleFormValues["type"][]).map((type) => (
-            <option key={type} value={type}>
-              {ARTICLE_TYPE_LABEL[type]}
-            </option>
-          ))}
-        </select>
-        {fieldErrors["type"] ? <p id={`${typeId}-error`}>{fieldErrors["type"][0]}</p> : null}
-      </div>
+          {(props) => (
+            <select
+              {...props}
+              value={values.technology}
+              onChange={(event) => {
+                // A topic belongs to one technology, so changing it clears the topic.
+                const technology = event.target.value;
+                setValues((current) => ({ ...current, technology, topic: "" }));
+              }}
+              className={FIELD_CONTROL}
+            >
+              <option value="">None (appears on Learn only)</option>
+              {TECHNOLOGY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </EditorField>
 
-      {/* MVP-028: which technology section the article appears in. */}
-      <div>
-        <label htmlFor={technologyId}>Technology section (optional)</label>
-        <select
-          id={technologyId}
-          value={values.technology}
-          onChange={(event) => {
-            // A topic belongs to one technology, so changing it clears the topic.
-            const technology = event.target.value;
-            setValues((current) => ({ ...current, technology, topic: "" }));
-          }}
-          aria-invalid={Boolean(fieldErrors["technology"])}
-          aria-describedby={fieldErrors["technology"] ? `${technologyId}-error` : undefined}
+        {/* MVP-033: which section of that technology's hub it appears in. */}
+        <EditorField
+          id={id("topic")}
+          label="Hub section (optional)"
+          hint="Choose a technology first. Each has its own sections."
+          errors={fieldErrors["topic"]}
         >
-          <option value="">None (appears on Learn only)</option>
-          {TECHNOLOGY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        {fieldErrors["technology"] ? (
-          <p id={`${technologyId}-error`}>{fieldErrors["technology"][0]}</p>
-        ) : null}
+          {(props) => (
+            <select
+              {...props}
+              value={values.topic}
+              onChange={(event) => update("topic", event.target.value)}
+              disabled={values.technology === ""}
+              className={`${FIELD_CONTROL} disabled:cursor-not-allowed disabled:bg-muted`}
+            >
+              <option value="">None (the hub&apos;s first section)</option>
+              {topicOptions(values.technology).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </EditorField>
       </div>
 
-      {/* MVP-033: which section of that technology's hub it appears in. */}
-      <div>
-        <label htmlFor={topicId}>Hub section (optional)</label>
-        <select
-          id={topicId}
-          value={values.topic}
-          onChange={(event) => update("topic", event.target.value)}
-          disabled={values.technology === ""}
-          aria-invalid={Boolean(fieldErrors["topic"])}
-          aria-describedby={`${topicId}-hint${fieldErrors["topic"] ? ` ${topicId}-error` : ""}`}
-        >
-          <option value="">None (the hub&apos;s first section)</option>
-          {topicOptions(values.technology).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <p id={`${topicId}-hint`}>Choose a technology first. Each has its own sections.</p>
-        {fieldErrors["topic"] ? <p id={`${topicId}-error`}>{fieldErrors["topic"][0]}</p> : null}
-      </div>
+      <EditorField id={id("excerpt")} label="Excerpt (optional)" errors={fieldErrors["excerpt"]}>
+        {(props) => (
+          <textarea
+            {...props}
+            rows={3}
+            value={values.excerpt}
+            onChange={(event) => update("excerpt", event.target.value)}
+            className={FIELD_CONTROL}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={excerptId}>Excerpt (optional)</label>
-        <textarea
-          id={excerptId}
-          value={values.excerpt}
-          onChange={(event) => update("excerpt", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["excerpt"])}
-          aria-describedby={fieldErrors["excerpt"] ? `${excerptId}-error` : undefined}
-        />
-        {fieldErrors["excerpt"] ? (
-          <p id={`${excerptId}-error`}>{fieldErrors["excerpt"][0]}</p>
-        ) : null}
-      </div>
+      <EditorField id={id("body")} label="Body (Markdown)" errors={fieldErrors["body"]}>
+        {(props) => (
+          <textarea
+            {...props}
+            rows={22}
+            spellCheck
+            value={values.body}
+            onChange={(event) => update("body", event.target.value)}
+            className={`${FIELD_CONTROL} font-mono text-sm leading-relaxed`}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={bodyId}>Body (Markdown)</label>
-        <textarea
-          id={bodyId}
-          value={values.body}
-          onChange={(event) => update("body", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["body"])}
-          aria-describedby={fieldErrors["body"] ? `${bodyId}-error` : undefined}
-        />
-        {fieldErrors["body"] ? <p id={`${bodyId}-error`}>{fieldErrors["body"][0]}</p> : null}
-      </div>
-
-      <button type="submit" aria-disabled={status === "submitting"}>
-        {status === "submitting" ? "Saving…" : mode === "create" ? "Create draft" : "Save changes"}
-      </button>
-      <p id={statusId} role="status">
-        {formError}
-      </p>
+      <SaveBar
+        label={mode === "create" ? "Create draft" : "Save changes"}
+        submitting={status === "submitting"}
+        error={formError}
+        dirty={dirty}
+        cancelHref="/admin/content"
+      />
     </form>
   );
 }

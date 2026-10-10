@@ -266,6 +266,9 @@ model ArticleReport {
 /// Since MVP-051 (docs/final-decisions.md, 2026-10-10, "Comments on component
 /// pages") a comment is on a guide or on a component: exactly one of articleId
 /// and componentId is set, enforced by the article_comments_one_target CHECK.
+/// Since MVP-053 (2026-10-10, "Team posts start the conversation on
+/// components") a comment with pinnedAt set is a team post: written by an
+/// admin as the site, shown first under the site's name; one live per component.
 model ArticleComment {
   id          String    @id @default(cuid())
   articleId   String?
@@ -275,6 +278,7 @@ model ArticleComment {
   createdAt   DateTime  @default(now())
   removedAt   DateTime?
   acceptedAt  DateTime?
+  pinnedAt    DateTime?
 
   article   Article?          @relation(fields: [articleId], references: [id], onDelete: Cascade)
   component LibraryComponent? @relation(fields: [componentId], references: [id], onDelete: Cascade)

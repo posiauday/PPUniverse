@@ -2,7 +2,15 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-10 (latest) — **MVP-052 In Progress: admin redesign phase 3 (the queues and the remaining pages).**
+Last updated: 2026-10-10 (latest) — **MVP-053 in QA: team posts start the conversation on components; MVP-052 in QA.**
+- **Built:** one pinned team post per component, posted from its admin page with a drafted opener for each of the 14 components (docs/final-decisions.md, 2026-10-10).
+- **Next:** release; the product owner reads and posts each opener.
+
+Last updated (previous): 2026-10-10 — **MVP-052 In Progress: admin redesign phase 4 (the editors), the last phase.**
+- **Built:** guide, update, topic, lesson and product editors with the title first, a slug that follows it on new items, a Save bar that stays in view, and the shared header with a way back; BUG-053 fixed. The options not taken are in docs/plans/admin-redesign-choices.md.
+- **Next:** release, then the product owner's review of the redesign and its options not taken.
+
+Last updated (previous): 2026-10-10 — **MVP-052 In Progress: admin redesign phase 3 (the queues and the remaining pages).**
 - **Built:** Comments and Feedback as cards, Users with search and role tabs, the audit log with area tabs, and the shared header on Learn topics, Components, Deletion requests and Settings; the options not taken are in docs/plans/admin-redesign-choices.md.
 - **Next:** phase 4, the editors (a Save bar that stays in view, the title before the slug).
 

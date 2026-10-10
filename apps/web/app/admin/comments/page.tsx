@@ -44,6 +44,9 @@ function CommentCard({ comment }: { comment: AdminComment }) {
             {comment.reportCount} {comment.reportCount === 1 ? "report" : "reports"}
           </span>
         ) : null}
+        {comment.team ? (
+          <span className={`${CHIP} bg-[#ede9fe] text-[#5b21b6]`}>Team post</span>
+        ) : null}
         {comment.removed ? (
           <span className={`${CHIP} bg-[#e2e8f0] text-[#334155]`}>Removed</span>
         ) : null}
@@ -72,6 +75,7 @@ function CommentCard({ comment }: { comment: AdminComment }) {
         accepted={comment.accepted}
         reported={comment.reportCount > 0}
         kind={comment.on.kind}
+        team={comment.team}
       />
     </li>
   );

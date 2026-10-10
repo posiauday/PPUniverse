@@ -50,4 +50,5 @@ MVP-048,Learn module: topics and lessons (Workspace),In Progress,P1,10,13
 MVP-049,Power Apps component library (copy-paste YAML),In Progress,P0,11,21
 MVP-050,Scheduled publishing and draft previews,QA,P1,12,8
 MVP-051,Comments on component pages,QA,P2,12,5
-MVP-052,Admin centre redesign,In Progress,P2,12,13
+MVP-052,Admin centre redesign,QA,P2,12,13
+MVP-053,Team posts start the conversation on components,QA,P2,12,3

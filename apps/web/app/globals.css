@@ -117,6 +117,12 @@
   }
 }
 
+/* An admin editor's Save bar sticks to the bottom of the screen (EditorParts);
+   this keeps a focused field clear of it too (WCAG 2.4.11). */
+html:has(.admin-save-bar) {
+  scroll-padding-bottom: 7rem;
+}
+
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { learnRepository } from "../../../../../lib/learn";
 import { requireAdmin } from "../../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../../lib/seo/site";
 import { LessonForm } from "../../../topics/LearnForms";
+import { STATUS_WORD, StatusPill } from "../../../AdminList";
+import { AdminPageHeader } from "../../../AdminPageHeader";
 
 export const metadata: Metadata = { title: `Edit lesson | ${SITE_NAME}` };
 
@@ -16,12 +17,12 @@ export default async function EditLessonPage({ params }: { params: Promise<{ id:
   const topic = await learnRepository.findTopicById(lesson.topicId);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Edit lesson</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {lesson.status} · in{" "}
-        <Link href={`/admin/topics/${lesson.topicId}/edit`}>{topic?.title ?? "its topic"}</Link>
-      </p>
+    <main className="flex max-w-5xl flex-col gap-6 pb-10">
+      <AdminPageHeader
+        back={{ href: `/admin/topics/${lesson.topicId}/edit`, label: topic?.title ?? "Its topic" }}
+        title="Edit lesson"
+        actions={<StatusPill status={STATUS_WORD[lesson.status]} />}
+      />
       <LessonForm
         mode="edit"
         topicId={lesson.topicId}
