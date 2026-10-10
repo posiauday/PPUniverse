@@ -2381,3 +2381,10 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 2. The copy button for a sign-in-to-copy component says "Sign in to copy" (no "(free)"), and the YAML tab says "Sign in to see and copy its YAML".
 3. Who can copy is unchanged: a component set to signed-in readers only still asks a signed-out reader to sign in.
 
+## 2026-10-10 — Azure teaser: ask readers
+
+**Source:** direct product-owner instruction: the independence line ("LowCodeStacks is independent. It isn't affiliated with, endorsed by or certified by Microsoft. Azure is a trademark…") doesn't need to be written everywhere; remove it and put something else.
+
+- `/azure` no longer repeats the line in its body: the footer carries it on every page (and names Azure among the trademarks), as do the Terms, About and emails. This replaces item 3's "the teaser says the site is independent" in "Top bar: Azure, coming soon".
+- In its place the teaser asks "Which Azure problem should we cover first?" with a link to contact@lowcodestacks.com.
+

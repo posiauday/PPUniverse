@@ -111,9 +111,14 @@ export default function AzureComingSoonPage() {
             </li>
           ))}
         </ul>
-        <p className="mt-8 max-w-3xl text-sm text-muted-foreground">
-          {SITE_NAME} is independent. It isn&rsquo;t affiliated with, endorsed by or certified by
-          Microsoft. Azure is a trademark of the Microsoft group of companies.
+        {/* The independence and trademark lines are in the footer on every page; this asks
+            readers instead (docs/final-decisions.md, 2026-10-10, "Azure teaser: ask readers"). */}
+        <p className="mt-8 max-w-3xl">
+          Which Azure problem should we cover first? Tell us at{" "}
+          <a href="mailto:contact@lowcodestacks.com" className="font-semibold">
+            contact@lowcodestacks.com
+          </a>
+          .
         </p>
       </section>
     </main>

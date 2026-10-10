@@ -5754,3 +5754,11 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - Cards and the component page show "MIT License" (the page links to `/terms#mit-license`); the copy button says "Sign in to copy"; the YAML tab says "Sign in to see and copy its YAML". Copy access is unchanged.
 
 **Checked:** the component gate (30, including the rejected-property check, which reports all four errors in the pasted YAML), web component tests (42), typecheck and lint.
+
+## 2026-10-10 — Azure teaser: ask readers instead of repeating the independence line
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Azure teaser: ask readers").
+
+**Changed:** `/azure` drops the independence and trademark line (the footer has it on every page) and asks which Azure problem to cover first, with the contact address. Test updated.
+
+**Checked:** the page's tests (2) and lint.
