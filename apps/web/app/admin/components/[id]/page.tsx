@@ -7,7 +7,6 @@ import { requireAdmin } from "../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../lib/seo/site";
 import {
   CopyYamlButton,
-  MoveToComingSoonButton,
   PublishComponentButton,
   SettingsForm,
   TestRecordForm,
@@ -109,13 +108,9 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
               it off the site, tick &quot;Hide from the site&quot; above.
             </p>
             <p className="mt-3">
-              To show it as <strong>Coming soon</strong> again (its card and a blurred picture,
-              nothing to copy), move it back. Its paste-test is kept, so you can publish it again in
-              one step.
+              To show it as <strong>Coming soon</strong> again, tick &quot;Show as Coming soon
+              instead&quot; in Settings above and save.
             </p>
-            <div className="mt-3">
-              <MoveToComingSoonButton id={component.id} />
-            </div>
           </>
         ) : (
           <>

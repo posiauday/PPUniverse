@@ -5763,6 +5763,14 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 
 **Checked:** the page's tests (2) and lint.
 
+## 2026-10-10 — Coming soon in Settings
+
+**Asked:** the product owner looked for Coming soon in a published component's Settings (docs/final-decisions.md, 2026-10-10, "Coming soon in Settings").
+
+**Changed:** `SettingsForm` shows the box for published components too ("Show as Coming soon instead", unticked); saving with it ticked saves the other settings, then calls `POST /api/admin/components/[id]/coming-soon`. The separate button is removed; Publish points to Settings.
+
+**Checked:** new `SettingsForm` tests (2), admin and component tests (45), typecheck and lint.
+
 ## 2026-10-10 — Wave 2 and the drafts: hover follows each component's own theme
 
 **Why:** the Navigation shell fix (docs/final-decisions.md, 2026-10-09, "Navigation shell: a Premium look, and hover in dark mode") was still to do in the Data table, Pagination, People picker, Dialog and Toast (the 2026-10-09 Tree view and Stepper entry). The same problem was found in the Date and time picker's Secondary presets and the States component's action button. All seven are unpublished drafts, so one paste-test now covers light and dark.
