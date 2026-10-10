@@ -50,7 +50,11 @@ export const POST = withObservability(
 
     const cleaned = cleanCommentBody(read.fields["body"] ?? "");
     if (!cleaned.ok) {
-      return invalidFields(correlationId, { body: [PROBLEM[cleaned.problem]] }, PROBLEM[cleaned.problem]);
+      return invalidFields(
+        correlationId,
+        { body: [PROBLEM[cleaned.problem]] },
+        PROBLEM[cleaned.problem],
+      );
     }
 
     // The admin's profile, so the moderation list can name who wrote it.
