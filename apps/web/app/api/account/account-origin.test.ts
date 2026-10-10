@@ -44,28 +44,32 @@ beforeEach(() => {
 });
 
 describe("account write routes refuse other sites", () => {
-  it.each(routes)("%s", async (_name, load, context) => {
-    const handler = (await load()) as (request: Request, context: unknown) => Promise<Response>;
-    for (const origin of [null, "https://evil.example"]) {
-      const headers: Record<string, string> = { "Content-Type": "text/plain" };
-      if (origin) headers["Origin"] = origin;
-      const response = await handler(
-        new Request(`${ORIGIN}/api/x`, {
-          method: "POST",
-          headers,
-          body: '{"category":"MARKETING_EMAIL","granted":true}',
-        }),
+  it.each(routes)(
+    "%s",
+    async (_name, load, context) => {
+      const handler = (await load()) as (request: Request, context: unknown) => Promise<Response>;
+      for (const origin of [null, "https://evil.example"]) {
+        const headers: Record<string, string> = { "Content-Type": "text/plain" };
+        if (origin) headers["Origin"] = origin;
+        const response = await handler(
+          new Request(`${ORIGIN}/api/x`, {
+            method: "POST",
+            headers,
+            body: '{"category":"MARKETING_EMAIL","granted":true}',
+          }),
+          context,
+        );
+        expect(response.status).toBe(403);
+      }
+      expect(session.read).not.toHaveBeenCalled();
+      // From the site itself it gets past the check (and asks for a session).
+      const own = await handler(
+        new Request(`${ORIGIN}/api/x`, { method: "POST", headers: { Origin: ORIGIN }, body: "{}" }),
         context,
       );
-      expect(response.status).toBe(403);
-    }
-    expect(session.read).not.toHaveBeenCalled();
-    // From the site itself it gets past the check (and asks for a session).
-    const own = await handler(
-      new Request(`${ORIGIN}/api/x`, { method: "POST", headers: { Origin: ORIGIN }, body: "{}" }),
-      context,
-    );
-    expect(own.status).toBe(401);
-    // Loading a route the first time takes a few seconds on a busy machine.
-  }, 20_000);
+      expect(own.status).toBe(401);
+      // Loading a route the first time takes a few seconds on a busy machine.
+    },
+    20_000,
+  );
 });
