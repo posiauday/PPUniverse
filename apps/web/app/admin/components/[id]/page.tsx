@@ -28,12 +28,12 @@ export default async function AdminComponentPage({ params }: { params: Promise<{
   if (!component) notFound();
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-8 px-4 py-8">
+    <main className="flex max-w-4xl flex-col gap-8 pb-10">
       <div>
-        <p className="text-sm">
+        <p className="text-sm font-semibold text-muted-foreground">
           <Link href="/admin/components">Component library</Link>
         </p>
-        <h1 className="mt-1 text-2xl font-semibold">{component.title}</h1>
+        <h1 className="mt-1 font-display text-3xl font-bold md:text-4xl">{component.title}</h1>
         <p className="text-sm text-muted-foreground">
           {component.componentName} · {categoryName(component.category)} · version{" "}
           {component.version} · {component.status === "PUBLISHED" ? "Published" : "Draft"}
