@@ -7,6 +7,7 @@ const db = vi.hoisted(() => {
     article: { count: vi.fn() },
     updateItem: { count: vi.fn() },
     articleReport: { count: count(2) },
+    libraryComponent: { count: count(3) },
     articleComment: { count: vi.fn() },
     articleVote: { count: vi.fn() },
   };
@@ -49,11 +50,16 @@ describe("loadAdminCounts (MVP-047)", () => {
       updatesPublished: 8,
       updatesDraft: 1,
       guideReports: 2,
+      componentsToTest: 3,
       reportedComments: 3,
       commentsThisWeek: 19,
       votesThisWeek: { total: 62, yes: 52 },
     });
-    expect(waitingCount(counts)).toBe(2 + 3 + 2 + 1);
+    expect(waitingCount(counts)).toBe(2 + 3 + 2 + 1 + 3);
+    // Paste-tests wait on component drafts that are shown and untested.
+    expect(db.libraryComponent.count).toHaveBeenCalledWith({
+      where: { status: "DRAFT", hidden: false, testedAt: null },
+    });
     // "This week" means the 7 days before now.
     const since = db.articleVote.count.mock.calls[0]![0].where.createdAt.gte as Date;
     expect(since.toISOString()).toBe("2026-09-30T12:00:00.000Z");
@@ -95,5 +101,20 @@ describe("AdminNav", () => {
     expect(html).not.toMatch(/href="\/admin" aria-current/);
     expect(html).toContain('57<span class="sr-only"> published</span>');
     expect(html).toContain('2<span class="sr-only"> open reports</span>');
+  });
+
+  // Admin redesign, 2026-10-10: on a phone the menu folds into one line.
+  it("folds into one line with the current page and a Menu button below the lg width", () => {
+    const html = renderToStaticMarkup(
+      <AdminNav
+        groups={[
+          { label: null, links: [{ href: "/admin", name: "Overview" }] },
+          { label: "Content", links: [{ href: "/admin/content", name: "Guides" }] },
+        ]}
+      />,
+    );
+    expect(html).toContain('Admin<span class="text-muted-foreground"> · Guides</span>');
+    expect(html).toMatch(/<button type="button" aria-expanded="false" aria-controls="[^"]+"/);
+    expect(html).toMatch(/class="hidden flex-col gap-1 lg:flex"/);
   });
 });

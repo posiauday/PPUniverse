@@ -5842,3 +5842,21 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 - Locally, the Tree view page with a seeded question and accepted answer: the section, its count, the accepted answer first, Report, the sign-in link and the contents entry.
 
 **Not yet:** a signed-in post in the browser (covered by route and repository tests). It needs `FEATURE_COMMENTS` on in production to show, like guide comments.
+
+## 2026-10-10 — MVP-052 phase 1: the admin shell and the Inbox
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Admin centre: concept A with B's Inbox"), after a review of all 23 admin pages and three rendered concepts. Also asked: the top-bar avatar at 52 px.
+
+**Review findings** (to fix across the phases): headings and indents differ page to page; statuses shown as codes in capitals; names that don't match the sidebar; lists as lines of text with no search or filters; moderation as bulleted text with repeated buttons; narrow editors with the slug before the title and no Save bar in view; a Save button on every user row; the audit log's dates on four lines; a switch covering its label (BUG-051); a sideways scroll at 320 px (BUG-052); the whole menu before the content on phones.
+
+**Changed (phase 1):**
+- `AdminNav`: an icon per area, counts (red reported, amber to finish, with a new paste-test count), the current page in the brand-colour pill; below lg a one-line "Admin · <page>" bar with a Menu button.
+- `AdminPageHeader`: the shared header.
+- The Overview is an Inbox (`lib/admin-inbox.ts`): reported comments with Keep and Remove, guide reports with Close, drafts with Preview, Edit and Publish, components to paste-test, and what's scheduled; tabs All, Community, Content; beside it this week's numbers, Quick create and recent activity.
+- `ModerateButtons`: a compact Keep/Remove mode, and "accepted answer" on component questions (MVP-051).
+- BUG-051 and BUG-052 fixed. Sidebar names shortened to Components and Products so nothing wraps.
+
+**Checked:** web tests (934 + 1 slow guide test that passes alone), typecheck, lint; an axe run with the suite's blocking tags plus a sideways-scroll check on eight admin pages at 320, 375, 768 and 1280 px, light and dark: all clean, after fixing two contrast problems it found (the tab counts and the count in the current-page pill). The accessibility suite's admin-home state is updated for the Inbox and the folded menu.
+
+**Next:** phase 2, the lists.
+

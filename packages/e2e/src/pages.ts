@@ -942,9 +942,15 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: () => "/admin",
     prepare: async (page) => {
-      // MVP-047, concept A: the overview, beside the admin sidebar.
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin overview");
-      await expect(page.getByRole("link", { name: "Read reports" })).toBeVisible();
+      // The Overview's Inbox (2026-10-10, concept A with B's Inbox), beside the sidebar.
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Inbox");
+      await expect(page.getByRole("navigation", { name: "Show" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Quick create" })).toBeVisible();
+      // Below the lg width the sidebar folds into "Admin · Overview" and a Menu button.
+      const menu = page
+        .getByRole("navigation", { name: "Admin" })
+        .getByRole("button", { name: "Menu" });
+      if (await menu.isVisible()) await (await whenHydrated(menu)).click();
       await expect(
         page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: /^Guides/ }),
       ).toBeVisible();

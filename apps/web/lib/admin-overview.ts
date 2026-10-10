@@ -11,6 +11,8 @@ export interface AdminCounts {
   updatesDraft: number;
   /** Open "Something here changed?" reports. */
   guideReports: number;
+  /** Component drafts not yet paste-tested (admin redesign, 2026-10-10). */
+  componentsToTest: number;
   /** Shown comments with reports waiting; null while comments are off. */
   reportedComments: number | null;
   /** Comments posted in the last 7 days; null while comments are off. */
@@ -32,6 +34,7 @@ export async function loadAdminCounts(now = new Date()): Promise<AdminCounts> {
     updatesPublished,
     updatesDraft,
     guideReports,
+    componentsToTest,
     reportedComments,
     commentsThisWeek,
     votes,
@@ -42,6 +45,7 @@ export async function loadAdminCounts(now = new Date()): Promise<AdminCounts> {
     prisma.updateItem.count({ where: { status: "PUBLISHED" } }),
     prisma.updateItem.count({ where: { status: "DRAFT" } }),
     prisma.articleReport.count(),
+    prisma.libraryComponent.count({ where: { status: "DRAFT", hidden: false, testedAt: null } }),
     comments
       ? prisma.articleComment.count({ where: { removedAt: null, reports: { some: {} } } })
       : Promise.resolve(null),
@@ -57,15 +61,20 @@ export async function loadAdminCounts(now = new Date()): Promise<AdminCounts> {
     updatesPublished,
     updatesDraft,
     guideReports,
+    componentsToTest,
     reportedComments,
     commentsThisWeek,
     votesThisWeek: { total: votes, yes },
   };
 }
 
-/** How many things wait on the admin: reports, reported comments and drafts. */
+/** How many things wait on the admin: reports, reported comments, drafts and paste-tests. */
 export function waitingCount(counts: AdminCounts): number {
   return (
-    counts.guideReports + (counts.reportedComments ?? 0) + counts.guidesDraft + counts.updatesDraft
+    counts.guideReports +
+    (counts.reportedComments ?? 0) +
+    counts.guidesDraft +
+    counts.updatesDraft +
+    counts.componentsToTest
   );
 }
