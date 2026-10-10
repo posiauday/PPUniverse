@@ -65,9 +65,9 @@ export default async function AdminCommentsPage() {
                   <p>
                     <strong>{comment.displayName}</strong> on{" "}
                     <Link
-                      href={`/guides/${encodeURIComponent(comment.articleSlug)}#reader_comments`}
+                      href={`/${comment.on.kind === "guide" ? "guides" : "components"}/${encodeURIComponent(comment.on.slug)}#reader_comments`}
                     >
-                      {comment.articleTitle}
+                      {comment.on.title}
                     </Link>{" "}
                     ·{" "}
                     <time dateTime={comment.createdAt.toISOString()}>

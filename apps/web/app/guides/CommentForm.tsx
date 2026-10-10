@@ -21,8 +21,16 @@ const MESSAGE: Partial<Record<State, string>> = {
   error: "Something went wrong posting that. Please try again.",
 };
 
-/** The comment box under a guide, for a signed-in reader (MVP-040). */
-export function CommentForm({ slug, viewer }: { slug: string; viewer: PublicProfile }) {
+/** The comment box under a guide (MVP-040) or component (MVP-051), for a signed-in reader. */
+export function CommentForm({
+  slug,
+  viewer,
+  kind = "guide",
+}: {
+  slug: string;
+  viewer: PublicProfile;
+  kind?: "guide" | "component";
+}) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [state, setState] = useState<State>("idle");
@@ -35,7 +43,8 @@ export function CommentForm({ slug, viewer }: { slug: string; viewer: PublicProf
     event.preventDefault();
     if (state === "busy") return;
     setState("busy");
-    const answer = await postJson(`/api/guides/${encodeURIComponent(slug)}/comments`, {
+    const section = kind === "guide" ? "guides" : "components";
+    const answer = await postJson(`/api/${section}/${encodeURIComponent(slug)}/comments`, {
       body: text,
     });
     if (answer.status === 200) {
@@ -60,7 +69,7 @@ export function CommentForm({ slug, viewer }: { slug: string; viewer: PublicProf
       <div className="flex flex-wrap items-center gap-2.5">
         <Avatar seed={viewer.avatarSeed} name={viewer.displayName} size={36} />
         <label htmlFor={fieldId} className="font-semibold">
-          Add a comment
+          {kind === "guide" ? "Add a comment" : "Ask a question or help someone"}
         </label>
         <span className="text-sm text-muted-foreground">
           as {viewer.displayName} ·{" "}
@@ -90,7 +99,7 @@ export function CommentForm({ slug, viewer }: { slug: string; viewer: PublicProf
           aria-disabled={state === "busy"}
           className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground"
         >
-          {state === "busy" ? "Posting…" : "Post comment"}
+          {state === "busy" ? "Posting…" : kind === "guide" ? "Post comment" : "Post"}
         </button>
         <span className="text-sm text-muted-foreground" aria-hidden="true">
           {[...text].length}/{MAX}

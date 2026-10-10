@@ -1,13 +1,14 @@
 import { randomInt } from "node:crypto";
 import { PrismaCommentRepository } from "@ppu/adapter-content";
-import type { GuideComment, PublicProfile } from "@ppu/domain-content";
+import type { CommentTarget, GuideComment, PublicProfile } from "@ppu/domain-content";
 import { prisma } from "@ppu/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth";
 import { commentsEnabled } from "./feature-flags";
 
 /**
- * Comments on guides and readers' profiles (MVP-040), wired to the database.
+ * Comments on guides (MVP-040) and components (MVP-051), and readers'
+ * profiles, wired to the database.
  * Abuse limits reuse the hashed counters of guide feedback (lib/feedback.ts).
  */
 export const commentRepository = new PrismaCommentRepository(prisma);
@@ -38,23 +39,33 @@ export async function currentUserId(): Promise<string | null> {
   return session?.user?.id ?? null;
 }
 
+type LoadedComments = { comments: GuideComment[]; viewer: PublicProfile | null };
+
 /**
- * What the guide page needs for its comments, or null when comments are off
- * or can't be read (the page then shows no comments section rather than fail).
- * A signed-in reader is given their profile here, the first time.
+ * What a page needs for its comments, or null when comments are off or can't
+ * be read (the page then shows no comments section rather than fail). A
+ * signed-in reader is given their profile here, the first time.
  */
-export async function loadGuideComments(
-  articleId: string,
-): Promise<{ comments: GuideComment[]; viewer: PublicProfile | null } | null> {
+async function loadComments(target: CommentTarget): Promise<LoadedComments | null> {
   if (!commentsEnabled()) return null;
   try {
     const userId = await currentUserId();
     const [comments, viewer] = await Promise.all([
-      commentRepository.listVisible(articleId, userId),
+      commentRepository.listVisible(target, userId),
       userId ? commentRepository.getOrCreateProfile(userId, secureRandom) : Promise.resolve(null),
     ]);
     return { comments, viewer };
   } catch {
     return null;
   }
+}
+
+/** A guide's comments (MVP-040). */
+export function loadGuideComments(articleId: string): Promise<LoadedComments | null> {
+  return loadComments({ kind: "guide", articleId });
+}
+
+/** A component page's questions and answers (MVP-051). */
+export function loadComponentComments(componentId: string): Promise<LoadedComments | null> {
+  return loadComments({ kind: "component", componentId });
 }

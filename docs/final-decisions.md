@@ -2395,3 +2395,12 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - Settings has the Coming soon box for every component. On a draft it works as before. On a published one it reads "Show as Coming soon instead", starts clear, and saving with it ticked moves the component back to a Coming soon draft (its paste-test kept), as "Component library: back to Coming soon" describes.
 - The separate "Back to Coming soon" button goes; Publish points to the box in Settings.
 
+## 2026-10-10 — Comments on component pages
+
+**Source:** direct product-owner instruction: "you didn't add a comment section for each component, so logged-in users can ask questions or just discuss and help each other out."
+
+- Every published component's page has a **Questions and discussion** section: signed-in readers ask, answer and discuss.
+- **Same rules as guide comments** (2026-10-07, "Top bar names, AI search readiness, and comments"), as the safest reversible assumption: shown at once and removed if reported; each reader's display name and avatar, never their email; plain text and code, at most 2 links; the same hourly and daily limits wherever a reader posts; an admin can mark one **accepted answer**, shown first; moderated in `/admin/comments` with the guide comments.
+- Not on Coming soon, hidden or switched-off component pages. Behind the same `FEATURE_COMMENTS` switch as guide comments.
+- Story MVP-051.
+
