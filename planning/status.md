@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-10 (latest) — **MVP-051 in QA: comments on component pages.**
+Last updated: 2026-10-10 (latest) — **Full-site review: seven defects fixed (BUG-044 to BUG-050).**
+- **Fixed:** an open redirect, unlimited sign-in emails, Google sign-in without a verified email, unbounded search input, account routes without an origin check, and two smaller ones.
+- **Next:** the admin centre review; release #156 and #157.
+
+Last updated (previous): 2026-10-10 — **MVP-051 in QA: comments on component pages.**
 - **Built:** a Questions and discussion section on every published component page, with the guide comments' rules and moderation (docs/final-decisions.md, 2026-10-10).
 - **Next:** merge and release; the product owner's paste-tests of the drafts; then wave 3.
 

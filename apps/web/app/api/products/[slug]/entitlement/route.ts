@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../../../lib/auth";
 import { commerceRepository } from "../../../../../lib/commerce";
+import { isSameOrigin } from "../../../../../lib/request-guards";
 import { withObservability } from "../../../../../lib/observability";
 
 /**
@@ -23,8 +24,15 @@ import { withObservability } from "../../../../../lib/observability";
  */
 export const POST = withObservability(
   "POST /api/products/[slug]/entitlement",
-  async (_request: Request, { params }: { params: Promise<{ slug: string }> }) => {
+  async (request: Request, { params }: { params: Promise<{ slug: string }> }) => {
     const correlationId = getCorrelationId() ?? "unknown";
+    // Only this site's own pages may call it (site review, 2026-10-10), like every other
+    // write route; the SameSite=Lax session cookie was the only cross-site defence.
+    if (!isSameOrigin(request))
+      return NextResponse.json(
+        createErrorEnvelope("FORBIDDEN", "Not allowed from another site.", correlationId),
+        { status: 403 },
+      );
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(

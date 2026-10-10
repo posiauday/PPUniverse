@@ -81,7 +81,14 @@ export default function SignInPage() {
         callbackUrl: continuePath(window.location.search, window.location.origin),
       });
       setBusy(null);
-      if (result?.error) fail("email", "Something went wrong sending the link. Please try again.");
+      // "too-many": the address or network asked for several emails this hour (site review, 2026-10-10).
+      if (result?.error === "too-many")
+        fail(
+          "email",
+          "We've sent a few emails to this address already. Check your inbox for the last link, or try again in an hour.",
+        );
+      else if (result?.error)
+        fail("email", "Something went wrong sending the link. Please try again.");
       else setSent(true);
       return;
     }

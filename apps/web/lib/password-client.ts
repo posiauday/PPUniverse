@@ -3,6 +3,8 @@
  * throws: a network failure comes back as status 0, so every form can show
  * its "something went wrong" message instead of breaking.
  */
+import { sameSitePath } from "./same-site-path";
+
 export interface PasswordApiAnswer {
   status: number;
   error?: string;
@@ -64,15 +66,9 @@ export const SIGNED_IN_PATH = "/account/sessions";
  * browsers turn into "//host" (CodeQL js/client-side-unvalidated-url-redirection).
  */
 export function continuePath(search: string, origin: string): string {
-  const value = new URLSearchParams(search).get("callbackUrl");
-  if (!value || !value.startsWith("/")) return SIGNED_IN_PATH;
-  let url: URL;
-  try {
-    url = new URL(value, origin);
-  } catch {
-    return SIGNED_IN_PATH;
-  }
-  if (url.origin !== origin) return SIGNED_IN_PATH;
-  if (url.pathname === "/signin" || url.pathname.startsWith("/signin/")) return SIGNED_IN_PATH;
-  return `${url.pathname}${url.search}${url.hash}`;
+  const path = sameSitePath(new URLSearchParams(search).get("callbackUrl"), origin);
+  if (!path) return SIGNED_IN_PATH;
+  const pathname = path.split(/[?#]/)[0] ?? "";
+  if (pathname === "/signin" || pathname.startsWith("/signin/")) return SIGNED_IN_PATH;
+  return path;
 }

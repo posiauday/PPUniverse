@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_PAGE_SIZE,
+  MAX_PAGE,
   MAX_PAGE_SIZE,
+  MAX_QUERY_LENGTH,
   firstParam,
   normalizeQuery,
   parsePage,
@@ -96,5 +98,19 @@ describe("totalPages", () => {
 
   it("is always at least 1, even with zero results", () => {
     expect(totalPages(0, 12)).toBe(1);
+  });
+});
+
+// Site review, 2026-10-10.
+describe("search bounds", () => {
+  it("cuts a very long search term", () => {
+    expect(normalizeQuery("power ".repeat(500))?.length).toBeLessThanOrEqual(MAX_QUERY_LENGTH);
+  });
+
+  it("keeps the page number in range for the SQL OFFSET", () => {
+    expect(parsePage("1e300")).toBe(1);
+    expect(parsePage("1e20")).toBe(1);
+    expect(parsePage("5000")).toBe(MAX_PAGE);
+    expect(parsePage("3")).toBe(3);
   });
 });

@@ -30,8 +30,14 @@ vi.mock("../../../../../lib/commerce", () => ({
 const { POST } = await import("./route");
 
 const params = Promise.resolve({ slug: "some-product" });
+// The route only answers this site's own pages (site review, 2026-10-10).
+vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost");
+
 const request = () =>
-  new Request("http://localhost/api/products/some-product/entitlement", { method: "POST" });
+  new Request("http://localhost/api/products/some-product/entitlement", {
+    method: "POST",
+    headers: { Origin: "http://localhost" },
+  });
 const product = { id: "product-1", slug: "some-product", status: "PUBLISHED" };
 const entitlement = {
   id: "ent-1",

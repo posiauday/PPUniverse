@@ -255,6 +255,15 @@ export class PasswordAuth {
     return { sessionToken, expires };
   }
 
+  /**
+   * Whether one more email may go to this address from this IP now, counting it
+   * if so: the same per-address (MAIL_RULE) and per-IP budgets as the password
+   * emails, so the emailed sign-in link shares them (site review, 2026-10-10).
+   */
+  async allowEmailTo(input: { email: string; ip: string }): Promise<boolean> {
+    return this.mayEmail(normalizeEmail(input.email), input.ip);
+  }
+
   private async mayEmail(email: string, ip: string): Promise<boolean> {
     const now = this.now();
     const emailKey = sha256(`mail:${email}`);

@@ -1,4 +1,6 @@
+import { randomInt } from "node:crypto";
 import { prisma } from "@ppu/db";
+import { CROWN_SEED, newAvatarSeed } from "./avatar-seeds";
 import type { Role } from "./role-labels";
 
 export { ROLES, ROLE_LABEL, isRole, type Role } from "./role-labels";
@@ -41,6 +43,14 @@ export async function changeRole(
       const problem = checkRoleChange({ actorId, targetId, from, to, adminCount });
       if (problem) return { ok: false as const, problem };
       await tx.user.update({ where: { id: targetId }, data: { role: to } });
+      // The crown is for admins only (2026-10-08): someone who stops being an
+      // admin gets a new critter instead, so their comments don't still look
+      // like staff (site review, 2026-10-10).
+      if (from === "ADMIN" && to !== "ADMIN")
+        await tx.user.updateMany({
+          where: { id: targetId, avatarSeed: CROWN_SEED },
+          data: { avatarSeed: newAvatarSeed(() => randomInt(0, 2 ** 32) / 2 ** 32) },
+        });
       await tx.roleChangeEvent.create({
         data: { targetUserId: targetId, actorUserId: actorId, fromRole: from, toRole: to },
       });
