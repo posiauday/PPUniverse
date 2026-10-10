@@ -81,7 +81,7 @@ describe("ComponentWorkbench", () => {
     const html = render("lcsButton", null);
     expect(html).not.toContain("Copy YAML");
     expect(html).not.toContain("ComponentDefinitions");
-    expect(html).toContain("Sign in to copy (free)");
+    expect(html).toContain("Sign in to copy");
     expect(html).toContain('href="/signin?callbackUrl=%2Fcomponents%2Fthing"');
   });
 });

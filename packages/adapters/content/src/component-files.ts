@@ -105,6 +105,12 @@ const REJECTED_PROPERTIES: Record<string, { properties: string[]; instead: strin
     properties: ["AccessibleLabel"],
     instead: "a classic button's accessible name is its Text (make it transparent to hide it)",
   },
+  // At 1.0.0 and at 1.0.2 (the Data table's paste-tests, BUG-043): Checked is the docs' name, not
+  // the YAML's.
+  ModernCheckbox: {
+    properties: ["Checked"],
+    instead: "use Classic/CheckBox@2.1.0 with Default, and OnSelect to change the selection",
+  },
 };
 
 /** Problems with properties Studio is known to reject, in every control of the component. */
