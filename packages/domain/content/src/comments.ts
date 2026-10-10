@@ -301,6 +301,11 @@ export interface GuideComment extends PublicProfile {
   body: string;
   createdAt: Date;
   accepted: boolean;
+  /**
+   * A team post (MVP-053): written by an admin as the site, shown first under
+   * the site's name, not counted as a reader comment, and not reportable.
+   */
+  team: boolean;
   /** True when the signed-in reader wrote it, so they may delete it. */
   mine: boolean;
 }
@@ -313,6 +318,8 @@ export interface AdminComment extends PublicProfile {
   createdAt: Date;
   removed: boolean;
   accepted: boolean;
+  /** A team post (MVP-053). */
+  team: boolean;
   reportCount: number;
 }
 
@@ -322,18 +329,31 @@ export interface CommentRepository {
   /** False when another reader already has that name, in any case. */
   setDisplayName(userId: string, name: string): Promise<boolean>;
   setAvatarSeed(userId: string, seed: string): Promise<void>;
-  /** A guide's or component's comments that aren't removed: the accepted one first, then oldest first. */
+  /**
+   * A guide's or component's comments that aren't removed: the team post
+   * first (MVP-053), then the accepted one, then oldest first.
+   */
   listVisible(target: CommentTarget, viewerId: string | null): Promise<GuideComment[]>;
   create(target: CommentTarget, userId: string, body: string): Promise<{ id: string }>;
   /** Deletes the reader's own comment; false if it isn't theirs. */
   deleteOwn(commentId: string, userId: string): Promise<boolean>;
-  /** Records a report; false when the comment doesn't exist or is removed. */
+  /** Records a report; false when the comment doesn't exist, is removed or is a team post. */
   report(commentId: string): Promise<boolean>;
   /** "reported": shown comments with reports waiting; "latest": every comment, newest first. */
   listForAdmin(filter: "reported" | "latest", limit: number): Promise<AdminComment[]>;
   setRemoved(commentId: string, removed: boolean): Promise<boolean>;
   /** An admin kept a reported comment: its reports are cleared. */
   clearReports(commentId: string): Promise<boolean>;
-  /** Marks a comment as its guide's or component's accepted answer (clearing any other there), or unmarks it. */
+  /**
+   * Marks a comment as its guide's or component's accepted answer (clearing
+   * any other there), or unmarks it. A team post can't be the accepted answer.
+   */
   setAccepted(commentId: string, accepted: boolean): Promise<boolean>;
+  /** A component's live team post (MVP-053), or null. */
+  findTeamPost(componentId: string): Promise<{ id: string; body: string } | null>;
+  /**
+   * Posts the component's team post as `userId`, or changes the text of the
+   * live one: one live team post per component.
+   */
+  saveTeamPost(componentId: string, userId: string, body: string): Promise<{ id: string }>;
 }

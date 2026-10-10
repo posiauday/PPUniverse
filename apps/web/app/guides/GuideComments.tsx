@@ -5,7 +5,9 @@ import {
   type PublicProfile,
 } from "@ppu/domain-content";
 import Link from "next/link";
+import { SITE_NAME } from "../../lib/seo/site";
 import { Avatar } from "../Avatar";
+import { BrandMark } from "../BrandMark";
 import { CommentActions } from "./CommentActions";
 import { CommentForm } from "./CommentForm";
 
@@ -89,8 +91,9 @@ const WORDS = {
 /**
  * Comments under a guide (MVP-040) or a component (MVP-051): shown at once,
  * under each reader's display name and generated avatar, never their email.
- * An admin's accepted fix or answer comes first. Signed-in readers get the
- * form; others a sign-in link.
+ * An admin's accepted fix or answer comes first, after a component's team
+ * post (MVP-053), which shows under the site's name and isn't counted as a
+ * reader comment. Signed-in readers get the form; others a sign-in link.
  */
 export function GuideComments({
   slug,
@@ -108,6 +111,7 @@ export function GuideComments({
   // never contain one, so a "## Comments" heading in a guide can't clash.
   const headingId = "reader_comments_heading";
   const words = WORDS[kind];
+  const readerCount = comments.filter((comment) => !comment.team).length;
   return (
     <section
       aria-labelledby={headingId}
@@ -116,7 +120,7 @@ export function GuideComments({
     >
       <h2 id={headingId} className="font-display text-2xl font-bold">
         {words.heading}
-        {comments.length > 0 ? ` (${comments.length})` : ""}
+        {readerCount > 0 ? ` (${readerCount})` : ""}
       </h2>
 
       {comments.length === 0 ? (
@@ -127,12 +131,28 @@ export function GuideComments({
             <li
               key={comment.id}
               className={`rounded-[1.5rem] border p-5 ${
-                comment.accepted ? "border-primary bg-highlight/40" : "border-border bg-card"
+                comment.team
+                  ? "border-2 border-primary bg-card"
+                  : comment.accepted
+                    ? "border-primary bg-highlight/40"
+                    : "border-border bg-card"
               }`}
             >
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <Avatar seed={comment.avatarSeed} name={comment.displayName} size={40} />
-                <span className="font-semibold">{comment.displayName}</span>
+                {comment.team ? (
+                  <>
+                    <BrandMark size={40} />
+                    <span className="font-semibold">{SITE_NAME} team</span>
+                    <span className="rounded-full bg-primary px-2.5 py-0.5 text-sm font-semibold text-primary-foreground">
+                      Pinned
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Avatar seed={comment.avatarSeed} name={comment.displayName} size={40} />
+                    <span className="font-semibold">{comment.displayName}</span>
+                  </>
+                )}
                 <time
                   dateTime={comment.createdAt.toISOString()}
                   className="text-sm text-muted-foreground"
@@ -146,7 +166,10 @@ export function GuideComments({
                 ) : null}
               </div>
               <CommentBody body={comment.body} />
-              <CommentActions id={comment.id} mine={comment.mine} author={comment.displayName} />
+              {/* A team post is changed or removed from the component's admin page. */}
+              {comment.team ? null : (
+                <CommentActions id={comment.id} mine={comment.mine} author={comment.displayName} />
+              )}
             </li>
           ))}
         </ol>

@@ -94,6 +94,7 @@ export class PrismaCommentRepository implements CommentRepository {
         body: true,
         createdAt: true,
         acceptedAt: true,
+        pinnedAt: true,
         userId: true,
         user: { select: { displayName: true, avatarSeed: true } },
       },
@@ -103,12 +104,15 @@ export class PrismaCommentRepository implements CommentRepository {
       body: row.body,
       createdAt: row.createdAt,
       accepted: row.acceptedAt !== null,
+      team: row.pinnedAt !== null,
       mine: viewerId !== null && row.userId === viewerId,
       // A profile is created before the first comment, so these are set.
       displayName: row.user.displayName ?? "A reader",
       avatarSeed: row.user.avatarSeed ?? row.id,
     }));
-    return [...comments.filter((c) => c.accepted), ...comments.filter((c) => !c.accepted)];
+    // MVP-053: the team post first, then the accepted answer, then the rest.
+    const rank = (c: GuideComment) => (c.team ? 0 : c.accepted ? 1 : 2);
+    return [...comments].sort((a, b) => rank(a) - rank(b));
   }
 
   async create(target: CommentTarget, userId: string, body: string): Promise<{ id: string }> {
@@ -124,8 +128,9 @@ export class PrismaCommentRepository implements CommentRepository {
   }
 
   async report(commentId: string): Promise<boolean> {
+    // A team post (MVP-053) is the site's own, so it can't be reported.
     const comment = await this.db.articleComment.findFirst({
-      where: { id: commentId, removedAt: null },
+      where: { id: commentId, removedAt: null, pinnedAt: null },
       select: { id: true },
     });
     if (!comment) return false;
@@ -144,6 +149,7 @@ export class PrismaCommentRepository implements CommentRepository {
         createdAt: true,
         removedAt: true,
         acceptedAt: true,
+        pinnedAt: true,
         article: { select: { slug: true, title: true } },
         component: { select: { slug: true, title: true } },
         user: { select: { displayName: true, avatarSeed: true } },
@@ -160,6 +166,7 @@ export class PrismaCommentRepository implements CommentRepository {
       createdAt: row.createdAt,
       removed: row.removedAt !== null,
       accepted: row.acceptedAt !== null,
+      team: row.pinnedAt !== null,
       reportCount: row._count.reports,
       displayName: row.user.displayName ?? "A reader",
       avatarSeed: row.user.avatarSeed ?? row.id,
@@ -181,8 +188,9 @@ export class PrismaCommentRepository implements CommentRepository {
   }
 
   async setAccepted(commentId: string, accepted: boolean): Promise<boolean> {
+    // A team post (MVP-053) can't be the accepted answer.
     const comment = await this.db.articleComment.findFirst({
-      where: { id: commentId, removedAt: null },
+      where: { id: commentId, removedAt: null, pinnedAt: null },
       select: { articleId: true, componentId: true },
     });
     if (!comment) return false;
@@ -205,5 +213,34 @@ export class PrismaCommentRepository implements CommentRepository {
       }),
     ]);
     return true;
+  }
+
+  async findTeamPost(componentId: string): Promise<{ id: string; body: string } | null> {
+    return this.db.articleComment.findFirst({
+      where: { componentId, removedAt: null, pinnedAt: { not: null } },
+      orderBy: [{ pinnedAt: "desc" }, { id: "desc" }],
+      select: { id: true, body: true },
+    });
+  }
+
+  async saveTeamPost(componentId: string, userId: string, body: string): Promise<{ id: string }> {
+    return this.db.$transaction(async (tx) => {
+      const live = await tx.articleComment.findFirst({
+        where: { componentId, removedAt: null, pinnedAt: { not: null } },
+        orderBy: [{ pinnedAt: "desc" }, { id: "desc" }],
+        select: { id: true },
+      });
+      if (live) {
+        return tx.articleComment.update({
+          where: { id: live.id },
+          data: { body, userId },
+          select: { id: true },
+        });
+      }
+      return tx.articleComment.create({
+        data: { componentId, userId, body, pinnedAt: new Date() },
+        select: { id: true },
+      });
+    });
   }
 }

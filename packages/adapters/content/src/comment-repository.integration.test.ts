@@ -11,7 +11,7 @@ function sequence(...values: number[]): () => number {
   return () => values[call++ % values.length]!;
 }
 
-describe.skipIf(!hasDatabase)("PrismaCommentRepository (integration, MVP-040, MVP-051)", () => {
+describe.skipIf(!hasDatabase)("PrismaCommentRepository (integration, MVP-040, MVP-051, MVP-053)", () => {
   let db: import("@ppu/db").PrismaClient;
   let repo: PrismaCommentRepository;
   let articleId = "";
@@ -168,5 +168,32 @@ describe.skipIf(!hasDatabase)("PrismaCommentRepository (integration, MVP-040, MV
       db.articleComment.create({ data: { articleId, componentId, userId: a, body: "Both." } }),
     ).rejects.toThrow();
     await expect(db.articleComment.create({ data: { userId: a, body: "Neither." } })).rejects.toThrow();
+  });
+
+  it("keeps one live team post per component, first, never reported or accepted (MVP-053)", async () => {
+    const [a, b] = userIds as [string, string];
+    expect(await repo.findTeamPost(componentId)).toBeNull();
+    const first = await repo.saveTeamPost(componentId, a, "Welcome! A tip and a question.");
+    // Saving again changes the live post's text rather than adding a second one.
+    const again = await repo.saveTeamPost(componentId, b, "Welcome! A better tip and a question.");
+    expect(again.id).toBe(first.id);
+    expect(await repo.findTeamPost(componentId)).toEqual({
+      id: first.id,
+      body: "Welcome! A better tip and a question.",
+    });
+
+    const list = await repo.listVisible(component, b);
+    expect(list[0]).toMatchObject({ id: first.id, team: true });
+    expect(list.slice(1).every((c) => !c.team)).toBe(true);
+    // Readers can't report it, and it can't be the accepted answer.
+    expect(await repo.report(first.id)).toBe(false);
+    expect(await repo.setAccepted(first.id, true)).toBe(false);
+    expect((await repo.listForAdmin("latest", 50)).find((c) => c.id === first.id)?.team).toBe(true);
+
+    // Once removed, the next save starts a new team post.
+    expect(await repo.setRemoved(first.id, true)).toBe(true);
+    expect(await repo.findTeamPost(componentId)).toBeNull();
+    const next = await repo.saveTeamPost(componentId, a, "Welcome back! A fresh tip.");
+    expect(next.id).not.toBe(first.id);
   });
 });
