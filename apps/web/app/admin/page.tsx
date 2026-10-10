@@ -62,7 +62,7 @@ const LOOK: Record<InboxItem["kind"], { chip: string; tint: string; icon: string
 };
 
 const SMALL_LINK =
-  "inline-flex min-h-10 items-center rounded-full border border-border bg-card px-4 text-sm font-semibold no-underline hover:border-foreground";
+  "inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 text-sm font-semibold no-underline hover:border-foreground";
 
 /** What one inbox row says and the controls it offers: the same as on its own page. */
 function describe(item: InboxItem): { title: ReactNode; meta: ReactNode; actions: ReactNode } {

@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-10 (latest) — **MVP-052 In Progress: the admin centre redesign, phase 1 (sidebar and Inbox).**
+Last updated: 2026-10-10 (latest) — **MVP-052 In Progress: admin redesign phase 2 (lists with search and status tabs).**
+- **Built:** Guides, Updates and Products with search, status tabs, a technology filter and aligned rows; the options not taken are in docs/plans/admin-redesign-choices.md.
+- **Next:** phase 3, comments, feedback, users, the audit log and the remaining pages' headers.
+
+Last updated (previous): 2026-10-10 — **MVP-052 In Progress: the admin centre redesign, phase 1 (sidebar and Inbox).**
 - **Built:** the redesigned sidebar with a one-line menu on phones, a shared page header, and the Overview as an Inbox of everything waiting (docs/final-decisions.md, 2026-10-10).
 - **Next:** phase 2, guides, updates and products as tables with search and status tabs.
 
