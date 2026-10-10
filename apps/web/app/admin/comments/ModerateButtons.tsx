@@ -76,7 +76,7 @@ export function ModerateButtons({
           aria-disabled={state === "busy"}
           className={
             compact
-              ? `min-h-10 rounded-full px-4 text-sm font-semibold ${
+              ? `min-h-11 rounded-full px-4 text-sm font-semibold ${
                   action === "remove"
                     ? "bg-foreground text-background"
                     : "border border-border bg-card text-foreground"

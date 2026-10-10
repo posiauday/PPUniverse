@@ -5879,3 +5879,15 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 
 **Next:** phase 2, the lists.
 
+## 2026-10-10 — MVP-052 phase 2: the lists
+
+**Asked:** the product owner, to continue all phases while away (auto-merge, release each phase) and, on return, to see the options not taken: `docs/plans/admin-redesign-choices.md`.
+
+**Changed:** Guides, Updates and Products use shared list parts (`app/admin/AdminList.tsx`):
+- the shared header with totals and the New button;
+- a GET search form, status tabs with counts that keep the search, and a technology filter (guides, updates);
+- rows with the title, kind and technology chips, a status pill, the last change and their actions (Preview or View, Edit, Publish; Source on updates), lined up in fixed columns on wide screens and stacked on phones;
+- row controls are 44 px tall, like the site's buttons (also in the Inbox and the compact moderation buttons).
+
+**Checked:** web admin tests (9, 3 new), typecheck, lint; in the browser, search, tabs, the technology filter, the kept filters and the empty message; axe with the suite's blocking tags and a sideways-scroll check on the three lists and the Inbox at 320, 375, 768 and 1280 px, light and dark: clean.
+
