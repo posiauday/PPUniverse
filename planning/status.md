@@ -6,6 +6,10 @@ Last updated: 2026-10-10 (latest) — **MVP-051 in QA: comments on component pag
 - **Built:** a Questions and discussion section on every published component page, with the guide comments' rules and moderation (docs/final-decisions.md, 2026-10-10).
 - **Next:** merge and release; the product owner's paste-tests of the drafts; then wave 3.
 
+Last updated (previous): 2026-10-10 — **MVP-049 In Progress: the component cards are two looks of each component, alive on hover.**
+- **Changed:** all 14 card pictures on `/components`: the standard look behind, the brand colour in front, which is used on hover (docs/final-decisions.md, 2026-10-10).
+- **Next:** comments on component pages (asked 2026-10-10); the product owner's paste-tests of the drafts; then wave 3.
+
 Last updated (previous): 2026-10-10 — **MVP-049 In Progress: hover follows each component's own theme in the seven unpublished drafts that had modern buttons on a dark theme.**
 - **Changed:** Data table, Pagination, People picker, Dialog, Toast, Date and time picker and States: 33 buttons now use the published Navigation shell's pattern (a modern Icon or Text under a transparent classic button). The Dialog gets a Dark preset.
 - **Published:** Button, Floating action button and Navigation shell.
