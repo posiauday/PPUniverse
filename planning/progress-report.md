@@ -5770,3 +5770,31 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Changed:** `SettingsForm` shows the box for published components too ("Show as Coming soon instead", unticked); saving with it ticked saves the other settings, then calls `POST /api/admin/components/[id]/coming-soon`. The separate button is removed; Publish points to Settings.
 
 **Checked:** new `SettingsForm` tests (2), admin and component tests (45), typecheck and lint.
+
+## 2026-10-10 — Component cards: two looks, alive on hover
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Component cards: two looks, alive on hover"), after three Tree view concepts were rendered and shown.
+
+**Changed:** `apps/web/app/components/ComponentArt.tsx` draws all 14 cards as a fanned pair: the standard look behind, the brand colour in front. On hover the pair spreads and a pointer uses the front one:
+- Button: Submit turns to Working… with a spinner.
+- FAB: + turns to × and the speed dial opens.
+- Text field: an email types itself in; the count goes 0/100 to 17/100.
+- Dialog: DELETE is typed, then Delete turns red.
+- Toast: an Info message with View slides in after Sync.
+- Tabs: the segmented control moves from Open to Waiting.
+- Date and time picker: a range fills from the 2nd to the 6th; the end date appears.
+- People picker: Priya Nair moves from the results to a chip.
+- Pagination: page 4 to 5, and 31–40 to 41–50 of 312 orders.
+- Data table: row 1 is ticked and the bulk bar shows 1 selected and Approve.
+- Navigation shell (Premium): the current item moves from Home to Orders.
+- Tree view (Premium): Plans opens and Q3 plan.docx is selected.
+- Stepper (Premium): Next completes step 2; step 3 of 4, 75%.
+- States: Try again turns the error into loading rows.
+
+CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hidden until hover. New test: every component in `content/components` has a picture; the picture is decorative; its motion respects reduced motion.
+
+**Checked:**
+- Web tests (58, 16 new), typecheck and lint.
+- Locally, every card in the listing's own markup at 800 and 375 px. All fit below the category badge with nothing cut off; no sideways scroll on a phone.
+- Each hover end state, read in the browser, matches the list above. Screenshots checked.
+
