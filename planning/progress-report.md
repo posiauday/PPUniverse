@@ -5906,3 +5906,19 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 **Checked:** web tests for the admin pages, API routes and lib (755), typecheck, lint, format; axe with the suite's blocking tags and a sideways-scroll check on the eight pages at 320, 375, 768 and 1280 px, light and dark: clean.
 
 **Next:** phase 4, the editors.
+
+## 2026-10-10 — MVP-052 phase 4: the editors
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10), continuing the phases while away.
+
+**Changed:**
+- Shared editor parts (`app/admin/EditorParts.tsx`): a labelled field with its hint and errors, a Save bar that sticks to the bottom of the screen while the form is in view (with Unsaved changes, Cancel and the save button), and a slug that follows the title on a new item until it's typed (`lib/slugify.ts`, 5 tests). The page gets a bottom scroll padding while a Save bar is on it, so a focused field is never hidden behind it (WCAG 2.4.11).
+- Guides and Updates: the title comes first, then the slug with the address it makes; the settings sit in two columns; on wide screens, the Publishing panel (schedule and preview) sits beside the form.
+- Learn topics and lessons: the same fields and Save bar; a topic's lessons are a card beside the form, with status pills and an Add a lesson button.
+- Products: the core form uses the same parts and says Saved; each section is a card; the status shows as a pill.
+- Every editor and the component page get the shared header with a way back to their list ("← Guides").
+- BUG-053 fixed (a paragraph inside a paragraph after publishing a topic from the list).
+
+**Checked:** web tests (959), typecheck, lint, format; in the browser, the slug following a title with an apostrophe and an ampersand, and the Save bar staying in view; axe with the suite's blocking tags and a sideways-scroll check on all 12 editor pages at 320, 375, 768 and 1280 px, light and dark: clean.
+
+**Next:** release; then the product owner's review of the redesign.

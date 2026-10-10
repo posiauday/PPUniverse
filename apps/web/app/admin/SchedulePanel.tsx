@@ -102,7 +102,7 @@ export function SchedulePanel({ endpoint, previewHref, noun, scheduledFor }: Sch
   return (
     <section
       aria-labelledby={`${baseId}-heading`}
-      className="mt-10 flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
     >
       <h2 id={`${baseId}-heading`} className="font-display text-xl font-bold">
         Publishing

@@ -56,3 +56,20 @@ Story MVP-052 (docs/final-decisions.md, 2026-10-10, "Admin centre: concept A wit
 - **Exporting the audit log, or searching it by person or date.** The 100 most recent entries with area tabs cover a weekly check. An export would take personal data off the site, which needs its own decision.
 - **A confirmation dialog on the deletion-request buttons.** The workflow (MVP-020) already takes separate steps (review, approve, then mark completed, with a reason to deny), and each step is audited; it was restyled, not changed.
 - **Turning Learn topics and Components into the list layout.** As planned in phase 2: their grouping (lessons under topics, paste-test state on components) is what's useful, so they got the header and card styling only.
+
+## Phase 4: the editors (guides, updates, topics, lessons, products, components)
+
+**Built:**
+- The title first, and on a new item the slug follows it until you type your own.
+- A Save bar that stays at the bottom of the screen while the form is in view, with Unsaved changes and Cancel.
+- On wide screens, publishing (schedule and preview) beside a guide's or update's form, and a topic's lessons beside the topic.
+- The shared header with a way back to the list, and the status as a pill.
+
+**Not taken:**
+- **Saving automatically as you type.** The server checks every field on each save, so autosave would show errors mid-sentence and send a request every few seconds. One Save, always in view, is predictable.
+- **Changing an existing item's slug when its title changes.** A published address would change by itself and old links would break. Only a new item's slug follows its title.
+- **A "Leave page? You have unsaved changes" prompt.** The browser's prompt only covers closing the tab, not moving to another admin page inside the site, so it would protect some exits and not others. The Save bar's "Unsaved changes" shows it instead.
+- **A live Markdown preview beside the body.** The Preview link (MVP-050) shows the draft exactly as readers will see it, with the site's real styles; a second, simpler renderer in the editor could disagree with it.
+- **Putting Publish in the Save bar.** Publishing stays a separate, deliberate step (from the list or the schedule), as before, so saving a change never publishes it by accident.
+- **Restyling every product sub-editor** (licenses, price, support, compatibility, releases). Each is now a card with the shared heading; their inner controls already use the site's form styles and carry checked accessibility fixes, so they were left as they are.
+- **The component page as a form with a Save bar.** It is three steps (paste-test, settings, publish), each with its own button and audit entry, so it got the header and card styling only.

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 /** A pill link or button in an admin page's header (primary: filled; otherwise outlined). */
@@ -13,15 +14,29 @@ export function AdminPageHeader({
   title,
   description,
   actions,
+  back,
 }: {
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
+  /** An editor's way back to its list, shown in place of the "Admin" eyebrow. */
+  back?: { href: string; label: string };
 }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-muted-foreground">Admin</p>
+        {back ? (
+          <p className="text-sm font-semibold">
+            <Link
+              href={back.href}
+              className="inline-flex min-h-6 items-center gap-1 text-muted-foreground no-underline hover:text-foreground hover:underline"
+            >
+              <span aria-hidden="true">←</span> {back.label}
+            </Link>
+          </p>
+        ) : (
+          <p className="text-sm font-semibold text-muted-foreground">Admin</p>
+        )}
         <h1 className="font-display text-3xl font-bold md:text-4xl">{title}</h1>
         {description ? <p className="mt-1 text-muted-foreground">{description}</p> : null}
       </div>

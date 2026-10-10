@@ -4,6 +4,13 @@ import { LESSON_SECTIONS } from "@ppu/domain-content";
 import { useRouter } from "next/navigation";
 import { useId, useState, type ReactNode } from "react";
 import { TECHNOLOGY_OPTIONS } from "../../../lib/technology-options";
+import {
+  EditorField,
+  FIELD_CONTROL,
+  SaveBar,
+  useSlugFollowsTitle,
+  type ControlProps,
+} from "../EditorParts";
 
 /**
  * The admin's Learn topic and lesson forms (MVP-048 slice 1b). Like
@@ -12,19 +19,30 @@ import { TECHNOLOGY_OPTIONS } from "../../../lib/technology-options";
  */
 
 type Status = "idle" | "submitting" | "error";
-type ControlProps = { id: string; "aria-invalid": boolean; "aria-describedby": string | undefined };
 
-/** Submits `values` as JSON and goes to `done`, or shows the field errors. */
-function useAdminForm<T extends Record<string, string>>(initial: T) {
+/**
+ * Submits `values` as JSON and goes to `done`, or shows the field errors. A
+ * new item's slug follows its title until the slug is typed (MVP-052 phase 4).
+ */
+function useAdminForm<T extends Record<string, string>>(initial: T, mode: "create" | "edit") {
   const router = useRouter();
   const [values, setValues] = useState<T>(initial);
   const [status, setStatus] = useState<Status>("idle");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const slug = useSlugFollowsTitle(mode, initial["slug"] ?? "");
   const baseId = useId();
+  const dirty = JSON.stringify(values) !== JSON.stringify(initial);
 
-  const set = (key: keyof T, value: string) =>
-    setValues((current) => ({ ...current, [key]: value }));
+  const set = (key: keyof T, value: string) => {
+    if (key === "slug") slug.onSlugTyped(value);
+    const nextSlug = key === "title" && "slug" in initial ? slug.fromTitle(value) : null;
+    setValues((current) => ({
+      ...current,
+      [key]: value,
+      ...(nextSlug === null ? {} : { slug: nextSlug }),
+    }));
+  };
 
   async function submit(url: string, method: "POST" | "PATCH", done: string) {
     if (status === "submitting") return;
@@ -60,37 +78,12 @@ function useAdminForm<T extends Record<string, string>>(initial: T) {
     key: keyof T & string,
     label: string,
     control: (props: ControlProps) => ReactNode,
-    hint?: string,
+    hint?: ReactNode,
   ) {
-    const id = `${baseId}-${key}`;
-    const errors = fieldErrors[key] ?? [];
-    const describedBy =
-      [hint ? `${id}-hint` : null, errors.length > 0 ? `${id}-error` : null]
-        .filter(Boolean)
-        .join(" ") || undefined;
     return (
-      <div className="mt-4 flex flex-col gap-1">
-        <label htmlFor={id} className="font-medium">
-          {label}
-        </label>
-        {control({ id, "aria-invalid": errors.length > 0, "aria-describedby": describedBy })}
-        {hint ? (
-          <p id={`${id}-hint`} className="text-sm text-muted-foreground">
-            {hint}
-          </p>
-        ) : null}
-        {errors.length === 1 ? (
-          <p id={`${id}-error`} className="text-sm text-coral">
-            {errors[0]}
-          </p>
-        ) : errors.length > 1 ? (
-          <ul id={`${id}-error`} className="list-disc pl-5 text-sm text-coral">
-            {errors.map((error) => (
-              <li key={error}>{error}</li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+      <EditorField id={`${baseId}-${key}`} label={label} hint={hint} errors={fieldErrors[key]}>
+        {control}
+      </EditorField>
     );
   }
 
@@ -102,27 +95,32 @@ function useAdminForm<T extends Record<string, string>>(initial: T) {
           type={type}
           value={values[key]}
           onChange={(event) => set(key, event.target.value)}
-          className="rounded-lg border border-border bg-card px-3 py-2"
+          className={
+            key === "title"
+              ? `${FIELD_CONTROL} text-lg font-semibold`
+              : key === "slug"
+                ? `${FIELD_CONTROL} font-mono text-sm`
+                : FIELD_CONTROL
+          }
         />
       );
     };
 
-  const footer = (label: string) => (
-    <div className="mt-6">
-      <button
-        type="submit"
-        aria-disabled={status === "submitting"}
-        className="rounded-full bg-primary px-5 py-2 font-semibold text-primary-foreground"
-      >
-        {status === "submitting" ? "Saving…" : label}
-      </button>
-      <p role="status" className="mt-2">
-        {formError}
-      </p>
-    </div>
+  const footer = (label: string, cancelHref: string) => (
+    <SaveBar
+      label={label}
+      submitting={status === "submitting"}
+      error={formError}
+      dirty={dirty}
+      cancelHref={cancelHref}
+    />
   );
 
-  return { values, set, submit, field, input, footer };
+  /** The slug field's hint: the address, and whether it follows the title. */
+  const slugHint = (address: string) =>
+    `${address}${mode === "create" ? " It follows the title until you change it." : ""}`;
+
+  return { values, set, submit, field, input, footer, slugHint };
 }
 
 export interface TopicFormValues extends Record<string, string> {
@@ -145,10 +143,12 @@ export function TopicForm({
 }) {
   const form = useAdminForm<TopicFormValues>(
     initialValues ?? { slug: "", title: "", summary: "", technology: "POWER_APPS", sortOrder: "1" },
+    mode,
   );
   return (
     <form
       noValidate
+      className="flex min-w-0 flex-col gap-5"
       onSubmit={(event) => {
         event.preventDefault();
         void form.submit(
@@ -168,7 +168,9 @@ export function TopicForm({
         "slug",
         "Slug",
         form.input("slug"),
-        "Lower-case and hyphenated: the address, /topics/<slug>.",
+        form.slugHint(
+          `Lower-case and hyphenated: the address, /topics/${form.values.slug || "<slug>"}.`,
+        ),
       )}
       {form.field(
         "summary",
@@ -179,32 +181,34 @@ export function TopicForm({
             rows={3}
             value={form.values.summary}
             onChange={(event) => form.set("summary", event.target.value)}
-            className="rounded-lg border border-border bg-card px-3 py-2"
+            className={FIELD_CONTROL}
           />
         ),
         "One or two plain sentences: what it explains and for whom. 300 characters at most.",
       )}
-      {form.field("technology", "Area", (props) => (
-        <select
-          {...props}
-          value={form.values.technology}
-          onChange={(event) => form.set("technology", event.target.value)}
-          className="rounded-lg border border-border bg-card px-3 py-2"
-        >
-          {TECHNOLOGY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      ))}
-      {form.field(
-        "sortOrder",
-        "Order in the area",
-        form.input("sortOrder", "number"),
-        "Lowest first.",
-      )}
-      {form.footer(mode === "create" ? "Create draft topic" : "Save changes")}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {form.field("technology", "Area", (props) => (
+          <select
+            {...props}
+            value={form.values.technology}
+            onChange={(event) => form.set("technology", event.target.value)}
+            className={FIELD_CONTROL}
+          >
+            {TECHNOLOGY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ))}
+        {form.field(
+          "sortOrder",
+          "Order in the area",
+          form.input("sortOrder", "number"),
+          "Lowest first.",
+        )}
+      </div>
+      {form.footer(mode === "create" ? "Create draft topic" : "Save changes", "/admin/topics")}
     </form>
   );
 }
@@ -255,10 +259,11 @@ export function LessonForm({
   lessonId?: string;
   initialValues: LessonFormValues;
 }) {
-  const form = useAdminForm<LessonFormValues>(initialValues);
+  const form = useAdminForm<LessonFormValues>(initialValues, mode);
   return (
     <form
       noValidate
+      className="flex min-w-0 flex-col gap-5"
       onSubmit={(event) => {
         event.preventDefault();
         void form.submit(
@@ -275,9 +280,9 @@ export function LessonForm({
         "slug",
         "Slug",
         form.input("slug"),
-        "Lower-case and hyphenated: /topics/<topic>/<slug>.",
+        form.slugHint("Lower-case and hyphenated: /topics/<topic>/<slug>."),
       )}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-3">
         {form.field(
           "position",
           "Lesson number",
@@ -296,7 +301,7 @@ export function LessonForm({
             rows={3}
             value={form.values.outcomes}
             onChange={(event) => form.set("outcomes", event.target.value)}
-            className="rounded-lg border border-border bg-card px-3 py-2"
+            className={FIELD_CONTROL}
           />
         ),
         "2 or 3 outcomes, one per line.",
@@ -311,7 +316,7 @@ export function LessonForm({
             spellCheck
             value={form.values.body}
             onChange={(event) => form.set("body", event.target.value)}
-            className="rounded-lg border border-border bg-card px-3 py-2 font-mono text-sm"
+            className={`${FIELD_CONTROL} font-mono text-sm leading-relaxed`}
           />
         ),
         `Markdown with exactly these sections, in order: ${LESSON_SECTIONS.join(", ")}. "Check yourself" has 2 or 3 questions, each with one right answer ([x]) and an explanation under every answer. "Sources" links at least one learn.microsoft.com page.`,
@@ -320,12 +325,15 @@ export function LessonForm({
         <button
           type="button"
           onClick={() => form.set("body", LESSON_OUTLINE)}
-          className="mt-2 rounded-full border border-foreground px-4 py-1.5 text-sm font-semibold"
+          className="inline-flex min-h-11 w-fit items-center rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground hover:border-foreground"
         >
           Start from the lesson outline
         </button>
       ) : null}
-      {form.footer(mode === "create" ? "Create draft lesson" : "Save changes")}
+      {form.footer(
+        mode === "create" ? "Create draft lesson" : "Save changes",
+        `/admin/topics/${topicId}/edit`,
+      )}
     </form>
   );
 }
@@ -363,14 +371,20 @@ export function LearnPublishControl({
     }
   }
 
-  if (state.status === "published") return <p role="status">Published.</p>;
+  if (state.status === "published") {
+    return (
+      <span role="status" className="text-sm font-semibold">
+        Published.
+      </span>
+    );
+  }
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={publish}
         aria-disabled={state.status === "submitting"}
-        className="rounded-full border border-foreground px-3 py-1 text-sm font-semibold"
+        className="min-h-11 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white hover:bg-[#6d28d9]"
       >
         {state.status === "submitting" ? "Publishing…" : `Publish ${what}`}
       </button>
