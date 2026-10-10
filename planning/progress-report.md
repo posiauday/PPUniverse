@@ -5891,3 +5891,18 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 
 **Checked:** web admin tests (9, 3 new), typecheck, lint; in the browser, search, tabs, the technology filter, the kept filters and the empty message; axe with the suite's blocking tags and a sideways-scroll check on the three lists and the Inbox at 320, 375, 768 and 1280 px, light and dark: clean.
 
+## 2026-10-10 — MVP-052 phase 3: the queues and the remaining pages
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10), continuing the phases while away.
+
+**Changed:**
+- Comments: each comment is a card with the reader's avatar, name, date, report, removed and accepted chips, what it's on, the text, and the moderation buttons (all 44 px tall, Remove filled); reported first, then the latest.
+- Feedback: open reports as cards with a Close button; the "Did this fix it?" table sits in a scroll region with a bar for the share of yes.
+- Users and roles: search by email or display name, tabs Everyone, Admins, Contributors and Members with counts (`countUsersByRole`), avatars, the join date, and a Save button that appears only once a different role is picked.
+- Audit log: area tabs with counts, a coloured chip per area, and each entry on two lines (what happened; who, when and why).
+- Learn topics, Components, a component's page, Deletion requests and Settings: the shared header and card styling; deletion requests show a state chip and 44 px buttons.
+- The publish buttons on guides and updates use the brand purple.
+
+**Checked:** web tests for the admin pages, API routes and lib (755), typecheck, lint, format; axe with the suite's blocking tags and a sideways-scroll check on the eight pages at 320, 375, 768 and 1280 px, light and dark: clean.
+
+**Next:** phase 4, the editors.

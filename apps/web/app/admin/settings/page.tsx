@@ -8,6 +8,7 @@ import { siteSwitches } from "../../../lib/site-status";
 import { listSiteSwitches } from "../../../lib/site-switches";
 import { getSiteUrl } from "../../../lib/site-url";
 import { SiteSwitchToggle } from "./SiteSwitchToggle";
+import { AdminPageHeader } from "../AdminPageHeader";
 
 export const metadata: Metadata = { title: `Settings | ${SITE_NAME}` };
 
@@ -54,12 +55,10 @@ export default async function AdminSettingsPage() {
 
   return (
     <main className="flex flex-col gap-8 pb-10">
-      <div>
-        <h1 className="font-display text-3xl font-bold md:text-4xl">Settings</h1>
-        <p className="mt-2">
-          What&rsquo;s switched on. Switch the first ones here; the rest are set in Netlify.
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Settings"
+        description="What's switched on. Switch the first ones here; the rest are set in Netlify."
+      />
 
       <section aria-labelledby="admin_switches_heading">
         <h2 id="admin_switches_heading" className="font-display text-xl font-bold">

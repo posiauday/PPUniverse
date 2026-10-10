@@ -6,6 +6,7 @@ import { learnRepository } from "../../../lib/learn";
 import { requireAdmin } from "../../../lib/require-admin";
 import { SITE_NAME } from "../../../lib/seo/site";
 import { LearnPublishControl } from "./LearnForms";
+import { ADMIN_ACTION, AdminPageHeader } from "../AdminPageHeader";
 
 export const metadata: Metadata = { title: `Learn topics | ${SITE_NAME}` };
 
@@ -20,21 +21,27 @@ export default async function AdminTopicsPage() {
   const topics = await learnRepository.listTopics();
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Learn topics</h1>
-      <p className="mt-2">
-        <Link href="/admin/topics/new">New topic</Link>
-      </p>
-      <p className="mt-2">
-        A topic is {TOPIC_LESSONS_MIN} to 6 lessons. Check each lesson against its sources before
-        publishing; a lesson appears on the site only once it and its topic are both published.
-      </p>
+    <main className="flex flex-col gap-6 pb-10">
+      <AdminPageHeader
+        title="Learn topics"
+        description={`A topic is ${TOPIC_LESSONS_MIN} to 6 lessons. Check each lesson against its sources before publishing; a lesson appears on the site only once it and its topic are both published.`}
+        actions={
+          <Link
+            href="/admin/topics/new"
+            className={`${ADMIN_ACTION} bg-primary text-primary-foreground`}
+          >
+            New topic
+          </Link>
+        }
+      />
       {topics.length === 0 ? (
-        <p className="mt-8">No topics yet.</p>
+        <p className="rounded-[1.25rem] border border-dashed border-border bg-card p-6 text-center text-muted-foreground">
+          No topics yet.
+        </p>
       ) : (
-        <ul className="mt-8 flex flex-col gap-6">
+        <ul className="flex flex-col gap-4">
           {topics.map((topic) => (
-            <li key={topic.id} className="rounded-2xl border border-border bg-card p-4">
+            <li key={topic.id} className="rounded-[1.25rem] border border-border bg-card p-5">
               <h2 className="text-lg font-semibold">
                 <Link href={`/admin/topics/${topic.id}/edit`}>{topic.title}</Link>
               </h2>

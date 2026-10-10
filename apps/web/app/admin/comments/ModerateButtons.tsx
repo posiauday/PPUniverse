@@ -67,22 +67,19 @@ export function ModerateButtons({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2">
       {actions.map((action) => (
         <button
           key={action}
           type="button"
           onClick={() => void run(action)}
           aria-disabled={state === "busy"}
-          className={
-            compact
-              ? `min-h-11 rounded-full px-4 text-sm font-semibold ${
-                  action === "remove"
-                    ? "bg-foreground text-background"
-                    : "border border-border bg-card text-foreground"
-                }`
-              : undefined
-          }
+          // One look everywhere (MVP-052): Remove is the strong one.
+          className={`min-h-11 rounded-full px-4 text-sm font-semibold ${
+            action === "remove"
+              ? "bg-foreground text-background"
+              : "border border-border bg-card text-foreground hover:border-foreground"
+          }`}
         >
           {LABEL[action]}
         </button>

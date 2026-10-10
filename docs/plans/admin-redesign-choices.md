@@ -39,3 +39,20 @@ Story MVP-052 (docs/final-decisions.md, 2026-10-10, "Admin centre: concept A wit
 - **Selecting several rows to publish or delete at once.** Publishing is deliberately one at a time (each publish is checked and audited); bulk actions would need their own confirmation and audit design.
 - **Paging the lists.** At about 100 guides and products, one page with search is faster to use. Paging can come when a list passes a few hundred.
 - **Including Learn topics and Components in this phase.** Their pages already group things meaningfully (topics with their lessons; components with paste-test state) and are short. They get the shared header in phase 3 rather than a table.
+
+## Phase 3: the queues (Comments, Feedback, Users, Audit log) and the remaining pages
+
+**Built:**
+- Comments and guide reports as cards, reported first, with the moderation buttons on each card.
+- Users and roles with search, role tabs with counts, and a Save button that appears only after a different role is picked.
+- The audit log with area tabs and coloured area chips.
+- The shared header on Learn topics, Components, Deletion requests and Settings.
+
+**Not taken:**
+- **Changing a role the moment it's picked in the menu.** A slip of the mouse could make someone an admin. Save appears only once the choice differs, so it's one deliberate click.
+- **Tabs for Reported and Latest on the Comments page.** Two sections keep the reported comments in view first every time, without a click.
+- **Replying to a comment from the admin page.** You reply on the guide or component page itself, like any member, so there's one way to comment and it always looks the same to readers.
+- **A chart of votes over time on Feedback.** With a handful of votes per guide a trend line would be noise; the share-of-yes bar per guide answers the question that matters (does this fix work?).
+- **Exporting the audit log, or searching it by person or date.** The 100 most recent entries with area tabs cover a weekly check. An export would take personal data off the site, which needs its own decision.
+- **A confirmation dialog on the deletion-request buttons.** The workflow (MVP-020) already takes separate steps (review, approve, then mark completed, with a reason to deny), and each step is audited; it was restyled, not changed.
+- **Turning Learn topics and Components into the list layout.** As planned in phase 2: their grouping (lessons under topics, paste-test state on components) is what's useful, so they got the header and card styling only.

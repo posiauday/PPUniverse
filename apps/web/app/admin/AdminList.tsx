@@ -61,6 +61,8 @@ export function listHref(
 export function ListToolbar({
   path,
   noun,
+  label,
+  statusParam = "status",
   query,
   status,
   filters = {},
@@ -70,6 +72,10 @@ export function ListToolbar({
   path: string;
   /** What is listed, for the search box's name: "guides". */
   noun: string;
+  /** The search box's accessible name, when "Search <noun>" isn't right. */
+  label?: string;
+  /** The query key the tabs set: "status", or "role" on the Users page. */
+  statusParam?: string;
   query: string;
   status: string;
   /** The other filters in force, kept by the tabs and the search. */
@@ -92,7 +98,7 @@ export function ListToolbar({
           >
             <path d="M10.5 4.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM15 15l5 5" />
           </svg>
-          <span className="sr-only">Search {noun}</span>
+          <span className="sr-only">{label ?? `Search ${noun}`}</span>
           <input
             type="search"
             name="q"
@@ -101,7 +107,7 @@ export function ListToolbar({
             className="min-w-0 flex-1 border-0 bg-transparent p-0 text-base outline-none"
           />
         </label>
-        {status !== "all" ? <input type="hidden" name="status" value={status} /> : null}
+        {status !== "all" ? <input type="hidden" name={statusParam} value={status} /> : null}
         {children}
         <button
           type="submit"
@@ -120,7 +126,7 @@ export function ListToolbar({
             href={listHref(
               path,
               { q: query || undefined, ...filters },
-              { status: tab.key === "all" ? undefined : tab.key },
+              { [statusParam]: tab.key === "all" ? undefined : tab.key },
             )}
             aria-current={status === tab.key ? "page" : undefined}
             className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 no-underline ${
