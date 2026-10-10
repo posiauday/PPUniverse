@@ -274,36 +274,140 @@ ComponentDefinitions:
             DisplayMode: =If(CountRows(colSelected) = 0, DisplayMode.Disabled, DisplayMode.Edit)
             AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 1)).Value) & ", " & CountRows(colSelected) & " selected"
             OnSelect: =lcsDataTable.OnBulkAction(Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 1)).Value), Concat(colSelected, Id, ";"))
+      - lblBulk2:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnBulk2.X
+            Y: =btnBulk2.Y
+            Width: =btnBulk2.Width
+            Height: =btnBulk2.Height
+            Visible: =btnBulk2.Visible
+            Text: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 2)).Value)
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            Color: =If(btnBulk2.DisplayMode = DisplayMode.Disabled, If(lcsDataTable.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+            Fill: =If(lcsDataTable.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnBulk2:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =136 + 112
             Y: =10
             Width: =104
             Height: =36
             Visible: =(lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)) && CountRows(Split(lcsDataTable.BulkActions, ",")) >= 2
-            Text: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 2)).Value)
-            Appearance: =ButtonAppearance.Secondary
-            BasePaletteColor: =lcsDataTable.AccentColor
+            Text: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 2)).Value) & ", " & CountRows(colSelected) & " selected"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             DisplayMode: =If(CountRows(colSelected) = 0, DisplayMode.Disabled, DisplayMode.Edit)
-            AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 2)).Value) & ", " & CountRows(colSelected) & " selected"
             OnSelect: =lcsDataTable.OnBulkAction(Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 2)).Value), Concat(colSelected, Id, ";"))
+      - lblBulk3:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnBulk3.X
+            Y: =btnBulk3.Y
+            Width: =btnBulk3.Width
+            Height: =btnBulk3.Height
+            Visible: =btnBulk3.Visible
+            Text: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 3)).Value)
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            Color: =If(btnBulk3.DisplayMode = DisplayMode.Disabled, If(lcsDataTable.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+            Fill: =If(lcsDataTable.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnBulk3:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =136 + 224
             Y: =10
             Width: =104
             Height: =36
             Visible: =(lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)) && CountRows(Split(lcsDataTable.BulkActions, ",")) >= 3
-            Text: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 3)).Value)
-            Appearance: =ButtonAppearance.Secondary
-            BasePaletteColor: =lcsDataTable.AccentColor
+            Text: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 3)).Value) & ", " & CountRows(colSelected) & " selected"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             DisplayMode: =If(CountRows(colSelected) = 0, DisplayMode.Disabled, DisplayMode.Edit)
-            AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 3)).Value) & ", " & CountRows(colSelected) & " selected"
             OnSelect: =lcsDataTable.OnBulkAction(Trim(Last(FirstN(Split(lcsDataTable.BulkActions, ","), 3)).Value), Concat(colSelected, Id, ";"))
+      - lblClearSelection:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnClearSelection.X
+            Y: =btnClearSelection.Y
+            Width: =btnClearSelection.Width
+            Height: =btnClearSelection.Height
+            Visible: =btnClearSelection.Visible
+            Text: ="Clear selection"
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnClearSelection:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =136 + Min(3, CountRows(Split(lcsDataTable.BulkActions, ","))) * 112
             Y: =10
@@ -311,9 +415,24 @@ ComponentDefinitions:
             Height: =36
             Visible: =(lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)) && CountRows(colSelected) > 0
             Text: ="Clear selection"
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: =Clear(colSelected)
       - tabView:
           Control: ModernTabList@1.0.0
@@ -373,26 +492,62 @@ ComponentDefinitions:
             FocusedBorderThickness: =2
             OnSelect: |-
               =If((CountRows(lcsDataTable.Rows) > 0 && CountRows(Filter(lcsDataTable.Rows, Id in colSelected.Id)) = CountRows(lcsDataTable.Rows)), RemoveIf(colSelected, Id in lcsDataTable.Rows.Id), ForAll(Filter(lcsDataTable.Rows, !(Id in colSelected.Id)), Collect(colSelected, {Id: ThisRecord.Id})))
+      - lblHeader1Button:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnHeader1.X
+            Y: =btnHeader1.Y
+            Width: =btnHeader1.Width
+            Height: =btnHeader1.Height
+            Visible: =btnHeader1.Visible
+            Text: =Last(FirstN(lcsDataTable.Columns, 1)).Label & If(locSortColumn = 1, If(locSortDescending, " ↓", " ↑"), "")
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =12
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnHeader1:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsDataTable.Selectable, 48, 0)
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0)
             Width: =Last(FirstN(lcsDataTable.Columns, 1)).Width
             Height: =44
             Visible: =Coalesce(locView, lcsDataTable.View) = "Table" && CountRows(lcsDataTable.Rows) > 0 && !lcsDataTable.Loading && CountRows(lcsDataTable.Columns) >= 1 && lcsDataTable.Sortable
-            Text: =Last(FirstN(lcsDataTable.Columns, 1)).Label & If(locSortColumn = 1, If(locSortDescending, " ↓", " ↑"), "")
-            Align: =Align.Left
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            FontWeight: =FontWeight.Semibold
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-            AccessibleLabel: |-
+            Text: |-
               =Last(FirstN(lcsDataTable.Columns, 1)).Label & ", sort" & If(
                   locSortColumn = 1,
                   If(locSortDescending, ", sorted descending", ", sorted ascending"),
                   ""
               )
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   locSortColumn = 1,
@@ -419,26 +574,62 @@ ComponentDefinitions:
             PaddingTop: =0
             PaddingBottom: =0
             FontWeight: =FontWeight.Semibold
+      - lblHeader2Button:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnHeader2.X
+            Y: =btnHeader2.Y
+            Width: =btnHeader2.Width
+            Height: =btnHeader2.Height
+            Visible: =btnHeader2.Visible
+            Text: =Last(FirstN(lcsDataTable.Columns, 2)).Label & If(locSortColumn = 2, If(locSortDescending, " ↓", " ↑"), "")
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =12
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnHeader2:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsDataTable.Selectable, 48, 0) + Sum(FirstN(lcsDataTable.Columns, 1), Width)
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0)
             Width: =Last(FirstN(lcsDataTable.Columns, 2)).Width
             Height: =44
             Visible: =Coalesce(locView, lcsDataTable.View) = "Table" && CountRows(lcsDataTable.Rows) > 0 && !lcsDataTable.Loading && CountRows(lcsDataTable.Columns) >= 2 && lcsDataTable.Sortable
-            Text: =Last(FirstN(lcsDataTable.Columns, 2)).Label & If(locSortColumn = 2, If(locSortDescending, " ↓", " ↑"), "")
-            Align: =Align.Left
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            FontWeight: =FontWeight.Semibold
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-            AccessibleLabel: |-
+            Text: |-
               =Last(FirstN(lcsDataTable.Columns, 2)).Label & ", sort" & If(
                   locSortColumn = 2,
                   If(locSortDescending, ", sorted descending", ", sorted ascending"),
                   ""
               )
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   locSortColumn = 2,
@@ -465,26 +656,62 @@ ComponentDefinitions:
             PaddingTop: =0
             PaddingBottom: =0
             FontWeight: =FontWeight.Semibold
+      - lblHeader3Button:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnHeader3.X
+            Y: =btnHeader3.Y
+            Width: =btnHeader3.Width
+            Height: =btnHeader3.Height
+            Visible: =btnHeader3.Visible
+            Text: =Last(FirstN(lcsDataTable.Columns, 3)).Label & If(locSortColumn = 3, If(locSortDescending, " ↓", " ↑"), "")
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =12
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnHeader3:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsDataTable.Selectable, 48, 0) + Sum(FirstN(lcsDataTable.Columns, 2), Width)
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0)
             Width: =Last(FirstN(lcsDataTable.Columns, 3)).Width
             Height: =44
             Visible: =Coalesce(locView, lcsDataTable.View) = "Table" && CountRows(lcsDataTable.Rows) > 0 && !lcsDataTable.Loading && CountRows(lcsDataTable.Columns) >= 3 && lcsDataTable.Sortable
-            Text: =Last(FirstN(lcsDataTable.Columns, 3)).Label & If(locSortColumn = 3, If(locSortDescending, " ↓", " ↑"), "")
-            Align: =Align.Left
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            FontWeight: =FontWeight.Semibold
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-            AccessibleLabel: |-
+            Text: |-
               =Last(FirstN(lcsDataTable.Columns, 3)).Label & ", sort" & If(
                   locSortColumn = 3,
                   If(locSortDescending, ", sorted descending", ", sorted ascending"),
                   ""
               )
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   locSortColumn = 3,
@@ -511,26 +738,62 @@ ComponentDefinitions:
             PaddingTop: =0
             PaddingBottom: =0
             FontWeight: =FontWeight.Semibold
+      - lblHeader4Button:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnHeader4.X
+            Y: =btnHeader4.Y
+            Width: =btnHeader4.Width
+            Height: =btnHeader4.Height
+            Visible: =btnHeader4.Visible
+            Text: =Last(FirstN(lcsDataTable.Columns, 4)).Label & If(locSortColumn = 4, If(locSortDescending, " ↓", " ↑"), "")
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =12
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnHeader4:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsDataTable.Selectable, 48, 0) + Sum(FirstN(lcsDataTable.Columns, 3), Width)
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0)
             Width: =Last(FirstN(lcsDataTable.Columns, 4)).Width
             Height: =44
             Visible: =Coalesce(locView, lcsDataTable.View) = "Table" && CountRows(lcsDataTable.Rows) > 0 && !lcsDataTable.Loading && CountRows(lcsDataTable.Columns) >= 4 && lcsDataTable.Sortable
-            Text: =Last(FirstN(lcsDataTable.Columns, 4)).Label & If(locSortColumn = 4, If(locSortDescending, " ↓", " ↑"), "")
-            Align: =Align.Left
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            FontWeight: =FontWeight.Semibold
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-            AccessibleLabel: |-
+            Text: |-
               =Last(FirstN(lcsDataTable.Columns, 4)).Label & ", sort" & If(
                   locSortColumn = 4,
                   If(locSortDescending, ", sorted descending", ", sorted ascending"),
                   ""
               )
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   locSortColumn = 4,
@@ -557,26 +820,62 @@ ComponentDefinitions:
             PaddingTop: =0
             PaddingBottom: =0
             FontWeight: =FontWeight.Semibold
+      - lblHeader5Button:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnHeader5.X
+            Y: =btnHeader5.Y
+            Width: =btnHeader5.Width
+            Height: =btnHeader5.Height
+            Visible: =btnHeader5.Visible
+            Text: =Last(FirstN(lcsDataTable.Columns, 5)).Label & If(locSortColumn = 5, If(locSortDescending, " ↓", " ↑"), "")
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =12
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnHeader5:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsDataTable.Selectable, 48, 0) + Sum(FirstN(lcsDataTable.Columns, 4), Width)
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0)
             Width: =Last(FirstN(lcsDataTable.Columns, 5)).Width
             Height: =44
             Visible: =Coalesce(locView, lcsDataTable.View) = "Table" && CountRows(lcsDataTable.Rows) > 0 && !lcsDataTable.Loading && CountRows(lcsDataTable.Columns) >= 5 && lcsDataTable.Sortable
-            Text: =Last(FirstN(lcsDataTable.Columns, 5)).Label & If(locSortColumn = 5, If(locSortDescending, " ↓", " ↑"), "")
-            Align: =Align.Left
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            FontWeight: =FontWeight.Semibold
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-            AccessibleLabel: |-
+            Text: |-
               =Last(FirstN(lcsDataTable.Columns, 5)).Label & ", sort" & If(
                   locSortColumn = 5,
                   If(locSortDescending, ", sorted descending", ", sorted ascending"),
                   ""
               )
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   locSortColumn = 5,
@@ -603,26 +902,62 @@ ComponentDefinitions:
             PaddingTop: =0
             PaddingBottom: =0
             FontWeight: =FontWeight.Semibold
+      - lblHeader6Button:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnHeader6.X
+            Y: =btnHeader6.Y
+            Width: =btnHeader6.Width
+            Height: =btnHeader6.Height
+            Visible: =btnHeader6.Visible
+            Text: =Last(FirstN(lcsDataTable.Columns, 6)).Label & If(locSortColumn = 6, If(locSortDescending, " ↓", " ↑"), "")
+            Size: =13
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =12
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnHeader6:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsDataTable.Selectable, 48, 0) + Sum(FirstN(lcsDataTable.Columns, 5), Width)
             Y: =If(lcsDataTable.ShowViewToggle || (lcsDataTable.Selectable && !IsBlank(lcsDataTable.BulkActions)), 56, 0)
             Width: =Last(FirstN(lcsDataTable.Columns, 6)).Width
             Height: =44
             Visible: =Coalesce(locView, lcsDataTable.View) = "Table" && CountRows(lcsDataTable.Rows) > 0 && !lcsDataTable.Loading && CountRows(lcsDataTable.Columns) >= 6 && lcsDataTable.Sortable
-            Text: =Last(FirstN(lcsDataTable.Columns, 6)).Label & If(locSortColumn = 6, If(locSortDescending, " ↓", " ↑"), "")
-            Align: =Align.Left
-            Appearance: =ButtonAppearance.Subtle
-            Size: =13
-            FontWeight: =FontWeight.Semibold
-            Color: =If(lcsDataTable.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
-            AccessibleLabel: |-
+            Text: |-
               =Last(FirstN(lcsDataTable.Columns, 6)).Label & ", sort" & If(
                   locSortColumn = 6,
                   If(locSortDescending, ", sorted descending", ", sorted ascending"),
                   ""
               )
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   locSortColumn = 6,
@@ -1241,20 +1576,44 @@ ComponentDefinitions:
                   FocusedBorderThickness: =2
                   OnSelect: |-
                     =If(ThisItem.Id in colSelected.Id, RemoveIf(colSelected, Id = ThisItem.Id), Collect(colSelected, {Id: ThisItem.Id}))
+            - icoRowMenu:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =btnRowMenu.X + (btnRowMenu.Width - 20) / 2
+                  Y: =btnRowMenu.Y + (btnRowMenu.Height - 20) / 2
+                  Width: =20
+                  Height: =20
+                  Visible: =btnRowMenu.Visible
+                  Icon: =If(locMenuRow = ThisItem.Id, "Dismiss", "MoreHorizontal")
+                  IconColor: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  IconStyle: =IconStyle.Outline
             - btnRowMenu:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =Parent.TemplateWidth - 48
                   Y: =(Parent.TemplateHeight - 36) / 2
                   Width: =36
                   Height: =36
                   Visible: =!IsBlank(lcsDataTable.RowActions)
-                  Text: ="More"
-                  Icon: =If(locMenuRow = ThisItem.Id, "Dismiss", "MoreHorizontal")
-                  Layout: =ButtonLayout.IconOnly
-                  Appearance: =ButtonAppearance.Subtle
-                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =If(locMenuRow = ThisItem.Id, "Close the menu for ", "Actions for ") & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Text: =If(locMenuRow = ThisItem.Id, "Close the menu for ", "Actions for ") & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   OnSelect: =Set(locMenuRow, If(locMenuRow = ThisItem.Id, Blank(), ThisItem.Id))
             - conRowMenu:
                 Control: GroupContainer@1.5.0
@@ -1273,54 +1632,165 @@ ComponentDefinitions:
                   Fill: =If(lcsDataTable.Theme = "Dark", RGBA(36, 36, 36, 1), RGBA(255, 255, 255, 1))
                   BorderColor: =If(lcsDataTable.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
                   BorderThickness: =1
+            - lblRowAction1:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnRowAction1.X
+                  Y: =btnRowAction1.Y
+                  Width: =btnRowAction1.Width
+                  Height: =btnRowAction1.Height
+                  Visible: =btnRowAction1.Visible
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value)
+                  Size: =13
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnRowAction1:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =Parent.TemplateWidth - 52 - (Min(3, CountRows(Split(lcsDataTable.RowActions, ","))) * 84 + 8) + 4 + 0
                   Y: =(Parent.TemplateHeight - 32) / 2
                   Width: =80
                   Height: =32
                   Visible: =locMenuRow = ThisItem.Id && !IsBlank(lcsDataTable.RowActions) && CountRows(Split(lcsDataTable.RowActions, ",")) >= 1
-                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value)
-                  Appearance: =ButtonAppearance.Subtle
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  Size: =13
-                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   OnSelect: |-
                     =Set(locMenuRow, Blank());
                     lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value), ThisItem.Id)
+            - lblRowAction2:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnRowAction2.X
+                  Y: =btnRowAction2.Y
+                  Width: =btnRowAction2.Width
+                  Height: =btnRowAction2.Height
+                  Visible: =btnRowAction2.Visible
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value)
+                  Size: =13
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnRowAction2:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =Parent.TemplateWidth - 52 - (Min(3, CountRows(Split(lcsDataTable.RowActions, ","))) * 84 + 8) + 4 + 84
                   Y: =(Parent.TemplateHeight - 32) / 2
                   Width: =80
                   Height: =32
                   Visible: =locMenuRow = ThisItem.Id && !IsBlank(lcsDataTable.RowActions) && CountRows(Split(lcsDataTable.RowActions, ",")) >= 2
-                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value)
-                  Appearance: =ButtonAppearance.Subtle
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  Size: =13
-                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   OnSelect: |-
                     =Set(locMenuRow, Blank());
                     lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value), ThisItem.Id)
+            - lblRowAction3:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnRowAction3.X
+                  Y: =btnRowAction3.Y
+                  Width: =btnRowAction3.Width
+                  Height: =btnRowAction3.Height
+                  Visible: =btnRowAction3.Visible
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value)
+                  Size: =13
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnRowAction3:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =Parent.TemplateWidth - 52 - (Min(3, CountRows(Split(lcsDataTable.RowActions, ","))) * 84 + 8) + 4 + 168
                   Y: =(Parent.TemplateHeight - 32) / 2
                   Width: =80
                   Height: =32
                   Visible: =locMenuRow = ThisItem.Id && !IsBlank(lcsDataTable.RowActions) && CountRows(Split(lcsDataTable.RowActions, ",")) >= 3
-                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value)
-                  Appearance: =ButtonAppearance.Subtle
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  Size: =13
-                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   OnSelect: |-
                     =Set(locMenuRow, Blank());
                     lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value), ThisItem.Id)
@@ -1568,54 +2038,162 @@ ComponentDefinitions:
                   FocusedBorderThickness: =2
                   OnSelect: |-
                     =If(ThisItem.Id in colSelected.Id, RemoveIf(colSelected, Id = ThisItem.Id), Collect(colSelected, {Id: ThisItem.Id}))
+            - lblCardAction1:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnCardAction1.X
+                  Y: =btnCardAction1.Y
+                  Width: =btnCardAction1.Width
+                  Height: =btnCardAction1.Height
+                  Visible: =btnCardAction1.Visible
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value)
+                  Size: =13
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnCardAction1:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =20 + 0
                   Y: =Parent.TemplateHeight - 52
                   Width: =80
                   Height: =32
                   Visible: =true && !IsBlank(lcsDataTable.RowActions) && CountRows(Split(lcsDataTable.RowActions, ",")) >= 1
-                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value)
-                  Appearance: =ButtonAppearance.Subtle
-                  BasePaletteColor: =lcsDataTable.AccentColor
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  OnSelect: =lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value), ThisItem.Id)
+            - lblCardAction2:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnCardAction2.X
+                  Y: =btnCardAction2.Y
+                  Width: =btnCardAction2.Width
+                  Height: =btnCardAction2.Height
+                  Visible: =btnCardAction2.Visible
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value)
                   Size: =13
+                  FontWeight: =FontWeight.Semibold
                   Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
-                  OnSelect: |-
-                    =lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 1)).Value), ThisItem.Id)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnCardAction2:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =20 + 84
                   Y: =Parent.TemplateHeight - 52
                   Width: =80
                   Height: =32
                   Visible: =true && !IsBlank(lcsDataTable.RowActions) && CountRows(Split(lcsDataTable.RowActions, ",")) >= 2
-                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value)
-                  Appearance: =ButtonAppearance.Subtle
-                  BasePaletteColor: =lcsDataTable.AccentColor
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  OnSelect: =lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value), ThisItem.Id)
+            - lblCardAction3:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnCardAction3.X
+                  Y: =btnCardAction3.Y
+                  Width: =btnCardAction3.Width
+                  Height: =btnCardAction3.Height
+                  Visible: =btnCardAction3.Visible
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value)
                   Size: =13
+                  FontWeight: =FontWeight.Semibold
                   Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
-                  OnSelect: |-
-                    =lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 2)).Value), ThisItem.Id)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnCardAction3:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =20 + 168
                   Y: =Parent.TemplateHeight - 52
                   Width: =80
                   Height: =32
                   Visible: =true && !IsBlank(lcsDataTable.RowActions) && CountRows(Split(lcsDataTable.RowActions, ",")) >= 3
-                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value)
-                  Appearance: =ButtonAppearance.Subtle
-                  BasePaletteColor: =lcsDataTable.AccentColor
-                  Size: =13
-                  Color: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
-                  OnSelect: |-
-                    =lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value), ThisItem.Id)
+                  Text: =Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value) & " " & Switch(lcsDataTable.TitleColumn, 1, ThisItem.C1, 2, ThisItem.C2, 3, ThisItem.C3, 4, ThisItem.C4, 5, ThisItem.C5, 6, ThisItem.C6, "")
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDataTable.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDataTable.Theme = "Dark", ColorFade(lcsDataTable.AccentColor, 0.45), lcsDataTable.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  OnSelect: =lcsDataTable.OnRowAction(Trim(Last(FirstN(Split(lcsDataTable.RowActions, ","), 3)).Value), ThisItem.Id)
       - galList:
           Control: Gallery@2.15.0
           Variant: Vertical

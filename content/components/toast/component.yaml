@@ -196,19 +196,58 @@ ComponentDefinitions:
             RadiusTopRight: =6
             RadiusBottomLeft: =6
             RadiusBottomRight: =6
-      - btnAction:
-          Control: ModernButton@1.0.0
+      - lblAction:
+          Control: ModernText@1.0.0
           Properties:
-            Width: =84
-            Height: =32
+            X: =btnAction.X
+            Y: =btnAction.Y
+            Width: =btnAction.Width
+            Height: =btnAction.Height
+            Visible: =btnAction.Visible
+            Text: =lcsToast.ActionText
+            Size: =14
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
+      - btnAction:
+          Control: Classic/Button@2.2.0
+          Properties:
             X: =lblToast.X + lblToast.Width - 48 - Self.Width
             Y: =(Parent.Height - Self.Height) / 2
+            Width: =84
+            Height: =32
             Visible: =locOpen && !IsBlank(lcsToast.ActionText)
             Text: =lcsToast.ActionText
-            Appearance: =ButtonAppearance.Outline
-            AccessibleLabel: =lcsToast.ActionText
-            Color: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
             BorderColor: =If(lcsToast.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =If(lcsToast.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            PressedFill: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =If(lcsToast.Theme = "Dark", RGBA(173, 173, 173, 1), RGBA(97, 97, 97, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =If(lcsToast.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsToast.Theme = "Dark", ColorFade(lcsToast.AccentColor, 0.45), lcsToast.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =lcsToast.OnAction();
               If(
@@ -219,20 +258,44 @@ ComponentDefinitions:
                   Remove(colToastQueue, First(colToastQueue)),
                   Set(locOpen, false)
               )
-      - btnClose:
-          Control: ModernButton@1.0.0
+      - icoClose:
+          Control: ModernIcon@1.1.0
           Properties:
-            Width: =32
-            Height: =32
+            X: =btnClose.X + (btnClose.Width - 16) / 2
+            Y: =btnClose.Y + (btnClose.Height - 16) / 2
+            Width: =16
+            Height: =16
+            Visible: =btnClose.Visible
+            Icon: ="Dismiss"
+            IconColor: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            IconStyle: =IconStyle.Outline
+      - btnClose:
+          Control: Classic/Button@2.2.0
+          Properties:
             X: =lblToast.X + lblToast.Width - 8 - Self.Width
             Y: =(Parent.Height - Self.Height) / 2
+            Width: =32
+            Height: =32
             Visible: =locOpen
-            Text: ="Close"
-            Icon: ="Dismiss"
-            Layout: =ButtonLayout.IconOnly
-            Appearance: =ButtonAppearance.Subtle
-            AccessibleLabel: ="Close message"
-            Color: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Text: ="Close message"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsToast.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsToast.Theme = "Dark", ColorFade(lcsToast.AccentColor, 0.45), lcsToast.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =lcsToast.OnDismiss();
               If(
