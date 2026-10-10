@@ -236,28 +236,78 @@ ComponentDefinitions:
                   RadiusTopRight: =4
                   RadiusBottomLeft: =4
                   RadiusBottomRight: =4
-      - btnAction:
-          Control: ModernButton@1.0.0
+      - lblAction:
+          Control: ModernText@1.0.0
           Properties:
-            Width: =Max(120, Len(lcsStates.ActionText) * 9 + 32)
-            Height: =36
-            X: =(Parent.Width - Self.Width) / 2
-            Y: =lblMessage.Y + lblMessage.Height + 12
-            Visible: =lcsStates.State in ["Empty", "Error"] && !IsBlank(lcsStates.ActionText)
+            X: =btnAction.X
+            Y: =btnAction.Y
+            Width: =btnAction.Width
+            Height: =btnAction.Height
+            Visible: =btnAction.Visible
             Text: =lcsStates.ActionText
-            Appearance: =If(lcsStates.State = "Error", ButtonAppearance.Outline, ButtonAppearance.Primary)
-            BasePaletteColor: =lcsStates.AccentColor
+            Size: =14
+            FontWeight: =FontWeight.Semibold
             Color: |-
               =If(
                   lcsStates.State <> "Error", RGBA(255, 255, 255, 1),
                   lcsStates.Theme = "Dark", RGBA(255, 255, 255, 1),
                   RGBA(36, 36, 36, 1)
               )
+            Fill: |-
+              =With({s: If(lcsStates.State = "Error", "Outline", "Primary")}, If(s = "Primary", lcsStates.AccentColor, RGBA(0, 0, 0, 0)))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
+      - btnAction:
+          Control: Classic/Button@2.2.0
+          Properties:
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =lblMessage.Y + lblMessage.Height + 12
+            Width: =Max(120, Len(lcsStates.ActionText) * 9 + 32)
+            Height: =36
+            Visible: =lcsStates.State in ["Empty", "Error"] && !IsBlank(lcsStates.ActionText)
+            Text: =lcsStates.ActionText
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
             BorderColor: |-
-              =If(
+              =With({s: If(lcsStates.State = "Error", "Outline", "Primary")}, If(s = "Primary", RGBA(0, 0, 0, 0), If(
                   lcsStates.State <> "Error", RGBA(0, 0, 0, 0),
                   lcsStates.Theme = "Dark", RGBA(102, 102, 102, 1),
                   RGBA(209, 209, 209, 1)
-              )
-            AccessibleLabel: =lcsStates.ActionText
+              )))
+            BorderThickness: =1
+            HoverFill: =If(lcsStates.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: |-
+              =With({s: If(lcsStates.State = "Error", "Outline", "Primary")}, If(s = "Primary", RGBA(0, 0, 0, 0), If(
+                  lcsStates.State <> "Error", RGBA(0, 0, 0, 0),
+                  lcsStates.Theme = "Dark", RGBA(102, 102, 102, 1),
+                  RGBA(209, 209, 209, 1)
+              )))
+            PressedFill: =If(lcsStates.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: |-
+              =With({s: If(lcsStates.State = "Error", "Outline", "Primary")}, If(s = "Primary", RGBA(0, 0, 0, 0), If(
+                  lcsStates.State <> "Error", RGBA(0, 0, 0, 0),
+                  lcsStates.Theme = "Dark", RGBA(102, 102, 102, 1),
+                  RGBA(209, 209, 209, 1)
+              )))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: |-
+              =With({s: If(lcsStates.State = "Error", "Outline", "Primary")}, If(s = "Primary", RGBA(0, 0, 0, 0), If(lcsStates.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))))
+            FocusedBorderColor: =If(lcsStates.Theme = "Dark", ColorFade(lcsStates.AccentColor, 0.45), lcsStates.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: =lcsStates.OnAction(lcsStates.State)

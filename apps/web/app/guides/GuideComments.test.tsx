@@ -81,3 +81,29 @@ describe("GuideComments (MVP-040)", () => {
     expect(html).toContain('aria-label="Report the comment by Bold Flow 300"');
   });
 });
+
+describe("GuideComments on a component's page (MVP-051)", () => {
+  const onComponent = (comments: GuideComment[], signedIn = false) =>
+    renderToStaticMarkup(
+      <GuideComments
+        kind="component"
+        slug="tree-view"
+        comments={comments}
+        viewer={signedIn ? { displayName: "Swift Canvas 207", avatarSeed: "v" } : null}
+      />,
+    );
+
+  it("speaks of questions and answers, and signs in back to the component", () => {
+    const guest = onComponent([]);
+    expect(guest).toContain("Questions and discussion");
+    expect(guest).toContain("No questions yet");
+    expect(guest).toContain(
+      'href="/signin?callbackUrl=%2Fcomponents%2Ftree-view%23reader_comments"',
+    );
+    expect(guest).toContain("Sign in to ask or answer");
+    expect(onComponent([comment({ accepted: true })])).toContain("Accepted answer");
+    const member = onComponent([], true);
+    expect(member).toContain("Ask a question or help someone");
+    expect(member).toContain("<textarea");
+  });
+});

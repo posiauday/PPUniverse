@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { outlineOf, type OutlineItem } from "../../../lib/article-outline";
 import { authOptions } from "../../../lib/auth";
+import { loadComponentComments } from "../../../lib/comments";
 import { componentRepository } from "../../../lib/components";
 import { componentsLibraryOn } from "../../../lib/site-switches";
 import {
@@ -18,6 +19,7 @@ import { getSiteUrl } from "../../../lib/site-url";
 import { ArticleBody } from "../../guides/ArticleBody";
 import { ArticleToc, StickyColumn } from "../../guides/ArticleToc";
 import { Breadcrumbs } from "../../guides/Breadcrumbs";
+import { GuideComments } from "../../guides/GuideComments";
 import { ComingSoonComponent } from "../ComingSoonComponent";
 import { ComponentWorkbench } from "../ComponentWorkbench";
 import { LibraryNav } from "../LibraryNav";
@@ -73,9 +75,11 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
     return <ComingSoonComponent teaser={teaser} />;
   }
 
-  const [session, library] = await Promise.all([
+  const [session, library, comments] = await Promise.all([
     getServerSession(authOptions),
     componentRepository.listPublic(),
+    // MVP-051: null while comments are switched off (FEATURE_COMMENTS).
+    loadComponentComments(component.id),
   ]);
   const canCopy = component.access === "OPEN" || Boolean(session?.user?.id);
   const signInHref = `/signin?callbackUrl=${encodeURIComponent(`/components/${component.slug}`)}`;
@@ -87,6 +91,9 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
     { level: 2, text: "Properties", id: "component_properties" },
     { level: 2, text: "Add it to your app", id: "component_add" },
     ...guideOutline,
+    ...(comments
+      ? [{ level: 2 as const, text: "Questions and discussion", id: "reader_comments" }]
+      : []),
   ];
 
   const needs = [
@@ -249,6 +256,15 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
           <div className="mt-10 [&_h2]:scroll-mt-28">
             <ArticleBody markdown={component.guide} />
           </div>
+
+          {comments ? (
+            <GuideComments
+              kind="component"
+              slug={component.slug}
+              comments={comments.comments}
+              viewer={comments.viewer}
+            />
+          ) : null}
         </div>
       </div>
     </main>

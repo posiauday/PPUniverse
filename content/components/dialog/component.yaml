@@ -239,19 +239,44 @@ ComponentDefinitions:
                   PaddingRight: =0
                   PaddingTop: =0
                   PaddingBottom: =0
+            - icoClose:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =btnClose.X + (btnClose.Width - 20) / 2
+                  Y: =btnClose.Y + (btnClose.Height - 20) / 2
+                  Width: =20
+                  Height: =20
+                  Visible: =btnClose.Visible
+                  Icon: ="Dismiss"
+                  IconColor: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  IconStyle: =IconStyle.Outline
             - btnClose:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =Parent.Width - 16 - Self.Width
                   Y: =16
                   Width: =36
                   Height: =36
                   Visible: =lcsDialog.ShowClose
-                  Text: ="Close"
-                  Icon: ="Dismiss"
-                  Layout: =ButtonLayout.IconOnly
-                  Appearance: =ButtonAppearance.Subtle
-                  AccessibleLabel: ="Close dialog"
+                  Text: ="Close dialog"
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsDialog.Theme = "Dark", ColorFade(lcsDialog.AccentColor, 0.45), lcsDialog.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   OnSelect: |-
                     =Set(locOpen, false);
                     Set(locResult, "");
@@ -333,34 +358,123 @@ ComponentDefinitions:
                   PaddingRight: =0
                   PaddingTop: =0
                   PaddingBottom: =0
-            - btnFirst:
-                Control: ModernButton@1.0.0
+            - lblFirst:
+                Control: ModernText@1.0.0
                 Properties:
+                  X: =btnFirst.X
+                  Y: =btnFirst.Y
+                  Width: =btnFirst.Width
+                  Height: =btnFirst.Height
+                  Visible: =btnFirst.Visible
+                  Text: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))}, btn.Label)
+                  Size: =14
+                  FontWeight: =FontWeight.Semibold
+                  Color: |-
+                    =If(btnFirst.DisplayMode = DisplayMode.Disabled, If(lcsDialog.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(255, 255, 255, 1), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)), If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))))
+                  Fill: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", If(btnFirst.DisplayMode = DisplayMode.Disabled, If(lcsDialog.Theme = "Dark", RGBA(56, 56, 56, 1), RGBA(240, 240, 240, 1)), With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
+                    )), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1)), s = "Outline", RGBA(0, 0, 0, 0), RGBA(0, 0, 0, 0)))
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+            - btnFirst:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  X: =Parent.Width - 24 - Self.Width
+                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
+                  Width: =Max(96, Len(lblFirst.Text) * 8 + 32)
+                  Height: =36
                   Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 0
                   Text: |-
                     =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))}, btn.Label)
-                  AccessibleLabel: |-
-                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))}, btn.Label)
-                  Width: =Max(96, Len(Self.Text) * 8 + 32)
-                  Height: =36
-                  X: =Parent.Width - 24 - Self.Width
-                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
-                  Appearance: |-
-                    =With(
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: |-
+                    =With({s: With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
                         Switch(
                             If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
-                            "Secondary", ButtonAppearance.Secondary,
-                            "Outline", ButtonAppearance.Outline,
-                            "Subtle", ButtonAppearance.Subtle,
-                            ButtonAppearance.Primary
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
                         )
-                    )
-                  BasePaletteColor: |-
-                    =With(
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  BorderThickness: =1
+                  HoverFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: |-
+                    =With({s: With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
-                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
-                    )
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  PressedFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1)), RGBA(0, 0, 0, 0)))
+                  FocusedBorderColor: =If(lcsDialog.Theme = "Dark", ColorFade(lcsDialog.AccentColor, 0.45), lcsDialog.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   DisplayMode: |-
                     =With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 0)))},
@@ -378,34 +492,123 @@ ComponentDefinitions:
                         lcsDialog.OnButtonSelect(btn.Key, txtInput.Text);
                         Reset(txtInput)
                     )
-            - btnSecond:
-                Control: ModernButton@1.0.0
+            - lblSecond:
+                Control: ModernText@1.0.0
                 Properties:
+                  X: =btnSecond.X
+                  Y: =btnSecond.Y
+                  Width: =btnSecond.Width
+                  Height: =btnSecond.Height
+                  Visible: =btnSecond.Visible
+                  Text: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))}, btn.Label)
+                  Size: =14
+                  FontWeight: =FontWeight.Semibold
+                  Color: |-
+                    =If(btnSecond.DisplayMode = DisplayMode.Disabled, If(lcsDialog.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(255, 255, 255, 1), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)), If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))))
+                  Fill: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", If(btnSecond.DisplayMode = DisplayMode.Disabled, If(lcsDialog.Theme = "Dark", RGBA(56, 56, 56, 1), RGBA(240, 240, 240, 1)), With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
+                    )), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1)), s = "Outline", RGBA(0, 0, 0, 0), RGBA(0, 0, 0, 0)))
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+            - btnSecond:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  X: =btnFirst.X - 8 - Self.Width
+                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
+                  Width: =Max(96, Len(lblSecond.Text) * 8 + 32)
+                  Height: =36
                   Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 1
                   Text: |-
                     =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))}, btn.Label)
-                  AccessibleLabel: |-
-                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))}, btn.Label)
-                  Width: =Max(96, Len(Self.Text) * 8 + 32)
-                  Height: =36
-                  X: =btnFirst.X - 8 - Self.Width
-                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
-                  Appearance: |-
-                    =With(
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: |-
+                    =With({s: With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
                         Switch(
                             If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
-                            "Secondary", ButtonAppearance.Secondary,
-                            "Outline", ButtonAppearance.Outline,
-                            "Subtle", ButtonAppearance.Subtle,
-                            ButtonAppearance.Primary
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
                         )
-                    )
-                  BasePaletteColor: |-
-                    =With(
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  BorderThickness: =1
+                  HoverFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: |-
+                    =With({s: With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
-                        If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
-                    )
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  PressedFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1)), RGBA(0, 0, 0, 0)))
+                  FocusedBorderColor: =If(lcsDialog.Theme = "Dark", ColorFade(lcsDialog.AccentColor, 0.45), lcsDialog.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   DisplayMode: |-
                     =With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 1)))},
@@ -423,34 +626,123 @@ ComponentDefinitions:
                         lcsDialog.OnButtonSelect(btn.Key, txtInput.Text);
                         Reset(txtInput)
                     )
-            - btnThird:
-                Control: ModernButton@1.0.0
+            - lblThird:
+                Control: ModernText@1.0.0
                 Properties:
-                  Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 2
+                  X: =btnThird.X
+                  Y: =btnThird.Y
+                  Width: =btnThird.Width
+                  Height: =btnThird.Height
+                  Visible: =btnThird.Visible
                   Text: |-
                     =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))}, btn.Label)
-                  AccessibleLabel: |-
-                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))}, btn.Label)
-                  Width: =Max(96, Len(Self.Text) * 8 + 32)
-                  Height: =36
-                  X: =btnSecond.X - 8 - Self.Width
-                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
-                  Appearance: |-
-                    =With(
+                  Size: =14
+                  FontWeight: =FontWeight.Semibold
+                  Color: |-
+                    =If(btnThird.DisplayMode = DisplayMode.Disabled, If(lcsDialog.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), With({s: With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
                         Switch(
                             If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
-                            "Secondary", ButtonAppearance.Secondary,
-                            "Outline", ButtonAppearance.Outline,
-                            "Subtle", ButtonAppearance.Subtle,
-                            ButtonAppearance.Primary
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
                         )
-                    )
-                  BasePaletteColor: |-
-                    =With(
+                    )}, If(s = "Primary", RGBA(255, 255, 255, 1), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)), If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))))
+                  Fill: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", If(btnThird.DisplayMode = DisplayMode.Disabled, If(lcsDialog.Theme = "Dark", RGBA(56, 56, 56, 1), RGBA(240, 240, 240, 1)), With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
                         If(If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style) = "Danger", RGBA(196, 49, 75, 1), lcsDialog.AccentColor)
-                    )
+                    )), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1)), s = "Outline", RGBA(0, 0, 0, 0), RGBA(0, 0, 0, 0)))
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+            - btnThird:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  X: =btnSecond.X - 8 - Self.Width
+                  Y: =If(txtInput.Visible, lblInputError.Y + lblInputError.Height + 20, lblMessage.Y + lblMessage.Height + 24)
+                  Width: =Max(96, Len(lblThird.Text) * 8 + 32)
+                  Height: =36
+                  Visible: =CountRows(Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))) > 2
+                  Text: |-
+                    =With({btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))}, btn.Label)
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  BorderThickness: =1
+                  HoverFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  PressedFill: =If(lcsDialog.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1)), RGBA(0, 0, 0, 0)))
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: |-
+                    =With({s: With(
+                        {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},
+                        Switch(
+                            If(lcsDialog.Kind = "Danger" && btn.Key = "confirm", "Danger", btn.Style),
+                            "Secondary", "Secondary",
+                            "Outline", "Outline",
+                            "Subtle", "Subtle",
+                            "Primary"
+                        )
+                    )}, If(s = "Primary", RGBA(0, 0, 0, 0), s = "Secondary", If(lcsDialog.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1)), s = "Outline", If(lcsDialog.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1)), RGBA(0, 0, 0, 0)))
+                  FocusedBorderColor: =If(lcsDialog.Theme = "Dark", ColorFade(lcsDialog.AccentColor, 0.45), lcsDialog.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   DisplayMode: |-
                     =With(
                         {btn: With({vb: Filter(lcsDialog.Buttons As b, !(lcsDialog.Kind = "Alert" && b.Key = "cancel"))}, Last(FirstN(vb, CountRows(vb) - 2)))},

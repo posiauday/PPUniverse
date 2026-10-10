@@ -68,16 +68,37 @@ function CommentBody({ body }: { body: string }) {
   );
 }
 
+/** What the section says on a guide (MVP-040) and on a component's page (MVP-051). */
+const WORDS = {
+  guide: {
+    heading: "Comments",
+    empty: "No comments yet. Share what worked for you.",
+    accepted: "Accepted fix",
+    signIn: "Sign in to comment",
+    path: "guides",
+  },
+  component: {
+    heading: "Questions and discussion",
+    empty: "No questions yet. Ask one, or share how you used it.",
+    accepted: "Accepted answer",
+    signIn: "Sign in to ask or answer",
+    path: "components",
+  },
+} as const;
+
 /**
- * Comments under a guide (MVP-040): shown at once, under each reader's
- * display name and generated avatar, never their email. An admin's accepted
- * fix comes first. Signed-in readers get the form; others a sign-in link.
+ * Comments under a guide (MVP-040) or a component (MVP-051): shown at once,
+ * under each reader's display name and generated avatar, never their email.
+ * An admin's accepted fix or answer comes first. Signed-in readers get the
+ * form; others a sign-in link.
  */
 export function GuideComments({
   slug,
   comments,
   viewer,
+  kind = "guide",
 }: {
+  kind?: "guide" | "component";
   slug: string;
   comments: readonly GuideComment[];
   /** The signed-in reader's profile, or null for a guest. */
@@ -86,14 +107,20 @@ export function GuideComments({
   // Underscored ids, like the rest of the guide page's own: heading slugs
   // never contain one, so a "## Comments" heading in a guide can't clash.
   const headingId = "reader_comments_heading";
+  const words = WORDS[kind];
   return (
-    <section aria-labelledby={headingId} id="reader_comments" className="mt-14 flex flex-col gap-5">
+    <section
+      aria-labelledby={headingId}
+      id="reader_comments"
+      className="mt-14 flex scroll-mt-28 flex-col gap-5"
+    >
       <h2 id={headingId} className="font-display text-2xl font-bold">
-        Comments{comments.length > 0 ? ` (${comments.length})` : ""}
+        {words.heading}
+        {comments.length > 0 ? ` (${comments.length})` : ""}
       </h2>
 
       {comments.length === 0 ? (
-        <p className="text-muted-foreground">No comments yet. Share what worked for you.</p>
+        <p className="text-muted-foreground">{words.empty}</p>
       ) : (
         <ol className="flex flex-col gap-4">
           {comments.map((comment) => (
@@ -114,7 +141,7 @@ export function GuideComments({
                 </time>
                 {comment.accepted ? (
                   <span className="rounded-full bg-highlight px-2.5 py-0.5 text-sm font-semibold text-highlight-foreground">
-                    Accepted fix
+                    {words.accepted}
                   </span>
                 ) : null}
               </div>
@@ -126,14 +153,14 @@ export function GuideComments({
       )}
 
       {viewer ? (
-        <CommentForm slug={slug} viewer={viewer} />
+        <CommentForm slug={slug} viewer={viewer} kind={kind} />
       ) : (
         <p>
           <Link
-            href={`/signin?callbackUrl=${encodeURIComponent(`/guides/${slug}#reader_comments`)}`}
+            href={`/signin?callbackUrl=${encodeURIComponent(`/${words.path}/${slug}#reader_comments`)}`}
             className="font-semibold underline underline-offset-4"
           >
-            Sign in to comment
+            {words.signIn}
           </Link>
           . Comments show under a display name you choose, never your email.
         </p>

@@ -111,6 +111,7 @@ export {
   type CommentPart,
   type CommentProblem,
   type CommentRepository,
+  type CommentTarget,
   type DisplayNameProblem,
   type GuideComment,
   type PublicProfile,

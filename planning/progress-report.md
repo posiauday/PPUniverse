@@ -5754,3 +5754,91 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 - Cards and the component page show "MIT License" (the page links to `/terms#mit-license`); the copy button says "Sign in to copy"; the YAML tab says "Sign in to see and copy its YAML". Copy access is unchanged.
 
 **Checked:** the component gate (30, including the rejected-property check, which reports all four errors in the pasted YAML), web component tests (42), typecheck and lint.
+
+## 2026-10-10 — Azure teaser: ask readers instead of repeating the independence line
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Azure teaser: ask readers").
+
+**Changed:** `/azure` drops the independence and trademark line (the footer has it on every page) and asks which Azure problem to cover first, with the contact address. Test updated.
+
+**Checked:** the page's tests (2) and lint.
+
+## 2026-10-10 — Coming soon in Settings
+
+**Asked:** the product owner looked for Coming soon in a published component's Settings (docs/final-decisions.md, 2026-10-10, "Coming soon in Settings").
+
+**Changed:** `SettingsForm` shows the box for published components too ("Show as Coming soon instead", unticked); saving with it ticked saves the other settings, then calls `POST /api/admin/components/[id]/coming-soon`. The separate button is removed; Publish points to Settings.
+
+**Checked:** new `SettingsForm` tests (2), admin and component tests (45), typecheck and lint.
+
+## 2026-10-10 — Wave 2 and the drafts: hover follows each component's own theme
+
+**Why:** the Navigation shell fix (docs/final-decisions.md, 2026-10-09, "Navigation shell: a Premium look, and hover in dark mode") was still to do in the Data table, Pagination, People picker, Dialog and Toast (the 2026-10-09 Tree view and Stepper entry). The same problem was found in the Date and time picker's Secondary presets and the States component's action button. All seven are unpublished drafts, so one paste-test now covers light and dark.
+
+**Changed** (drafts, still 0.1.0):
+- **33 modern buttons** become the Navigation shell's pattern: a modern Icon and/or Text for what you see (Primary and Secondary labels carry their fill), under a transparent classic button whose hover (8% white on dark, 5% black on light), pressed (14% and 9%), focus ring and border follow `Theme`. Disabled labels dim to RGBA(110, 110, 110) on dark and RGBA(170, 170, 170) on light.
+  - Pagination: First, Previous, the page numbers (the current page keeps its accent fill), Next, Last.
+  - Data table: the two Secondary bulk actions, Clear selection, the six sortable headers, the row menu, the row actions and the card actions. The Primary bulk action stays a modern button (its fill and hover are its own).
+  - People picker: Add me (icon and text), and Remove on each chosen person.
+  - Dialog: Close, and the three action buttons, which keep taking their look from `Buttons` (Primary, Secondary, Outline, Subtle; red for Danger). Secondary was light on a dark dialog before.
+  - Toast: the Outline action (its own border colour kept) and Close.
+  - Date and time picker: the three quick-pick presets (Secondary). States: the action button (Primary, or Outline for an error).
+- **The Dialog gets a Dark preset**, with all three button looks, so its dark look can be tried on its page.
+- **The previews** (`replicas/themed.tsx`, new) draw the same shades, fills, borders and disabled colours.
+- Not changed: the Data table's view switch (a modern Tab list) and the date picker's own fields, which aren't buttons; check their dark hover during the paste-test.
+
+**Checked:**
+- The component gate (39 checks).
+- Web typecheck, lint and component tests (42).
+- Locally on a real database, with the components loaded: Pagination, Dialog, Data table and Date and time picker in their Dark presets. Hover and colours read from the browser match the YAML (hover 8% white; the Dialog's Cancel is a dark Secondary; the presets are RGBA(41, 41, 41) with an RGBA(82, 82, 82) border). Screenshots checked.
+
+**Not yet:** the product owner's paste-tests of these drafts, in light and dark.
+
+## 2026-10-10 — Component cards: two looks, alive on hover
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Component cards: two looks, alive on hover"), after three Tree view concepts were rendered and shown.
+
+**Changed:** `apps/web/app/components/ComponentArt.tsx` draws all 14 cards as a fanned pair: the standard look behind, the brand colour in front. On hover the pair spreads and a pointer uses the front one:
+- Button: Submit turns to Working… with a spinner.
+- FAB: + turns to × and the speed dial opens.
+- Text field: an email types itself in; the count goes 0/100 to 17/100.
+- Dialog: DELETE is typed, then Delete turns red.
+- Toast: an Info message with View slides in after Sync.
+- Tabs: the segmented control moves from Open to Waiting.
+- Date and time picker: a range fills from the 2nd to the 6th; the end date appears.
+- People picker: Priya Nair moves from the results to a chip.
+- Pagination: page 4 to 5, and 31–40 to 41–50 of 312 orders.
+- Data table: row 1 is ticked and the bulk bar shows 1 selected and Approve.
+- Navigation shell (Premium): the current item moves from Home to Orders.
+- Tree view (Premium): Plans opens and Q3 plan.docx is selected.
+- Stepper (Premium): Next completes step 2; step 3 of 4, 75%.
+- States: Try again turns the error into loading rows.
+
+CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hidden until hover. New test: every component in `content/components` has a picture; the picture is decorative; its motion respects reduced motion.
+
+**Checked:**
+- Web tests (58, 16 new), typecheck and lint.
+- Locally, every card in the listing's own markup at 800 and 375 px. All fit below the category badge with nothing cut off; no sideways scroll on a phone.
+- Each hover end state, read in the browser, matches the list above. Screenshots checked.
+
+## 2026-10-10 — MVP-051: comments on component pages
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Comments on component pages").
+
+**Requirement:** FR-014. **Acceptance:** a published component's page lists its comments (accepted answer first) and lets a signed-in reader post one, with the guide comments' rules; guests get a sign-in link back to the component; reports, delete-own and moderation work as on guides; nothing on Coming soon, hidden or switched-off components.
+
+**Changed:**
+- **Database** (`20261018000000_add_component_comments`): `article_comments.componentId` (nullable, FK to `library_components`, cascade), `articleId` now nullable, and a CHECK that exactly one is set. Existing rows all have an `articleId`, so the CHECK holds. Additive, with a written rollback.
+- **Domain and repository:** a `CommentTarget` (guide or component) for listing and posting; one accepted answer per guide or component; the admin list says which one each comment is on.
+- **API:** `POST /api/components/[slug]/comments`. The guide route and it share one handler (`lib/comment-post.ts`), so the rules can't drift apart. Logs carry `on: guide | component`, never the text.
+- **Pages:** the comments section takes `kind` (Questions and discussion; Accepted answer; Sign in to ask or answer). Component pages show it after the guide, with a contents entry. `/admin/comments` links each comment to its guide or component.
+
+**Security review:** sign-in and the published check are enforced on the server; the same origin check, body limit, text cleaning, rate limits and no-store as guide comments; no email or provider name selected; RLS stays on for the table; the CHECK stops a comment pointing at both or neither.
+
+**Checked:**
+- Repository integration tests on a real Postgres: 7 pass, 2 new (a component's comments kept apart from a guide's, with its own accepted answer; the one-target CHECK).
+- Web tests: 918 pass (route and section tests added). Typecheck and lint pass.
+- Migration applied locally; `prisma migrate diff` from the database to the schema is empty.
+- Locally, the Tree view page with a seeded question and accepted answer: the section, its count, the accepted answer first, Report, the sign-in link and the contents entry.
+
+**Not yet:** a signed-in post in the browser (covered by route and repository tests). It needs `FEATURE_COMMENTS` on in production to show, like guide comments.
