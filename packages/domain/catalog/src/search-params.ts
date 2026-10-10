@@ -3,6 +3,13 @@ import type { SortOption } from "./types.js";
 const VALID_SORTS: readonly SortOption[] = ["relevance", "recent", "alphabetical"];
 export const DEFAULT_PAGE_SIZE = 12;
 export const MAX_PAGE_SIZE = 48;
+/**
+ * Site review, 2026-10-10: a search term longer than this is cut, so a huge
+ * query can't load the database (search pages aren't cached), and a page past
+ * this is the last one asked for, so the SQL OFFSET stays in range.
+ */
+export const MAX_QUERY_LENGTH = 200;
+export const MAX_PAGE = 1000;
 
 /**
  * Pure parsing/validation for URL query parameters (?q=&sort=&page=&
@@ -35,13 +42,13 @@ export function firstParam(raw: string | readonly string[] | undefined): string 
  * crawlers following malformed links would record as a server error.
  */
 export function normalizeQuery(raw: string | readonly string[] | undefined): string | undefined {
-  const trimmed = firstParam(raw)?.trim();
+  const trimmed = firstParam(raw)?.trim().slice(0, MAX_QUERY_LENGTH).trim();
   return trimmed ? trimmed : undefined;
 }
 
 export function parsePage(raw: string | undefined): number {
   const parsed = Number(raw);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  return Number.isSafeInteger(parsed) && parsed > 0 ? Math.min(parsed, MAX_PAGE) : 1;
 }
 
 export function parsePageSize(raw: string | undefined): number {

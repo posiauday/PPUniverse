@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export default async function WelcomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string | string[] }>;
 }) {
   const next = safeContinuePath((await searchParams).callbackUrl);
   const session = await getServerSession(authOptions);

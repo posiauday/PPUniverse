@@ -133,12 +133,14 @@ export function SiteHeader({
             <Link
               href={account.href}
               title={account.name}
-              className="motion-press inline-grid size-11 place-items-center rounded-full text-foreground no-underline hover:bg-muted max-lg:hidden"
+              // 52 px (product owner, 2026-10-10): the -my-1 lets it use the bar's own
+              // padding, so the bar keeps its height.
+              className="motion-press -my-1 inline-grid size-[3.25rem] place-items-center rounded-full text-foreground no-underline hover:bg-muted max-lg:hidden"
             >
               <Avatar
                 seed={viewer?.avatarSeed ?? "account"}
                 name={viewer?.displayName ?? undefined}
-                size={40}
+                size={52}
               />
               <span className="sr-only">{account.name}</span>
             </Link>

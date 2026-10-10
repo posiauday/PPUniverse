@@ -1,5 +1,6 @@
 import { PrismaPrivacyRepository } from "@ppu/adapter-privacy";
 import { prisma } from "@ppu/db";
+import { sameSitePath } from "./same-site-path";
 
 /**
  * Accepting the Terms of use and the Privacy notice when an account is made
@@ -33,9 +34,11 @@ export async function hasAcceptedTerms(userId: string): Promise<boolean> {
   return latest?.granted === true;
 }
 
-/** A path on this site to continue to after accepting; anything else goes to the account page. */
-export function safeContinuePath(value: string | null | undefined): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\"))
-    return "/account";
-  return value;
+/**
+ * A path on this site to continue to after accepting; anything else, including
+ * a repeated callbackUrl, goes to the account page (site review, 2026-10-10:
+ * the same rule as the sign-in page, so "/%09/host" can't redirect away).
+ */
+export function safeContinuePath(value: unknown): string {
+  return sameSitePath(value) ?? "/account";
 }

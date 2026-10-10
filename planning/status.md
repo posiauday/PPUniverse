@@ -6,6 +6,10 @@ Last updated: 2026-10-10 (latest) — **MVP-052 In Progress: the admin centre re
 - **Built:** the redesigned sidebar with a one-line menu on phones, a shared page header, and the Overview as an Inbox of everything waiting (docs/final-decisions.md, 2026-10-10).
 - **Next:** phase 2, guides, updates and products as tables with search and status tabs.
 
+Last updated (previous): 2026-10-10 — **Full-site review: seven defects fixed (BUG-044 to BUG-050).**
+- **Fixed:** an open redirect, unlimited sign-in emails, Google sign-in without a verified email, unbounded search input, account routes without an origin check, and two smaller ones.
+- **Next:** the admin centre review; release #156 and #157.
+
 Last updated (previous): 2026-10-10 — **MVP-051 in QA: comments on component pages.**
 - **Built:** a Questions and discussion section on every published component page, with the guide comments' rules and moderation (docs/final-decisions.md, 2026-10-10).
 - **Next:** merge and release; the product owner's paste-tests of the drafts; then wave 3.

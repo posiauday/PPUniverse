@@ -142,6 +142,24 @@ describe("PasswordAuth sign-up and confirmation", () => {
       await t.auth.signUp({ email: "flood@example.com", password: GOOD, ip: `ip-${i}` });
     expect(t.sent).toHaveLength(5);
   });
+  // Site review, 2026-10-10: the emailed sign-in link shares the password emails' budget.
+  it("lets the emailed sign-in link share one address's and one IP's mail budget", async () => {
+    const t = setup();
+    for (let i = 0; i < 3; i++)
+      await t.auth.signUp({ email: "Shared@Example.com", password: GOOD, ip: `ip-${i}` });
+    const links = [];
+    for (let i = 0; i < 4; i++)
+      links.push(await t.auth.allowEmailTo({ email: " shared@example.com ", ip: `link-${i}` }));
+    // Three sign-up emails and two sign-in links make five; the rest wait an hour.
+    expect(links).toEqual([true, true, false, false]);
+    t.advance(61);
+    expect(await t.auth.allowEmailTo({ email: "shared@example.com", ip: "later" })).toBe(true);
+
+    const fromOneIp = [];
+    for (let i = 0; i < 22; i++)
+      fromOneIp.push(await t.auth.allowEmailTo({ email: `person-${i}@example.com`, ip: "one-ip" }));
+    expect(fromOneIp.filter(Boolean)).toHaveLength(20);
+  });
 });
 
 describe("PasswordAuth sign-in", () => {

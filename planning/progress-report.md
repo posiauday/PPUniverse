@@ -5843,6 +5843,25 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 
 **Not yet:** a signed-in post in the browser (covered by route and repository tests). It needs `FEATURE_COMMENTS` on in production to show, like guide comments.
 
+## 2026-10-10 — Full-site review: security fixes (BUG-044 to BUG-050)
+
+**Asked:** the product owner: "code review of the full site, and fix the vulnerabilities and anything you think is not right."
+
+**Reviewed:** all 65 routes (admin checks, origin checks, sign-in and sessions, password flows, uploads and downloads, entitlements, unsubscribe tokens, comments), raw SQL, HTML rendering (Markdown, JSON-LD, comments, emails, feeds), redirects, security headers and the CI workflow. Sound and unchanged: every admin route and page re-reads the role from the database; raw SQL is parameterised; Markdown never renders raw HTML; JSON-LD, feeds and emails escape; unsubscribe tokens are signed and compared in constant time; uploads are admin-only, owner-checked and scanned; password sign-in is timing-safe and throttled. The missing script-src in the CSP is already TD-029.
+
+**Fixed** (records in planning/bugs/):
+- BUG-044 (P1): an open redirect from /account/welcome; one shared redirect rule, `sameSitePath`, now behind both redirect checks.
+- BUG-045 (P1): emailed sign-in links had no rate limit; they now share the password emails' budget (5 an hour per address, 20 per IP).
+- BUG-046 (P0): Google sign-in now requires Google's email_verified before linking to an account.
+- BUG-047 (P3): Google emails are lowercased like every other sign-in.
+- BUG-048 (P3): a demoted admin loses the crown avatar.
+- BUG-049 (P2): search terms are cut at 200 characters and page numbers at 1,000.
+- BUG-050 (P2): consent, deletion requests, free product claims and session sign-out refuse other sites.
+
+**Checked:** web tests (947, with 5 new test files), identity (35) and catalog (103) tests, typecheck, lint, format.
+
+**Next:** the admin centre review the product owner asked for.
+
 ## 2026-10-10 — MVP-052 phase 1: the admin shell and the Inbox
 
 **Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Admin centre: concept A with B's Inbox"), after a review of all 23 admin pages and three rendered concepts. Also asked: the top-bar avatar at 52 px.
