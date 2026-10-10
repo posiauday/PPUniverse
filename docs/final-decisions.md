@@ -2395,3 +2395,12 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - Settings has the Coming soon box for every component. On a draft it works as before. On a published one it reads "Show as Coming soon instead", starts clear, and saving with it ticked moves the component back to a Coming soon draft (its paste-test kept), as "Component library: back to Coming soon" describes.
 - The separate "Back to Coming soon" button goes; Publish points to the box in Settings.
 
+## 2026-10-10 — Component cards: two looks, alive on hover
+
+**Source:** direct product-owner instruction. With a screenshot of the real Tree view, they called its card picture on `/components` ugly ("nobody will want to click it") and asked for it to look like the component, or something better. Shown three rendered concepts (as it is; alive on hover; two looks), they chose **two looks, combined with alive on hover if possible**, and **all cards** in that style.
+
+- Every card's picture is two faithful drawings of the component fanned like cards: its standard look (Fluent blue) behind, and in your brand colour (purple) in front.
+- Hovering the card fans them apart and the front one is used: a pointer selects and the component answers (the Button goes busy, the Dialog's type-to-confirm unlocks Delete, the Tree view opens a folder and selects a file, and so on). Only states the component really has are shown.
+- At rest, on touch screens and with reduced motion it is a still picture; the pointer only appears on hover. The picture stays decorative (`aria-hidden`).
+- Replaces the single drawing from "One live view" (2026-10-08) on the card; the component's page is unchanged.
+

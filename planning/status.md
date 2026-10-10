@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-10 (latest) — **MVP-049 In Progress: hover follows each component's own theme in the seven unpublished drafts that had modern buttons on a dark theme.**
+Last updated: 2026-10-10 (latest) — **MVP-049 In Progress: the component cards are two looks of each component, alive on hover.**
+- **Changed:** all 14 card pictures on `/components`: the standard look behind, the brand colour in front, which is used on hover (docs/final-decisions.md, 2026-10-10).
+- **Next:** comments on component pages (asked 2026-10-10); the product owner's paste-tests of the drafts; then wave 3.
+
+Last updated (previous): 2026-10-10 — **MVP-049 In Progress: hover follows each component's own theme in the seven unpublished drafts that had modern buttons on a dark theme.**
 - **Changed:** Data table, Pagination, People picker, Dialog, Toast, Date and time picker and States: 33 buttons now use the published Navigation shell's pattern (a modern Icon or Text under a transparent classic button). The Dialog gets a Dark preset.
 - **Published:** Button, Floating action button and Navigation shell.
 - **Next:** the product owner's paste-tests of the drafts, in light and dark; then wave 3 (Kanban board, screen templates, charts last).
