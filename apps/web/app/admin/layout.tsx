@@ -31,8 +31,14 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           ...(counts ? { count: { value: counts.updatesPublished, label: "published" } } : {}),
         },
         { href: "/admin/topics", name: "Learn topics" },
-        { href: "/admin/components", name: "Component library" },
-        { href: "/admin/products", name: "Marketplace products" },
+        {
+          href: "/admin/components",
+          name: "Components",
+          ...(counts
+            ? { count: { value: counts.componentsToTest, warm: true, label: "to paste-test" } }
+            : {}),
+        },
+        { href: "/admin/products", name: "Products" },
       ],
     },
     {
@@ -75,9 +81,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   ];
 
   return (
-    <div className="mx-auto grid max-w-[90rem] gap-6 px-4 py-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:px-6">
+    <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 [overflow-wrap:anywhere] lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:px-6">
       <aside className="rounded-[1.5rem] border border-border bg-card p-3 lg:sticky lg:top-24 lg:self-start">
-        <p className="px-3 pt-1 font-display text-lg font-bold">Admin</p>
         <AdminNav groups={groups} />
       </aside>
       <div className="min-w-0">{children}</div>

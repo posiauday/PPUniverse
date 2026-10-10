@@ -2,7 +2,11 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-10 (latest) — **Full-site review: seven defects fixed (BUG-044 to BUG-050).**
+Last updated: 2026-10-10 (latest) — **MVP-052 In Progress: the admin centre redesign, phase 1 (sidebar and Inbox).**
+- **Built:** the redesigned sidebar with a one-line menu on phones, a shared page header, and the Overview as an Inbox of everything waiting (docs/final-decisions.md, 2026-10-10).
+- **Next:** phase 2, guides, updates and products as tables with search and status tabs.
+
+Last updated (previous): 2026-10-10 — **Full-site review: seven defects fixed (BUG-044 to BUG-050).**
 - **Fixed:** an open redirect, unlimited sign-in emails, Google sign-in without a verified email, unbounded search input, account routes without an origin check, and two smaller ones.
 - **Next:** the admin centre review; release #156 and #157.
 
