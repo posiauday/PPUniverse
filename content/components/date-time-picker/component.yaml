@@ -241,8 +241,32 @@ ComponentDefinitions:
             PaddingRight: =0
             PaddingTop: =0
             PaddingBottom: =0
+      - lblPreset1:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnPreset1.X
+            Y: =btnPreset1.Y
+            Width: =btnPreset1.Width
+            Height: =btnPreset1.Height
+            Visible: =btnPreset1.Visible
+            Text: =If(lcsDatePicker.Mode = "Range", "This week", "Today")
+            Size: =12
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =If(lcsDatePicker.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnPreset1:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =0 * 112
             Y: =lblLabel.Height + 4
@@ -250,10 +274,25 @@ ComponentDefinitions:
             Height: =32
             Visible: =lcsDatePicker.ShowPresets
             Text: =If(lcsDatePicker.Mode = "Range", "This week", "Today")
-            Appearance: =ButtonAppearance.Secondary
-            BasePaletteColor: =lcsDatePicker.AccentColor
-            Size: =12
-            AccessibleLabel: =If(lcsDatePicker.Mode = "Range", "This week", "Today")
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            PressedFill: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsDatePicker.Theme = "Dark", ColorFade(lcsDatePicker.AccentColor, 0.45), lcsDatePicker.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   lcsDatePicker.Mode = "Range",
@@ -266,8 +305,32 @@ ComponentDefinitions:
               Reset(dpEnd);
               Set(locTouched, true);
               lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(locStart) && !IsBlank(ddTime.Selected.Value), DateAdd(locStart, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), locStart), If(lcsDatePicker.Mode = "Range", locEnd, Blank()))
+      - lblPreset2:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnPreset2.X
+            Y: =btnPreset2.Y
+            Width: =btnPreset2.Width
+            Height: =btnPreset2.Height
+            Visible: =btnPreset2.Visible
+            Text: =If(lcsDatePicker.Mode = "Range", "Next 7 days", "Tomorrow")
+            Size: =12
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =If(lcsDatePicker.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnPreset2:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =1 * 112
             Y: =lblLabel.Height + 4
@@ -275,10 +338,25 @@ ComponentDefinitions:
             Height: =32
             Visible: =lcsDatePicker.ShowPresets
             Text: =If(lcsDatePicker.Mode = "Range", "Next 7 days", "Tomorrow")
-            Appearance: =ButtonAppearance.Secondary
-            BasePaletteColor: =lcsDatePicker.AccentColor
-            Size: =12
-            AccessibleLabel: =If(lcsDatePicker.Mode = "Range", "Next 7 days", "Tomorrow")
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            PressedFill: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsDatePicker.Theme = "Dark", ColorFade(lcsDatePicker.AccentColor, 0.45), lcsDatePicker.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   lcsDatePicker.Mode = "Range",
@@ -291,8 +369,32 @@ ComponentDefinitions:
               Reset(dpEnd);
               Set(locTouched, true);
               lcsDatePicker.OnChange(If(lcsDatePicker.Mode = "DateTime" && !IsBlank(locStart) && !IsBlank(ddTime.Selected.Value), DateAdd(locStart, Hour(TimeValue(ddTime.Selected.Value)) * 60 + Minute(TimeValue(ddTime.Selected.Value)), TimeUnit.Minutes), locStart), If(lcsDatePicker.Mode = "Range", locEnd, Blank()))
+      - lblPreset3:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnPreset3.X
+            Y: =btnPreset3.Y
+            Width: =btnPreset3.Width
+            Height: =btnPreset3.Height
+            Visible: =btnPreset3.Visible
+            Text: =If(lcsDatePicker.Mode = "Range", "Last 30 days", "In a week")
+            Size: =12
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+            Fill: =If(lcsDatePicker.Theme = "Dark", RGBA(41, 41, 41, 1), RGBA(255, 255, 255, 1))
+            Align: =Align.Center
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =4
+            PaddingRight: =4
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnPreset3:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =2 * 112
             Y: =lblLabel.Height + 4
@@ -300,10 +402,25 @@ ComponentDefinitions:
             Height: =32
             Visible: =lcsDatePicker.ShowPresets
             Text: =If(lcsDatePicker.Mode = "Range", "Last 30 days", "In a week")
-            Appearance: =ButtonAppearance.Secondary
-            BasePaletteColor: =lcsDatePicker.AccentColor
-            Size: =12
-            AccessibleLabel: =If(lcsDatePicker.Mode = "Range", "Last 30 days", "In a week")
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            BorderThickness: =1
+            HoverFill: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            PressedFill: =If(lcsDatePicker.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(82, 82, 82, 1), RGBA(209, 213, 219, 1))
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =If(lcsDatePicker.Theme = "Dark", RGBA(66, 66, 66, 1), RGBA(229, 231, 235, 1))
+            FocusedBorderColor: =If(lcsDatePicker.Theme = "Dark", ColorFade(lcsDatePicker.AccentColor, 0.45), lcsDatePicker.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   lcsDatePicker.Mode = "Range",

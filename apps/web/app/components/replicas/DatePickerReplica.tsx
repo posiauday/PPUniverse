@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import { ButtonFace } from "./ButtonReplica";
+import { ThemedButton } from "./themed";
 import { useNotify } from "./notify";
 import { cssColor, fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
@@ -401,12 +401,10 @@ export function useDatePickerReplica(): ReplicaApi {
         {inputs.ShowPresets ? (
           <div className="mt-1 flex flex-wrap gap-2">
             {presets(inputs.Mode, new Date(), inputs.BlockWeekends).map(([label, from, to]) => (
-              <ButtonFace
+              <ThemedButton
                 key={label}
                 label={label}
                 appearance="Secondary"
-                icon=""
-                busy={false}
                 dark={dark}
                 size="h-8 w-[104px] text-xs"
                 onClick={() => {

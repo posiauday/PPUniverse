@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ButtonFace } from "./ButtonReplica";
+import { ThemedButton } from "./themed";
 import { useNotify } from "./notify";
 import { cssColor, fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
@@ -128,13 +128,11 @@ function StatePanel({ inputs, onAction }: { inputs: Inputs; onAction: () => void
       </p>
       {inputs.State !== "Loading" && inputs.ActionText ? (
         <span className="mt-3">
-          <ButtonFace
+          <ThemedButton
             label={inputs.ActionText}
             appearance={isError ? "Outline" : "Primary"}
-            icon=""
-            busy={false}
             dark={dark}
-            accent={inputs.AccentColor}
+            fill={inputs.AccentColor}
             size="h-9 min-w-[120px] px-4"
             onClick={onAction}
           />

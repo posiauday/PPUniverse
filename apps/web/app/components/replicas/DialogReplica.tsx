@@ -2,6 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { ButtonFace } from "./ButtonReplica";
+import { ThemedButton, themedHover } from "./themed";
 import { useNotify } from "./notify";
 import { fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
@@ -186,7 +187,7 @@ function DialogCard({
           type="button"
           aria-label="Close dialog"
           onClick={onClose}
-          className={`absolute top-4 right-4 grid size-9 place-items-center rounded ${dark ? "hover:bg-[#3d3d3d]" : "hover:bg-[#f0f0f0]"}`}
+          className={`absolute top-4 right-4 grid size-9 place-items-center rounded ${themedHover(dark)}`}
         >
           <svg
             viewBox="0 0 24 24"
@@ -230,16 +231,13 @@ function DialogCard({
         {visibleButtons(inputs).map((button) => {
           const primary = button.Style === "Primary" || button.Style === "Danger";
           return (
-            <ButtonFace
+            <ThemedButton
               key={button.Key}
               label={button.Label}
               appearance={button.Style === "Danger" ? "Primary" : button.Style}
-              danger={button.Style === "Danger"}
+              fill={button.Style === "Danger" ? "#c4314b" : "#0f6cbd"}
               disabled={primary && !canConfirm}
-              icon=""
-              busy={false}
               dark={dark}
-              size="h-9 min-w-24 px-4"
               onClick={() => onButton(button)}
             />
           );

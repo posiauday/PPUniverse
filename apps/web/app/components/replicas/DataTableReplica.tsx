@@ -3,6 +3,7 @@
 import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useNotify } from "./notify";
 import { cssColor, fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./replica";
+import { themedDimText, themedHover, themedHoverOverFill } from "./themed";
 
 /**
  * A web replica of lcsDataTable (MVP-049; docs/final-decisions.md, 2026-10-09,
@@ -331,9 +332,7 @@ export function useDataTableReplica(): ReplicaApi {
   const sub = dark ? "text-[#adadad]" : "text-[#616161]";
   const line = dark ? "border-[#424242]" : "border-[#e5e7eb]";
   const hover = dark ? "hover:bg-white/[0.06]" : "hover:bg-black/[0.035]";
-  const subtle = dark
-    ? "text-white hover:bg-white/10 active:bg-white/15"
-    : "text-[#242424] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]";
+  const subtle = `${ink} ${themedHover(dark)}`;
   const selectedFill = dark
     ? "bg-[color-mix(in_srgb,var(--accent)_30%,#242424)]"
     : "bg-[color-mix(in_srgb,var(--accent)_10%,white)]";
@@ -426,12 +425,14 @@ export function useDataTableReplica(): ReplicaApi {
               disabled={selected.length === 0}
               aria-label={`${action}, ${selected.length} selected`}
               onClick={() => notify(`${action}: ${selected.join(";")}`)}
-              className={`h-9 w-[104px] rounded border text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`h-9 w-[104px] rounded border text-sm font-semibold disabled:cursor-not-allowed ${
                 index === 0
-                  ? "border-transparent bg-[var(--accent)] text-white"
-                  : dark
-                    ? "border-[#666] bg-[#292929] text-white"
-                    : "border-[#d1d1d1] bg-white text-[#242424]"
+                  ? "border-transparent bg-[var(--accent)] text-white disabled:opacity-50"
+                  : `bg-[var(--fill)] ${dark ? "[--fill:#292929]" : "[--fill:#ffffff]"} ${
+                      selected.length === 0
+                        ? `${dark ? "border-[#424242]" : "border-[#e5e7eb]"} ${themedDimText(dark)}`
+                        : `${dark ? "border-[#525252]" : "border-[#d1d5db]"} ${ink} ${themedHoverOverFill(dark)}`
+                    }`
               }`}
             >
               {action}
@@ -670,7 +671,7 @@ export function useDataTableReplica(): ReplicaApi {
                 style={{ width: column.Width }}
                 aria-label={`${column.Label}, sort${sorted ? (descending ? ", sorted descending" : ", sorted ascending") : ""}`}
                 onClick={() => sortBy(n)}
-                className={`h-11 shrink-0 rounded px-3 text-left text-[13px] font-semibold ${sub} ${dark ? "hover:bg-white/5" : "hover:bg-black/5"}`}
+                className={`h-11 shrink-0 rounded px-3 text-left text-[13px] font-semibold ${sub} ${themedHover(dark)}`}
               >
                 {column.Label}
                 {sorted ? (descending ? " ↓" : " ↑") : ""}

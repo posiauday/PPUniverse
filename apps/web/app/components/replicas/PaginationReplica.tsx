@@ -3,6 +3,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { useNotify } from "./notify";
 import { cssColor, fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./replica";
+import { themedDimText, themedHover, themedHoverOverFill } from "./themed";
 
 /**
  * A web replica of lcsPagination (MVP-049; docs/final-decisions.md, 2026-10-08,
@@ -102,10 +103,8 @@ export function usePaginationReplica(): ReplicaApi {
   );
   const ink = dark ? "text-white" : "text-[#242424]";
   const sub = dark ? "text-[#adadad]" : "text-[#616161]";
-  const subtle = dark
-    ? "text-white hover:bg-white/10 active:bg-white/15"
-    : "text-[#242424] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]";
-  const off = dark ? "text-[#5c5c5c]" : "text-[#bdbdbd]";
+  const subtle = `${ink} ${themedHover(dark)}`;
+  const off = themedDimText(dark);
 
   const go = (to: number, toSize = size) => {
     setChosenPage(to);
@@ -206,9 +205,9 @@ export function usePaginationReplica(): ReplicaApi {
                         onClick={() => go(slot)}
                         className={`size-10 rounded font-semibold ${
                           current
-                            ? "bg-[var(--accent)] text-white hover:bg-[color-mix(in_srgb,var(--accent)_86%,black)]"
+                            ? `bg-[var(--accent)] text-white [--fill:var(--accent)] ${themedHoverOverFill(dark)}`
                             : slot === 0
-                              ? `${sub} cursor-default`
+                              ? `${off} cursor-default`
                               : subtle
                         }`}
                       >
