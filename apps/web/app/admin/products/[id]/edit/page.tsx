@@ -16,6 +16,8 @@ import { ProductPublishControl } from "./ProductPublishControl";
 import { ProductStatusControl } from "./ProductStatusControl";
 import { ReleasesEditor } from "./ReleasesEditor";
 import { SupportPolicyEditor } from "./SupportPolicyEditor";
+import { STATUS_WORD, StatusPill } from "../../../AdminList";
+import { AdminPageHeader } from "../../../AdminPageHeader";
 
 export const metadata: Metadata = { title: `Edit product | ${SITE_NAME}` };
 
@@ -64,12 +66,21 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   const readiness = checkProductPublishReadiness(snapshot);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Edit product</h1>
-      <p>Status: {product.status}</p>
+    <main className="flex max-w-4xl flex-col gap-6 pb-10">
+      <AdminPageHeader
+        back={{ href: "/admin/products", label: "Products" }}
+        title="Edit product"
+        description={product.name}
+        actions={<StatusPill status={STATUS_WORD[product.status]} />}
+      />
 
-      <section aria-labelledby="core-fields-heading">
-        <h2 id="core-fields-heading">Core details</h2>
+      <section
+        aria-labelledby="core-fields-heading"
+        className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      >
+        <h2 id="core-fields-heading" className="font-display text-xl font-bold">
+          Core details
+        </h2>
         <ProductForm
           mode="edit"
           productId={product.id}
@@ -83,8 +94,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         />
       </section>
 
-      <section aria-labelledby="licenses-heading">
-        <h2 id="licenses-heading">Licenses</h2>
+      <section
+        aria-labelledby="licenses-heading"
+        className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      >
+        <h2 id="licenses-heading" className="font-display text-xl font-bold">
+          Licenses
+        </h2>
         <LicensesEditor
           productId={product.id}
           options={licenseDefinitions}
@@ -92,16 +108,26 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         />
       </section>
 
-      <section aria-labelledby="price-heading">
-        <h2 id="price-heading">Price</h2>
+      <section
+        aria-labelledby="price-heading"
+        className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      >
+        <h2 id="price-heading" className="font-display text-xl font-bold">
+          Price
+        </h2>
         <PriceEditor
           productId={product.id}
           currentPriceLabel={price ? formatPrice(price.amountCents, price.currency) : null}
         />
       </section>
 
-      <section aria-labelledby="support-heading">
-        <h2 id="support-heading">Support policy</h2>
+      <section
+        aria-labelledby="support-heading"
+        className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      >
+        <h2 id="support-heading" className="font-display text-xl font-bold">
+          Support policy
+        </h2>
         <SupportPolicyEditor
           productId={product.id}
           initialStatus={evidence.support?.status ?? null}
@@ -109,13 +135,23 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         />
       </section>
 
-      <section aria-labelledby="compatibility-heading">
-        <h2 id="compatibility-heading">Compatibility</h2>
+      <section
+        aria-labelledby="compatibility-heading"
+        className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      >
+        <h2 id="compatibility-heading" className="font-display text-xl font-bold">
+          Compatibility
+        </h2>
         <CompatibilityEditor productId={product.id} entries={evidence.compatibility} />
       </section>
 
-      <section aria-labelledby="releases-heading">
-        <h2 id="releases-heading">Releases</h2>
+      <section
+        aria-labelledby="releases-heading"
+        className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+      >
+        <h2 id="releases-heading" className="font-display text-xl font-bold">
+          Releases
+        </h2>
         <ReleasesEditor
           productId={product.id}
           releases={releases}
@@ -125,8 +161,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
       </section>
 
       {product.status === "DRAFT" ? (
-        <section aria-labelledby="publish-heading">
-          <h2 id="publish-heading">Publish</h2>
+        <section
+          aria-labelledby="publish-heading"
+          className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+        >
+          <h2 id="publish-heading" className="font-display text-xl font-bold">
+            Publish
+          </h2>
           <ProductPublishControl
             productId={product.id}
             initialMissingFields={readiness.missingFields}
@@ -142,8 +183,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
       ) : null}
 
       {product.status === "PUBLISHED" || product.status === "SUSPENDED" ? (
-        <section aria-labelledby="status-heading">
-          <h2 id="status-heading">Status</h2>
+        <section
+          aria-labelledby="status-heading"
+          className="flex flex-col gap-4 rounded-[1.5rem] border border-border bg-card p-5"
+        >
+          <h2 id="status-heading" className="font-display text-xl font-bold">
+            Status
+          </h2>
           <ProductStatusControl productId={product.id} currentStatus={product.status} />
         </section>
       ) : null}

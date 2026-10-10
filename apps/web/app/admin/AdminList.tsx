@@ -19,6 +19,14 @@ const STATUS_LOOK = {
 
 export type StatusLabel = keyof typeof STATUS_LOOK;
 
+/** The status pill's word for a stored status. */
+export const STATUS_WORD: Record<"DRAFT" | "PUBLISHED" | "SUSPENDED" | "ARCHIVED", StatusLabel> = {
+  DRAFT: "Draft",
+  PUBLISHED: "Published",
+  SUSPENDED: "Suspended",
+  ARCHIVED: "Archived",
+};
+
 export function StatusPill({ status }: { status: StatusLabel }) {
   return (
     <span

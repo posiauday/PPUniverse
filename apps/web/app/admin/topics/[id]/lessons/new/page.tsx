@@ -5,6 +5,7 @@ import { learnRepository } from "../../../../../../lib/learn";
 import { requireAdmin } from "../../../../../../lib/require-admin";
 import { SITE_NAME } from "../../../../../../lib/seo/site";
 import { LessonForm } from "../../../LearnForms";
+import { AdminPageHeader } from "../../../../AdminPageHeader";
 
 export const metadata: Metadata = { title: `New lesson | ${SITE_NAME}` };
 
@@ -19,9 +20,12 @@ export default async function NewLessonPage({ params }: { params: Promise<{ id: 
   );
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">New lesson</h1>
-      <p className="mt-1 text-sm text-muted-foreground">In “{topic.title}”</p>
+    <main className="flex max-w-5xl flex-col gap-6 pb-10">
+      <AdminPageHeader
+        back={{ href: `/admin/topics/${topic.id}/edit`, label: topic.title }}
+        title="New lesson"
+        description={`In “${topic.title}”. It's saved as a draft; publish it from the topic.`}
+      />
       <LessonForm
         mode="create"
         topicId={topic.id}

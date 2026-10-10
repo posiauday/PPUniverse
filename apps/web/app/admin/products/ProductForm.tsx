@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { EditorField, FIELD_CONTROL, SaveBar, useSlugFollowsTitle } from "../EditorParts";
 
 export interface ProductFormValues {
   name: string;
@@ -40,18 +41,18 @@ function defaultValues(categories: ProductFormCategoryOption[]): ProductFormValu
  */
 export function ProductForm({ mode, productId, initialValues, categories }: ProductFormProps) {
   const router = useRouter();
-  const [values, setValues] = useState<ProductFormValues>(
-    initialValues ?? defaultValues(categories),
-  );
+  const initial = initialValues ?? defaultValues(categories);
+  const [values, setValues] = useState<ProductFormValues>(initial);
+  /** What was last saved, so "Unsaved changes" is measured from it. */
+  const [baseline, setBaseline] = useState<ProductFormValues>(initial);
   const [status, setStatus] = useState<Status>("idle");
+  const [saved, setSaved] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
-
-  const nameId = useId();
-  const slugId = useId();
-  const summaryId = useId();
-  const categoryIdFieldId = useId();
-  const statusId = useId();
+  const slug = useSlugFollowsTitle(mode, initial.slug);
+  const baseId = useId();
+  const id = (key: keyof ProductFormValues) => `${baseId}-${key}`;
+  const dirty = JSON.stringify(values) !== JSON.stringify(baseline);
 
   function update<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -61,6 +62,7 @@ export function ProductForm({ mode, productId, initialValues, categories }: Prod
     event.preventDefault();
     if (status === "submitting") return;
     setStatus("submitting");
+    setSaved(false);
     setFieldErrors({});
     setFormError(null);
 
@@ -89,6 +91,8 @@ export function ProductForm({ mode, productId, initialValues, categories }: Prod
       if (mode === "create") {
         router.push(`/admin/products/${payload.product.id}/edit`);
       } else {
+        setBaseline(values);
+        setSaved(true);
         router.refresh();
         setStatus("idle");
       }
@@ -99,73 +103,96 @@ export function ProductForm({ mode, productId, initialValues, categories }: Prod
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div>
-        <label htmlFor={nameId}>Name</label>
-        <input
-          id={nameId}
-          type="text"
-          value={values.name}
-          onChange={(event) => update("name", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["name"])}
-          aria-describedby={fieldErrors["name"] ? `${nameId}-error` : undefined}
-        />
-        {fieldErrors["name"] ? <p id={`${nameId}-error`}>{fieldErrors["name"][0]}</p> : null}
-      </div>
+    <form onSubmit={handleSubmit} noValidate className="flex min-w-0 flex-col gap-5">
+      <EditorField id={id("name")} label="Name" errors={fieldErrors["name"]}>
+        {(props) => (
+          <input
+            {...props}
+            type="text"
+            value={values.name}
+            onChange={(event) => {
+              const name = event.target.value;
+              const next = slug.fromTitle(name);
+              setValues((current) => ({
+                ...current,
+                name,
+                ...(next === null ? {} : { slug: next }),
+              }));
+            }}
+            className={`${FIELD_CONTROL} text-lg font-semibold`}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={slugId}>Slug</label>
-        <input
-          id={slugId}
-          type="text"
-          value={values.slug}
-          onChange={(event) => update("slug", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["slug"])}
-          aria-describedby={fieldErrors["slug"] ? `${slugId}-error` : undefined}
-        />
-        {fieldErrors["slug"] ? <p id={`${slugId}-error`}>{fieldErrors["slug"][0]}</p> : null}
-      </div>
+      <EditorField
+        id={id("slug")}
+        label="Slug"
+        hint={
+          <>
+            The address: /products/{values.slug || "<slug>"}.{" "}
+            {mode === "create"
+              ? "It follows the name until you change it."
+              : "Changing it after publishing breaks links to the old address."}
+          </>
+        }
+        errors={fieldErrors["slug"]}
+      >
+        {(props) => (
+          <input
+            {...props}
+            type="text"
+            value={values.slug}
+            onChange={(event) => {
+              slug.onSlugTyped(event.target.value);
+              update("slug", event.target.value);
+            }}
+            className={`${FIELD_CONTROL} font-mono text-sm`}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={summaryId}>Summary</label>
-        <textarea
-          id={summaryId}
-          value={values.summary}
-          onChange={(event) => update("summary", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["summary"])}
-          aria-describedby={fieldErrors["summary"] ? `${summaryId}-error` : undefined}
-        />
-        {fieldErrors["summary"] ? (
-          <p id={`${summaryId}-error`}>{fieldErrors["summary"][0]}</p>
-        ) : null}
-      </div>
+      <EditorField id={id("summary")} label="Summary" errors={fieldErrors["summary"]}>
+        {(props) => (
+          <textarea
+            {...props}
+            rows={3}
+            value={values.summary}
+            onChange={(event) => update("summary", event.target.value)}
+            className={FIELD_CONTROL}
+          />
+        )}
+      </EditorField>
 
-      <div>
-        <label htmlFor={categoryIdFieldId}>Category</label>
-        <select
-          id={categoryIdFieldId}
-          value={values.categoryId}
-          onChange={(event) => update("categoryId", event.target.value)}
-          aria-invalid={Boolean(fieldErrors["categoryId"])}
-          aria-describedby={fieldErrors["categoryId"] ? `${categoryIdFieldId}-error` : undefined}
-        >
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        {fieldErrors["categoryId"] ? (
-          <p id={`${categoryIdFieldId}-error`}>{fieldErrors["categoryId"][0]}</p>
-        ) : null}
-      </div>
+      <EditorField
+        id={id("categoryId")}
+        label="Category"
+        errors={fieldErrors["categoryId"]}
+        className="max-w-sm"
+      >
+        {(props) => (
+          <select
+            {...props}
+            value={values.categoryId}
+            onChange={(event) => update("categoryId", event.target.value)}
+            className={FIELD_CONTROL}
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </EditorField>
 
-      <button type="submit" aria-disabled={status === "submitting"}>
-        {status === "submitting" ? "Saving…" : mode === "create" ? "Create draft" : "Save changes"}
-      </button>
-      <p id={statusId} role="status">
-        {formError}
-      </p>
+      <SaveBar
+        label={mode === "create" ? "Create draft" : "Save changes"}
+        submitting={status === "submitting"}
+        error={formError}
+        dirty={dirty}
+        saved={saved}
+        cancelHref={mode === "create" ? "/admin/products" : undefined}
+      />
     </form>
   );
 }
