@@ -5922,3 +5922,22 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 **Checked:** web tests (959), typecheck, lint, format; in the browser, the slug following a title with an apostrophe and an ampersand, and the Save bar staying in view; axe with the suite's blocking tags and a sideways-scroll check on all 12 editor pages at 320, 375, 768 and 1280 px, light and dark: clean.
 
 **Next:** release; then the product owner's review of the redesign.
+
+## 2026-10-10 — MVP-053: team posts start the conversation on components
+
+**Asked:** the product owner: "create a comment from admin to start the conversation under" each component. Asked where, how and who writes it: every component, a pinned team post, and drafts written per component (docs/final-decisions.md, 2026-10-10, "Team posts start the conversation on components").
+
+**Changed:**
+- `article_comments.pinnedAt` (migration `20261019000000_add_team_posts`, nullable, rollback in its header): a comment with it set is a team post.
+- `PrismaCommentRepository`: `findTeamPost`, `saveTeamPost` (one live per component; saving again changes its text); the team post lists first; it can't be reported or accepted; the admin list marks it.
+- `GuideComments`: the team post shows first under the LowCodeStacks mark, "LowCodeStacks team" and a Pinned badge, isn't counted, and has no Report or Delete (it's managed from the admin page).
+- `/admin/components/[id]`: "4. Start the conversation" on a published, shown component while comments are on, with the live post or the drafted opener (`lib/component-starters.ts`, one per component, each a tip from its Known limits and a question). Remove uses moderation, so it can be restored in Comments, where it has a Team post chip and no accept button.
+- `POST /api/admin/components/[id]/team-post`: admins only, same-site, comment text rules, published and shown components only.
+
+**Also fixed during the story:** the accessibility suite's suspended-product state looked for the old "Status: SUSPENDED" line that phase 4 replaced with a pill (#163's CI).
+
+**Checked:** web tests (968, with the new route, starters and section tests), domain-content (90), the content adapter's comment integration tests (8, with a team post case) against a migrated local Postgres, typecheck, lint, format, no schema drift; in the browser, posting the Tree view opener and seeing it first on the page; axe and a sideways-scroll check on the admin component page (with and without a live post), the public Tree view page and Comments at 320, 375, 768 and 1280 px, light and dark: clean.
+
+**Security review:** the route is admin-only (role read from the database), refuses other sites, applies the comment text rules, and 404s while comments are off; the post shows as the site's, so it's never presented as a reader's.
+
+**Next:** release; the product owner reads and posts each opener.

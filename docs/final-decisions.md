@@ -2422,3 +2422,12 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - **Every page:** the same header (eyebrow, title, description, actions). Lists become tables with search and status tabs; moderation becomes cards with the comment first; editors get a Save bar that stays in view, title first. Delivered in phases as story MVP-052.
 - Also asked in this round: the top-bar avatar at 52 px (it uses the bar's padding, so the bar keeps its height).
 
+## 2026-10-10 — Team posts start the conversation on components
+
+**Source:** direct product-owner instruction ("create a comment from admin to start the conversation under" each component). Asked where, how and who writes it, they chose **every component**, a **pinned team post**, and **drafts written per component** for them to post.
+
+- Each published component's **Questions and discussion** can have one **team post**: written by an admin as the site, shown first, under the LowCodeStacks mark and the name "LowCodeStacks team" with a **Pinned** badge, never under the admin's own display name. It isn't counted as a reader comment, and readers can't report it.
+- The admin posts, changes or removes it from the component's admin page. The box starts with a drafted opener for that component: a real tip from its Known limits plus a question, checked against the component's own guide. Same text rules as comments (10 to 2,000 characters, at most 2 links).
+- Never posted as, or worded as, a reader: no invented reader comments.
+- Story MVP-053.
+

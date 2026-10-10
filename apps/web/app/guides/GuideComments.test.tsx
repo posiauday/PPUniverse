@@ -19,6 +19,7 @@ function comment(overrides: Partial<GuideComment> = {}): GuideComment {
     body: "A plain comment.",
     createdAt: new Date("2026-10-07T10:00:00Z"),
     accepted: false,
+    team: false,
     mine: false,
     displayName: "Tidy Trigger 418",
     avatarSeed: "seed",
@@ -105,5 +106,25 @@ describe("GuideComments on a component's page (MVP-051)", () => {
     const member = onComponent([], true);
     expect(member).toContain("Ask a question or help someone");
     expect(member).toContain("<textarea");
+  });
+
+  it("shows a component's team post first under the site's name, uncounted, with no Report (MVP-053)", () => {
+    const html = renderToStaticMarkup(
+      <GuideComments
+        kind="component"
+        slug="tree-view"
+        comments={[
+          comment({ id: "team", team: true, displayName: "Admin Person", body: "Pinned opener." }),
+          comment({ id: "c-2", displayName: "Bold Flow 300" }),
+        ]}
+        viewer={null}
+      />,
+    );
+    expect(html).toContain("Questions and discussion (1)");
+    expect(html).toContain("LowCodeStacks team");
+    expect(html).toContain("Pinned");
+    expect(html).not.toContain("Admin Person");
+    expect(html.indexOf("Pinned opener.")).toBeLessThan(html.indexOf("Bold Flow 300"));
+    expect(html.match(/Report the comment by/g)).toHaveLength(1);
   });
 });

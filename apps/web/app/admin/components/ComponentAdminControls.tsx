@@ -4,11 +4,13 @@ import type { ComponentAccess } from "@ppu/domain-content";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { copyBySelection } from "../../guides/CopyCodeButton";
+import { FIELD_CONTROL } from "../EditorParts";
 
 /**
  * The admin's controls for one library component (MVP-049): record a
  * paste-test, copy its YAML, choose who can copy it, whether it's hidden and
- * whether a draft shows as Coming soon, and publish.
+ * whether a draft shows as Coming soon, publish, and post its team post
+ * (MVP-053).
  * They mirror the API's messages; the server decides.
  */
 
@@ -266,5 +268,127 @@ export function PublishComponentButton({ id, canPublish }: { id: string; canPubl
         {message}
       </span>
     </div>
+  );
+}
+
+/**
+ * The component's team post (MVP-053; docs/final-decisions.md, 2026-10-10,
+ * "Team posts start the conversation on components"): it shows first under
+ * "Questions and discussion", under the site's name. The box starts with the
+ * live post, or else the drafted opener for this component, which nothing
+ * posts until the admin does. Removing it uses the moderation route, so it
+ * stays in /admin/comments and can be restored there.
+ */
+export function TeamPostForm({
+  componentId,
+  live,
+  draft,
+}: {
+  componentId: string;
+  /** The live team post, or null. */
+  live: { id: string; body: string } | null;
+  /** The drafted opener (lib/component-starters.ts), used when there's no live post. */
+  draft: string;
+}) {
+  const router = useRouter();
+  const fieldId = useId();
+  const [body, setBody] = useState(live?.body ?? draft);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    setMessage("");
+    const result = await send(`/api/admin/components/${componentId}/team-post`, "POST", { body });
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.fieldErrors?.["body"]?.[0] ?? result.message);
+      return;
+    }
+    setMessage(
+      live
+        ? "Saved. The team post shows the new text."
+        : "Posted. It's first on the component's page.",
+    );
+    router.refresh();
+  }
+
+  async function remove() {
+    if (busy || !live) return;
+    if (
+      !window.confirm(
+        "Remove the team post from the component's page? You can restore it in Comments.",
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setMessage("");
+    const result = await send(`/api/admin/comments/${live.id}/remove`, "POST");
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.message);
+      return;
+    }
+    setBody(draft);
+    setMessage("Removed. You can restore it in Comments, or post a new one.");
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={save} noValidate className="flex flex-col gap-3">
+      <label htmlFor={fieldId} className="font-semibold">
+        Team post
+      </label>
+      <p id={`${fieldId}-hint`} className="text-sm text-muted-foreground">
+        {live
+          ? 'Live on the component\'s page, first, under "LowCodeStacks team" with a Pinned badge.'
+          : draft
+            ? "Not posted yet. The box holds a draft written from this component's guide: read it, change anything, then post it."
+            : "Not posted yet. Write a tip and a question to start the conversation."}{" "}
+        10 to 2,000 characters, at most 2 links; ``` for code.
+      </p>
+      <textarea
+        id={fieldId}
+        rows={8}
+        value={body}
+        onChange={(event) => setBody(event.target.value)}
+        aria-invalid={error !== null}
+        aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}`}
+        className={FIELD_CONTROL}
+      />
+      {error ? (
+        <p id={`${fieldId}-error`} className="text-sm font-semibold text-coral">
+          {error}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="submit"
+          aria-disabled={busy}
+          className="inline-flex min-h-11 items-center rounded-full bg-[#7c3aed] px-5 font-semibold text-white hover:bg-[#6d28d9]"
+        >
+          {busy ? "Saving…" : live ? "Save the team post" : "Post as the team"}
+        </button>
+        {live ? (
+          <button
+            type="button"
+            onClick={() => void remove()}
+            aria-disabled={busy}
+            className={BUTTON}
+          >
+            Remove the team post
+          </button>
+        ) : null}
+        <span role="status" className="text-sm">
+          {message}
+        </span>
+      </div>
+    </form>
   );
 }
