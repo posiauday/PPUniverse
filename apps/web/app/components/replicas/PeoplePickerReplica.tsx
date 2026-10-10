@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useNotify } from "./notify";
 import { cssColor, fromPowerFx, SEGOE, type ReplicaApi, type Wiring } from "./replica";
+import { themedHover } from "./themed";
 
 /**
  * A web replica of lcsPeoplePicker (MVP-049; docs/final-decisions.md, 2026-10-08,
@@ -324,10 +325,8 @@ export function usePeoplePickerReplica(): ReplicaApi {
                 aria-label={`Add me to ${inputs.Label}`}
                 onClick={() => add(ME)}
                 className={`inline-flex h-6 shrink-0 items-center gap-1 rounded px-2 text-xs font-semibold ${
-                  dark
-                    ? "text-white hover:bg-white/10"
-                    : "text-[var(--accent)] hover:bg-[#f5f5f5] active:bg-[#e0e0e0]"
-                }`}
+                  dark ? "text-white" : "text-[var(--accent)]"
+                } ${themedHover(dark)}`}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -365,9 +364,7 @@ export function usePeoplePickerReplica(): ReplicaApi {
                     type="button"
                     aria-label={`Remove ${person.DisplayName}`}
                     onClick={() => remove(person)}
-                    className={`grid size-7 shrink-0 place-items-center rounded-full ${
-                      dark ? "hover:bg-white/10" : "hover:bg-black/10"
-                    }`}
+                    className={`grid size-7 shrink-0 place-items-center rounded ${themedHover(dark)}`}
                   >
                     <svg
                       viewBox="0 0 24 24"

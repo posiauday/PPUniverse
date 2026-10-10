@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ButtonFace } from "./ButtonReplica";
+import { ThemedButton, themedHover } from "./themed";
 import { useNotify } from "./notify";
 import { cssColor, fromPowerFx, SEGOE, type ReplicaApi } from "./replica";
 
@@ -107,13 +108,12 @@ function ToastBar({
       </span>
       {inputs.ActionText ? (
         <span className="absolute top-1/2 right-12 -translate-y-1/2">
-          <ButtonFace
+          <ThemedButton
             label={inputs.ActionText}
             appearance="Outline"
-            icon=""
-            busy={false}
             dark={dark}
             size="h-8 w-[84px]"
+            borderClass={dark ? "border-[#adadad]" : "border-[#616161]"}
             onClick={onAction}
           />
         </span>
@@ -122,9 +122,7 @@ function ToastBar({
         type="button"
         aria-label="Close message"
         onClick={onClose}
-        className={`absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded ${
-          dark ? "text-white hover:bg-white/10" : "text-[#242424] hover:bg-black/5"
-        }`}
+        className={`absolute top-1/2 right-2 grid size-8 -translate-y-1/2 place-items-center rounded ${`${dark ? "text-white" : "text-[#242424]"} ${themedHover(dark)}`}`}
       >
         <svg
           viewBox="0 0 24 24"
