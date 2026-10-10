@@ -34,3 +34,11 @@
     Message: ="You have changes that haven't been saved."
     Icon: ="Warning"
     Buttons: '=Table({Key: "discard", Label: "Don''t save", Style: "Subtle"}, {Key: "cancel", Label: "Cancel", Style: "Secondary"}, {Key: "save", Label: "Save", Style: "Primary"})'
+- name: Dark
+  description: On a dark screen, with all three button looks.
+  settings:
+    Theme: ="Dark"
+    Kind: ="Confirm"
+    Title: ="Save your changes?"
+    Message: ="You have changes that haven't been saved."
+    Buttons: '=Table({Key: "discard", Label: "Don''t save", Style: "Subtle"}, {Key: "cancel", Label: "Cancel", Style: "Secondary"}, {Key: "save", Label: "Save", Style: "Primary"})'

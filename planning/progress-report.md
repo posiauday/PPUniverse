@@ -5771,6 +5771,29 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 
 **Checked:** new `SettingsForm` tests (2), admin and component tests (45), typecheck and lint.
 
+## 2026-10-10 — Wave 2 and the drafts: hover follows each component's own theme
+
+**Why:** the Navigation shell fix (docs/final-decisions.md, 2026-10-09, "Navigation shell: a Premium look, and hover in dark mode") was still to do in the Data table, Pagination, People picker, Dialog and Toast (the 2026-10-09 Tree view and Stepper entry). The same problem was found in the Date and time picker's Secondary presets and the States component's action button. All seven are unpublished drafts, so one paste-test now covers light and dark.
+
+**Changed** (drafts, still 0.1.0):
+- **33 modern buttons** become the Navigation shell's pattern: a modern Icon and/or Text for what you see (Primary and Secondary labels carry their fill), under a transparent classic button whose hover (8% white on dark, 5% black on light), pressed (14% and 9%), focus ring and border follow `Theme`. Disabled labels dim to RGBA(110, 110, 110) on dark and RGBA(170, 170, 170) on light.
+  - Pagination: First, Previous, the page numbers (the current page keeps its accent fill), Next, Last.
+  - Data table: the two Secondary bulk actions, Clear selection, the six sortable headers, the row menu, the row actions and the card actions. The Primary bulk action stays a modern button (its fill and hover are its own).
+  - People picker: Add me (icon and text), and Remove on each chosen person.
+  - Dialog: Close, and the three action buttons, which keep taking their look from `Buttons` (Primary, Secondary, Outline, Subtle; red for Danger). Secondary was light on a dark dialog before.
+  - Toast: the Outline action (its own border colour kept) and Close.
+  - Date and time picker: the three quick-pick presets (Secondary). States: the action button (Primary, or Outline for an error).
+- **The Dialog gets a Dark preset**, with all three button looks, so its dark look can be tried on its page.
+- **The previews** (`replicas/themed.tsx`, new) draw the same shades, fills, borders and disabled colours.
+- Not changed: the Data table's view switch (a modern Tab list) and the date picker's own fields, which aren't buttons; check their dark hover during the paste-test.
+
+**Checked:**
+- The component gate (39 checks).
+- Web typecheck, lint and component tests (42).
+- Locally on a real database, with the components loaded: Pagination, Dialog, Data table and Date and time picker in their Dark presets. Hover and colours read from the browser match the YAML (hover 8% white; the Dialog's Cancel is a dark Secondary; the presets are RGBA(41, 41, 41) with an RGBA(82, 82, 82) border). Screenshots checked.
+
+**Not yet:** the product owner's paste-tests of these drafts, in light and dark.
+
 ## 2026-10-10 — Component cards: two looks, alive on hover
 
 **Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Component cards: two looks, alive on hover"), after three Tree view concepts were rendered and shown.
@@ -5797,4 +5820,3 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 - Web tests (58, 16 new), typecheck and lint.
 - Locally, every card in the listing's own markup at 800 and 375 px. All fit below the category badge with nothing cut off; no sideways scroll on a phone.
 - Each hover end state, read in the browser, matches the list above. Screenshots checked.
-

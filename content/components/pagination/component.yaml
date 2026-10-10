@@ -144,8 +144,19 @@ ComponentDefinitions:
         =Set(locPage, Blank());
         Reset(ddSize)
     Children:
+      - icoFirst:
+          Control: ModernIcon@1.1.0
+          Properties:
+            X: =btnFirst.X + (btnFirst.Width - 20) / 2
+            Y: =btnFirst.Y + (btnFirst.Height - 20) / 2
+            Width: =20
+            Height: =20
+            Visible: =btnFirst.Visible
+            Icon: ="ArrowPrevious"
+            IconColor: =If(btnFirst.DisplayMode = DisplayMode.Disabled, If(lcsPagination.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+            IconStyle: =IconStyle.Outline
       - btnFirst:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =0
             Y: =0
@@ -153,21 +164,45 @@ ComponentDefinitions:
             Height: =40
             Visible: =lcsPagination.ShowFirstLast
             Text: ="First page"
-            Icon: ="ArrowPrevious"
-            Layout: =ButtonLayout.IconOnly
-            Appearance: =ButtonAppearance.Subtle
-            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-            AccessibleLabel: ="First page"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsPagination.Theme = "Dark", ColorFade(lcsPagination.AccentColor, 0.45), lcsPagination.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             Tooltip: ="First page"
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
               =With(
                   {to: 1, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
                   Set(locPage, to);
                   lcsPagination.OnPageChange(to, size)
               )
+      - icoPrevious:
+          Control: ModernIcon@1.1.0
+          Properties:
+            X: =btnPrevious.X + (btnPrevious.Width - 20) / 2
+            Y: =btnPrevious.Y + (btnPrevious.Height - 20) / 2
+            Width: =20
+            Height: =20
+            Visible: =btnPrevious.Visible
+            Icon: ="ChevronLeft"
+            IconColor: =If(btnPrevious.DisplayMode = DisplayMode.Disabled, If(lcsPagination.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+            IconStyle: =IconStyle.Outline
       - btnPrevious:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsPagination.ShowFirstLast, 44, 0)
             Y: =0
@@ -175,13 +210,26 @@ ComponentDefinitions:
             Height: =40
             Visible: =true
             Text: ="Previous page"
-            Icon: ="ChevronLeft"
-            Layout: =ButtonLayout.IconOnly
-            Appearance: =ButtonAppearance.Subtle
-            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
-            AccessibleLabel: ="Previous page"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsPagination.Theme = "Dark", ColorFade(lcsPagination.AccentColor, 0.45), lcsPagination.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             Tooltip: ="Previous page"
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) <= 1, DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
               =With(
                   {to: Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) - 1, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
@@ -222,24 +270,63 @@ ComponentDefinitions:
             BorderStyle: =BorderStyle.None
             AccessibleLabel: ="Pages"
           Children:
+            - lblPage:
+                Control: ModernText@1.0.0
+                Properties:
+                  X: =btnPage.X
+                  Y: =btnPage.Y
+                  Width: =btnPage.Width
+                  Height: =btnPage.Height
+                  Visible: =btnPage.Visible
+                  Text: =If(ThisItem.Page = 0, "…", Text(ThisItem.Page))
+                  Size: =14
+                  FontWeight: =FontWeight.Semibold
+                  Color: =If(btnPage.DisplayMode = DisplayMode.Disabled, If(lcsPagination.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), RGBA(255, 255, 255, 1), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))))
+                  Fill: |-
+                    =With({s: If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), "Primary", "Subtle")}, If(s = "Primary", If(btnPage.DisplayMode = DisplayMode.Disabled, If(lcsPagination.Theme = "Dark", RGBA(56, 56, 56, 1), RGBA(240, 240, 240, 1)), lcsPagination.AccentColor), RGBA(0, 0, 0, 0)))
+                  Align: =Align.Center
+                  VerticalAlign: =VerticalAlign.Middle
+                  Wrap: =false
+                  PaddingLeft: =4
+                  PaddingRight: =4
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
             - btnPage:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =0
                   Y: =0
                   Width: =40
                   Height: =40
-                  Text: =If(ThisItem.Page = 0, "…", Text(ThisItem.Page))
-                  Appearance: =If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), ButtonAppearance.Primary, ButtonAppearance.Subtle)
-                  BasePaletteColor: =lcsPagination.AccentColor
-                  Color: =If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), RGBA(255, 255, 255, 1), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
-                  DisplayMode: =If(ThisItem.Page = 0, DisplayMode.Disabled, DisplayMode.Edit)
-                  AccessibleLabel: |-
+                  Text: |-
                     =If(
                         ThisItem.Page = 0,
                         "More pages",
                         "Page " & ThisItem.Page & If(ThisItem.Page = Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))), ", current page", "")
                     )
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsPagination.Theme = "Dark", ColorFade(lcsPagination.AccentColor, 0.45), lcsPagination.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
+                  DisplayMode: =If(ThisItem.Page = 0, DisplayMode.Disabled, DisplayMode.Edit)
                   OnSelect: |-
                     =With(
                         {to: ThisItem.Page, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
@@ -264,8 +351,19 @@ ComponentDefinitions:
             PaddingRight: =0
             PaddingTop: =0
             PaddingBottom: =0
+      - icoNext:
+          Control: ModernIcon@1.1.0
+          Properties:
+            X: =btnNext.X + (btnNext.Width - 20) / 2
+            Y: =btnNext.Y + (btnNext.Height - 20) / 2
+            Width: =20
+            Height: =20
+            Visible: =btnNext.Visible
+            Icon: ="ChevronRight"
+            IconColor: =If(btnNext.DisplayMode = DisplayMode.Disabled, If(lcsPagination.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+            IconStyle: =IconStyle.Outline
       - btnNext:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsPagination.ShowFirstLast, 44, 0) + 44 + If(lcsPagination.Compact, 132, CountRows(galPages.AllItems) * 40) + 4
             Y: =0
@@ -273,21 +371,45 @@ ComponentDefinitions:
             Height: =40
             Visible: =true
             Text: ="Next page"
-            Icon: ="ChevronRight"
-            Layout: =ButtonLayout.IconOnly
-            Appearance: =ButtonAppearance.Subtle
-            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) >= Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), DisplayMode.Disabled, DisplayMode.Edit)
-            AccessibleLabel: ="Next page"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsPagination.Theme = "Dark", ColorFade(lcsPagination.AccentColor, 0.45), lcsPagination.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             Tooltip: ="Next page"
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) >= Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
               =With(
                   {to: Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) + 1, size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},
                   Set(locPage, to);
                   lcsPagination.OnPageChange(to, size)
               )
+      - icoLast:
+          Control: ModernIcon@1.1.0
+          Properties:
+            X: =btnLast.X + (btnLast.Width - 20) / 2
+            Y: =btnLast.Y + (btnLast.Height - 20) / 2
+            Width: =20
+            Height: =20
+            Visible: =btnLast.Visible
+            Icon: ="ArrowNext"
+            IconColor: =If(btnLast.DisplayMode = DisplayMode.Disabled, If(lcsPagination.Theme = "Dark", RGBA(110, 110, 110, 1), RGBA(170, 170, 170, 1)), If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1)))
+            IconStyle: =IconStyle.Outline
       - btnLast:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =If(lcsPagination.ShowFirstLast, 44, 0) + 44 + If(lcsPagination.Compact, 132, CountRows(galPages.AllItems) * 40) + 4 + 44
             Y: =0
@@ -295,13 +417,26 @@ ComponentDefinitions:
             Height: =40
             Visible: =lcsPagination.ShowFirstLast
             Text: ="Last page"
-            Icon: ="ArrowNext"
-            Layout: =ButtonLayout.IconOnly
-            Appearance: =ButtonAppearance.Subtle
-            Color: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) >= Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), DisplayMode.Disabled, DisplayMode.Edit)
-            AccessibleLabel: ="Last page"
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsPagination.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsPagination.Theme = "Dark", ColorFade(lcsPagination.AccentColor, 0.45), lcsPagination.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             Tooltip: ="Last page"
+            DisplayMode: =If(Max(1, Min(Coalesce(locPage, lcsPagination.DefaultPage), Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)))) >= Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
               =With(
                   {to: Max(1, RoundUp(lcsPagination.TotalItems / Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize)), 0)), size: Max(1, Coalesce(Value(ddSize.Selected.Value), lcsPagination.DefaultPageSize))},

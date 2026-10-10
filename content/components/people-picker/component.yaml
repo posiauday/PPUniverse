@@ -186,8 +186,43 @@ ComponentDefinitions:
             PaddingRight: =0
             PaddingTop: =0
             PaddingBottom: =0
+      - icoAddMe:
+          Control: ModernIcon@1.1.0
+          Properties:
+            X: =btnAddMe.X + 8
+            Y: =btnAddMe.Y + (btnAddMe.Height - 16) / 2
+            Width: =16
+            Height: =16
+            Visible: =btnAddMe.Visible
+            Icon: ="PersonAdd"
+            IconColor: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 1), lcsPeoplePicker.AccentColor)
+            IconStyle: =IconStyle.Outline
+      - lblAddMe:
+          Control: ModernText@1.0.0
+          Properties:
+            X: =btnAddMe.X + 28
+            Y: =btnAddMe.Y
+            Width: =btnAddMe.Width - 32
+            Height: =btnAddMe.Height
+            Visible: =btnAddMe.Visible
+            Text: ="Add me"
+            Size: =12
+            FontWeight: =FontWeight.Semibold
+            Color: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 1), lcsPeoplePicker.AccentColor)
+            Fill: =RGBA(0, 0, 0, 0)
+            Align: =Align.Left
+            VerticalAlign: =VerticalAlign.Middle
+            Wrap: =false
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            PaddingBottom: =0
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
       - btnAddMe:
-          Control: ModernButton@1.0.0
+          Control: Classic/Button@2.2.0
           Properties:
             X: =Parent.Width - 92
             Y: =0
@@ -196,13 +231,25 @@ ComponentDefinitions:
             Visible: |-
               =!IsBlank(lcsPeoplePicker.Me.Mail) && !(lcsPeoplePicker.MaxPeople > 0 && CountRows(If(locTouched, colPeople, lcsPeoplePicker.DefaultPeople)) >= lcsPeoplePicker.MaxPeople) &&
                   IsBlank(LookUp(If(locTouched, colPeople, lcsPeoplePicker.DefaultPeople), Lower(Mail) = Lower(lcsPeoplePicker.Me.Mail)))
-            Text: ="Add me"
-            Icon: ="PersonAdd"
-            Appearance: =ButtonAppearance.Subtle
-            BasePaletteColor: =lcsPeoplePicker.AccentColor
-            Color: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 1), lcsPeoplePicker.AccentColor)
-            Size: =12
-            AccessibleLabel: ="Add me to " & lcsPeoplePicker.Label
+            Text: ="Add me to " & lcsPeoplePicker.Label
+            Fill: =RGBA(0, 0, 0, 0)
+            Color: =RGBA(0, 0, 0, 0)
+            BorderColor: =RGBA(0, 0, 0, 0)
+            HoverFill: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+            HoverColor: =RGBA(0, 0, 0, 0)
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            PressedFill: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+            PressedColor: =RGBA(0, 0, 0, 0)
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            DisabledColor: =RGBA(0, 0, 0, 0)
+            DisabledBorderColor: =RGBA(0, 0, 0, 0)
+            FocusedBorderColor: =If(lcsPeoplePicker.Theme = "Dark", ColorFade(lcsPeoplePicker.AccentColor, 0.45), lcsPeoplePicker.AccentColor)
+            FocusedBorderThickness: =2
+            RadiusTopLeft: =4
+            RadiusTopRight: =4
+            RadiusBottomLeft: =4
+            RadiusBottomRight: =4
             OnSelect: |-
               =If(
                   !locTouched,
@@ -276,19 +323,43 @@ ComponentDefinitions:
                   PaddingRight: =0
                   PaddingTop: =0
                   PaddingBottom: =0
+            - icoChosenRemove:
+                Control: ModernIcon@1.1.0
+                Properties:
+                  X: =galChosenRemove.X + (galChosenRemove.Width - 16) / 2
+                  Y: =galChosenRemove.Y + (galChosenRemove.Height - 16) / 2
+                  Width: =16
+                  Height: =16
+                  Visible: =galChosenRemove.Visible
+                  Icon: ="Dismiss"
+                  IconColor: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
+                  IconStyle: =IconStyle.Outline
             - galChosenRemove:
-                Control: ModernButton@1.0.0
+                Control: Classic/Button@2.2.0
                 Properties:
                   X: =Parent.TemplateWidth - 38
                   Y: =6
                   Width: =28
                   Height: =28
-                  Text: ="Remove"
-                  Icon: ="Dismiss"
-                  Layout: =ButtonLayout.IconOnly
-                  Appearance: =ButtonAppearance.Subtle
-                  Color: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 1), RGBA(36, 36, 36, 1))
-                  AccessibleLabel: ="Remove " & ThisItem.DisplayName
+                  Text: ="Remove " & ThisItem.DisplayName
+                  Fill: =RGBA(0, 0, 0, 0)
+                  Color: =RGBA(0, 0, 0, 0)
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 0.08), RGBA(0, 0, 0, 0.05))
+                  HoverColor: =RGBA(0, 0, 0, 0)
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =If(lcsPeoplePicker.Theme = "Dark", RGBA(255, 255, 255, 0.14), RGBA(0, 0, 0, 0.09))
+                  PressedColor: =RGBA(0, 0, 0, 0)
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  DisabledColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  FocusedBorderColor: =If(lcsPeoplePicker.Theme = "Dark", ColorFade(lcsPeoplePicker.AccentColor, 0.45), lcsPeoplePicker.AccentColor)
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =4
+                  RadiusTopRight: =4
+                  RadiusBottomLeft: =4
+                  RadiusBottomRight: =4
                   OnSelect: |-
                     =If(
                         !locTouched,
