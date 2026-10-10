@@ -288,6 +288,14 @@ export interface PublicProfile {
   avatarSeed: string;
 }
 
+/**
+ * What a comment is on: a guide (MVP-040), or a component in the library
+ * (MVP-051; docs/final-decisions.md, 2026-10-10, "Comments on component pages").
+ */
+export type CommentTarget =
+  | { kind: "guide"; articleId: string }
+  | { kind: "component"; componentId: string };
+
 export interface GuideComment extends PublicProfile {
   id: string;
   body: string;
@@ -299,8 +307,8 @@ export interface GuideComment extends PublicProfile {
 
 export interface AdminComment extends PublicProfile {
   id: string;
-  articleSlug: string;
-  articleTitle: string;
+  /** The guide or component it was posted on. */
+  on: { kind: "guide" | "component"; slug: string; title: string };
   body: string;
   createdAt: Date;
   removed: boolean;
@@ -314,9 +322,9 @@ export interface CommentRepository {
   /** False when another reader already has that name, in any case. */
   setDisplayName(userId: string, name: string): Promise<boolean>;
   setAvatarSeed(userId: string, seed: string): Promise<void>;
-  /** A guide's comments that aren't removed: the accepted one first, then oldest first. */
-  listVisible(articleId: string, viewerId: string | null): Promise<GuideComment[]>;
-  create(articleId: string, userId: string, body: string): Promise<{ id: string }>;
+  /** A guide's or component's comments that aren't removed: the accepted one first, then oldest first. */
+  listVisible(target: CommentTarget, viewerId: string | null): Promise<GuideComment[]>;
+  create(target: CommentTarget, userId: string, body: string): Promise<{ id: string }>;
   /** Deletes the reader's own comment; false if it isn't theirs. */
   deleteOwn(commentId: string, userId: string): Promise<boolean>;
   /** Records a report; false when the comment doesn't exist or is removed. */
@@ -326,6 +334,6 @@ export interface CommentRepository {
   setRemoved(commentId: string, removed: boolean): Promise<boolean>;
   /** An admin kept a reported comment: its reports are cleared. */
   clearReports(commentId: string): Promise<boolean>;
-  /** Marks a comment as its guide's accepted fix (clearing any other), or unmarks it. */
+  /** Marks a comment as its guide's or component's accepted answer (clearing any other there), or unmarks it. */
   setAccepted(commentId: string, accepted: boolean): Promise<boolean>;
 }

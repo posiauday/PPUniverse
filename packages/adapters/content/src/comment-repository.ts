@@ -4,6 +4,7 @@ import {
   generateDisplayName,
   type AdminComment,
   type CommentRepository,
+  type CommentTarget,
   type GuideComment,
   type PublicProfile,
 } from "@ppu/domain-content";
@@ -19,8 +20,16 @@ function randomSeed(random: () => number): string {
   return Math.floor(random() * 2 ** 48).toString(36);
 }
 
+/** The column that ties a comment to its guide or component (MVP-051). */
+function onTarget(target: CommentTarget): { articleId: string } | { componentId: string } {
+  return target.kind === "guide"
+    ? { articleId: target.articleId }
+    : { componentId: target.componentId };
+}
+
 /**
- * Comments on guides and readers' public profiles (MVP-040). A comment is
+ * Comments on guides (MVP-040) and components (MVP-051), and readers' public
+ * profiles. A comment is
  * only ever shown with the author's display name and avatar seed: the email
  * and the sign-in provider's `name` are never selected here.
  */
@@ -75,9 +84,9 @@ export class PrismaCommentRepository implements CommentRepository {
     await this.db.user.update({ where: { id: userId }, data: { avatarSeed: seed } });
   }
 
-  async listVisible(articleId: string, viewerId: string | null): Promise<GuideComment[]> {
+  async listVisible(target: CommentTarget, viewerId: string | null): Promise<GuideComment[]> {
     const rows = await this.db.articleComment.findMany({
-      where: { articleId, removedAt: null },
+      where: { ...onTarget(target), removedAt: null },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: 200,
       select: {
@@ -102,8 +111,11 @@ export class PrismaCommentRepository implements CommentRepository {
     return [...comments.filter((c) => c.accepted), ...comments.filter((c) => !c.accepted)];
   }
 
-  async create(articleId: string, userId: string, body: string): Promise<{ id: string }> {
-    return this.db.articleComment.create({ data: { articleId, userId, body }, select: { id: true } });
+  async create(target: CommentTarget, userId: string, body: string): Promise<{ id: string }> {
+    return this.db.articleComment.create({
+      data: { ...onTarget(target), userId, body },
+      select: { id: true },
+    });
   }
 
   async deleteOwn(commentId: string, userId: string): Promise<boolean> {
@@ -133,14 +145,17 @@ export class PrismaCommentRepository implements CommentRepository {
         removedAt: true,
         acceptedAt: true,
         article: { select: { slug: true, title: true } },
+        component: { select: { slug: true, title: true } },
         user: { select: { displayName: true, avatarSeed: true } },
         _count: { select: { reports: true } },
       },
     });
     return rows.map((row) => ({
       id: row.id,
-      articleSlug: row.article.slug,
-      articleTitle: row.article.title,
+      // The table's CHECK sets exactly one of the two.
+      on: row.article
+        ? { kind: "guide" as const, ...row.article }
+        : { kind: "component" as const, slug: row.component?.slug ?? "", title: row.component?.title ?? "" },
       body: row.body,
       createdAt: row.createdAt,
       removed: row.removedAt !== null,
@@ -168,14 +183,18 @@ export class PrismaCommentRepository implements CommentRepository {
   async setAccepted(commentId: string, accepted: boolean): Promise<boolean> {
     const comment = await this.db.articleComment.findFirst({
       where: { id: commentId, removedAt: null },
-      select: { articleId: true },
+      select: { articleId: true, componentId: true },
     });
     if (!comment) return false;
+    // One accepted answer per guide or component, not across the site.
+    const sameTarget = comment.articleId
+      ? { articleId: comment.articleId }
+      : { componentId: comment.componentId };
     await this.db.$transaction([
       ...(accepted
         ? [
             this.db.articleComment.updateMany({
-              where: { articleId: comment.articleId, acceptedAt: { not: null } },
+              where: { ...sameTarget, acceptedAt: { not: null } },
               data: { acceptedAt: null },
             }),
           ]

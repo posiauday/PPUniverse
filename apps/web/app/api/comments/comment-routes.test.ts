@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Comments and profiles (MVP-040): the HTTP layer, with the repositories and
- * the session mocked. The repository itself is tested against Postgres in
+ * Comments and profiles (MVP-040; on components, MVP-051): the HTTP layer,
+ * with the repositories and the session mocked. The repository itself is tested against Postgres in
  * @ppu/adapter-content.
  */
 const content = vi.hoisted(() => ({ findPublishedArticleBySlug: vi.fn() }));
+const library = vi.hoisted(() => ({ findPublicBySlug: vi.fn(), on: true }));
 const feedback = vi.hoisted(() => ({ consumeAllowance: vi.fn() }));
 const comments = vi.hoisted(() => ({
   getOrCreateProfile: vi.fn(),
@@ -22,6 +23,8 @@ const session = vi.hoisted(() => ({ userId: null as string | null, admin: false 
 const logs = vi.hoisted(() => ({ info: vi.fn() }));
 
 vi.mock("../../../lib/content", () => ({ contentRepository: content }));
+vi.mock("../../../lib/components", () => ({ componentRepository: library }));
+vi.mock("../../../lib/site-switches", () => ({ componentsLibraryOn: async () => library.on }));
 vi.mock("../../../lib/feedback", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../../lib/feedback")>()),
   feedbackRepository: feedback,
@@ -42,6 +45,7 @@ vi.mock("@ppu/telemetry", async (importOriginal) => ({
 }));
 
 const create = await import("../guides/[slug]/comments/route");
+const ask = await import("../components/[slug]/comments/route");
 const report = await import("./[id]/report/route");
 const remove = await import("./[id]/delete/route");
 const profile = await import("../account/profile/route");
@@ -72,6 +76,8 @@ beforeEach(() => {
   session.userId = "user-1";
   session.admin = false;
   content.findPublishedArticleBySlug.mockResolvedValue({ id: "art-1", slug: "a-guide" });
+  library.findPublicBySlug.mockResolvedValue({ id: "cmp-1", slug: "tree-view" });
+  library.on = true;
   feedback.consumeAllowance.mockResolvedValue(true);
   comments.getOrCreateProfile.mockResolvedValue({
     displayName: "Tidy Trigger 418",
@@ -97,7 +103,11 @@ describe("POST /api/guides/[slug]/comments", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(comments.getOrCreateProfile).toHaveBeenCalledWith("user-1", expect.any(Function));
-    expect(comments.create).toHaveBeenCalledWith("art-1", "user-1", BODY);
+    expect(comments.create).toHaveBeenCalledWith(
+      { kind: "guide", articleId: "art-1" },
+      "user-1",
+      BODY,
+    );
     expect(JSON.stringify(logs.info.mock.calls)).not.toContain("pagination");
   });
 
@@ -143,6 +153,57 @@ describe("POST /api/guides/[slug]/comments", () => {
     feedback.consumeAllowance.mockResolvedValueOnce(false);
     const response = await create.POST(post("/api/guides/a-guide/comments", { body: BODY }), slug);
     expect(response.status).toBe(429);
+    expect(comments.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/components/[slug]/comments (MVP-051)", () => {
+  const component = { params: Promise.resolve({ slug: "tree-view" }) };
+
+  it("posts a signed-in reader's question on a published component", async () => {
+    const response = await ask.POST(
+      post("/api/components/tree-view/comments", { body: BODY }),
+      component,
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(library.findPublicBySlug).toHaveBeenCalledWith("tree-view");
+    expect(comments.create).toHaveBeenCalledWith(
+      { kind: "component", componentId: "cmp-1" },
+      "user-1",
+      BODY,
+    );
+    expect(JSON.stringify(logs.info.mock.calls)).toContain('"on":"component"');
+    expect(JSON.stringify(logs.info.mock.calls)).not.toContain("pagination");
+  });
+
+  it("is a 404 for a component that isn't public, while the library is off, or comments are off", async () => {
+    library.findPublicBySlug.mockResolvedValueOnce(null);
+    expect(
+      (await ask.POST(post("/api/components/x/comments", { body: BODY }), component)).status,
+    ).toBe(404);
+    library.on = false;
+    expect(
+      (await ask.POST(post("/api/components/x/comments", { body: BODY }), component)).status,
+    ).toBe(404);
+    library.on = true;
+    vi.stubEnv("FEATURE_COMMENTS", "");
+    expect(
+      (await ask.POST(post("/api/components/x/comments", { body: BODY }), component)).status,
+    ).toBe(404);
+    expect(comments.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses guests and shares the readers' posting limits with guides", async () => {
+    session.userId = null;
+    expect(
+      (await ask.POST(post("/api/components/x/comments", { body: BODY }), component)).status,
+    ).toBe(401);
+    session.userId = "user-1";
+    feedback.consumeAllowance.mockResolvedValueOnce(false);
+    expect(
+      (await ask.POST(post("/api/components/x/comments", { body: BODY }), component)).status,
+    ).toBe(429);
     expect(comments.create).not.toHaveBeenCalled();
   });
 });

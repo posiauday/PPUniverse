@@ -5820,3 +5820,25 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 - Web tests (58, 16 new), typecheck and lint.
 - Locally, every card in the listing's own markup at 800 and 375 px. All fit below the category badge with nothing cut off; no sideways scroll on a phone.
 - Each hover end state, read in the browser, matches the list above. Screenshots checked.
+
+## 2026-10-10 — MVP-051: comments on component pages
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Comments on component pages").
+
+**Requirement:** FR-014. **Acceptance:** a published component's page lists its comments (accepted answer first) and lets a signed-in reader post one, with the guide comments' rules; guests get a sign-in link back to the component; reports, delete-own and moderation work as on guides; nothing on Coming soon, hidden or switched-off components.
+
+**Changed:**
+- **Database** (`20261018000000_add_component_comments`): `article_comments.componentId` (nullable, FK to `library_components`, cascade), `articleId` now nullable, and a CHECK that exactly one is set. Existing rows all have an `articleId`, so the CHECK holds. Additive, with a written rollback.
+- **Domain and repository:** a `CommentTarget` (guide or component) for listing and posting; one accepted answer per guide or component; the admin list says which one each comment is on.
+- **API:** `POST /api/components/[slug]/comments`. The guide route and it share one handler (`lib/comment-post.ts`), so the rules can't drift apart. Logs carry `on: guide | component`, never the text.
+- **Pages:** the comments section takes `kind` (Questions and discussion; Accepted answer; Sign in to ask or answer). Component pages show it after the guide, with a contents entry. `/admin/comments` links each comment to its guide or component.
+
+**Security review:** sign-in and the published check are enforced on the server; the same origin check, body limit, text cleaning, rate limits and no-store as guide comments; no email or provider name selected; RLS stays on for the table; the CHECK stops a comment pointing at both or neither.
+
+**Checked:**
+- Repository integration tests on a real Postgres: 7 pass, 2 new (a component's comments kept apart from a guide's, with its own accepted answer; the one-target CHECK).
+- Web tests: 918 pass (route and section tests added). Typecheck and lint pass.
+- Migration applied locally; `prisma migrate diff` from the database to the schema is empty.
+- Locally, the Tree view page with a seeded question and accepted answer: the section, its count, the accepted answer first, Report, the sign-in link and the contents entry.
+
+**Not yet:** a signed-in post in the browser (covered by route and repository tests). It needs `FEATURE_COMMENTS` on in production to show, like guide comments.

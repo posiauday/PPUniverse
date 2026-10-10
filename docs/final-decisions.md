@@ -2404,3 +2404,12 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - At rest, on touch screens and with reduced motion it is a still picture; the pointer only appears on hover. The picture stays decorative (`aria-hidden`).
 - Replaces the single drawing from "One live view" (2026-10-08) on the card; the component's page is unchanged.
 
+## 2026-10-10 — Comments on component pages
+
+**Source:** direct product-owner instruction: "you didn't add a comment section for each component, so logged-in users can ask questions or just discuss and help each other out."
+
+- Every published component's page has a **Questions and discussion** section: signed-in readers ask, answer and discuss.
+- **Same rules as guide comments** (2026-10-07, "Top bar names, AI search readiness, and comments"), as the safest reversible assumption: shown at once and removed if reported; each reader's display name and avatar, never their email; plain text and code, at most 2 links; the same hourly and daily limits wherever a reader posts; an admin can mark one **accepted answer**, shown first; moderated in `/admin/comments` with the guide comments.
+- Not on Coming soon, hidden or switched-off component pages. Behind the same `FEATURE_COMMENTS` switch as guide comments.
+- Story MVP-051.
+
