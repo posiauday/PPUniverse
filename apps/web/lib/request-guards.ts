@@ -6,11 +6,22 @@ import { siteOrigin } from "./site-url";
  * sign-in (MVP-036) and guide feedback (MVP-039, MVP-038).
  */
 
-/** Rejects requests from other sites: the browser's Origin header must be this site's. */
+/**
+ * Rejects requests from other sites: the browser's Origin header must be this
+ * site's public address, or the address the request was sent to (the standard
+ * same-origin check; it also covers a deploy preview and the accessibility
+ * suite's local server, whose public address is set to a placeholder). Another
+ * site's page always sends its own origin, so it matches neither.
+ */
 export function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
-  const expected = siteOrigin();
-  return !!origin && !!expected && origin === expected;
+  if (!origin) return false;
+  if (origin === siteOrigin()) return true;
+  try {
+    return origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
 }
 
 /** The caller's address, as Netlify reports it (falls back to the first forwarded hop). */

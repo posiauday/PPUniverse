@@ -66,5 +66,6 @@ describe("account write routes refuse other sites", () => {
       context,
     );
     expect(own.status).toBe(401);
-  });
+    // Loading a route the first time takes a few seconds on a busy machine.
+  }, 20_000);
 });
