@@ -7,11 +7,13 @@ describe("the Azure coming-soon page (2026-10-09)", () => {
     expect(metadata.robots).toMatchObject({ index: false });
   });
 
-  it("says it's coming soon, lists the planned areas and says the site is independent", () => {
+  it("says it's coming soon, lists the planned areas and asks what to cover first", () => {
     const text = renderToStaticMarkup(<AzureComingSoonPage />).replace(/<[^>]+>/g, " ");
     expect(text).toContain("Coming soon");
     expect(text).toContain("Azure + Power Platform");
     expect(text).toContain("Cost &amp; FinOps");
-    expect(text).toMatch(/isn.t affiliated with, endorsed by or certified by\s+Microsoft/);
+    expect(text).toContain("Which Azure problem should we cover first?");
+    // The independence line lives in the footer, not repeated here (2026-10-10).
+    expect(text).not.toContain("affiliated");
   });
 });
