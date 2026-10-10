@@ -4,7 +4,12 @@ import type { NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { EMAIL_FROM, notificationService } from "./email";
 import { EMAILS, renderEmail } from "./email-templates";
-import { googleCredentials, googleProvider, withoutStoredTokens } from "./google-auth";
+import {
+  googleCredentials,
+  googleEmailVerified,
+  googleProvider,
+  withoutStoredTokens,
+} from "./google-auth";
 import { confirmLinkFrom } from "./signin-confirm";
 
 // Migrated onto the real vendor abstraction (MVP-018, FR-013;
@@ -25,6 +30,8 @@ export const authOptions: NextAuthOptions = {
   // they're made"). Auth.js adds the page they were going to as callbackUrl.
   pages: { signIn: "/signin", newUser: "/account/welcome" },
   callbacks: {
+    // Google only with a verified email (site review, 2026-10-10; lib/google-auth.ts).
+    signIn: ({ account, profile }) => googleEmailVerified(account, profile),
     session: ({ session, user }) => {
       if (session.user) {
         session.user.id = user.id;

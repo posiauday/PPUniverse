@@ -22,7 +22,8 @@ export function profileFromGoogle(profile: { sub: string; email: string; name?: 
   name: string | null;
 } {
   // No photo: the users table has no image column, and we don't need one.
-  return { id: profile.sub, email: profile.email, name: profile.name ?? null };
+  // Lowercased like every other sign-in, so one person is one account (site review, 2026-10-10).
+  return { id: profile.sub, email: profile.email.trim().toLowerCase(), name: profile.name ?? null };
 }
 
 export function googleProvider(credentials: { clientId: string; clientSecret: string }) {
@@ -59,4 +60,19 @@ export function withoutStoredTokens(adapter: Adapter): Adapter {
     ...adapter,
     linkAccount: (account: AdapterAccount) => link(accountWithoutTokens(account)),
   };
+}
+
+/**
+ * Google may only sign someone in when it has verified their email (site
+ * review, 2026-10-10). Linking a Google sign-in to an existing account with
+ * the same email (allowDangerousEmailAccountLinking) is only safe for a
+ * verified address; without this, a Google account carrying someone else's
+ * unverified address could sign in as them. Other providers pass.
+ */
+export function googleEmailVerified(
+  account: { provider?: string } | null | undefined,
+  profile: unknown,
+): boolean {
+  if (account?.provider !== "google") return true;
+  return (profile as { email_verified?: unknown } | undefined)?.email_verified === true;
 }
