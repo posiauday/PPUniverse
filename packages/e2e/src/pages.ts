@@ -2042,7 +2042,10 @@ export const GATED_PAGES: readonly GatedPage[] = [
     status: 200,
     path: (seed) => `/admin/products/${seed.suspendedAdminProduct.id}/edit`,
     prepare: async (page) => {
-      await expect(page.getByText(/Status:\s*SUSPENDED/)).toBeVisible();
+      // MVP-052 phase 4: the status is a pill in the page's header.
+      await expect(
+        page.getByRole("main").locator("header").getByText("Suspended", { exact: true }),
+      ).toBeVisible();
       await expect(page.getByLabel(/change status to/i)).toBeVisible();
       await expect(page.getByLabel(/reason/i)).toBeVisible();
     },
