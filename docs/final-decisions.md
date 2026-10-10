@@ -2388,3 +2388,10 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - `/azure` no longer repeats the line in its body: the footer carries it on every page (and names Azure among the trademarks), as do the Terms, About and emails. This replaces item 3's "the teaser says the site is independent" in "Top bar: Azure, coming soon".
 - In its place the teaser asks "Which Azure problem should we cover first?" with a link to contact@lowcodestacks.com.
 
+## 2026-10-10 — Coming soon in Settings
+
+**Source:** direct product-owner question with a screenshot of a published component's admin page: "why is there no option to make this component coming soon?" (the option was the "Back to Coming soon" button under Publish).
+
+- Settings has the Coming soon box for every component. On a draft it works as before. On a published one it reads "Show as Coming soon instead", starts clear, and saving with it ticked moves the component back to a Coming soon draft (its paste-test kept), as "Component library: back to Coming soon" describes.
+- The separate "Back to Coming soon" button goes; Publish points to the box in Settings.
+

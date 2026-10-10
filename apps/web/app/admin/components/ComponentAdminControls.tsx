@@ -146,7 +146,13 @@ export function SettingsForm({
 }) {
   const router = useRouter();
   const baseId = useId();
-  const [values, setValues] = useState({ access, hidden, comingSoon });
+  // Published, the box means "move it back to Coming soon", so it starts clear
+  // (docs/final-decisions.md, 2026-10-10, "Coming soon in Settings").
+  const [values, setValues] = useState({
+    access,
+    hidden,
+    comingSoon: published ? false : comingSoon,
+  });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -155,12 +161,27 @@ export function SettingsForm({
     if (busy) return;
     setBusy(true);
     setMessage(null);
-    const result = await send(`/api/admin/components/${id}`, "PATCH", values);
+    const moveBack = published && values.comingSoon;
+    const result = await send(
+      `/api/admin/components/${id}`,
+      "PATCH",
+      moveBack ? { access: values.access, hidden: values.hidden } : values,
+    );
+    const moved =
+      result.ok && moveBack
+        ? await send(`/api/admin/components/${id}/coming-soon`, "POST")
+        : result;
     setBusy(false);
-    if (result.ok) {
-      setMessage({ ok: true, text: "Settings saved." });
+    if (result.ok && moved.ok) {
+      setMessage({
+        ok: true,
+        text: moveBack ? "Saved. It shows as Coming soon now." : "Settings saved.",
+      });
       router.refresh();
-    } else setMessage({ ok: false, text: result.message });
+    } else {
+      const failed = result.ok ? moved : result;
+      setMessage({ ok: false, text: failed.ok ? "Something went wrong." : failed.message });
+    }
   }
 
   return (
@@ -192,18 +213,18 @@ export function SettingsForm({
         />
         Hide from the site (it stays here, with its history)
       </label>
-      {published ? null : (
-        <label className="flex min-h-11 items-center gap-2">
-          <input
-            type="checkbox"
-            checked={values.comingSoon}
-            onChange={(event) =>
-              setValues((current) => ({ ...current, comingSoon: event.target.checked }))
-            }
-          />
-          Show as Coming soon: its card and page with a blurred picture, nothing to copy
-        </label>
-      )}
+      <label className="flex min-h-11 items-center gap-2">
+        <input
+          type="checkbox"
+          checked={values.comingSoon}
+          onChange={(event) =>
+            setValues((current) => ({ ...current, comingSoon: event.target.checked }))
+          }
+        />
+        {published
+          ? "Show as Coming soon instead: off the live list, a blurred picture and nothing to copy. Its paste-test is kept, so you can publish it again."
+          : "Show as Coming soon: its card and page with a blurred picture, nothing to copy"}
+      </label>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" className={BUTTON} aria-disabled={busy}>
           {busy ? "Saving…" : "Save settings"}
@@ -240,38 +261,6 @@ export function PublishComponentButton({ id, canPublish }: { id: string; canPubl
         className={`${BUTTON} ${canPublish ? "bg-foreground text-background" : "opacity-60"}`}
       >
         {busy ? "Publishing…" : "Publish component"}
-      </button>
-      <span role="status" className="text-sm text-coral">
-        {message}
-      </span>
-    </div>
-  );
-}
-
-/**
- * Takes a published component back to Coming soon (docs/final-decisions.md, 2026-10-09,
- * "Component library: back to Coming soon"): its card and page show a blurred picture and
- * nothing to copy, and its test record is kept so it can be published again.
- */
-export function MoveToComingSoonButton({ id }: { id: string }) {
-  const router = useRouter();
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-
-  async function move() {
-    if (busy) return;
-    setBusy(true);
-    setMessage(null);
-    const result = await send(`/api/admin/components/${id}/coming-soon`, "POST");
-    setBusy(false);
-    if (result.ok) router.refresh();
-    else setMessage(result.message);
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <button type="button" onClick={move} aria-disabled={busy} className={BUTTON}>
-        {busy ? "Moving…" : "Back to Coming soon"}
       </button>
       <span role="status" className="text-sm text-coral">
         {message}

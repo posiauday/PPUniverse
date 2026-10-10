@@ -5762,3 +5762,11 @@ The live preview's screen asks for a name on step 1 through `CanLeaveStep`, so t
 **Changed:** `/azure` drops the independence and trademark line (the footer has it on every page) and asks which Azure problem to cover first, with the contact address. Test updated.
 
 **Checked:** the page's tests (2) and lint.
+
+## 2026-10-10 — Coming soon in Settings
+
+**Asked:** the product owner looked for Coming soon in a published component's Settings (docs/final-decisions.md, 2026-10-10, "Coming soon in Settings").
+
+**Changed:** `SettingsForm` shows the box for published components too ("Show as Coming soon instead", unticked); saving with it ticked saves the other settings, then calls `POST /api/admin/components/[id]/coming-soon`. The separate button is removed; Publish points to Settings.
+
+**Checked:** new `SettingsForm` tests (2), admin and component tests (45), typecheck and lint.
