@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   accountWithoutTokens,
   googleCredentials,
+  googleEmailVerified,
   profileFromGoogle,
   withoutStoredTokens,
 } from "./google-auth";
@@ -40,6 +41,24 @@ describe("Google sign-in (MVP-035)", () => {
       email: "b@example.com",
       name: null,
     });
+  });
+
+  // Site review, 2026-10-10.
+  it("lowercases the email like every other sign-in", () => {
+    expect(profileFromGoogle({ sub: "2", email: " Avery@Contoso.com " }).email).toBe(
+      "avery@contoso.com",
+    );
+  });
+
+  it("signs in with Google only when Google verified the email", () => {
+    const google = { provider: "google" };
+    expect(googleEmailVerified(google, { email_verified: true })).toBe(true);
+    expect(googleEmailVerified(google, { email_verified: false })).toBe(false);
+    expect(googleEmailVerified(google, { email_verified: "true" })).toBe(false);
+    expect(googleEmailVerified(google, {})).toBe(false);
+    expect(googleEmailVerified(google, undefined)).toBe(false);
+    expect(googleEmailVerified({ provider: "email" }, undefined)).toBe(true);
+    expect(googleEmailVerified(null, undefined)).toBe(true);
   });
 
   it("never stores Google's tokens when linking an account", async () => {

@@ -29,8 +29,14 @@ vi.mock("../../../../lib/email", () => ({
 
 const { POST } = await import("./route");
 
+// The route only answers this site's own pages (site review, 2026-10-10).
+vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost");
+
 function makeRequest() {
-  return new Request("http://localhost/api/account/deletion-requests", { method: "POST" });
+  return new Request("http://localhost/api/account/deletion-requests", {
+    method: "POST",
+    headers: { Origin: "http://localhost" },
+  });
 }
 
 /**

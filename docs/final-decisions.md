@@ -2413,3 +2413,12 @@ The plan, with the proposed standard and pages (still to be signed off): `docs/p
 - Not on Coming soon, hidden or switched-off component pages. Behind the same `FEATURE_COMMENTS` switch as guide comments.
 - Story MVP-051.
 
+## 2026-10-10 — Admin centre: concept A with B's Inbox
+
+**Source:** direct product-owner instruction ("focused review on the admin centre, review each and everything inside, and make design changes to make the user experience top, with the best UI/UX"). After a review of all 23 admin pages and three rendered concepts (A: polished command centre; B: Inbox with split views; C: Studio), the product owner chose **A, with B's Inbox as the Overview**.
+
+- **Sidebar (A):** labelled, with an icon per area, live counts (red when something is reported, amber for work to finish such as paste-tests), and the current page in the brand-colour pill. Below the lg width it folds into "Admin · <page>" and a Menu button.
+- **Overview (B):** an Inbox of everything waiting, community first (reported comments, guide reports), then content (drafts, components to paste-test, what's scheduled), each with the controls its own page offers; tabs All, Community, Content. Beside it: this week's numbers, Quick create and recent activity.
+- **Every page:** the same header (eyebrow, title, description, actions). Lists become tables with search and status tabs; moderation becomes cards with the comment first; editors get a Save bar that stays in view, title first. Delivered in phases as story MVP-052.
+- Also asked in this round: the top-bar avatar at 52 px (it uses the bar's padding, so the bar keeps its height).
+

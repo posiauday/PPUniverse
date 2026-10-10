@@ -6,6 +6,7 @@ import { componentRepository } from "../../../lib/components";
 import { requireAdmin } from "../../../lib/require-admin";
 import { SITE_NAME } from "../../../lib/seo/site";
 import { componentsLibraryOn } from "../../../lib/site-switches";
+import { AdminPageHeader } from "../AdminPageHeader";
 
 export const metadata: Metadata = { title: `Component library | ${SITE_NAME}` };
 
@@ -22,24 +23,31 @@ export default async function AdminComponentsPage() {
   const components = await componentRepository.listForAdmin();
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">Component library</h1>
-      <p className="mt-2">
-        Components come from <code>content/components</code> as drafts on each release. Paste-test
-        each one in your developer environment, record the Studio version, then publish it.
-      </p>
+    <main className="flex flex-col gap-6 pb-10">
+      <AdminPageHeader
+        title="Component library"
+        description={
+          <>
+            Components come from <code>content/components</code> as drafts on each release.
+            Paste-test each one in your developer environment, record the Studio version, then
+            publish it.
+          </>
+        }
+      />
       {!(await componentsLibraryOn()) ? (
-        <p className="mt-2 rounded-xl bg-muted p-3">
+        <p className="rounded-xl bg-muted p-3">
           The library pages aren&apos;t public yet: <code>FEATURE_COMPONENTS</code> is off.
           Published components appear on the site once it&apos;s on.
         </p>
       ) : null}
       {components.length === 0 ? (
-        <p className="mt-8">No components yet.</p>
+        <p className="rounded-[1.25rem] border border-dashed border-border bg-card p-6 text-center text-muted-foreground">
+          No components yet.
+        </p>
       ) : (
-        <ul className="mt-8 flex flex-col gap-4">
+        <ul className="flex flex-col gap-3">
           {components.map((component) => (
-            <li key={component.id} className="rounded-2xl border border-border bg-card p-4">
+            <li key={component.id} className="rounded-[1.25rem] border border-border bg-card p-5">
               <h2 className="text-lg font-semibold">
                 <Link href={`/admin/components/${component.id}`}>{component.title}</Link>
               </h2>

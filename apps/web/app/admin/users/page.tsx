@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "../../../lib/require-admin";
-import { ROLE_LABEL, listUsers } from "../../../lib/roles";
+import { ROLES, ROLE_LABEL, countUsersByRole, listUsers } from "../../../lib/roles";
 import { SITE_NAME } from "../../../lib/seo/site";
+import { Avatar } from "../../Avatar";
+import { ListFrame, ListRow, ListToolbar } from "../AdminList";
+import { AdminPageHeader } from "../AdminPageHeader";
 import { RoleControl } from "./RoleControl";
 
 export const metadata: Metadata = { title: `Users and roles | ${SITE_NAME}` };
@@ -19,10 +22,16 @@ const DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "UTC",
 });
 
+const COLUMNS = "md:grid-cols-[minmax(0,1fr)_9rem_minmax(14rem,auto)]";
+
+const TAB_KEY = { ADMIN: "admins", CONTRIBUTOR: "contributors", MEMBER: "members" } as const;
+const TAB_LABEL = { ADMIN: "Admins", CONTRIBUTOR: "Contributors", MEMBER: "Members" } as const;
+
 /**
- * Users and roles (MVP-047, admin panel slice 2): everyone with an account,
- * newest first, searchable by email or display name, and their role. A
- * Contributor can do nothing a member can't until the product owner decides
+ * Users and roles (MVP-047, admin panel slice 2; redesigned in MVP-052 phase
+ * 3): everyone with an account, newest first, searchable by email or display
+ * name, with role tabs and counts, and each person's role. A Contributor can
+ * do nothing a member can't until the product owner decides
  * (docs/final-decisions.md, 2026-10-07). Admins only.
  */
 export default async function AdminUsersPage({
@@ -32,90 +41,87 @@ export default async function AdminUsersPage({
 }) {
   const admin = await requireAdmin();
   if (!admin) notFound();
-  const raw = (await searchParams)?.["q"];
+  const params = (await searchParams) ?? {};
+  const raw = params["q"];
   const query = typeof raw === "string" ? raw.slice(0, 100) : "";
-  const users = await listUsers(query, LIMIT);
+  const roleParam = typeof params["role"] === "string" ? params["role"] : "";
+  const role = ROLES.find((value) => TAB_KEY[value] === roleParam);
+  const [users, counts] = await Promise.all([
+    listUsers(query, LIMIT, role),
+    countUsersByRole(query),
+  ]);
+  const total = ROLES.reduce((sum, value) => sum + counts[value], 0);
 
   return (
-    <main className="flex flex-col gap-5 pb-10">
-      <h1 className="font-display text-3xl font-bold md:text-4xl">Users and roles</h1>
-      <p>
-        <strong>Member</strong>: every reader. <strong>Contributor</strong>: what a contributor may
-        do is still to be decided; for now, the same as a member. <strong>Admin</strong>: the whole
-        admin area. You can&rsquo;t change your own role, and the last admin always stays an admin.
-      </p>
-      <form
-        role="search"
-        action="/admin/users"
-        method="GET"
-        className="flex flex-wrap items-end gap-3"
+    <main className="flex flex-col gap-6 pb-10">
+      <AdminPageHeader
+        title="Users and roles"
+        description={
+          <>
+            <strong>Member</strong>: every reader. <strong>Contributor</strong>: what a contributor
+            may do is still to be decided; for now, the same as a member. <strong>Admin</strong>:
+            the whole admin area. You can&rsquo;t change your own role, and the last admin always
+            stays an admin.
+          </>
+        }
+      />
+      <ListToolbar
+        path="/admin/users"
+        noun="people"
+        label="Find someone by email or display name"
+        query={query}
+        status={role ? TAB_KEY[role] : "all"}
+        tabs={[
+          { key: "all", label: "Everyone", count: total },
+          ...(["ADMIN", "CONTRIBUTOR", "MEMBER"] as const).map((value) => ({
+            key: TAB_KEY[value],
+            label: TAB_LABEL[value],
+            count: counts[value],
+          })),
+        ]}
+        statusParam="role"
+      />
+      <ListFrame
+        headings={["Person", "Joined", "Role"]}
+        columns={COLUMNS}
+        empty={query ? <>No one matches &ldquo;{query}&rdquo;.</> : <>No one here yet.</>}
       >
-        <label className="flex flex-col gap-1.5 font-semibold">
-          Find someone by email or display name
-          <input
-            name="q"
-            type="search"
-            defaultValue={query}
-            className="h-11 w-full max-w-[24rem] rounded-2xl border-[1.5px] border-muted-foreground bg-card px-3 text-base font-normal"
-          />
-        </label>
-        <button
-          type="submit"
-          className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground"
-        >
-          Search
-        </button>
-      </form>
-      {users.length === 0 ? (
-        <p>{query ? `No one matches "${query}".` : "No one has an account yet."}</p>
-      ) : (
-        // relative: the screen-reader-only labels in the table are absolutely
-        // positioned, and must be clipped by this region, not stretch the page.
-        <div
-          role="region"
-          aria-label="People, scrollable"
-          tabIndex={0}
-          className="relative overflow-x-auto"
-        >
-          <table className="w-full min-w-[40rem] text-left">
-            <caption className="sr-only">
-              {users.length === LIMIT ? `The newest ${LIMIT} people` : "Everyone"}, newest first
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Email</th>
-                <th scope="col">Display name</th>
-                <th scope="col">Joined</th>
-                <th scope="col">Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="border-t border-border align-top">
-                  <td className="py-2.5 pr-3 [overflow-wrap:anywhere]">{user.email}</td>
-                  <td className="py-2.5 pr-3">{user.displayName ?? "–"}</td>
-                  <td className="py-2.5 pr-3 whitespace-nowrap">
-                    <time dateTime={user.createdAt.toISOString()}>
-                      {DATE.format(user.createdAt)}
-                    </time>
-                  </td>
-                  <td className="py-2.5">
-                    {user.id === admin.userId ? (
-                      `${ROLE_LABEL[user.role]} (you)`
-                    ) : (
-                      <RoleControl
-                        userId={user.id}
-                        role={user.role}
-                        who={user.displayName ?? user.email}
-                      />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        {users.map((user) => (
+          <ListRow key={user.id} columns={COLUMNS}>
+            <div className="flex min-w-0 items-center gap-3">
+              <Avatar
+                seed={user.avatarSeed ?? user.id}
+                name={user.displayName ?? undefined}
+                size={36}
+              />
+              <div className="min-w-0 [overflow-wrap:anywhere]">
+                <p className="font-semibold">{user.displayName ?? "No display name yet"}</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Joined{" "}
+              <time dateTime={user.createdAt.toISOString()}>{DATE.format(user.createdAt)}</time>
+            </p>
+            <div className="md:justify-self-end">
+              {user.id === admin.userId ? (
+                <span className="text-sm font-semibold">{ROLE_LABEL[user.role]} (you)</span>
+              ) : (
+                <RoleControl
+                  userId={user.id}
+                  role={user.role}
+                  who={user.displayName ?? user.email}
+                />
+              )}
+            </div>
+          </ListRow>
+        ))}
+      </ListFrame>
+      {users.length === LIMIT ? (
+        <p className="text-sm text-muted-foreground">
+          Showing the newest {LIMIT}. Search to find someone else.
+        </p>
+      ) : null}
     </main>
   );
 }

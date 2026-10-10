@@ -8,11 +8,19 @@ import { NextResponse } from "next/server";
 import { authOptions } from "../../../../../lib/auth";
 import { getCurrentSessionId } from "../../../../../lib/current-session";
 import { withObservability } from "../../../../../lib/observability";
+import { isSameOrigin } from "../../../../../lib/request-guards";
 
 export const DELETE = withObservability(
   "DELETE /api/me/sessions/[id]",
-  async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+  async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const correlationId = getCorrelationId() ?? "unknown";
+    // Only this site's own pages may call it (site review, 2026-10-10), like every other
+    // write route; the SameSite=Lax session cookie was the only cross-site defence.
+    if (!isSameOrigin(request))
+      return NextResponse.json(
+        createErrorEnvelope("FORBIDDEN", "Not allowed from another site.", correlationId),
+        { status: 403 },
+      );
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(

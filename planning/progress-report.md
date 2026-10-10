@@ -5842,3 +5842,67 @@ CSS only (Tailwind `group-hover`, `motion-safe` transitions). The pointer is hid
 - Locally, the Tree view page with a seeded question and accepted answer: the section, its count, the accepted answer first, Report, the sign-in link and the contents entry.
 
 **Not yet:** a signed-in post in the browser (covered by route and repository tests). It needs `FEATURE_COMMENTS` on in production to show, like guide comments.
+
+## 2026-10-10 — Full-site review: security fixes (BUG-044 to BUG-050)
+
+**Asked:** the product owner: "code review of the full site, and fix the vulnerabilities and anything you think is not right."
+
+**Reviewed:** all 65 routes (admin checks, origin checks, sign-in and sessions, password flows, uploads and downloads, entitlements, unsubscribe tokens, comments), raw SQL, HTML rendering (Markdown, JSON-LD, comments, emails, feeds), redirects, security headers and the CI workflow. Sound and unchanged: every admin route and page re-reads the role from the database; raw SQL is parameterised; Markdown never renders raw HTML; JSON-LD, feeds and emails escape; unsubscribe tokens are signed and compared in constant time; uploads are admin-only, owner-checked and scanned; password sign-in is timing-safe and throttled. The missing script-src in the CSP is already TD-029.
+
+**Fixed** (records in planning/bugs/):
+- BUG-044 (P1): an open redirect from /account/welcome; one shared redirect rule, `sameSitePath`, now behind both redirect checks.
+- BUG-045 (P1): emailed sign-in links had no rate limit; they now share the password emails' budget (5 an hour per address, 20 per IP).
+- BUG-046 (P0): Google sign-in now requires Google's email_verified before linking to an account.
+- BUG-047 (P3): Google emails are lowercased like every other sign-in.
+- BUG-048 (P3): a demoted admin loses the crown avatar.
+- BUG-049 (P2): search terms are cut at 200 characters and page numbers at 1,000.
+- BUG-050 (P2): consent, deletion requests, free product claims and session sign-out refuse other sites.
+
+**Checked:** web tests (947, with 5 new test files), identity (35) and catalog (103) tests, typecheck, lint, format.
+
+**Next:** the admin centre review the product owner asked for.
+
+## 2026-10-10 — MVP-052 phase 1: the admin shell and the Inbox
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10, "Admin centre: concept A with B's Inbox"), after a review of all 23 admin pages and three rendered concepts. Also asked: the top-bar avatar at 52 px.
+
+**Review findings** (to fix across the phases): headings and indents differ page to page; statuses shown as codes in capitals; names that don't match the sidebar; lists as lines of text with no search or filters; moderation as bulleted text with repeated buttons; narrow editors with the slug before the title and no Save bar in view; a Save button on every user row; the audit log's dates on four lines; a switch covering its label (BUG-051); a sideways scroll at 320 px (BUG-052); the whole menu before the content on phones.
+
+**Changed (phase 1):**
+- `AdminNav`: an icon per area, counts (red reported, amber to finish, with a new paste-test count), the current page in the brand-colour pill; below lg a one-line "Admin · <page>" bar with a Menu button.
+- `AdminPageHeader`: the shared header.
+- The Overview is an Inbox (`lib/admin-inbox.ts`): reported comments with Keep and Remove, guide reports with Close, drafts with Preview, Edit and Publish, components to paste-test, and what's scheduled; tabs All, Community, Content; beside it this week's numbers, Quick create and recent activity.
+- `ModerateButtons`: a compact Keep/Remove mode, and "accepted answer" on component questions (MVP-051).
+- BUG-051 and BUG-052 fixed. Sidebar names shortened to Components and Products so nothing wraps.
+
+**Checked:** web tests (934 + 1 slow guide test that passes alone), typecheck, lint; an axe run with the suite's blocking tags plus a sideways-scroll check on eight admin pages at 320, 375, 768 and 1280 px, light and dark: all clean, after fixing two contrast problems it found (the tab counts and the count in the current-page pill). The accessibility suite's admin-home state is updated for the Inbox and the folded menu.
+
+**Next:** phase 2, the lists.
+
+## 2026-10-10 — MVP-052 phase 2: the lists
+
+**Asked:** the product owner, to continue all phases while away (auto-merge, release each phase) and, on return, to see the options not taken: `docs/plans/admin-redesign-choices.md`.
+
+**Changed:** Guides, Updates and Products use shared list parts (`app/admin/AdminList.tsx`):
+- the shared header with totals and the New button;
+- a GET search form, status tabs with counts that keep the search, and a technology filter (guides, updates);
+- rows with the title, kind and technology chips, a status pill, the last change and their actions (Preview or View, Edit, Publish; Source on updates), lined up in fixed columns on wide screens and stacked on phones;
+- row controls are 44 px tall, like the site's buttons (also in the Inbox and the compact moderation buttons).
+
+**Checked:** web admin tests (9, 3 new), typecheck, lint; in the browser, search, tabs, the technology filter, the kept filters and the empty message; axe with the suite's blocking tags and a sideways-scroll check on the three lists and the Inbox at 320, 375, 768 and 1280 px, light and dark: clean.
+
+## 2026-10-10 — MVP-052 phase 3: the queues and the remaining pages
+
+**Asked:** the product owner (docs/final-decisions.md, 2026-10-10), continuing the phases while away.
+
+**Changed:**
+- Comments: each comment is a card with the reader's avatar, name, date, report, removed and accepted chips, what it's on, the text, and the moderation buttons (all 44 px tall, Remove filled); reported first, then the latest.
+- Feedback: open reports as cards with a Close button; the "Did this fix it?" table sits in a scroll region with a bar for the share of yes.
+- Users and roles: search by email or display name, tabs Everyone, Admins, Contributors and Members with counts (`countUsersByRole`), avatars, the join date, and a Save button that appears only once a different role is picked.
+- Audit log: area tabs with counts, a coloured chip per area, and each entry on two lines (what happened; who, when and why).
+- Learn topics, Components, a component's page, Deletion requests and Settings: the shared header and card styling; deletion requests show a state chip and 44 px buttons.
+- The publish buttons on guides and updates use the brand purple.
+
+**Checked:** web tests for the admin pages, API routes and lib (755), typecheck, lint, format; axe with the suite's blocking tags and a sideways-scroll check on the eight pages at 320, 375, 768 and 1280 px, light and dark: clean.
+
+**Next:** phase 4, the editors.

@@ -20,7 +20,12 @@ export function CloseReportButton({ reportId }: { reportId: string }) {
   if (state === "done") return <p role="status">Closed and deleted.</p>;
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <button type="button" onClick={() => void close()} aria-disabled={state === "busy"}>
+      <button
+        type="button"
+        onClick={() => void close()}
+        aria-disabled={state === "busy"}
+        className="min-h-11 rounded-full bg-foreground px-4 text-sm font-semibold text-background"
+      >
         {state === "busy" ? "Closing…" : "Close and delete"}
       </button>
       <p role="status" className="text-sm">

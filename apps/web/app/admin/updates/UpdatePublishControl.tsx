@@ -23,7 +23,12 @@ export function UpdatePublishControl({ updateId }: { updateId: string }) {
   if (status === "published") return <p role="status">Published.</p>;
   return (
     <div>
-      <button type="button" onClick={handlePublish} aria-disabled={status === "submitting"}>
+      <button
+        type="button"
+        onClick={handlePublish}
+        aria-disabled={status === "submitting"}
+        className="min-h-11 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white hover:bg-[#6d28d9]"
+      >
         {status === "submitting" ? "Publishing…" : "Publish"}
       </button>
       <p role="status">{status === "error" && "Something went wrong. Please try again."}</p>

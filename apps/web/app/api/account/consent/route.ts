@@ -6,6 +6,7 @@ import { getCorrelationId, logger } from "@ppu/telemetry";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../../../lib/auth";
+import { isSameOrigin } from "../../../../lib/request-guards";
 import { withObservability } from "../../../../lib/observability";
 
 /**
@@ -20,6 +21,13 @@ import { withObservability } from "../../../../lib/observability";
  */
 export const POST = withObservability("POST /api/account/consent", async (request: Request) => {
   const correlationId = getCorrelationId() ?? "unknown";
+  // Only this site's own pages may call it (site review, 2026-10-10), like every other
+  // write route; the SameSite=Lax session cookie was the only cross-site defence.
+  if (!isSameOrigin(request))
+    return NextResponse.json(
+      createErrorEnvelope("FORBIDDEN", "Not allowed from another site.", correlationId),
+      { status: 403 },
+    );
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json(

@@ -70,7 +70,11 @@ export function AdminDeletionRequestControls({
   }
 
   if (appliedState) {
-    return <p role="status">Updated to {appliedState}.</p>;
+    return (
+      <p role="status" className="text-sm font-semibold">
+        Updated to {appliedState}.
+      </p>
+    );
   }
 
   if (actions.length === 0) {
@@ -78,30 +82,40 @@ export function AdminDeletionRequestControls({
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       {actions.some((action) => action.needsReason) && (
-        <div>
-          <label htmlFor={reasonId}>Reason (required to deny)</label>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={reasonId} className="text-sm font-semibold">
+            Reason (required to deny)
+          </label>
           <input
             id={reasonId}
             type="text"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
+            className="min-h-11 w-full max-w-md rounded-xl border border-border bg-background px-3"
           />
         </div>
       )}
-      {actions.map((action) => (
-        <button
-          key={action.toState}
-          type="button"
-          onClick={() => handleAction(action.toState, Boolean(action.needsReason))}
-          aria-disabled={status === "submitting"}
-          aria-describedby={statusId}
-        >
-          {status === "submitting" ? "Saving…" : action.label}
-        </button>
-      ))}
-      <p id={statusId} role="status">
+      <div className="flex flex-wrap gap-2">
+        {actions.map((action) => (
+          <button
+            key={action.toState}
+            type="button"
+            onClick={() => handleAction(action.toState, Boolean(action.needsReason))}
+            aria-disabled={status === "submitting"}
+            aria-describedby={statusId}
+            className={
+              action.toState === "DENIED"
+                ? "min-h-11 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground hover:border-foreground"
+                : "min-h-11 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white hover:bg-[#6d28d9]"
+            }
+          >
+            {status === "submitting" ? "Saving…" : action.label}
+          </button>
+        ))}
+      </div>
+      <p id={statusId} role="status" className="text-sm">
         {status === "error" && "Something went wrong. Check the reason field and try again."}
       </p>
     </div>

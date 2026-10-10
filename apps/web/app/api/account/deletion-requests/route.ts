@@ -10,6 +10,7 @@ import { notificationService } from "../../../../lib/email";
 import { withObservability } from "../../../../lib/observability";
 import { EMAILS, renderEmail } from "../../../../lib/email-templates";
 import { CONTACT_EMAIL } from "../../../../lib/legal/pages";
+import { isSameOrigin } from "../../../../lib/request-guards";
 import { siteOrigin } from "../../../../lib/site-url";
 
 /**
@@ -22,8 +23,15 @@ import { siteOrigin } from "../../../../lib/site-url";
  */
 export const POST = withObservability(
   "POST /api/account/deletion-requests",
-  async (_request: Request) => {
+  async (request: Request) => {
     const correlationId = getCorrelationId() ?? "unknown";
+    // Only this site's own pages may call it (site review, 2026-10-10), like every other
+    // write route; the SameSite=Lax session cookie was the only cross-site defence.
+    if (!isSameOrigin(request))
+      return NextResponse.json(
+        createErrorEnvelope("FORBIDDEN", "Not allowed from another site.", correlationId),
+        { status: 403 },
+      );
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(

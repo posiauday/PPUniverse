@@ -2,7 +2,23 @@
 
 Source of truth for status: `planning/mvp-backlog.csv` (`Status` column). `planning/backlog.csv` mirrors it with Sprint/Points for kanban/sprint planning — the two are updated together. Updated per the "Project management rules" in `CLAUDE.md`.
 
-Last updated: 2026-10-10 (latest) — **MVP-051 in QA: comments on component pages.**
+Last updated: 2026-10-10 (latest) — **MVP-052 In Progress: admin redesign phase 3 (the queues and the remaining pages).**
+- **Built:** Comments and Feedback as cards, Users with search and role tabs, the audit log with area tabs, and the shared header on Learn topics, Components, Deletion requests and Settings; the options not taken are in docs/plans/admin-redesign-choices.md.
+- **Next:** phase 4, the editors (a Save bar that stays in view, the title before the slug).
+
+Last updated (previous): 2026-10-10 — **MVP-052 In Progress: admin redesign phase 2 (lists with search and status tabs).**
+- **Built:** Guides, Updates and Products with search, status tabs, a technology filter and aligned rows; the options not taken are in docs/plans/admin-redesign-choices.md.
+- **Next:** phase 3, comments, feedback, users, the audit log and the remaining pages' headers.
+
+Last updated (previous): 2026-10-10 — **MVP-052 In Progress: the admin centre redesign, phase 1 (sidebar and Inbox).**
+- **Built:** the redesigned sidebar with a one-line menu on phones, a shared page header, and the Overview as an Inbox of everything waiting (docs/final-decisions.md, 2026-10-10).
+- **Next:** phase 2, guides, updates and products as tables with search and status tabs.
+
+Last updated (previous): 2026-10-10 — **Full-site review: seven defects fixed (BUG-044 to BUG-050).**
+- **Fixed:** an open redirect, unlimited sign-in emails, Google sign-in without a verified email, unbounded search input, account routes without an origin check, and two smaller ones.
+- **Next:** the admin centre review; release #156 and #157.
+
+Last updated (previous): 2026-10-10 — **MVP-051 in QA: comments on component pages.**
 - **Built:** a Questions and discussion section on every published component page, with the guide comments' rules and moderation (docs/final-decisions.md, 2026-10-10).
 - **Next:** merge and release; the product owner's paste-tests of the drafts; then wave 3.
 

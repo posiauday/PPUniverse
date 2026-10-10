@@ -101,7 +101,7 @@ export function SiteSwitchToggle({
             }`}
           >
             <span
-              className={`absolute top-0.5 size-5 rounded-full transition-transform motion-reduce:transition-none ${
+              className={`absolute top-0.5 left-0 size-5 rounded-full transition-transform motion-reduce:transition-none ${
                 on ? "translate-x-[1.375rem] bg-background" : "translate-x-0.5 bg-foreground"
               }`}
             />
